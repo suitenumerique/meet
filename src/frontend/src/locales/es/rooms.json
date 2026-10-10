@@ -534,7 +534,9 @@
       "destination": "Esta grabación se conservará temporalmente en nuestros servidores",
       "loading": "Iniciando la grabación",
       "linkMore": "Más información",
-      "transcription": "Transcribir esta grabación"
+      "transcription": "Transcribir esta grabación",
+      "quality": "Calidad de vídeo ajustable.",
+      "qualityEdit": "Cambiar"
     },
     "button": {
       "start": "Empezar a grabar la reunión",

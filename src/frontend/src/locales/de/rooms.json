@@ -535,7 +535,9 @@
       "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
       "loading": "Aufzeichnung wird gestartet",
       "linkMore": "Mehr erfahren",
-      "transcription": "Diese Aufzeichnung transkribieren"
+      "transcription": "Diese Aufzeichnung transkribieren",
+      "quality": "Videoqualität anpassbar.",
+      "qualityEdit": "Ändern"
     },
     "button": {
       "start": "Meeting-Aufzeichnung starten",

@@ -535,7 +535,9 @@
       "destination": "This recording will be temporarily stored on our servers",
       "loading": "Starting recording",
       "linkMore": "Learn more",
-      "transcription": "Transcribe this recording"
+      "transcription": "Transcribe this recording",
+      "quality": "Adjustable video quality.",
+      "qualityEdit": "Change"
     },
     "button": {
       "start": "Start recording the meeting",

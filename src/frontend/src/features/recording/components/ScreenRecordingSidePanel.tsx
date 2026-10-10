@@ -1,4 +1,4 @@
-import { Div, H, Text } from '@/primitives'
+import { Button, Div, H, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
@@ -22,8 +22,13 @@ import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
 import { VStack } from '@/styled-system/jsx'
 import { Checkbox } from '@/primitives/Checkbox'
-import { useTranscriptionLanguage } from '@/features/settings'
+import {
+  SettingsDialogExtendedKey,
+  useTranscriptionLanguage,
+} from '@/features/settings'
 import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useRecordingEncoding } from '../hooks/useRecordingEncoding'
+import { openSettingsDialog } from '@/stores/settings'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { FeatureFlags } from '@/features/analytics/enums'
@@ -52,6 +57,8 @@ export const ScreenRecordingSidePanel = () => {
   const { notifyParticipants } = useNotifyParticipants()
   const { selectedLanguageKey, isLanguageSetToAuto } =
     useTranscriptionLanguage()
+
+  const { encoding, isCustomEncodingEnabled } = useRecordingEncoding()
 
   const roomId = useRoomId()
 
@@ -93,6 +100,7 @@ export const ScreenRecordingSidePanel = () => {
             language: selectedLanguageKey,
           }),
           ...(includeTranscript && hasTranscriptAccess && { transcribe: true }),
+          ...(encoding && { encoding }),
         }
 
         await startRecording({
@@ -107,6 +115,8 @@ export const ScreenRecordingSidePanel = () => {
         captureEvent('screen-recording-started', {
           includeTranscript: includeTranscript,
           language: selectedLanguageKey,
+          resolution: encoding?.resolution,
+          profile: encoding?.profile,
         })
       }
     } catch (error) {
@@ -183,9 +193,41 @@ export const ScreenRecordingSidePanel = () => {
         <RowWrapper iconName="cloud_download" position="first">
           <Text variant="sm">{t('details.destination')}</Text>
         </RowWrapper>
-        <RowWrapper iconName="mail" position="last">
+        <RowWrapper
+          iconName="mail"
+          position={isCustomEncodingEnabled ? 'middle' : 'last'}
+        >
           <Text variant="sm">{t('details.receiver')}</Text>
         </RowWrapper>
+        {isCustomEncodingEnabled && (
+          <RowWrapper iconName="file_settings_line" position="last">
+            <Text
+              variant="sm"
+              className={css({
+                minWidth: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              })}
+            >
+              {t('details.quality')}
+            </Text>
+            <Text
+              variant="sm"
+              className={css({ flexShrink: 0, whiteSpace: 'nowrap' })}
+            >
+              <Button
+                variant="text"
+                size="xs"
+                onPress={() =>
+                  openSettingsDialog(SettingsDialogExtendedKey.RECORDING)
+                }
+              >
+                {t('details.qualityEdit')}
+              </Button>
+            </Text>
+          </RowWrapper>
+        )}
         {hasTranscriptAccess && (
           <>
             <div className={css({ height: '15px' })} />

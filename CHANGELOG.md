@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend) let users pick the recording encoding
 - ✨(backend) introduce a token exchange endpoint for iframe embeds
 
 ### Changed
