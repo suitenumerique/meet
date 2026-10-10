@@ -14,6 +14,7 @@ import { type LocalParticipant, type Participant, Track } from 'livekit-client'
 import { isLocal } from '@/utils/livekit'
 import {
   useIsSpeaking,
+  useParticipantAttribute,
   useTrackMutedIndicator,
 } from '@livekit/components-react'
 import Source = Track.Source
@@ -86,6 +87,16 @@ type ParticipantListItemProps = {
 export const ParticipantRow = ({ participant }: ParticipantListItemProps) => {
   const { t } = useTranslation('rooms')
   const name = participant.name || participant.identity
+  const isSpeaker =
+    useParticipantAttribute('is_speaker', { participant }) === 'true'
+
+  const roleLabels = [
+    getParticipantIsRoomOwner(participant) && t('participants.host'),
+    getParticipantIsRoomAdmin(participant) && t('participants.cohost'),
+    getParticipantIsRoomMember(participant) && t('participants.member'),
+    isSpeaker && t('participants.speaker'),
+  ].filter(Boolean)
+
   return (
     <HStack
       role="listitem"
@@ -107,12 +118,7 @@ export const ParticipantRow = ({ participant }: ParticipantListItemProps) => {
             displayedName={name}
             isLocal={isLocal(participant)}
           />
-          <Text variant="xsNote">
-            {getParticipantIsRoomOwner(participant) && t('participants.host')}
-            {getParticipantIsRoomAdmin(participant) && t('participants.cohost')}
-            {getParticipantIsRoomMember(participant) &&
-              t('participants.member')}
-          </Text>
+          <Text variant="xsNote">{roleLabels.join(' · ')}</Text>
         </VStack>
       </HStack>
       <HStack flexShrink={0}>

@@ -1,12 +1,19 @@
 import { RoomEvent, Track } from 'livekit-client'
-import { useCallback, useMemo } from 'react'
-import { useConfig } from '@/api/useConfig'
+import { useCallback } from 'react'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { useRemoteParticipants } from '@livekit/components-react'
 import { useUpdateParticipantsPermissions } from '@/features/rooms/api/updateParticipantsPermissions'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
 import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
+import {
+  getParticipantIsSpeaker,
+  useParticipantSpeaker,
+} from '@/features/participants/api/updateParticipantSpeaker'
+import {
+  useDefaultPublishSources,
+  useRoomPublishSources,
+} from '@/features/rooms/livekit/hooks/useRoomPublishSources'
 import Source = Track.Source
 import {
   NotificationType,
@@ -33,8 +40,9 @@ export const usePublishSourcesManager = () => {
   const { mutateAsync: patchRoom } = usePatchRoom()
 
   const data = useRoomData()
-  const { data: configData } = useConfig()
   const configuration = data?.configuration
+  const currentSources = useRoomPublishSources()
+  const defaultSources = useDefaultPublishSources()
 
   const { notifyParticipants } = useNotifyParticipants()
 
@@ -42,25 +50,18 @@ export const usePublishSourcesManager = () => {
   const roomId = data?.slug
 
   const { updateParticipantsPermissions } = useUpdateParticipantsPermissions()
+  const { removeSpeaker } = useParticipantSpeaker()
   const remoteParticipants = useRemoteParticipants({
     updateOnlyOn: [RoomEvent.ParticipantAttributesChanged],
   })
 
-  const unprivilegedRemoteParticipants = remoteParticipants.filter(
-    (participant) => !getParticipantIsRoomAdminOrOwner(participant)
+  const restrictedRemoteParticipants = remoteParticipants.filter(
+    (participant) =>
+      !getParticipantIsRoomAdminOrOwner(participant) &&
+      !getParticipantIsSpeaker(participant)
   )
 
-  const currentSources = useMemo(() => {
-    const defaultSources = configData?.livekit?.default_sources ?? []
-
-    if (
-      configuration?.can_publish_sources == undefined ||
-      !Array.isArray(configuration?.can_publish_sources)
-    ) {
-      return defaultSources
-    }
-    return configuration.can_publish_sources
-  }, [configData, configuration?.can_publish_sources])
+  const speakers = remoteParticipants.filter(getParticipantIsSpeaker)
 
   const updateSource = useCallback(
     async (sources: Source[], enabled: boolean) => {
@@ -84,9 +85,15 @@ export const usePublishSourcesManager = () => {
         })
 
         await updateParticipantsPermissions(
-          unprivilegedRemoteParticipants,
+          restrictedRemoteParticipants,
           newSources
         )
+
+        if (isSubsetOf(defaultSources, newSources)) {
+          await Promise.all(
+            speakers.map((speaker) => removeSpeaker(speaker, newSources))
+          )
+        }
 
         if (!enabled) {
           /*
@@ -96,7 +103,7 @@ export const usePublishSourcesManager = () => {
            * */
           await notifyParticipants({
             type: NotificationType.PermissionsRemoved,
-            destinationIdentities: unprivilegedRemoteParticipants.map(
+            destinationIdentities: restrictedRemoteParticipants.map(
               (p) => p.identity
             ),
             additionalData: {
@@ -119,9 +126,12 @@ export const usePublishSourcesManager = () => {
       notifyParticipants,
       configuration,
       currentSources,
+      defaultSources,
       roomId,
       patchRoom,
-      unprivilegedRemoteParticipants,
+      restrictedRemoteParticipants,
+      speakers,
+      removeSpeaker,
       updateParticipantsPermissions,
     ]
   )
