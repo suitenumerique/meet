@@ -17,12 +17,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.15",
 ]
 description = "A simple video and phone conferencing tool, powered by LiveKit"
 keywords = ["Django", "Contacts", "Templates", "RBAC"]
 license = "MIT"
-requires-python = ">=3.13"
+requires-python = ">=3.15"
 dependencies = [
     "boto3==1.43.118",
     "Brotli==1.2.1",

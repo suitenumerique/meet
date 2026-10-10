@@ -46,4 +46,4 @@ fi
 mv src/backend/* ./
 mv deploy/paas/* ./
 
-echo "3.13" > .python-version
+echo "3.15" > .python-version

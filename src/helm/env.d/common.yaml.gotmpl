@@ -46,7 +46,7 @@ _summaryEnvVars: &summaryEnvVars
         "allowed_push_to_docs": false
       }
     ]
-  SSL_CERT_FILE: /usr/local/lib/python3.13/site-packages/certifi/cacert.pem
+  SSL_CERT_FILE: /usr/local/lib/python3.15/site-packages/certifi/cacert.pem
   IS_DOCS_INTEGRATION_ENABLED: false
   WHISPERX_API_KEY:
     secretKeyRef:
@@ -147,7 +147,7 @@ backend:
     # Permissions
     ALLOW_UNREGISTERED_ROOMS: False
     # Certs for dev purpose only
-    SSL_CERT_FILE: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
+    SSL_CERT_FILE: /app/.venv/lib/python3.15/site-packages/certifi/cacert.pem
     # Livekit
     {{- with .Values.livekit.keys }}
     {{- range $key, $value := . }}
@@ -230,7 +230,7 @@ backend:
 
   extraVolumeMounts:
     - name: certs
-      mountPath: /app/.venv/lib/python3.13/site-packages/certifi/cacert.pem
+      mountPath: /app/.venv/lib/python3.15/site-packages/certifi/cacert.pem
       subPath: cacert.pem
 
   extraVolumes:

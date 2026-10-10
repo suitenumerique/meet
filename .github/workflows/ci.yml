@@ -21,16 +21,19 @@ jobs:
           - service: backend
             working_directory: src/backend
             pylint_targets: meet demo core
+            python_version: "3.15"
           - service: agents
             working_directory: src/agents
             pylint_targets: ""
+            python_version: "3.14"
           - service: summary
             working_directory: src/summary
             pylint_targets: ""
+            python_version: "3.15"
     uses: suitenumerique/ci/.github/workflows/_python-lint.yml@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1
     with:
       working_directory: ${{ matrix.working_directory }}
-      python_version: "3.13"
+      python_version: ${{ matrix.python_version }}
       pylint_targets: ${{ matrix.pylint_targets }}
 
   test-back:
@@ -119,7 +122,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: "3.13"
+          python-version: "3.15"
       - name: Install uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
       - name: Install the dependencies
@@ -172,7 +175,7 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: "3.13"
+          python-version: "3.15"
 
       - name: Install uv
         uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0

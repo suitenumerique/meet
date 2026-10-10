@@ -11,6 +11,9 @@ To only try Meet, run [Quick Start](compose/quick-start.md) on a single server f
 - An [OIDC](https://openid.net/developers/how-connect-works/) provider, the identity service that signs users in, with a client for Meet
 - A [LiveKit](https://livekit.io/) server running elsewhere, see [LiveKit](#livekit)
 
+!!! note
+    The backend runs on Python 3.15, which `bin/buildpack_postfrontend.sh` writes to `.python-version`. Scalingo offers it on the scalingo-22 stack and later.
+
 ## Step 1: Create the app and its addons
 
 Create the app from a clone of Meet, so the CLI adds the `scalingo` Git remote that [Step 3](#step-3-deploy) pushes to, then add the PostgreSQL and Redis addons. They set `SCALINGO_POSTGRESQL_URL` and `SCALINGO_REDIS_URL`. Replace each `<plan>` with one that `scalingo addons-plans postgresql` or `scalingo addons-plans redis` lists:

@@ -236,7 +236,7 @@ class SpeechStream(stt.RecognizeStream):
             # signal end-of-stream; pipeline finishes pending utterances first
             self._utterance_chan.put_nowait(None)
             await pipeline_t
-        except (APIStatusError, APIConnectionError, asyncio.CancelledError):
+        except APIStatusError, APIConnectionError, asyncio.CancelledError:
             raise
         except Exception as exc:
             logger.exception("vLLM realtime stream failed")
@@ -377,7 +377,7 @@ class SpeechStream(stt.RecognizeStream):
                 send_t.cancel()
             try:
                 await send_t
-            except (asyncio.CancelledError, websockets.WebSocketException):
+            except asyncio.CancelledError, websockets.WebSocketException:
                 pass
             except Exception:
                 logger.exception("send-audio task failed during finalize")

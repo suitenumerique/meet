@@ -340,7 +340,7 @@ def get_resource_roles(resource: models.Model, user: User) -> List[str]:
             .values_list("role", flat=True)
             .distinct()
         )
-    except (IndexError, models.ObjectDoesNotExist):
+    except IndexError, models.ObjectDoesNotExist:
         return []
 
 

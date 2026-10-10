@@ -2,7 +2,7 @@
 [project]
 name = "agents"
 version = "1.37.0"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "livekit-agents==1.8.9",
     "livekit-plugins-deepgram==1.8.9",
@@ -25,7 +25,7 @@ dev = [
 package = false
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [

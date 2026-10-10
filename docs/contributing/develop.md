@@ -242,7 +242,7 @@ On a Nix workstation, [`devenv.nix`](https://github.com/suitenumerique/meet/blob
 
 | Command | What it does |
 |---|---|
-| `devenv shell` | Opens a shell with Python 3.13, Node.js 22, uv, gettext, the PostgreSQL client, the Docker and Podman clients, and installs gitlint as a commit-message hook. It points `docker` at the Podman socket: set `MEET_PODMAN_SOCKET=0` before entering to keep Docker |
+| `devenv shell` | Opens a shell with Python 3.15, Node.js 22, uv, gettext, the PostgreSQL client, the Docker and Podman clients, and installs gitlint as a commit-message hook. It points `docker` at the Podman socket: set `MEET_PODMAN_SOCKET=0` before entering to keep Docker |
 | `devenv --profile agents shell` | Adds what the LiveKit agents need, including the LiveKit CLI. The `summary` profile adds Redis, and `k8s` adds the tools listed under [Kubernetes with Tilt](#kubernetes-with-tilt) |
 | `meet-venv` | Inside the shell, creates or refreshes the virtual environments of `src/backend`, `src/agents` and `src/summary` |
 

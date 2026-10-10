@@ -142,7 +142,7 @@ class NotificationService:
             egress_list = await lkapi.egress.list_egress(
                 livekit_api.ListEgressRequest(egress_id=worker_id)  # pylint: disable=no-member
             )
-        except (livekit_api.TwirpError, OSError, asyncio.TimeoutError):
+        except livekit_api.TwirpError, OSError, asyncio.TimeoutError:
             logger.exception("Could not fetch egress info for worker %s", worker_id)
             return None, None
         finally:
@@ -176,7 +176,7 @@ class NotificationService:
         if owner_timezone:
             try:
                 dt = recording_datetime.astimezone(ZoneInfo(owner_timezone))
-            except (KeyError, ZoneInfoNotFoundError):
+            except KeyError, ZoneInfoNotFoundError:
                 pass  # Keep the original UTC datetime
 
         with override(locale):

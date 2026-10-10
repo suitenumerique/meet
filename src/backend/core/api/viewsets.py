@@ -494,7 +494,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
                 "collect_metadata": bool(recording.options.get("collect_metadata")),
             }
 
-        except (DjangoValidationError, IntegrityError):
+        except DjangoValidationError, IntegrityError:
             # DjangoValidationError covers the Python-level check (full_clean);
             # IntegrityError covers the race where two concurrent requests both
             # pass that check and the DB-level UNIQUE constraint catches the loser.
@@ -900,7 +900,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
                     room_name=str(room.pk),
                     identity=caller_identity,
                 )
-            except (ParticipantNotFoundException, ParticipantsManagementException):
+            except ParticipantNotFoundException, ParticipantsManagementException:
                 logger.warning(
                     "Failed to verify caller presence for mute in room %s; denying",
                     room.pk,

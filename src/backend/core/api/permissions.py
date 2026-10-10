@@ -228,7 +228,7 @@ class ParticipantCapability(permissions.BasePermission):
             return ParticipantsManagement().check_if_in_meeting_cached(
                 room_name=str(obj.pk), identity=str(user.sub)
             )
-        except (ParticipantNotFoundException, ParticipantsManagementException):
+        except ParticipantNotFoundException, ParticipantsManagementException:
             return False
 
 

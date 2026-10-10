@@ -3,8 +3,6 @@ Test utils.detect_mimetype
 Originally taken from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L166  # pylint:disable=line-too-long
 """
 
-import pytest
-
 from core import utils
 
 
@@ -124,9 +122,6 @@ def test_detect_mimetype_prefers_content_over_extension():
     assert mimetype == "application/pdf"
 
 
-@pytest.mark.xfail(
-    reason="Fails in our repo, but passes in the original repo, leaving it there"
-)
 def test_detect_mimetype_powerpoint_pptx():
     """Test detect_mimetype correctly detects PowerPoint .pptx files."""
     # .pptx files are ZIP archives, so content might be detected as application/zip or octet-stream

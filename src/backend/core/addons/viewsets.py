@@ -220,7 +220,7 @@ class SessionViewSet(viewsets.ViewSet):
                 {"detail": "Session not found."},
                 status=drf_status.HTTP_404_NOT_FOUND,
             )
-        except (SessionDataError, SessionExpiredError, SuspiciousSessionError):
+        except SessionDataError, SessionExpiredError, SuspiciousSessionError:
             return drf_response.Response(
                 {"detail": "Invalid or expired session."},
                 status=drf_status.HTTP_400_BAD_REQUEST,

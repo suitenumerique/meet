@@ -38,6 +38,7 @@ and this project adheres to
 - ♻️(backend) match emails in a single normalized form
 - ⚡️(backend) index user emails for exact lookups
 - ⬆️(backend) upgrade to django 6.1.3
+- ⬆️(all) upgrade python to 3.15
 
 ### Fixed
 

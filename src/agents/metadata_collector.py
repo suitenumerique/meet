@@ -231,7 +231,7 @@ class MetadataCollector:
             logger.info(
                 "Uploaded speaker meeting metadata",
             )
-        except (BotoCoreError, ClientError):
+        except BotoCoreError, ClientError:
             logger.exception(
                 "Failed to upload meeting metadata",
             )

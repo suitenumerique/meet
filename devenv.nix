@@ -9,7 +9,7 @@
 }:
 
 let
-  python = pkgs.python313;
+  python = pkgs.python315;
   nodejs = pkgs.nodejs_22;
 
   backendDir = "src/backend";
@@ -193,8 +193,9 @@ in
           echo "==> ${backendDir} (uv sync --locked, dependency-groups)"
           ( cd "${backendDir}" && uv sync --locked --all-groups )
 
-          echo "==> ${agentsDir} (uv sync --locked --all-extras)"
-          ( cd "${agentsDir}" && uv sync --locked --all-extras )
+          # livekit-agents does not support Python 3.15 yet: the agents stay on 3.14
+          echo "==> ${agentsDir} (uv sync --locked --all-extras, Python 3.14)"
+          ( cd "${agentsDir}" && uv sync --locked --all-extras --python ${pkgs.python314}/bin/python3.14 )
 
           echo "==> ${summaryDir} (uv sync --locked --all-extras)"
           ( cd "${summaryDir}" && uv sync --locked --all-extras )

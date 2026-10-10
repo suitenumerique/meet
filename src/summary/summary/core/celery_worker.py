@@ -347,7 +347,7 @@ def parse_llm_json(value: str) -> dict:
         if not isinstance(result, dict):
             raise ValueError
         return result
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         raise LLMException("Invalid LLM response") from None
 
 

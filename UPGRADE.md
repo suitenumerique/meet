@@ -16,6 +16,24 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Python 3.15
+
+The backend and summary images now run Python 3.15 instead of 3.13. The
+agents image stays on Python 3.14: LiveKit's agent framework and onnxruntime
+do not support Python 3.15 yet.
+
+The Python version is part of the site-packages path. If you mount your own
+CA bundle over certifi's `cacert.pem`, or point `SSL_CERT_FILE` at it,
+replace `python3.13` with `python3.15`, as in
+[the Helm values](src/helm/env.d/common.yaml.gotmpl):
+
+- backend: `/app/.venv/lib/python3.15/site-packages/certifi/cacert.pem`
+- summary: `/usr/local/lib/python3.15/site-packages/certifi/cacert.pem`
+
+On Scalingo, the build now asks for Python 3.15 through `.python-version`.
+Scalingo offers it on the scalingo-22 stack and later, see the
+[Scalingo guide](docs/self-hosting/scalingo.md).
+
 ### Django 6.1
 
 The backend moves from Django 5.2 LTS to Django 6.1.

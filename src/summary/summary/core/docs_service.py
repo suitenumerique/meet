@@ -85,7 +85,7 @@ def create_document_in_lasuite_docs(
     try:
         response_data = response.json()
         document_id = response_data.get("id", "N/A")
-    except (json.JSONDecodeError, AttributeError):
+    except json.JSONDecodeError, AttributeError:
         document_id = "Unable to parse response"
 
     logger.info(

@@ -47,7 +47,7 @@ def call_webhook_v2(
     try:
         response_data = response.json()
         document_id = response_data.get("id", "N/A")
-    except (json.JSONDecodeError, AttributeError):
+    except json.JSONDecodeError, AttributeError:
         document_id = "Unable to parse response"
         response_data = response.text
 

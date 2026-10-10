@@ -19,7 +19,9 @@ ignore-patterns=
 
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
 # number of processors available to use.
-jobs=0
+# Parallel mode pickles its state with dill, which fails on Python 3.15
+# (dill 0.4.1 still reads the removed code.co_lnotab), so stay sequential.
+jobs=1
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
