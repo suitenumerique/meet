@@ -28,7 +28,7 @@
         "groupName": "allowed django versions",
         "matchManagers": ["pep621"],
         "matchPackageNames": ["django"],
-        "allowedVersions": "<6.0.0"
+        "allowedVersions": "<7.0.0"
     },
     {
         "groupName": "allowed brevo versions",

@@ -16,6 +16,13 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Django 6.1
+
+The backend moves from Django 5.2 LTS to Django 6.1.
+
+**Required for every deployment:** PostgreSQL 15 or later since Django 6.1
+drops support for PostgreSQL 14.
+
 ### Illustrations served as WebP with a PNG fallback
 
 The illustrations in `assets/intro-slider/` are now served as WebP, the PNG files being kept as a fallback for browsers
