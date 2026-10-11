@@ -286,6 +286,7 @@ services:
       - "127.0.0.1:8001:8000"
     volumes:
       - ./src/summary:/app
+      - /app/.venv
     depends_on:
         - redis
 
@@ -300,6 +301,7 @@ services:
       - env.d/development/summary
     volumes:
       - ./src/summary:/app
+      - /app/.venv
     depends_on:
       - redis
       - app-summary-dev
@@ -320,6 +322,7 @@ services:
       - env.d/development/summary
     volumes:
       - ./src/summary:/app
+      - /app/.venv
     depends_on:
       - redis
       - app-summary-dev

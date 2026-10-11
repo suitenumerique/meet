@@ -16,6 +16,18 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Summary image: dependencies move to a virtualenv
+
+The summary image now installs its locked dependencies (`src/summary/uv.lock`)
+with uv into `/app/.venv`, like the backend and agents images, instead of
+running `pip install` into the system site-packages. `/app/.venv/bin` comes
+first on `PATH`, so the image's commands (`uvicorn`, `celery`) and custom
+`command`/`args` calling them keep working.
+
+If you point `SSL_CERT_FILE` at certifi's bundle or mount a CA bundle over it,
+use `/app/.venv/lib/python3.15/site-packages/certifi/cacert.pem` instead of
+the `/usr/local/lib/` path.
+
 ### Python 3.15
 
 The backend and summary images now run Python 3.15 instead of 3.13. The
@@ -23,12 +35,11 @@ agents image stays on Python 3.14: LiveKit's agent framework and onnxruntime
 do not support Python 3.15 yet.
 
 The Python version is part of the site-packages path. If you mount your own
-CA bundle over certifi's `cacert.pem`, or point `SSL_CERT_FILE` at it,
-replace `python3.13` with `python3.15`, as in
-[the Helm values](src/helm/env.d/common.yaml.gotmpl):
+CA bundle over certifi's `cacert.pem`, or point `SSL_CERT_FILE` at it, use
+these paths, as in [the Helm values](src/helm/env.d/common.yaml.gotmpl):
 
 - backend: `/app/.venv/lib/python3.15/site-packages/certifi/cacert.pem`
-- summary: `/usr/local/lib/python3.15/site-packages/certifi/cacert.pem`
+- summary: `/app/.venv/lib/python3.15/site-packages/certifi/cacert.pem`
 
 On Scalingo, the build now asks for Python 3.15 through `.python-version`.
 Scalingo offers it on the scalingo-22 stack and later, see the

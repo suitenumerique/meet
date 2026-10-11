@@ -28,4 +28,6 @@ If you want to develop on the Celery workers with hot reloading, run:
 docker compose watch celery-summary-transcribe celery-summary-summarize
 ```
 
-Celery workers will hot reload on any change.
+Celery workers will hot reload on any code change. A dependency change
+(`pyproject.toml`, `uv.lock`) rebuilds their image, but the recreated workers
+keep their old `/app/.venv` volume.

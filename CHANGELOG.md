@@ -39,6 +39,7 @@ and this project adheres to
 - ⚡️(backend) index user emails for exact lookups
 - ⬆️(backend) upgrade to django 6.1.3
 - ⬆️(all) upgrade python to 3.15
+- ⬆️(summary) upgrade fastapi to 0.165.0
 
 ### Fixed
 
