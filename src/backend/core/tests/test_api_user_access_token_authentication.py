@@ -7,7 +7,7 @@ existing role-based permissions apply unchanged. Room endpoint coverage
 with a user access token lives in the room test files.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from django.conf import settings as django_settings
 
@@ -60,7 +60,7 @@ def test_user_access_token_expired():
     """An expired user access token should be rejected."""
     user = UserFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     token = generate_user_access_token(
         user,
         iat=now - timedelta(hours=3),
@@ -93,7 +93,7 @@ def test_user_access_token_invalid_signature():
     """A token signed with the wrong key should defer and end unauthenticated."""
     user = UserFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     token = jwt.encode(
         {
             "iss": django_settings.USER_ACCESS_TOKEN_ISSUER,
@@ -173,7 +173,7 @@ def test_user_access_token_application_jwt_not_accepted_on_core_api():
     """An application-delegation JWT must not authenticate on the core API."""
     user = UserFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     token = jwt.encode(
         {
             "iss": django_settings.APPLICATION_JWT_ISSUER,

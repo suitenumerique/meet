@@ -1,7 +1,7 @@
 """API routes related to application tasks (V2 / tenant friendly)."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from celery.result import AsyncResult
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -57,7 +57,7 @@ async def create_transcribe_task_v2(
             {
                 **dump_for_transport(request),
                 "tenant_id": request_tenant.id,
-                "received_at": datetime.now(timezone.utc),
+                "received_at": datetime.now(UTC),
             }
         ]
     )
@@ -88,7 +88,7 @@ async def create_summarize_task_v2(
             {
                 **request.model_dump(),
                 "tenant_id": request_tenant.id,
-                "received_at": datetime.now(timezone.utc),
+                "received_at": datetime.now(UTC),
             }
         ]
     )

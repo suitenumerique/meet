@@ -136,6 +136,7 @@ select = [
     "S", # flake8-bandit
     "SLF", # flake8-self
     "T20", # flake8-print
+    "UP", # pyupgrade
 ]
 ignore= ["DJ001", "PLR2004"]
 

@@ -5,7 +5,7 @@ Tests for external API /room endpoint
 # pylint: disable=W0621,C0302
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 
 from django.conf import settings
@@ -42,7 +42,7 @@ pytestmark = pytest.mark.django_db
 
 def generate_addons_test_token(user, scopes, **overrides):
     """Generate a valid JWT token signed with the addons secret for testing."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     scope_string = " ".join(scopes)
 
     payload = {
@@ -64,7 +64,7 @@ def generate_addons_test_token(user, scopes, **overrides):
 
 def generate_test_token(user, scopes):
     """Generate a valid JWT token for testing."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     scope_string = " ".join(scopes)
 
     application = ApplicationFactory()
@@ -1735,7 +1735,7 @@ def test_api_rooms_token_scope_case_insensitive(settings):
 
     # Generate token with mixed-case scope "Rooms:List" to verify that scope
     # validation is case-insensitive (should match "rooms:list")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -1765,7 +1765,7 @@ def test_api_rooms_token_without_delegated_flag(settings):
     application = ApplicationFactory()
 
     # Generate token without delegated flag
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -1797,7 +1797,7 @@ def test_api_rooms_token_invalid_signature(mock_rs_authenticate, settings):
     application = ApplicationFactory()
 
     # Generate token without delegated flag
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -1829,7 +1829,7 @@ def test_api_rooms_token_invalid_alg(mock_rs_authenticate, settings):
     user = UserFactory()
 
     # Generate token without delegated flag
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -1858,7 +1858,7 @@ def test_api_rooms_token_missing_client_id(settings):
     """Token without client_id should be rejected."""
     user = UserFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -1887,7 +1887,7 @@ def test_api_rooms_token_missing_user_id(settings):
     """Token without user_id should be rejected."""
     application = ApplicationFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -1917,7 +1917,7 @@ def test_api_rooms_token_invalid_audience(settings):
     user = UserFactory()
     application = ApplicationFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": "invalid-audience",
@@ -1946,7 +1946,7 @@ def test_api_rooms_token_unknown_user(settings):
     """Token for unknown user should be rejected."""
     application = ApplicationFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -1974,7 +1974,7 @@ def test_api_rooms_token_unknown_user(settings):
 def test_api_rooms_token_unknown_application(settings):
     """Token for unknown application should be rejected."""
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -2003,7 +2003,7 @@ def test_api_rooms_token_inactive_application(settings):
     """Token for inactive application should be rejected."""
     application = ApplicationFactory(is_active=False)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.APPLICATION_JWT_ISSUER,
         "aud": settings.APPLICATION_JWT_AUDIENCE,
@@ -2520,7 +2520,7 @@ def test_api_rooms_addons_token_missing_user_id(settings):
     """Addons token without user_id should be rejected."""
 
     # Re-encode without user_id
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.ADDONS_TOKEN_ISSUER,
         "aud": settings.ADDONS_TOKEN_AUDIENCE,
@@ -2547,7 +2547,7 @@ def test_api_rooms_addons_token_invalid_audience(settings):
     """Addons token with an invalid audience should be rejected."""
     user = UserFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.ADDONS_TOKEN_ISSUER,
         "aud": "invalid-audience",
@@ -2572,7 +2572,7 @@ def test_api_rooms_addons_token_invalid_audience(settings):
 
 def test_api_rooms_addons_token_unknown_user(settings):
     """Addons token for an unknown user should be rejected."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.ADDONS_TOKEN_ISSUER,
         "aud": settings.ADDONS_TOKEN_AUDIENCE,
@@ -2617,7 +2617,7 @@ def test_api_rooms_addons_token_invalid_signature(mock_rs_authenticate, settings
     """Addons token signed with a wrong key should defer to the next authentication."""
     user = UserFactory()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "iss": settings.ADDONS_TOKEN_ISSUER,
         "aud": settings.ADDONS_TOKEN_AUDIENCE,

@@ -5,12 +5,11 @@
 import contextlib
 import json
 from logging import getLogger
-from typing import Dict, Optional
 
 from django.conf import settings
 
 from asgiref.sync import async_to_sync
-from livekit.api import (
+lazy from livekit.api import (
     DeleteRoomRequest,
     ListRoomsRequest,
     TwirpError,
@@ -42,8 +41,8 @@ class RoomManagement:
     async def update_metadata(
         cls,
         room_name: str,
-        metadata: Optional[Dict] = None,
-        remove_keys: Optional[list[str]] = None,
+        metadata: dict | None = None,
+        remove_keys: list[str] | None = None,
     ):
         """Merge values into a LiveKit room's metadata.
 

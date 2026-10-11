@@ -5,7 +5,7 @@ Tests for external API /users endpoints (transit codes)
 # pylint: disable=W0621
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import mock
 
 from django.conf import settings as django_settings
@@ -26,7 +26,7 @@ pytestmark = pytest.mark.django_db
 
 def generate_addons_test_token(user, scopes):
     """Generate a valid JWT token signed with the addons secret for testing."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     payload = {
         "iss": django_settings.ADDONS_TOKEN_ISSUER,
@@ -46,7 +46,7 @@ def generate_addons_test_token(user, scopes):
 
 def generate_test_token(user, scopes, application=None):
     """Generate a valid application JWT token for testing."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     scope_string = " ".join(scopes)
 
     if application is None:

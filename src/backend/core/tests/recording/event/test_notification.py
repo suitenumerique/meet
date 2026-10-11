@@ -257,7 +257,7 @@ def test_notify_user_by_email_queues_generic_task(settings):
 
     recording = factories.RecordingFactory(room__name="Conference Room A")
     recording.created_at = datetime.datetime(
-        2023, 5, 15, 14, 30, 0, tzinfo=datetime.timezone.utc
+        2023, 5, 15, 14, 30, 0, tzinfo=datetime.UTC
     )
     user = factories.UserFactory(
         email="franc@test.com", language="fr-fr", timezone="Europe/Paris"
@@ -339,8 +339,8 @@ def test_notify_summary_service_post_args_with_metadata(
         recording=recording, role=models.RoleChoices.OWNER, user=owner
     )
 
-    started_at = datetime.datetime(2026, 1, 2, 10, 30, tzinfo=datetime.timezone.utc)
-    ended_at = datetime.datetime(2026, 1, 2, 11, 45, tzinfo=datetime.timezone.utc)
+    started_at = datetime.datetime(2026, 1, 2, 10, 30, tzinfo=datetime.UTC)
+    ended_at = datetime.datetime(2026, 1, 2, 11, 45, tzinfo=datetime.UTC)
     mock_get_recording_timestamps.return_value = (started_at, ended_at)
     mock_generate_download_s3_url.side_effect = [
         "https://storage.test/metadata.json",

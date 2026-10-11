@@ -4,8 +4,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 
-from livekit.api import TokenVerifier
 from rest_framework import authentication, exceptions
+lazy from livekit.api import TokenVerifier
 
 UserModel = get_user_model()
 

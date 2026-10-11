@@ -37,9 +37,7 @@ def test_openapi_client_schema():
     response = Client().get("/api/v1.0/swagger.json")
 
     assert response.status_code == 200
-    with open(
-        "core/tests/swagger/swagger.json", "r", encoding="utf-8"
-    ) as expected_schema:
+    with open("core/tests/swagger/swagger.json", encoding="utf-8") as expected_schema:
         assert response.json() == json.load(expected_schema)
 
 

@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .ecs import ECS_VERSION, stream_fields
@@ -16,9 +16,9 @@ class AuditJsonFormatter(logging.Formatter):
         if not isinstance(document, dict):
             stream = stream_fields()
             document = {
-                "@timestamp": datetime.fromtimestamp(
-                    record.created, tz=timezone.utc
-                ).isoformat(timespec="milliseconds"),
+                "@timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(
+                    timespec="milliseconds"
+                ),
                 "ecs": {"version": ECS_VERSION},
                 "data_stream": stream["data_stream"],
                 "message": record.getMessage(),

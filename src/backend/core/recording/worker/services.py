@@ -5,7 +5,7 @@
 import logging
 
 from asgiref.sync import async_to_sync
-from livekit import api as livekit_api
+lazy from livekit import api as livekit_api
 
 from ... import utils
 from ..enums import FileExtension

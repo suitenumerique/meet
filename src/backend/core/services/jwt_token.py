@@ -3,8 +3,7 @@
 # pylint: disable=R0913,R0917
 # ruff: noqa: PLR0913
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -69,9 +68,7 @@ class JwtTokenService:
         self._expiration_seconds = expiration_seconds
         self._token_type = token_type
 
-    def generate_jwt(
-        self, user, scope: str, extra_payload: Optional[dict] = None
-    ) -> dict:
+    def generate_jwt(self, user, scope: str, extra_payload: dict | None = None) -> dict:
         """
         Generate an access token for the given user.
 
@@ -85,7 +82,7 @@ class JwtTokenService:
         Returns:
             Dictionary containing access_token, token_type, expires_in, and scope optionally
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         payload = extra_payload.copy() if extra_payload else {}
 

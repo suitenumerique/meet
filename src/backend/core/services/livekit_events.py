@@ -10,7 +10,7 @@ from logging import getLogger
 from django.conf import settings
 from django.utils import timezone
 
-from livekit import api
+lazy from livekit import api
 
 from core import audit, auditing, models
 from core.recording.enums import UNSUCCESSFUL_EVENTS, RecordingWorkerEvent
@@ -85,16 +85,17 @@ class LiveKitWebhookEventType(Enum):
     INGRESS_ENDED = "ingress_ended"
 
 
-# LiveKit egress statuses mapped to recording worker event statuses
-EGRESS_STATUS_TO_RECORDING_EVENT = {
-    api.EgressStatus.EGRESS_STARTING: RecordingWorkerEvent.STARTING,
-    api.EgressStatus.EGRESS_ACTIVE: RecordingWorkerEvent.STARTED,
-    api.EgressStatus.EGRESS_ENDING: RecordingWorkerEvent.SAVING,
-    api.EgressStatus.EGRESS_COMPLETE: RecordingWorkerEvent.COMPLETED,
-    api.EgressStatus.EGRESS_LIMIT_REACHED: RecordingWorkerEvent.LIMIT_REACHED,
-    api.EgressStatus.EGRESS_ABORTED: RecordingWorkerEvent.ABORTED,
-    api.EgressStatus.EGRESS_FAILED: RecordingWorkerEvent.FAILED,
-}
+# LiveKit egress status names mapped to recording worker event statuses. Keyed by
+# name, so that importing this module does not load the LiveKit SDK.
+EGRESS_STATUS_TO_RECORDING_EVENT = frozendict(
+    EGRESS_STARTING=RecordingWorkerEvent.STARTING,
+    EGRESS_ACTIVE=RecordingWorkerEvent.STARTED,
+    EGRESS_ENDING=RecordingWorkerEvent.SAVING,
+    EGRESS_COMPLETE=RecordingWorkerEvent.COMPLETED,
+    EGRESS_LIMIT_REACHED=RecordingWorkerEvent.LIMIT_REACHED,
+    EGRESS_ABORTED=RecordingWorkerEvent.ABORTED,
+    EGRESS_FAILED=RecordingWorkerEvent.FAILED,
+)
 
 EGRESS_ROOM_CONNECTION_FAILED_ERROR = "recording ended early: connection to room failed"
 EGRESS_CPU_EXHAUSTED_DETAILS = "End reason: CPU exhausted"
@@ -103,7 +104,11 @@ EGRESS_CPU_EXHAUSTED_DETAILS = "End reason: CPU exhausted"
 def to_recording_event(egress_status):
     """Translate a LiveKit egress status into a recording worker event."""
 
-    event = EGRESS_STATUS_TO_RECORDING_EVENT.get(egress_status)
+    try:
+        status_name = api.EgressStatus.Name(egress_status)
+    except ValueError:
+        status_name = None
+    event = EGRESS_STATUS_TO_RECORDING_EVENT.get(status_name)
     if event is None:
         logger.warning(
             "Unmapped LiveKit egress status '%s', ignoring the event.",

@@ -6,17 +6,16 @@
 import json
 import uuid
 from logging import getLogger
-from typing import Dict, Optional
 
 from asgiref.sync import async_to_sync
-from livekit.api import (
+lazy from livekit.api import (
     MuteRoomTrackRequest,
     RoomParticipantIdentity,
     TwirpError,
     TwirpErrorCode,
     UpdateParticipantRequest,
 )
-from livekit.protocol.models import ParticipantInfo
+lazy from livekit.protocol.models import ParticipantInfo
 
 from core import utils
 
@@ -120,10 +119,10 @@ class ParticipantsManagement:
         self,
         room_name: str,
         identity: str,
-        metadata: Optional[Dict] = None,
-        attributes: Optional[Dict] = None,
-        permission: Optional[Dict] = None,
-        name: Optional[str] = None,
+        metadata: dict | None = None,
+        attributes: dict | None = None,
+        permission: dict | None = None,
+        name: str | None = None,
     ):
         """Update participant properties such as metadata, attributes, permissions, or name."""
 

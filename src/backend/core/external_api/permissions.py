@@ -1,7 +1,6 @@
 """Permission handlers for application-delegated API access."""
 
 import logging
-from typing import Dict
 
 from django.conf import settings
 
@@ -18,7 +17,7 @@ class BaseScopePermission(permissions.BasePermission):
     Subclasses must define `scope_map` attribute mapping actions to required scopes.
     """
 
-    scope_map: Dict[str, str] = {}
+    scope_map: dict[str, str] = {}
 
     def get_required_scope(self, view):
         """Return the scope required by the view's current action.

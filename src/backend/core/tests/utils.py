@@ -2,7 +2,7 @@
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from django.conf import settings
 
@@ -18,7 +18,7 @@ def generate_user_access_token(user, application=None, **overrides):
     Claims can be overridden through keyword arguments; passing None for a
     claim removes it from the payload.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if application is None:
         application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])

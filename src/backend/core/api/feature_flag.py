@@ -9,16 +9,18 @@ from django.http import Http404
 class FeatureFlag:
     """Check if features are enabled and return error responses."""
 
-    FLAGS = {
-        "recording": "RECORDING_ENABLE",
-        "subtitle": "ROOM_SUBTITLE_ENABLED",
-        "file_upload": "FILE_UPLOAD_ENABLED",
-        "addons": "ADDONS_ENABLED",
-        "application": "APPLICATION_ENABLED",
-        "roomkit": "ROOMKIT_ENABLED",
-        "connection_test": "CONNECTION_TEST_ENABLED",
-        "user_access_token": "USER_ACCESS_TOKEN_ENABLED",
-    }
+    FLAGS = frozendict(
+        {
+            "recording": "RECORDING_ENABLE",
+            "subtitle": "ROOM_SUBTITLE_ENABLED",
+            "file_upload": "FILE_UPLOAD_ENABLED",
+            "addons": "ADDONS_ENABLED",
+            "application": "APPLICATION_ENABLED",
+            "roomkit": "ROOMKIT_ENABLED",
+            "connection_test": "CONNECTION_TEST_ENABLED",
+            "user_access_token": "USER_ACCESS_TOKEN_ENABLED",
+        }
+    )
 
     @classmethod
     def flag_is_active(cls, flag_name):

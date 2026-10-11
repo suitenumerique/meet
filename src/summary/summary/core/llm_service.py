@@ -1,10 +1,17 @@
 """LLM service to encapsulate LLM's calls."""
 
 import logging
-from typing import Any, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any
 
-import openai
-from langfuse import Langfuse
+lazy import openai
+lazy from langfuse import Langfuse
+
+# Importing Langfuse's OpenAI wrapper patches the openai SDK for the whole process:
+# calls from any OpenAI client then go through Langfuse, which logs a warning on
+# each call if LANGFUSE_PUBLIC_KEY is missing. Being lazy, the import only happens
+# when observability is enabled.
+lazy from langfuse.openai import openai as langfuse_openai
 
 from summary.core.config import get_settings
 
@@ -30,7 +37,7 @@ class LLMObservability:
         user_has_tracing_consent: bool = False,
     ):
         """Initialize the LLMObservability client."""
-        self._observability_client: Optional[Langfuse] = None
+        self._observability_client: Langfuse | None = None
         self.session_id = session_id
         self.user_id = user_id
 
@@ -80,11 +87,6 @@ class LLMObservability:
             logger.debug("Using regular OpenAI client (observability disabled)")
             return openai.OpenAI(**base_args)
 
-        # Langfuse's OpenAI wrapper is imported here to avoid triggering client
-        # init at module load, which would log a warning if LANGFUSE_PUBLIC_KEY
-        # is missing. Conditional import ensures Langfuse only initializes when enabled.
-        from langfuse.openai import openai as langfuse_openai  # noqa: PLC0415
-
         logger.debug("Using LangfuseOpenAI client (observability enabled)")
         return langfuse_openai.OpenAI(**base_args)
 
@@ -111,7 +113,7 @@ class LLMService:
         system_prompt: str,
         user_prompt: str,
         name: str,
-        response_format: Optional[Mapping[str, Any]] = None,
+        response_format: Mapping[str, Any] | None = None,
     ):
         """Call the LLM service.
 

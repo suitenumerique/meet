@@ -6,7 +6,7 @@ import logging
 import socket
 import uuid
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from django.conf import settings
@@ -127,7 +127,7 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
 
     document = prune_empty(
         {
-            "@timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds"),
+            "@timestamp": datetime.now(UTC).isoformat(timespec="milliseconds"),
             "ecs": {"version": ECS_VERSION},
             "data_stream": stream["data_stream"],
             "message": message,

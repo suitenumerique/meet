@@ -3,8 +3,8 @@
 import hashlib
 import hmac
 import secrets
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from logging import getLogger
 
 from django.conf import settings
@@ -45,14 +45,14 @@ class SuspiciousSessionError(Exception):
     """Raised when session state indicates a possible attack or bug."""
 
 
-class SessionState(str, Enum):
+class SessionState(StrEnum):
     """Add-on authentication session lifecycle states."""
 
     PENDING = "pending"
     AUTHENTICATED = "authenticated"
 
 
-class TransitTokenState(str, Enum):
+class TransitTokenState(StrEnum):
     """Transit token lifecycle states; CONSUMED is retained to detect replay."""
 
     PENDING = "pending"
@@ -106,9 +106,7 @@ class TokenExchangeService:
         except ValueError as e:
             raise SessionDataError("Invalid session data: malformed expiration.") from e
 
-        remaining_seconds = int(
-            (expires_at - datetime.now(timezone.utc)).total_seconds()
-        )
+        remaining_seconds = int((expires_at - datetime.now(UTC)).total_seconds())
 
         if remaining_seconds <= 0:
             raise SessionExpiredError("Session expired.")
@@ -134,7 +132,7 @@ class TokenExchangeService:
         csrf_token = self._derive_csrf_token(session_id)
 
         expires_at = (
-            datetime.now(timezone.utc) + timedelta(seconds=settings.ADDONS_SESSION_TTL)
+            datetime.now(UTC) + timedelta(seconds=settings.ADDONS_SESSION_TTL)
         ).isoformat()
 
         session_data = {

@@ -15,26 +15,28 @@ import secrets
 import string
 from datetime import timedelta
 from functools import lru_cache
-from typing import List, Optional
 from uuid import UUID, uuid4
 
 from django.conf import settings
 from django.core.files.storage import default_storage
 
-import aiohttp
-import boto3
-import botocore
-import magic
-import phonenumbers
 from asgiref.sync import async_to_sync
-from livekit.api import (  # pylint: disable=E0611
+lazy import aiohttp
+lazy import boto3
+lazy import botocore.auth
+lazy import botocore.awsrequest
+lazy import botocore.client
+lazy import magic
+lazy import phonenumbers
+lazy from livekit.api import (  # pylint: disable=E0611
     AccessToken,
     ListRoomsRequest,
-    LiveKitAPI,
     SendDataRequest,
     TwirpError,
     VideoGrants,
 )
+
+lazy from core.livekit_client import LiveKitClient
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +66,12 @@ def generate_color(identity: str) -> str:
 def generate_token(  # noqa: PLR0917
     room: str,
     user,
-    username: Optional[str] = None,
-    color: Optional[str] = None,
-    sources: Optional[List[str]] = None,
-    role: Optional[str] = None,
-    participant_id: Optional[str] = None,
-    ttl: Optional[timedelta] = None,
+    username: str | None = None,
+    color: str | None = None,
+    sources: list[str] | None = None,
+    role: str | None = None,
+    participant_id: str | None = None,
+    ttl: timedelta | None = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -149,10 +151,10 @@ def generate_livekit_config(  # noqa: PLR0917
     room_id: str,
     user,
     username: str,
-    role: Optional[str] = None,
-    color: Optional[str] = None,
-    configuration: Optional[dict] = None,
-    participant_id: Optional[str] = None,
+    role: str | None = None,
+    color: str | None = None,
+    configuration: dict | None = None,
+    participant_id: str | None = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -229,14 +231,6 @@ async def bound_livekit_request(request, handler):
         response = await handler(request)
         await response.read()
     return response
-
-
-class LiveKitClient(LiveKitAPI):
-    """A LiveKit API client that closes the session it is given."""
-
-    async def aclose(self):
-        """Close the session, which LiveKitAPI leaves open when it did not create it."""
-        await self._session.close()
 
 
 def create_livekit_client(custom_configuration=None):

@@ -1,9 +1,8 @@
 """Service to notify external services when a new recording is ready."""
 
-import asyncio
 import logging
 import smtplib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.conf import settings
@@ -13,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 import requests
 from asgiref.sync import async_to_sync
 from celery.exceptions import OperationalError as CeleryOperationalError
-from livekit import api as livekit_api
+lazy from livekit import api as livekit_api
 
 from core import audit, auditing, models, utils
 from core.analytics import UserFeatureFlag, is_user_feature_flag_enabled
@@ -142,7 +141,7 @@ class NotificationService:
             egress_list = await lkapi.egress.list_egress(
                 livekit_api.ListEgressRequest(egress_id=worker_id)  # pylint: disable=no-member
             )
-        except livekit_api.TwirpError, OSError, asyncio.TimeoutError:
+        except TimeoutError, livekit_api.TwirpError, OSError:
             logger.exception("Could not fetch egress info for worker %s", worker_id)
             return None, None
         finally:
@@ -155,7 +154,7 @@ class NotificationService:
         file_result = egress_list.items[0].file_results[0]
 
         def _ns_to_utc(ns):
-            return datetime.fromtimestamp(ns / 1e9, tz=timezone.utc) if ns else None
+            return datetime.fromtimestamp(ns / 1e9, tz=UTC) if ns else None
 
         return _ns_to_utc(file_result.started_at), _ns_to_utc(file_result.ended_at)
 

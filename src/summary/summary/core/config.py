@@ -1,8 +1,9 @@
 """Application configuration and settings."""
 
 import logging
+from collections.abc import Mapping
 from functools import cached_property, lru_cache
-from typing import Annotated, List, Mapping, Optional, Set
+from typing import Annotated
 
 from fastapi import Depends
 from pydantic import (
@@ -55,7 +56,7 @@ class Settings(BaseSettings):
     authorized_tenants: tuple[AuthorizedTenant, ...] = Field(min_length=1)
 
     # Audio recordings
-    recording_max_duration: Optional[int] = None
+    recording_max_duration: int | None = None
     codec_to_extension: dict[str, str] = Field(
         default_factory=lambda: {
             "aac": ".m4a",
@@ -94,14 +95,14 @@ class Settings(BaseSettings):
     whisperx_base_url: Url = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
     # ISO 639-1 language code (e.g., "en", "fr", "es")
-    whisperx_default_language: Optional[str] = None
-    whisperx_allowed_languages: Set[str] = {"en", "fr", "de", "nl"}
+    whisperx_default_language: str | None = None
+    whisperx_allowed_languages: set[str] = {"en", "fr", "de", "nl"}
     llm_base_url: str
     llm_api_key: SecretStr
     llm_model: str
 
     # Transcription processing
-    hallucination_patterns: List[str] = ["Vap'n'Roll Thierry"]
+    hallucination_patterns: list[str] = ["Vap'n'Roll Thierry"]
 
     # Speaker to user assignment
     is_resolve_speaker_identities_enabled: bool = True
@@ -111,7 +112,7 @@ class Settings(BaseSettings):
 
     # Webhook-related settings
     webhook_max_retries: int = 2
-    webhook_status_forcelist: List[int] = [502, 503, 504]
+    webhook_status_forcelist: list[int] = [502, 503, 504]
     webhook_backoff_factor: float = 0.1
     app_external_user_agent: str = "summary"
 
@@ -127,13 +128,13 @@ class Settings(BaseSettings):
 
     # Sentry
     sentry_is_enabled: bool = False
-    sentry_dsn: Optional[str] = None
+    sentry_dsn: str | None = None
     sentry_traces_sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
 
     # Posthog (analytics)
     posthog_enabled: bool = False
-    posthog_api_key: Optional[str] = None
-    posthog_api_host: Optional[str] = "https://eu.i.posthog.com"
+    posthog_api_key: str | None = None
+    posthog_api_host: str | None = "https://eu.i.posthog.com"
     posthog_transcript_request: str = "transcript-request"
     posthog_transcript_failure: str = "transcript-failure"
     posthog_transcript_success: str = "transcript-success"
@@ -143,10 +144,10 @@ class Settings(BaseSettings):
 
     # Langfuse (LLM Observability)
     langfuse_enabled: bool = False
-    langfuse_host: Optional[str] = None
-    langfuse_public_key: Optional[str] = None
-    langfuse_secret_key: Optional[SecretStr] = None
-    langfuse_environment: Optional[str] = "development"
+    langfuse_host: str | None = None
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_environment: str | None = "development"
 
     # TaskTracker
     task_tracker_redis_url: str = "redis://redis/0"

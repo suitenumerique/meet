@@ -45,7 +45,7 @@ class RequestContext:
     user_agent: str | None = None
 
     @classmethod
-    def from_request(cls, request) -> "RequestContext":
+    def from_request(cls, request) -> RequestContext:
         """Read the context of ``request``, its user agent cut where ECS stops."""
         meta = getattr(request, "META", None) or {}
         return cls(

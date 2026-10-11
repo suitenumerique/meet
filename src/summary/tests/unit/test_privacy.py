@@ -166,7 +166,7 @@ def test_task_arguments_have_private_display_representations(monkeypatch):
 
 def test_analytics_source_url_removes_signature():
     """Task analytics keeps the source path without credentials or signature."""
-    from datetime import datetime, timezone  # noqa: PLC0415
+    from datetime import UTC, datetime  # noqa: PLC0415
 
     from summary.core.models import TranscribeTaskJob  # noqa: PLC0415
 
@@ -179,7 +179,7 @@ def test_analytics_source_url_removes_signature():
         tenant_id="tenant",
         cloud_storage_url=URL,
         language="en",
-        received_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        received_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
     manager.create("job", payload)
     metadata = manager._save_metadata.call_args.args[1]

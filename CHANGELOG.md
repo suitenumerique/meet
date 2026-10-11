@@ -40,6 +40,7 @@ and this project adheres to
 - ⬆️(backend) upgrade to django 6.1.3
 - ⬆️(all) upgrade python to 3.15
 - ⬆️(summary) upgrade fastapi to 0.165.0
+- ♻️(all) adopt python 3.14 and 3.15 features
 
 ### Fixed
 

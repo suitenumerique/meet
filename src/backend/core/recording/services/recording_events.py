@@ -27,16 +27,20 @@ class RecordingNotSavableError(Exception):
 
 
 # Notification sent to the room's participants, per event and recording mode.
-NOTIFICATION_PREFIXES = {
-    models.RecordingModeChoices.SCREEN_RECORDING: "screenRecording",
-    models.RecordingModeChoices.TRANSCRIPT: "transcription",
-}
-NOTIFICATION_SUFFIXES = {
-    RecordingWorkerEvent.LIMIT_REACHED: "LimitReached",
-    RecordingWorkerEvent.INTERRUPTED: "Interrupted",
-    RecordingWorkerEvent.FAILED: "Failed",
-    RecordingWorkerEvent.ABORTED: "Aborted",
-}
+NOTIFICATION_PREFIXES = frozendict(
+    {
+        models.RecordingModeChoices.SCREEN_RECORDING: "screenRecording",
+        models.RecordingModeChoices.TRANSCRIPT: "transcription",
+    }
+)
+NOTIFICATION_SUFFIXES = frozendict(
+    {
+        RecordingWorkerEvent.LIMIT_REACHED: "LimitReached",
+        RecordingWorkerEvent.INTERRUPTED: "Interrupted",
+        RecordingWorkerEvent.FAILED: "Failed",
+        RecordingWorkerEvent.ABORTED: "Aborted",
+    }
+)
 
 
 def get_notification_type(recording_mode, event):
@@ -48,10 +52,12 @@ def get_notification_type(recording_mode, event):
 
 
 # Recording status in the room's metadata, per event.
-ROOM_METADATA_RECORDING_STATUSES = {
-    RecordingWorkerEvent.STARTED: "started",
-    RecordingWorkerEvent.SAVING: "saving",
-}
+ROOM_METADATA_RECORDING_STATUSES = frozendict(
+    {
+        RecordingWorkerEvent.STARTED: "started",
+        RecordingWorkerEvent.SAVING: "saving",
+    }
+)
 
 
 class RecordingEventsService:

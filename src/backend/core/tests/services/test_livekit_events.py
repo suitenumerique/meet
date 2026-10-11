@@ -465,7 +465,7 @@ def test_egress_status_mapping_covers_every_livekit_status():
     unmapped = [
         name
         for name in EgressStatus.keys()
-        if getattr(EgressStatus, name) not in EGRESS_STATUS_TO_RECORDING_EVENT
+        if name not in EGRESS_STATUS_TO_RECORDING_EVENT
     ]
 
     assert not unmapped

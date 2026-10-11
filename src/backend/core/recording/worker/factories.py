@@ -5,21 +5,14 @@
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any, ClassVar, Dict, Optional, Protocol, Type
+from typing import Any, ClassVar, Protocol
 
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from livekit import api as livekit_api
+lazy from livekit import api as livekit_api
 
 logger = logging.getLogger(__name__)
-
-# Codec / frequency constants matching LiveKit's H264_720P_30 preset.
-# Kept fixed because changing them would shift the goal-post away from the
-# "safe drop-in replacement for the default preset" contract of this feature.
-_RECORDING_VIDEO_CODEC = livekit_api.VideoCodec.H264_MAIN
-_RECORDING_AUDIO_CODEC = livekit_api.AudioCodec.AAC
-_RECORDING_AUDIO_FREQUENCY_HZ = 48000
 
 
 def build_encoding_options(resolution, profile=None):
@@ -39,12 +32,15 @@ def build_encoding_options(resolution, profile=None):
     """
     profile = profile or settings.RECORDING_ENCODING_DEFAULT_PROFILE
 
-    options: Dict[str, Any] = {
+    options: dict[str, Any] = {
         "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
         "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
-        "video_codec": _RECORDING_VIDEO_CODEC,
-        "audio_codec": _RECORDING_AUDIO_CODEC,
-        "audio_frequency": _RECORDING_AUDIO_FREQUENCY_HZ,
+        # Codec / frequency matching LiveKit's H264_720P_30 preset.
+        # Kept fixed because changing them would shift the goal-post away from the
+        # "safe drop-in replacement for the default preset" contract of this feature.
+        "video_codec": livekit_api.VideoCodec.H264_MAIN,
+        "audio_codec": livekit_api.AudioCodec.AAC,
+        "audio_frequency": 48000,
     }
 
     if resolution:
@@ -67,13 +63,13 @@ class WorkerServiceConfig:
     """Declare Worker Service common configurations"""
 
     output_folder: str
-    server_configurations: Dict[str, Any]
-    bucket_args: Optional[dict]
-    encoding_options: Optional[Dict[str, Any]] = None
+    server_configurations: dict[str, Any]
+    bucket_args: dict | None
+    encoding_options: dict[str, Any] | None = None
 
     @classmethod
     @lru_cache
-    def from_settings(cls) -> "WorkerServiceConfig":
+    def from_settings(cls) -> WorkerServiceConfig:
         """Load configuration from Django settings with caching for efficiency."""
 
         logger.debug("Loading WorkerServiceConfig from settings.")
@@ -85,7 +81,7 @@ class WorkerServiceConfig:
         resolution = settings.RECORDING_ENCODING_DEFAULT_RESOLUTION
         profile = settings.RECORDING_ENCODING_DEFAULT_PROFILE
 
-        encoding_options: Optional[Dict[str, Any]] = None
+        encoding_options: dict[str, Any] | None = None
         if resolution and profile:
             encoding_options = build_encoding_options(resolution, profile)
 
@@ -116,7 +112,7 @@ class WorkerService(Protocol):
         self,
         room_id: str,
         recording_id: str,
-        encoding_options: Optional[Dict[str, Any]] = None,
+        encoding_options: dict[str, Any] | None = None,
     ) -> str:
         """Start a recording for a specified room."""
 
@@ -127,7 +123,7 @@ class WorkerService(Protocol):
 def get_worker_service(mode: str) -> WorkerService:
     """Instantiate a worker service by its mode."""
 
-    worker_registry: Dict[str, str] = settings.RECORDING_WORKER_CLASSES
+    worker_registry: dict[str, str] = settings.RECORDING_WORKER_CLASSES
 
     try:
         worker_class_path = worker_registry[mode]
@@ -137,7 +133,7 @@ def get_worker_service(mode: str) -> WorkerService:
             f"Available modes: {list(worker_registry.keys())}"
         ) from e
 
-    worker_class: Type[WorkerService] = import_string(worker_class_path)
+    worker_class: type[WorkerService] = import_string(worker_class_path)
 
     config = WorkerServiceConfig.from_settings()
     return worker_class(config=config)

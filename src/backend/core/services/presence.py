@@ -1,6 +1,5 @@
 """Presence cache."""
 
-from typing import FrozenSet
 from uuid import UUID
 
 from django.conf import settings
@@ -35,7 +34,7 @@ class PresenceCache:
         """
         return cache.client.get_client(write=write)
 
-    def _index_members(self, room_id: UUID | str) -> FrozenSet[str]:
+    def _index_members(self, room_id: UUID | str) -> frozenset[str]:
         """All identities currently indexed for the room."""
         members = self._redis(write=False).smembers(self._get_index_key(room_id))
         return frozenset(

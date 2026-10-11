@@ -5,16 +5,16 @@
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urljoin
 
 import requests
 from celery import Celery, Task, signals
 from celery.utils.log import get_task_logger
-from openai.types.audio import Transcription
 from pydantic import SecretStr, ValidationError
 from requests import exceptions
+lazy from openai.types.audio import Transcription
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
@@ -585,7 +585,7 @@ def process_audio_transcribe_v2_task(
             summarize_v2_task.apply_async(
                 args=[
                     SummarizeTaskJob(
-                        received_at=datetime.now(timezone.utc),
+                        received_at=datetime.now(UTC),
                         tenant_id=payload.tenant_id,
                         user_sub=payload.user_sub,
                         user_email=payload.user_email,

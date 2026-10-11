@@ -5,7 +5,7 @@ from logging import getLogger
 from django.conf import settings
 
 from asgiref.sync import async_to_sync
-from livekit.protocol.agent_dispatch import CreateAgentDispatchRequest
+lazy from livekit.protocol.agent_dispatch import CreateAgentDispatchRequest
 
 from core import utils
 

@@ -145,10 +145,8 @@ class Command(BaseCommand):
         """Handling of the management command."""
         if not settings.DEBUG and not options["force"]:
             raise CommandError(
-                (
-                    "This command is not meant to be used in production environment "
-                    "except you know what you are doing, if so use --force parameter"
-                )
+                "This command is not meant to be used in production environment "
+                "except you know what you are doing, if so use --force parameter"
             )
 
         create_demo(self.stdout)

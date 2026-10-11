@@ -3,8 +3,8 @@
 from logging import getLogger
 
 from asgiref.sync import async_to_sync
-from livekit.api import TwirpError, TwirpErrorCode
-from livekit.protocol.sip import (
+lazy from livekit.api import TwirpError, TwirpErrorCode
+lazy from livekit.protocol.sip import (
     CreateSIPDispatchRuleRequest,
     DeleteSIPDispatchRuleRequest,
     ListSIPDispatchRuleRequest,

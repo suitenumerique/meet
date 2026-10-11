@@ -9,7 +9,6 @@ import uuid
 from datetime import datetime, timedelta
 from logging import getLogger
 from os.path import splitext
-from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.auth import models as auth_models
@@ -316,7 +315,7 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
         return []
 
 
-def get_resource_roles(resource: models.Model, user: User) -> List[str]:
+def get_resource_roles(resource: models.Model, user: User) -> list[str]:
     """
     Get all roles assigned to a user for a specific resource, including team-based roles.
 
@@ -869,7 +868,7 @@ class Recording(BaseModel):
         return f"{settings.RECORDING_OUTPUT_FOLDER}/{self.id}.{self.extension}"
 
     @property
-    def expired_at(self) -> Optional[datetime]:
+    def expired_at(self) -> datetime | None:
         """
         Calculate the expiration date based on created_at and RECORDING_EXPIRATION_DAYS.
         Returns None if no expiration is configured.

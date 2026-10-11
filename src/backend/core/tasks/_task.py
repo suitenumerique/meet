@@ -2,12 +2,9 @@
 Celery task decorator that degrades to a synchronous call when Celery is off.
 """
 
-# The Celery app is imported lazily so that importing this module does not pull
-# in Celery when CELERY_ENABLED is false.
-# ruff: noqa: PLC0415
-# pylint: disable=import-outside-toplevel
-
 from django.conf import settings
+
+lazy from meet.celery_app import app as _celery_app
 
 
 def task(*d_args, **d_kwargs):
@@ -37,16 +34,12 @@ def task(*d_args, **d_kwargs):
     if len(d_args) == 1 and callable(d_args[0]) and not d_kwargs:
         func = d_args[0]
         if settings.CELERY_ENABLED:
-            from meet.celery_app import app as _celery_app
-
             return _celery_app.task(func)
         return _fallback_wrap(func)
 
     # Handle parameterized usage: @task(...), e.g. @task(bind=True)
     def _decorate(func):
         if settings.CELERY_ENABLED:
-            from meet.celery_app import app as _celery_app
-
             return _celery_app.task(*d_args, **d_kwargs)(func)
         return _fallback_wrap(func)
 

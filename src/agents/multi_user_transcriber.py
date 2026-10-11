@@ -185,7 +185,7 @@ class MultiUserTranscriber:
         """Close and cleanup transcription session."""
         try:
             await asyncio.wait_for(sess.drain(), timeout=SESSION_DRAIN_TIMEOUT_S)
-        except TimeoutError, asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(
                 "session drain timed out after %.0fs; forcing close",
                 SESSION_DRAIN_TIMEOUT_S,

@@ -1,6 +1,6 @@
 """Transcribe / summary Shared / Webhook models."""
 
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
@@ -111,11 +111,9 @@ class TranscribeWebhookFailurePayload(BaseWebhook):
 
 
 TranscribeWebhookPayloads = Annotated[
-    Union[
-        TranscribeWebhookSuccessPayload,
-        TranscribeWebhookPendingPayload,
-        TranscribeWebhookFailurePayload,
-    ],
+    TranscribeWebhookSuccessPayload
+    | TranscribeWebhookPendingPayload
+    | TranscribeWebhookFailurePayload,
     Field(discriminator="status"),
 ]
 
@@ -150,16 +148,14 @@ class SummarizeWebhookFailurePayload(BaseWebhook):
 
 
 SummarizeWebhookPayloads = Annotated[
-    Union[
-        SummarizeWebhookSuccessPayload,
-        SummarizeWebhookPendingPayload,
-        SummarizeWebhookFailurePayload,
-    ],
+    SummarizeWebhookSuccessPayload
+    | SummarizeWebhookPendingPayload
+    | SummarizeWebhookFailurePayload,
     Field(discriminator="status"),
 ]
 
 WebhookPayloads = Annotated[
-    Union[TranscribeWebhookPayloads, SummarizeWebhookPayloads],
+    TranscribeWebhookPayloads | SummarizeWebhookPayloads,
     Field(discriminator="type"),
 ]
 

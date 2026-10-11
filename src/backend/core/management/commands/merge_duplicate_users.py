@@ -11,11 +11,13 @@ from core.models import File, RecordingAccess, ResourceAccess, RoleChoices
 
 User = get_user_model()
 
-ROLE_PRIORITY = {
-    RoleChoices.OWNER: 3,
-    RoleChoices.ADMIN: 2,
-    RoleChoices.MEMBER: 1,
-}
+ROLE_PRIORITY = frozendict(
+    {
+        RoleChoices.OWNER: 3,
+        RoleChoices.ADMIN: 2,
+        RoleChoices.MEMBER: 1,
+    }
+)
 
 
 class Command(BaseCommand):

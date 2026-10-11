@@ -4,8 +4,6 @@ vLLM exposes Voxtral Realtime over a WebSocket that follows the OpenAI Realtime
 API protocol (not Mistral's proprietary realtime protocol).
 """
 
-from __future__ import annotations
-
 import asyncio
 import base64
 import json

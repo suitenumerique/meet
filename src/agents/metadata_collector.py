@@ -5,8 +5,7 @@ import json
 import logging
 import os
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from typing import List, Optional
+from datetime import UTC, datetime
 
 import boto3
 from botocore.config import Config
@@ -90,7 +89,7 @@ class MetadataEvent:
     participant_id: str
     type: str
     timestamp: datetime
-    data: Optional[str] = None
+    data: str | None = None
 
     def serialize(self) -> dict:
         """Return a JSON-serializable dictionary representation of the event."""
@@ -102,7 +101,7 @@ class MetadataEvent:
 class VADAgent(Agent):
     """Agent that monitors voice activity for a specific participant."""
 
-    def __init__(self, participant_identity: str, events: List):
+    def __init__(self, participant_identity: str, events: list):
         """Initialize with a participant identity and shared events list."""
         super().__init__(
             instructions="not-needed",
@@ -115,7 +114,7 @@ class VADAgent(Agent):
 
         @self.session.on("user_state_changed")
         def on_user_state(event):
-            timestamp = datetime.now(timezone.utc)
+            timestamp = datetime.now(UTC)
 
             if event.new_state == "speaking":
                 event = MetadataEvent(
@@ -185,7 +184,7 @@ class MetadataCollector:
             MetadataEvent(
                 participant_id=participant_identity,
                 type="chat_received",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 data=full_text,
             )
         )
@@ -265,7 +264,7 @@ class MetadataCollector:
             MetadataEvent(
                 participant_id=participant.identity,
                 type="participant_connected",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
         )
 
@@ -284,7 +283,7 @@ class MetadataCollector:
             MetadataEvent(
                 participant_id=participant.identity,
                 type="participant_disconnected",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
         )
 

@@ -12,9 +12,9 @@ from functools import cached_property
 from pathlib import Path
 from urllib.parse import urlparse
 
-import boto3
 import requests
-from botocore.config import Config
+lazy import boto3
+lazy from botocore.config import Config
 
 from summary.core.config import get_settings
 from summary.core.privacy import redact_url
@@ -81,8 +81,7 @@ def _get_duration_from_packets(local_path: Path) -> float:
             local_path,
         ],
         check=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,  # Decode stdout/stderr as strings instead of bytes.
     )
 
@@ -126,8 +125,7 @@ def get_media_duration_seconds(local_path: Path) -> float:
             local_path,
         ],
         check=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
     )
 
@@ -175,8 +173,7 @@ def get_media_info(local_path: Path) -> MediaInfo:
             str(local_path),
         ],
         check=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
     )
     data = json.loads(result.stdout)
@@ -369,9 +366,8 @@ class FileService:
             self._max_duration_seconds is not None
             and duration_seconds > self._max_duration_seconds
         ):
-            error_msg = "Recording too long. Limit is %.2fs seconds" % (
-                self._max_duration_seconds,
-            )
+            limit = self._max_duration_seconds
+            error_msg = f"Recording too long. Limit is {limit:.2f}s seconds"
             logger.error(error_msg)
             raise MediaDurationTooLongError(error_msg)
 

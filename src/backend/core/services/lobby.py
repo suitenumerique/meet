@@ -2,9 +2,9 @@
 
 import logging
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, FrozenSet, Optional, Sequence, Tuple
 from uuid import UUID
 
 from django.conf import settings
@@ -49,7 +49,7 @@ class LobbyParticipant:
     id: str
     entered_at: str
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> dict[str, str]:
         """Serialize the participant object to a dict representation."""
         return {
             "status": self.status.value,
@@ -60,7 +60,7 @@ class LobbyParticipant:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "LobbyParticipant":
+    def from_dict(cls, data: dict) -> LobbyParticipant:
         """Create a LobbyParticipant instance from a dictionary."""
         try:
             status = LobbyParticipantStatus(
@@ -112,7 +112,7 @@ class LobbyService:
         pipe.expire(index_key, settings.LOBBY_ACCEPTED_TIMEOUT)
         pipe.execute()
 
-    def _index_members(self, room_id: UUID) -> FrozenSet[str]:
+    def _index_members(self, room_id: UUID) -> frozenset[str]:
         """All participant ids currently indexed for the room."""
         members = self._redis(write=False).smembers(self._get_index_key(room_id))
         return frozenset(
@@ -163,8 +163,8 @@ class LobbyService:
         room: models.Room,
         user,
         username: str,
-        participant_id: Optional[uuid.UUID] = None,
-    ) -> Tuple[LobbyParticipant, Optional[Dict]]:
+        participant_id: uuid.UUID | None = None,
+    ) -> tuple[LobbyParticipant, dict | None]:
         """Request entry to a room for a participant.
 
         The usual status transitions are:
@@ -279,7 +279,7 @@ class LobbyService:
 
     def _get_participant(
         self, room_id: UUID, participant_id: str
-    ) -> Optional[LobbyParticipant]:
+    ) -> LobbyParticipant | None:
         """Check participant's current status in the lobby."""
 
         cache_key = self._get_cache_key(room_id, participant_id)
