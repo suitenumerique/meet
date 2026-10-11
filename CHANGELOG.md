@@ -28,6 +28,7 @@ and this project adheres to
 - 🔒️(backend) sign lobby participant id
 - 🐛(frontend) omit the default speaker id sent to LiveKit
 - 🐛(frontend) play the speaker test when no output is picked
+- 🐛(frontend) keep the admin panel in place when changing a setting #1804
 
 ## [1.34.0] - 2026-10-07
 
