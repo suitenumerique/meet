@@ -1,10 +1,11 @@
 // features/rooms/chat/ChatProvider.tsx — renders no DOM, mounted once at room level
 import { ref } from 'valtio'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useChat, useRoomContext } from '@livekit/components-react'
 import { appendRow, chatStore, resetChatStore } from '@/stores/chat'
 import type { ChatMessage } from '@livekit/components-core'
+import { withoutBidiControls } from '../stripBidiControls'
 import {
   LocalParticipant,
   Participant,
@@ -14,7 +15,11 @@ import {
 
 export const ChatProvider = () => {
   const lastReadMsgAt = React.useRef<ChatMessage['timestamp']>(0)
-  const { send, chatMessages, isSending } = useChat()
+  const { send, chatMessages: receivedMessages, isSending } = useChat()
+  const chatMessages = useMemo(
+    () => receivedMessages.map(withoutBidiControls),
+    [receivedMessages]
+  )
   const { isChatOpen } = useSidePanel()
 
   const room = useRoomContext()
