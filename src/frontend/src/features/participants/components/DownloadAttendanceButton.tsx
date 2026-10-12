@@ -10,6 +10,7 @@ import { getParticipantIsAuthenticated } from '@/features/rooms/utils/getPartici
 import {
   buildAttendanceCsv,
   downloadAttendance,
+  listSeparator,
 } from '../utils/downloadAttendance'
 
 type DownloadAttendanceButtonProps = {
@@ -35,7 +36,8 @@ const DownloadAttendanceButtonInner = ({
         account: t('account'),
         signedIn: t('signedIn'),
         guest: t('guest'),
-      }
+      },
+      listSeparator()
     )
     downloadAttendance(csv, roomData?.slug)
   }

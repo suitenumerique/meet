@@ -23,9 +23,15 @@ const escapeCell = (value: string) => {
   return `"${safe.replaceAll('"', '""')}"`
 }
 
+// Excel splits a CSV on its region's list separator, a semicolon wherever
+// decimals take a comma.
+export const listSeparator = (locale = navigator.language) =>
+  (1.5).toLocaleString(locale).includes(',') ? ';' : ','
+
 export const buildAttendanceCsv = (
   rows: AttendanceRow[],
-  labels: AttendanceLabels
+  labels: AttendanceLabels,
+  separator = ','
 ): string => {
   const lines = [
     [labels.name, labels.account],
@@ -34,7 +40,9 @@ export const buildAttendanceCsv = (
       signedIn ? labels.signedIn : labels.guest,
     ]),
   ]
-  return lines.map((cells) => cells.map(escapeCell).join(',')).join('\r\n')
+  return lines
+    .map((cells) => cells.map(escapeCell).join(separator))
+    .join('\r\n')
 }
 
 export const downloadAttendance = (csv: string, roomSlug?: string) => {

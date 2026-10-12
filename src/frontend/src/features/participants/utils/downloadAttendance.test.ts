@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildAttendanceCsv } from './downloadAttendance'
+import { buildAttendanceCsv, listSeparator } from './downloadAttendance'
 
 const labels = {
   name: 'Name',
@@ -61,5 +61,27 @@ describe('buildAttendanceCsv', () => {
       '"\'\u200B=1',
       '"Ana-Maria',
     ])
+  })
+})
+
+describe('listSeparator', () => {
+  it('picks the separator from the region', () => {
+    expect(
+      ['fr-FR', 'de-AT', 'nl-BE', 'es-ES', 'de-CH', 'es-MX', 'en-US'].map((l) =>
+        listSeparator(l)
+      )
+    ).toEqual([';', ';', ';', ';', ',', ',', ','])
+    expect(
+      buildAttendanceCsv(
+        [{ name: 'Léa', signedIn: false }],
+        {
+          name: 'Nom',
+          account: 'Compte',
+          signedIn: 'Connecté',
+          guest: 'Invité',
+        },
+        ';'
+      )
+    ).toBe('"Nom";"Compte"\r\n"Léa";"Invité"')
   })
 })
