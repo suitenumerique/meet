@@ -2,12 +2,15 @@
 
 import json
 import socket
+import threading
 import time
 from collections import Counter
 from functools import cached_property, lru_cache
+from typing import Annotated
 
 import redis
 from celery.utils.log import get_task_logger
+from fastapi import Depends, Request
 from posthog import Posthog
 
 from summary.core.config import get_settings
@@ -68,11 +71,33 @@ class Analytics:
             logger.error("Error checking feature flag %s", feature_name)
             return False
 
+    def shutdown(self, timeout_seconds: float = 10):
+        """Send the queued events and stop the client, if analytics is enabled.
+
+        Wait at most timeout_seconds: PostHog keeps retrying a host that does not
+        answer for minutes, past the termination grace period of a pod. The
+        thread is a daemon, so it does not keep the process alive after the wait.
+        """
+        if self.is_disabled:
+            return
+
+        stopper = threading.Thread(target=self._client.shutdown, daemon=True)
+        stopper.start()
+        stopper.join(timeout_seconds)
+
 
 @lru_cache
 def get_analytics():
     """Init Analytics client once."""
     return Analytics()
+
+
+def get_request_analytics(request: Request) -> Analytics:
+    """Return the analytics client the application's lifespan shares."""
+    return request.state.analytics
+
+
+AnalyticsDeps = Annotated[Analytics, Depends(get_request_analytics)]
 
 
 class MetadataManager:

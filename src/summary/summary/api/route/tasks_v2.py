@@ -4,20 +4,20 @@ import logging
 from datetime import UTC, datetime
 
 from celery.result import AsyncResult
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import ValidationError
 
-from summary.core.analytics import get_analytics
+from summary.core.analytics import AnalyticsDeps
 from summary.core.celery_worker import (
     celery,
     process_audio_transcribe_v2_task,
     summarize_v2_task,
 )
-from summary.core.config import AuthorizedTenant, get_settings
+from summary.core.config import SettingsDeps
 from summary.core.exceptions import CleanedValidationError
 from summary.core.models import SummarizeTaskApiRequest, TranscribeTaskApiRequest
 from summary.core.privacy import dump_for_transport
-from summary.core.security import verify_tenant_api_key_v2
+from summary.core.security import TenantDeps
 from summary.core.shared_models import (
     SummarizeWebhookFailurePayload,
     SummarizeWebhookPendingPayload,
@@ -30,15 +30,14 @@ from summary.core.shared_models import (
 logger = logging.getLogger(__name__)
 router_tasks_v2 = APIRouter()
 
-analytics = get_analytics()
-settings = get_settings()
-
 
 @router_tasks_v2.post("/async-jobs/transcribe")
 async def create_transcribe_task_v2(
     request: TranscribeTaskApiRequest,
-    request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
-):
+    request_tenant: TenantDeps,
+    settings: SettingsDeps,
+    analytics: AnalyticsDeps,
+) -> TranscribeWebhookPendingPayload:
     """Create a transcription task."""
     if (
         request.push_to_docs_config is not None
@@ -74,14 +73,16 @@ async def create_transcribe_task_v2(
         properties=properties,
     )
 
-    return TranscribeWebhookPendingPayload(job_id=task.id).model_dump()
+    return TranscribeWebhookPendingPayload(job_id=task.id)
 
 
 @router_tasks_v2.post("/async-jobs/summarize")
 async def create_summarize_task_v2(
     request: SummarizeTaskApiRequest,
-    request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
-):
+    request_tenant: TenantDeps,
+    settings: SettingsDeps,
+    analytics: AnalyticsDeps,
+) -> SummarizeWebhookPendingPayload:
     """Create a summarization task."""
     task = summarize_v2_task.apply_async(
         args=[
@@ -105,14 +106,13 @@ async def create_summarize_task_v2(
         request.user_sub,
         properties=properties,
     )
-    return SummarizeWebhookPendingPayload(job_id=task.id).model_dump()
+    return SummarizeWebhookPendingPayload(job_id=task.id)
 
 
 @router_tasks_v2.get("/async-jobs/transcribe/{job_id}")
 async def get_transcribe_job_status(
     job_id: str,
-    request: Request,
-    request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
+    request_tenant: TenantDeps,
 ):
     """Check transcription task status by ID."""
     # We have to look directly in Redis to check if the task exists
@@ -145,8 +145,7 @@ async def get_transcribe_job_status(
 @router_tasks_v2.get("/async-jobs/summarize/{job_id}")
 async def get_summarize_job_status(
     job_id: str,
-    request: Request,
-    request_tenant: AuthorizedTenant = Depends(verify_tenant_api_key_v2),
+    request_tenant: TenantDeps,
 ):
     """Check summarize task status by ID."""
     # We have to look directly in Redis to check if the task exists

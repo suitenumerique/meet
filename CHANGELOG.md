@@ -42,6 +42,7 @@ and this project adheres to
 - ⬆️(all) upgrade python to 3.15
 - ⬆️(summary) upgrade fastapi to 0.165.0
 - ♻️(all) adopt python 3.14 and 3.15 features
+- ♻️(summary) adopt fastapi 0.165 features
 
 ### Fixed
 

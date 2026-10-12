@@ -30,8 +30,8 @@ def settings_override():
 
 @pytest.fixture()
 def client():
-    """Provide a FastAPI TestClient for tests."""
-    client = TestClient(app)
+    """Provide a FastAPI TestClient for tests, running the application's lifespan."""
     app.dependency_overrides[get_settings] = get_settings_override
-
-    return client
+    with TestClient(app) as client:
+        yield client
+    app.dependency_overrides.clear()

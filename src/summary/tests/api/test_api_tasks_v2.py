@@ -85,6 +85,34 @@ class TestTasksV2:
             }
         ]
 
+    @patch(
+        "summary.api.route.tasks_v2.summarize_v2_task.apply_async",
+        return_value=MagicMock(id="summarize-task-id-abc"),
+    )
+    def test_create_summarize_task_v2_tracks_the_request(
+        self, mock_apply_async, client
+    ):
+        """POST /async-jobs/summarize tracks the request with the lifespan's client."""
+        analytics = MagicMock()
+        client.app_state["analytics"] = analytics
+
+        response = client.post(
+            "/api/v2/async-jobs/summarize",
+            headers={"Authorization": "Bearer test-api-token"},
+            json={
+                "user_sub": "remote-002",
+                "user_email": "user@example.com",
+                "content": "This is a long meeting transcript to summarize.",
+            },
+        )
+
+        assert response.status_code == 200
+        analytics.capture.assert_called_once_with(
+            "summary-request",
+            "remote-002",
+            properties={"$set": {"email": "user@example.com"}},
+        )
+
     @patch("summary.api.route.tasks_v2.celery")
     @patch("summary.api.route.tasks_v2.AsyncResult")
     def test_get_transcribe_task_status_returns_status_for_same_tenant(
