@@ -69,8 +69,12 @@ export const useSendChatMedia = () => {
             chatStore.mediaFailure = 'animation_too_large'
             return
           }
-          const reduced = await downscaleImage(file, limits.allowedMimetypes)
-          // Its type is allowed; only no smaller encoding of it is.
+          const reduced = await downscaleImage(
+            file,
+            limits.allowedMimetypes,
+            limits.maxSize
+          )
+          // No allowed type encodes it, JPEG excluded for a transparent image.
           if (!reduced) {
             chatStore.mediaFailure = 'too_large'
             return

@@ -8,6 +8,9 @@ export const CHAT_MEDIA_TOPIC = 'chat-media'
 /** Long edge of a downscaled image, in pixels. */
 export const DOWNSCALE_LONG_EDGE = 2048
 
+/** WebP's limit per side; past it Chrome writes a cut-down image. */
+export const MAX_ENCODED_EDGE = 16383
+
 /**
  * 4096 x 4096, about 64 MiB once decoded. The byte cap alone does not bound
  * memory: a 250 kB PNG can declare 16000 x 16000 and cost every receiver over

@@ -1,8 +1,10 @@
 import { ReactNode } from 'react'
 import { DropZone, isFileDropItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
+import { useSnapshot } from 'valtio'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
+import { chatStore } from '@/stores/chat'
 import { useSendChatMedia } from '../media/useSendChatMedia'
 
 /**
@@ -13,12 +15,18 @@ import { useSendChatMedia } from '../media/useSendChatMedia'
 export const ChatDropZone = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat.media' })
   const { stage, limits } = useSendChatMedia()
+  const { isPreparing, isSendingMedia } = useSnapshot(chatStore)
 
   // Any file is taken, whatever type the system declares: `stage` reads the
   // bytes and says why one cannot be sent, where a refused drop says nothing.
   return (
     <DropZone
       isDisabled={!limits.enabled}
+      // Refused rather than disabled while busy: a disabled zone lets the
+      // browser open the dropped file itself, leaving the meeting.
+      getDropOperation={(_types, allowedOperations) =>
+        isPreparing || isSendingMedia ? 'cancel' : allowedOperations[0]
+      }
       aria-label={t('dropZone')}
       onDrop={async (event) => {
         const item = event.items.find(isFileDropItem)
