@@ -18,6 +18,7 @@ from os import path
 from socket import gethostbyname, gethostname
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.csp import CSP
 from django.utils.translation import gettext_lazy as _
 
 import dj_database_url
@@ -46,6 +47,23 @@ def get_release():
             return tomllib.load(pyproject)["project"]["version"]
     except FileNotFoundError, KeyError, tomllib.TOMLDecodeError:
         return "NA"  # Default: not available
+
+
+def get_content_security_policy(report_uri=None):
+    """
+    Get the Content Security Policy of the pages Django renders: the admin and the
+    error pages. The frontend is served on its own and the API docs are exempted.
+    Inline scripts and styles must carry the request's nonce, as in the admin.
+    """
+    return {
+        "default-src": [CSP.SELF],
+        "script-src": [CSP.SELF, CSP.NONCE],
+        "style-src": [CSP.SELF, CSP.NONCE],
+        "object-src": [CSP.NONE],
+        "frame-ancestors": [CSP.NONE],
+        "base-uri": [CSP.SELF],
+        "report-uri": report_uri,
+    }
 
 
 class VideoCodecValue(values.Value):
@@ -137,6 +155,11 @@ class Base(Configuration):
     SILENCED_SYSTEM_CHECKS = values.ListValue([])
     ALLOW_UNSECURE_USER_LISTING = values.BooleanValue(
         False, environ_name="ALLOW_UNSECURE_USER_LISTING", environ_prefix=None
+    )
+    # Where browsers report Content Security Policy violations, see
+    # get_content_security_policy.
+    CSP_REPORT_URI = values.Value(
+        None, environ_name="CSP_REPORT_URI", environ_prefix=None
     )
 
     # Application definition
@@ -321,6 +344,7 @@ class Base(Configuration):
                 "context_processors": [
                     "django.contrib.auth.context_processors.auth",
                     "django.contrib.messages.context_processors.messages",
+                    "django.template.context_processors.csp",
                     "django.template.context_processors.csrf",
                     "django.template.context_processors.debug",
                     "django.template.context_processors.i18n",
@@ -338,6 +362,7 @@ class Base(Configuration):
 
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
+        "django.middleware.csp.ContentSecurityPolicyMiddleware",
         "dockerflow.django.middleware.DockerflowMiddleware",
         "core.audit.request.AuditLogMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -1790,6 +1815,12 @@ class Development(Base):
         # pylint: disable=invalid-name
         self.INSTALLED_APPS += ["django_extensions", "drf_spectacular_sidecar"]
 
+    # pylint: disable=invalid-name
+    @property
+    def SECURE_CSP(self):
+        """Enforce the Content Security Policy, to catch violations early."""
+        return get_content_security_policy(self.CSP_REPORT_URI)
+
 
 class Test(Base):
     """Test environment settings"""
@@ -1912,6 +1943,12 @@ class Production(Base):
 
     # Privacy
     SECURE_REFERRER_POLICY = "same-origin"
+
+    # pylint: disable=invalid-name
+    @property
+    def SECURE_CSP_REPORT_ONLY(self):
+        """Report Content Security Policy violations without blocking anything."""
+        return get_content_security_policy(self.CSP_REPORT_URI)
 
     CACHES = {
         "default": {

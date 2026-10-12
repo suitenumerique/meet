@@ -11,7 +11,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import FETCH_PEERS, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -1190,6 +1190,7 @@ class RecordingViewSet(
             super()
             .get_queryset()
             .filter(Q(accesses__user=user) | Q(accesses__team__in=user.get_teams()))
+            .fetch_mode(FETCH_PEERS)
         )
 
     @decorators.action(

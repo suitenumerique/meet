@@ -16,6 +16,17 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Content Security Policy
+
+The pages Django renders now send a Content Security Policy.
+
+The production configurations send it as report-only at the moment
+and browsers log violations in their console without blocking anything.
+The development configuration enforces the policy, and enforcing it in
+production is planned for a later release: if you customized the admin with
+inline scripts or styles, or with assets from another origin, check for
+violations before then.
+
 ### Summary image: dependencies move to a virtualenv
 
 The summary image now installs its locked dependencies (`src/summary/uv.lock`)

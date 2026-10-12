@@ -18,13 +18,14 @@ per model; see ``core.audit.registry``.
 """
 
 import copy
+import dataclasses
 import logging
 from contextlib import contextmanager
 from enum import StrEnum
 from functools import wraps
 from typing import Any
 
-from django.contrib.admin import ModelAdmin
+from django.contrib.admin import ActionLocation, ModelAdmin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
@@ -244,11 +245,13 @@ class AuditedModelAdminMixin:
         for obj in targets:
             self.audit_write(request, AdminVerb.DELETE, obj)
 
-    def get_actions(self, request):
+    def get_actions(self, request, action_location=ActionLocation.CHANGE_LIST):
         """Return the available actions, each wrapped so that running it is audited."""
         return {
-            name: (self.audited_action(func, name), name, description)
-            for name, (func, _name, description) in super().get_actions(request).items()
+            name: dataclasses.replace(
+                action, func=self.audited_action(action.func, name)
+            )
+            for name, action in super().get_actions(request, action_location).items()
         }
 
     def audited_action(self, func, name):

@@ -449,6 +449,7 @@ Showing Meet in an iframe depends on `X-Frame-Options` and CSP `frame-ancestors`
 | `LOGGING_LEVEL_REQUEST_SUMMARY`{#LOGGING_LEVEL_REQUEST_SUMMARY} | No | `WARNING` | Log level of the per-request summary logger |
 | `LOGGING_LEVEL_DOCKERFLOW`{#LOGGING_LEVEL_DOCKERFLOW} | No | `WARNING` | Log level of the health checks behind `/__heartbeat__` |
 | `LOGGING_SILENCED_401_PATHS`{#LOGGING_SILENCED_401_PATHS} | No | `["/api/v1.0/users/me/"]` | Paths whose 401 responses are not logged |
+| `CSP_REPORT_URI`{#CSP_REPORT_URI} | No | -- | URL where browsers report Content Security Policy violations of the pages Django renders, such as the admin. Unset, no report is sent |
 
 ### Audit logging
 

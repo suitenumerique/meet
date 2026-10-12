@@ -205,3 +205,20 @@ def test_api_recordings_list_ordering_default():
     # Check that results are sorted by descending "updated_at" as expected
     for i in range(4):
         assert operator.ge(results[i]["updated_at"], results[i + 1]["updated_at"])
+
+
+def test_api_recordings_list_rooms_in_one_query(django_assert_num_queries):
+    """Listing recordings should load their rooms in one query, not one per recording."""
+    user = factories.UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    factories.RecordingFactory.create_batch(3, users=[user])
+
+    # The user, the count, the page of recordings and their rooms
+    with django_assert_num_queries(4):
+        response = client.get("/api/v1.0/recordings/")
+
+    assert response.status_code == 200
+    results = response.json()["results"]
+    assert len({result["room"]["id"] for result in results}) == 3

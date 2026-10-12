@@ -119,7 +119,6 @@ class UserAdmin(auth_admin.UserAdmin):
         (
             None,
             {
-                "classes": ("wide",),
                 "fields": ("email", "password1", "password2"),
             },
         ),
@@ -365,7 +364,17 @@ class RecordingAccessInline(admin.TabularInline):
     autocomplete_fields = ["user"]
 
 
-@admin.action(description=_("Resend notification to external service"))
+# Both actions are offered in the recordings list and on a recording's page
+RECORDING_ACTION_LOCATIONS = [
+    admin.ActionLocation.CHANGE_LIST,
+    admin.ActionLocation.CHANGE_FORM,
+]
+
+
+@admin.action(
+    description=_("Resend notification to external service"),
+    location=RECORDING_ACTION_LOCATIONS,
+)
 def resend_notification(modeladmin, request, queryset):  # pylint: disable=unused-argument
     """Resend notification to external service for selected recordings."""
 
@@ -417,7 +426,11 @@ def resend_notification(modeladmin, request, queryset):  # pylint: disable=unuse
         )
 
 
-@admin.action(description=_("Mark selected recordings as 'Failed to Stop'"))
+@admin.action(
+    description=_("Mark recording as 'Failed to Stop'"),
+    description_plural=_("Mark selected recordings as 'Failed to Stop'"),
+    location=RECORDING_ACTION_LOCATIONS,
+)
 def mark_as_failed_to_stop(modeladmin, request, queryset):
     """Force selected recordings status to failed_to_stop."""
 

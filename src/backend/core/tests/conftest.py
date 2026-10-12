@@ -37,3 +37,14 @@ def isolated_request_id():
     token = request_id_context.set(None)
     yield
     request_id_context.reset(token)
+
+
+@pytest.fixture
+def static_files_without_manifest(settings):
+    """Render pages without the static files manifest, which tests don't build."""
+    settings.STORAGES = {
+        **settings.STORAGES,
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        },
+    }
