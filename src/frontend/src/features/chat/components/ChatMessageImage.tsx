@@ -112,6 +112,10 @@ export const ChatMessageImage = ({ item }: ChatMessageImageProps) => {
           type="button"
           onClick={() => setIsOpen(true)}
           aria-label={t('enlarge')}
+          // The frame clips anything outside the button, so the global focus
+          // ring is drawn inside it. Inline, since that rule is unlayered and
+          // outranks a generated class.
+          style={{ outlineOffset: '-2px' }}
           className={css({
             display: 'block',
             width: '100%',

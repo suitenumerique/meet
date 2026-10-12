@@ -5,6 +5,7 @@ import {
   appendLocalMediaRow,
   chatStore,
   clearTextAreaValue,
+  currentChatEpoch,
   stageAttachment,
 } from '@/stores/chat'
 import { CHAT_MEDIA_TOPIC, CHUNK_SIZE } from './constants'
@@ -41,6 +42,7 @@ export const useSendChatMedia = () => {
         return
       chatStore.isPreparing = true
       chatStore.mediaFailure = undefined
+      const epoch = currentChatEpoch()
       let previewUrl: string | undefined
 
       try {
@@ -68,8 +70,9 @@ export const useSendChatMedia = () => {
             return
           }
           const reduced = await downscaleImage(file, limits.allowedMimetypes)
+          // Its type is allowed; only no smaller encoding of it is.
           if (!reduced) {
-            chatStore.mediaFailure = 'type_not_allowed'
+            chatStore.mediaFailure = 'too_large'
             return
           }
           if (reduced.blob.size > limits.maxSize) {
@@ -83,6 +86,10 @@ export const useSendChatMedia = () => {
           size = { width: reduced.width, height: reduced.height }
         }
 
+        // The chat was reset while this was reducing, on leaving the room:
+        // staging now would put the old meeting's image in the new store.
+        if (epoch !== currentChatEpoch()) return
+
         stageAttachment({
           blob: ref(payload),
           mimeType,
@@ -94,7 +101,8 @@ export const useSendChatMedia = () => {
         chatStore.mediaFailure = 'unreadable'
       } finally {
         if (previewUrl) URL.revokeObjectURL(previewUrl)
-        chatStore.isPreparing = false
+        // After a reset the flag belongs to whatever staging runs now.
+        if (epoch === currentChatEpoch()) chatStore.isPreparing = false
       }
     },
     [limits]

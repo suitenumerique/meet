@@ -300,7 +300,12 @@ export const clearTextAreaValue = () => {
   chatStore.textAreaValue = ''
 }
 
+// Bumped on every reset, so work started before one can tell it is stale.
+let chatEpoch = 0
+export const currentChatEpoch = () => chatEpoch
+
 export function resetChatStore() {
+  chatEpoch++
   for (const row of chatStore.rows) {
     if (row.kind === 'media' && row.objectUrl)
       URL.revokeObjectURL(row.objectUrl)
