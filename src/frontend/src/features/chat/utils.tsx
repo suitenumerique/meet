@@ -1,10 +1,14 @@
 import { tokenize, createDefaultGrammar } from '@livekit/components-core'
 import { ReactNode } from 'react'
+import { stripBidiControls } from './stripBidiControls'
 
 const defaultGrammar = Object.freeze(createDefaultGrammar())
 
 export function formatChatMessageLinks(message: string): ReactNode {
-  const trimmedMessage = message.replace(/^[\r\n]+|[\r\n]+$/g, '')
+  const trimmedMessage = stripBidiControls(message).replace(
+    /^[\r\n]+|[\r\n]+$/g,
+    ''
+  )
   return tokenize(trimmedMessage, defaultGrammar).map((tok, i) => {
     if (typeof tok === `string`) {
       return tok
