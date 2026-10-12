@@ -120,6 +120,26 @@ DJANGO_EMAIL_BRAND_NAME=<brand name used in email templates> # e.g. "La Suite Nu
 DJANGO_EMAIL_LOGO_IMG=<logo image to use in email templates.> # e.g. "https://meet.yourdomain.tld/assets/logo-suite-numerique.png" 
 ```
 
+### Feature flags without an analytics backend
+
+Some features, such as automatic meeting summaries (`summary-enabled`), are gated by a feature flag read from the analytics backend. You do not need an analytics backend to enable them: leave `ANALYTICS_BACKEND` unset and declare the flags in `env.d/common`. No data is sent anywhere.
+
+```env
+ANALYTICS_BACKEND_SETTINGS={"feature_flags": {"summary-enabled": True}}
+```
+
+You can also set it directly in `compose.yaml`:
+
+```yaml
+services:
+  backend:
+    environment:
+      ANALYTICS_BACKEND_SETTINGS: '{"feature_flags": {"summary-enabled": True}}'
+```
+
+> [!NOTE]
+> The value is a Python dictionary, not JSON: write `True`, not `true`. Set it on every container running the backend image.
+
 ## Step 3: Configure your firewall
 
 If you are using a firewall as it is usually recommended in a production environment you will need to allow the webservice traffic on ports 80 and 443 but also to allow UDP traffic for the WebRTC service.
