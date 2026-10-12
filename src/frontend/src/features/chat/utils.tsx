@@ -5,11 +5,9 @@ import { stripBidiControls } from './stripBidiControls'
 const defaultGrammar = Object.freeze(createDefaultGrammar())
 
 export function formatChatMessageLinks(message: string): ReactNode {
-  const trimmedMessage = stripBidiControls(message).replace(
-    /^[\r\n]+|[\r\n]+$/g,
-    ''
-  )
-  return tokenize(trimmedMessage, defaultGrammar).map((tok, i) => {
+  const trimmedMessage = message.replace(/^[\r\n]+|[\r\n]+$/g, '')
+  const cleanedMessage = stripBidiControls(trimmedMessage)
+  return tokenize(cleanedMessage, defaultGrammar).map((tok, i) => {
     if (typeof tok === `string`) {
       return tok
     } else {
