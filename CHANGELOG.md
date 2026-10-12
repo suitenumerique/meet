@@ -20,6 +20,7 @@ and this project adheres to
 - ✨(backend) introduce a token exchange endpoint for iframe embeds
 - ⚡️(backend) send recording notification emails from a Celery task
 - ✨(backend) allow static feature flags without an analytics backend #1809
+- ⚡️(backend) add an opt-in psycopg connection pool
 
 ### Changed
 

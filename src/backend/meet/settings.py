@@ -17,6 +17,7 @@ import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 
 import dj_database_url
@@ -139,7 +140,7 @@ class Base(Configuration):
         )
         else {
             "ENGINE": values.Value(
-                "django.db.backends.postgresql_psycopg2",
+                "django.db.backends.postgresql",
                 environ_name="DB_ENGINE",
                 environ_prefix=None,
             ),
@@ -154,6 +155,21 @@ class Base(Configuration):
             "PORT": values.Value(5432, environ_name="DB_PORT", environ_prefix=None),
         }
     }
+    DB_PSYCOPG_POOL_ENABLED = values.BooleanValue(
+        False, environ_name="DB_PSYCOPG_POOL_ENABLED", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MIN_SIZE = values.PositiveIntegerValue(
+        1, environ_name="DB_PSYCOPG_POOL_MIN_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_SIZE = values.PositiveIntegerValue(
+        3, environ_name="DB_PSYCOPG_POOL_MAX_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_TIMEOUT = values.FloatValue(
+        30.0, environ_name="DB_PSYCOPG_POOL_TIMEOUT", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_IDLE = values.FloatValue(
+        600.0, environ_name="DB_PSYCOPG_POOL_MAX_IDLE", environ_prefix=None
+    )
     DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
     # Static files (CSS, JavaScript, Images)
@@ -1447,6 +1463,52 @@ class Base(Configuration):
             )
 
     @classmethod
+    def _configure_database_pool(cls):
+        """Inject the psycopg pool options into the default database when enabled."""
+        if not cls.DB_PSYCOPG_POOL_ENABLED:
+            return
+
+        database = cls.DATABASES["default"]
+        if database.get("ENGINE") not in (
+            "django.db.backends.postgresql",
+            "django.db.backends.postgresql_psycopg2",
+        ):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED requires the django.db.backends.postgresql "
+                f"engine, got {database.get('ENGINE')!r}."
+            )
+        if database.get("CONN_MAX_AGE"):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED cannot be combined with persistent "
+                "connections; set CONN_MAX_AGE to 0."
+            )
+        if cls.DB_PSYCOPG_POOL_MIN_SIZE > cls.DB_PSYCOPG_POOL_MAX_SIZE:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_MIN_SIZE cannot be greater than "
+                "DB_PSYCOPG_POOL_MAX_SIZE."
+            )
+        if cls.DB_PSYCOPG_POOL_TIMEOUT <= 0 or cls.DB_PSYCOPG_POOL_MAX_IDLE <= 0:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_TIMEOUT and DB_PSYCOPG_POOL_MAX_IDLE must be positive."
+            )
+
+        database["OPTIONS"] = {
+            "keepalives_idle": 60,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+            **database.get("OPTIONS", {}),
+            "pool": {
+                "min_size": cls.DB_PSYCOPG_POOL_MIN_SIZE,
+                "max_size": cls.DB_PSYCOPG_POOL_MAX_SIZE,
+                "timeout": cls.DB_PSYCOPG_POOL_TIMEOUT,
+                "max_idle": cls.DB_PSYCOPG_POOL_MAX_IDLE,
+            },
+        }
+        # The pool does not watch idle connections: check each one on checkout
+        # so a broken connection is replaced instead of failing the request.
+        database["CONN_HEALTH_CHECKS"] = True
+
+    @classmethod
     def post_setup(cls):
         """Post setup configuration.
         This is the place where you can configure settings that require other
@@ -1460,6 +1522,7 @@ class Base(Configuration):
             )
 
         cls._check_recording_encoding_maps()
+        cls._configure_database_pool()
 
         if (
             cls.SUMMARY_SERVICE_VERSION == 1
