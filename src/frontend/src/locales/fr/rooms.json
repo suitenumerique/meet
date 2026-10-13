@@ -215,6 +215,10 @@
       "heading": "Authentification requise",
       "body": "Cette réunion n'a pas encore été créée. Veuillez vous authentifier pour la créer ou attendre qu'un utilisateur authentifié le fasse."
     },
+    "roomFull": {
+      "heading": "Cette réunion est complète",
+      "body": "La réunion a atteint son nombre maximum de participants. Réessayez plus tard."
+    },
     "screenShare": {
       "title": "Impossible de partager votre écran",
       "ariaLabel": "Impossible de partager votre écran",
