@@ -15,7 +15,14 @@ import jwt
 import pytest
 from rest_framework.test import APIClient
 
-from core.factories import ApplicationFactory, RoomFactory, UserFactory
+from core.audit.testing import find_events
+from core.factories import (
+    ApplicationFactory,
+    RecordingFactory,
+    RoomFactory,
+    UserFactory,
+    UserRecordingAccessFactory,
+)
 from core.models import ApplicationScope, RoleChoices
 from core.tests.utils import generate_user_access_token
 
@@ -242,3 +249,32 @@ def test_user_access_token_does_not_override_existing_session():
 
     assert response.status_code == 200
     assert response.data["email"] == session_user.email
+
+
+def test_user_access_token_actions_are_audited_through_the_application(
+    audit_events,
+):
+    """The application the token was delegated by acts, for the person it names."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+    recording = RecordingFactory(status="saved")
+    UserRecordingAccessFactory(role="owner", user=user, recording=recording)
+
+    client = APIClient()
+    client.credentials(
+        HTTP_AUTHORIZATION=(
+            f"Bearer {generate_user_access_token(user, application=application)}"
+        )
+    )
+
+    response = client.delete(f"/api/v1.0/recordings/{recording.id}/")
+
+    assert response.status_code == 204
+
+    [event] = find_events(audit_events, "recording.delete")
+
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "user_access_jwt"}
+    assert event["lasuite"]["application"] == {"client_id": application.client_id}
+    assert event["user"] == {"id": str(user.pk), "domain": "winterfell.com"}
+    assert event["organization"] == {"id": application.client_id}

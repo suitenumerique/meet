@@ -4,6 +4,7 @@ Tests for external API /users endpoints (transit codes)
 
 # pylint: disable=W0621
 
+import json
 from datetime import datetime, timedelta, timezone
 from unittest import mock
 
@@ -14,9 +15,11 @@ import pytest
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework.test import APIClient
 
+from core.audit.testing import find_events
 from core.factories import ApplicationFactory, UserFactory
 from core.models import ApplicationScope
 from core.services.transit_code import TransitCodeService
+from core.tests.utils import random_remote_addr, transit_code_target
 
 pytestmark = pytest.mark.django_db
 
@@ -235,3 +238,95 @@ def test_api_users_transit_code_missing_client_id(auth):
     assert response.status_code == 401
     assert response.json() == {"detail": "Invalid application token."}
     mock_create_code.assert_not_called()
+
+
+def test_api_users_transit_code_success_is_audited(audit_events, settings):
+    """A minted code is recorded by its digest, for the application and its user."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+    token = generate_test_token(
+        user, [ApplicationScope.USERS_SESSION], application=application
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post("/external-api/v1.0/users/transit-code/")
+
+    assert response.status_code == 200
+    code = response.data["transit_code"]
+
+    [event] = find_events(audit_events, "transit_code.issue")
+
+    assert event["event"]["category"] == ["api"]
+    assert event["event"]["type"] == ["creation"]
+    assert event["event"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "application_jwt"}
+    assert event["lasuite"]["application"] == {"client_id": application.client_id}
+    assert event["user"] == {
+        "id": str(user.pk),
+        "domain": "winterfell.com",
+        "target": {"id": str(user.pk), "domain": "winterfell.com"},
+    }
+    assert event["organization"] == {"id": application.client_id}
+    assert event["entity"]["target"] == transit_code_target(code)
+    assert event["lasuite"]["details"] == {"expires_in": settings.TRANSIT_CODE_TTL}
+    assert code not in json.dumps(event)
+
+
+def test_api_users_transit_code_missing_scope_is_audited(audit_events):
+    """A refused mint is recorded under the action attempted, with no code."""
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post("/external-api/v1.0/users/transit-code/")
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "transit_code.issue")
+
+    assert event["event"]["type"] == ["creation", "denied"]
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"]["type"] == "application"
+    assert "entity" not in event
+
+
+def test_api_users_transit_code_requires_authentication_is_audited(audit_events):
+    """Minting without a token is a failed authentication of nobody."""
+    response = APIClient().post("/external-api/v1.0/users/transit-code/")
+
+    assert response.status_code == 401
+
+    [event] = find_events(audit_events, "transit_code.issue")
+
+    assert event["event"]["category"] == ["api", "authentication"]
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert "user" not in event
+    assert "entity" not in event
+
+
+def test_api_users_transit_code_is_traced_to_its_exchange(audit_events):
+    """Minting and exchanging a code are joined by its digest."""
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.USERS_SESSION])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    code = client.post("/external-api/v1.0/users/transit-code/").data["transit_code"]
+
+    # A fresh IP isolates the anonymous throttle history of the exchange
+    browser = APIClient(REMOTE_ADDR=random_remote_addr())
+    response = browser.post("/api/v1.0/users/exchange-access-token/", {"code": code})
+
+    assert response.status_code == 200
+
+    [issued] = find_events(audit_events, "transit_code.issue")
+    [exchanged] = find_events(audit_events, "transit_code.exchange")
+
+    assert exchanged["event"]["outcome"] == "success"
+    assert exchanged["entity"]["target"] == issued["entity"]["target"]
+    assert exchanged["user"]["id"] == issued["user"]["id"]
