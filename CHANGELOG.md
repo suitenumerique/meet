@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.35.0] - 2026-10-13
+
 ### Added
 
 - ✨(frontend) let users pick the recording encoding
