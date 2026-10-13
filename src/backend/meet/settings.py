@@ -395,6 +395,16 @@ class Base(Configuration):
                 environ_name="ROOM_CREATION_DAILY_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "start_recording": values.Value(
+                default="10/minute",
+                environ_name="START_RECORDING_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "start_recording_daily": values.Value(
+                default="100/day",
+                environ_name="START_RECORDING_DAILY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
             "request_entry": values.Value(
                 default="150/minute",
                 environ_name="REQUEST_ENTRY_THROTTLE_RATES",

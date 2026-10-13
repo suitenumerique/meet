@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
+- 🔒️(backend) throttle the start recording endpoint
 
 ## [1.35.0] - 2026-10-13
 

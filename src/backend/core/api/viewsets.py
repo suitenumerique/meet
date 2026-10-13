@@ -406,6 +406,10 @@ class RoomViewSet(
         permission_classes=[
             permissions.HasPrivilegesOnRoom,
         ],
+        throttle_classes=[
+            throttling.StartRecordingUserRateThrottle,
+            throttling.StartRecordingDailyUserRateThrottle,
+        ],
     )
     @FeatureFlag.require("recording")
     def start_room_recording(self, request, pk=None):  # pylint: disable=unused-argument

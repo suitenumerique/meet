@@ -47,6 +47,18 @@ class RoomCreationDailyUserRateThrottle(RoomCreationUserRateThrottle):
     scope = "room_creation_daily"
 
 
+class StartRecordingUserRateThrottle(MonitoredUserRateThrottle):
+    """Throttle recording starts per authenticated user."""
+
+    scope = "start_recording"
+
+
+class StartRecordingDailyUserRateThrottle(StartRecordingUserRateThrottle):
+    """Cap recording starts per authenticated user over a day."""
+
+    scope = "start_recording_daily"
+
+
 class RequestEntryAuthenticatedUserRateThrottle(MonitoredUserRateThrottle):
     """Throttle authenticated user requesting room entry"""
 
