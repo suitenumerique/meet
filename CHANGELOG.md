@@ -19,6 +19,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒️(frontend) upgrade libx11 to fix CVE-2026-88806
+- 🔒️(backend) throttle the start recording endpoint
 
 ## [1.35.0] - 2026-10-13
 
