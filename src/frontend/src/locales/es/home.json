@@ -59,5 +59,15 @@
       "title": "Transforma tus reuniones con la IA",
       "body": "Obtén transcripciones precisas y accionables para impulsar tu productividad. Función experimental, ¡pruébala ahora!"
     }
+  },
+  "quickAccessRooms": {
+    "heading": "Tus enlaces de reunión",
+    "empty": "Aún no has creado ninguna reunión.",
+    "created": "Creado el {{date}}",
+    "access": {
+      "open": "Abierto",
+      "trusted": "De confianza",
+      "restricted": "Restringido"
+    }
   }
 }

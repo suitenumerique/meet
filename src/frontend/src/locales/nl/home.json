@@ -59,5 +59,15 @@
     },
     "carouselLabel": "Introductie-diavoorstelling",
     "slidePosition": "Dia {{current}} van {{total}}"
+  },
+  "quickAccessRooms": {
+    "heading": "Jouw vergaderlinks",
+    "empty": "Je hebt nog geen vergaderingen gemaakt.",
+    "created": "Gemaakt op {{date}}",
+    "access": {
+      "open": "Open",
+      "trusted": "Vertrouwd",
+      "restricted": "Beperkt"
+    }
   }
 }
