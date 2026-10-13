@@ -110,6 +110,8 @@
       "pinCode": "Code:"
     }
   },
+  "participantLimit_one": "Er kan maximaal {{count}} persoon aan deze vergadering deelnemen.",
+  "participantLimit_other": "Er kunnen maximaal {{count}} personen aan deze vergadering deelnemen.",
   "pagination": {
     "label": "Pagina's van deelnemers",
     "count": "{{currentPage}} van {{totalPageCount}}",
@@ -214,6 +216,12 @@
     "createRoom": {
       "heading": "Verificatie vereist",
       "body": "Deze ruimte is nog niet gemaakt. Logt u alstublieft in om hem aan te maken, of wacht tot een ingelogde gebruiker dat doet."
+    },
+    "roomFull": {
+      "heading": "Deze vergadering is vol",
+      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het later opnieuw.",
+      "bodyWithLimit_one": "De vergadering heeft haar limiet van {{count}} deelnemer bereikt. Probeer het later opnieuw.",
+      "bodyWithLimit_other": "De vergadering heeft haar limiet van {{count}} deelnemers bereikt. Probeer het later opnieuw."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",
