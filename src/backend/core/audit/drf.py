@@ -66,11 +66,13 @@ class AuditViewMixin:
     by passing ``audit_action`` to its ``@action`` decorator.
 
     While handling a request, a view may *assign* ``audit_target``,
-    ``audit_actor`` and ``audit_details``; ``check_object_permissions`` sets
-    the target on its own, before a refusal can happen. The actor is the
-    account of the request unless ``audit_actor`` is assigned, ``None``
-    recording no account. A detail named after an event field, as ``outcome``
-    or ``request``, is dropped: overriding one is done in ``get_audit_fields``.
+    ``audit_user_target``, ``audit_actor`` and ``audit_details``;
+    ``check_object_permissions`` sets the target on its own, before a refusal
+    can happen. The actor is the account of the request unless ``audit_actor``
+    is assigned, ``None`` recording no account. The account the action is
+    about is found from the target unless ``audit_user_target`` is assigned.
+    A detail named after an event field, as ``outcome`` or ``request``, is
+    dropped: overriding one is done in ``get_audit_fields``.
     """
 
     audit_actions: Mapping[str, Action | str] = {}
@@ -78,6 +80,7 @@ class AuditViewMixin:
     # to ``as_view``; the action is read from the handler of the request.
     audit_action: Action | str | None = None
     audit_target: Any = None
+    audit_user_target: Any = None
     audit_actor: Any = FROM_REQUEST
     audit_details: Mapping[str, Any] | None = None
 
@@ -169,6 +172,7 @@ class AuditViewMixin:
             "types": types
             or [ACTION_TYPES.get(getattr(self, "action", None), EventType.INFO)],
             "target": self.audit_target,
+            "user_target": self.audit_user_target,
             "actor": self.audit_actor,
             "status_code": status_code,
         }

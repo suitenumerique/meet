@@ -21,7 +21,7 @@ from rest_framework.test import APIRequestFactory
 from core import audit, models
 from core.audit.testing import find_events
 from core.authentication.backends import SessionAuthenticationWith401
-from core.factories import RoomFactory
+from core.factories import RoomFactory, UserFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -356,6 +356,20 @@ def test_details_never_override_event_fields(audit_events):
     assert event["event"]["outcome"] == "success"
     assert event["url"] == {"path": "/things/"}
     assert event["lasuite"]["details"] == {"total": 3}
+
+
+def test_assigned_user_target_is_reported(audit_events):
+    """The account an action is about can be assigned apart from its target."""
+    user = UserFactory(email="user@example.com")
+    view = ListingViewSet.as_view({"get": "list"}, audit_user_target=user)
+
+    response = view(APIRequestFactory().get("/things/"))
+
+    assert response.status_code == 200
+
+    [event] = find_events(audit_events, "thing.list")
+
+    assert event["user"] == {"target": {"id": str(user.pk), "domain": "example.com"}}
 
 
 def test_failing_audit_never_fails_the_response(audit_events):

@@ -1,7 +1,6 @@
 """External API endpoints"""
 
 import copy
-from logging import getLogger
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -37,8 +36,6 @@ from ..services.provisional_user_service import (
     ProvisionalUserService,
 )
 from . import authentication, permissions, serializers
-
-logger = getLogger(__name__)
 
 
 class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
@@ -337,7 +334,7 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
         )
 
 
-class UserViewSet(viewsets.GenericViewSet):
+class UserViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
     """Application-delegated API for user operations.
 
     Provides JWT-authenticated access to user operations for external
@@ -362,6 +359,7 @@ class UserViewSet(viewsets.GenericViewSet):
         methods=["post"],
         url_path="transit-code",
         url_name="transit-code",
+        audit_action=auditing.TRANSIT_CODE_ISSUE,
     )
     @FeatureFlag.require("user_access_token")
     def generate_transit_code(self, request):
@@ -381,12 +379,9 @@ class UserViewSet(viewsets.GenericViewSet):
 
         code = TransitCodeService().create_code(request.user, client_id=client_id)
 
-        # Log for auditing
-        logger.info(
-            "Transit code issued: user_id=%s, client_id=%s",
-            request.user.id,
-            client_id,
-        )
+        self.audit_target = auditing.transit_code_target(code)
+        self.audit_user_target = request.user
+        self.audit_details = {"expires_in": settings.TRANSIT_CODE_TTL}
 
         return drf_response.Response(
             {

@@ -98,7 +98,7 @@ find each one in the JSON above.
 |---|---|---|
 | **Actor** | Who is behind an Action. It always has an Actor Type. When a person's account is involved, the event also carries the account id, its OIDC `sub` when it has one, and its email domain. | `lasuite.actor.*`, `user.*` |
 | **Actor Type** | What kind of Actor it is: `user`, `application`, `service`, `system` or `anonymous`. See [Actors](#actors). Device accounts are `user`s like any other account. | `lasuite.actor.type` |
-| **Auth Method** | How the Actor proved who it is for this request: `session`, `oidc`, `password`, `application_jwt`, `client_credentials`, `addons_jwt`, `resource_server`, `livekit_token`, `shared_secret`, `none` when it did not authenticate, or `unknown`. | `lasuite.auth.method` |
+| **Auth Method** | How the Actor proved who it is for this request: `session`, `oidc`, `password`, `application_jwt`, `client_credentials`, `addons_jwt`, `user_access_jwt`, `transit_code`, `resource_server`, `livekit_token`, `shared_secret`, `none` when it did not authenticate, or `unknown`. | `lasuite.auth.method` |
 | **Application** | A registered third-party integration, identified by its client id, that calls the external API on behalf of users. | `lasuite.application.client_id` |
 | **Delegation** | An Application acting for one specific user, through the delegated token it obtained with `application.token.issue`. The event then names both: the Application as the Actor, and the user in `user.*`. | `lasuite.actor.type` = `application`, with `user.*` set |
 | **Provisional User** | An account an Application created from an email address before that person ever signed in. It has no OIDC `sub` yet, so its account id is what links its `user.provision` event to its later `user.login`. | `event.action` = `user.provision` |
@@ -109,8 +109,8 @@ find each one in the JSON above.
 
 | Term | Meaning | In the event |
 |---|---|---|
-| **Target** | The resource the Action was attempted on: a room, a recording, an access grant, an application or a user. Described by its type, its id and a few stable fields. See [Targets](#targets). | `entity.target.*` |
-| **User Target** | The person the Action was *about*, when there is one: a provisioned user, the user an access grants a role to, or the account an admin edits. Not to be confused with `user.*`, the account whose authority was used. | `user.target.*` |
+| **Target** | The resource the Action was attempted on: a room, a recording, an access grant, an application, a user or a transit code. Described by its type, its id and a few stable fields. See [Targets](#targets). | `entity.target.*` |
+| **User Target** | The person the Action was *about*, when there is one: a provisioned user, the user an access grants a role to, the account an admin edits, or the user a transit code is minted for. Not to be confused with `user.*`, the account whose authority was used. | `user.target.*` |
 
 ### How it went
 
@@ -135,6 +135,13 @@ find each one in the JSON above.
 |---|---|---|
 | **Sink** | Where Audit Events are written: the `audit` logger, whose handler writes to `AUDIT_LOG_STREAM`, standard output by default. A log shipper takes them from there. | `log.logger` = `audit` |
 | **Data Stream** | The data stream events are meant for, `logs-meet.audit-default` by default. It is what lets a shipper route audit events away from the application logs. | `data_stream.*` |
+
+### Embedded frontends
+
+| Term | Meaning | In the event |
+|---|---|---|
+| **Transit Code** | A single-use, short-lived code an Application mints for its delegated user and hands to an embedded frontend, which exchanges it for a User Access Token. Only its SHA-256 is ever logged. | `entity.target.sub_type` = `transit_code` |
+| **User Access Token** | The token an embedded frontend uses to call the API as the user, where session cookies are blocked (in an iframe, for example). Requests made with it are recorded as the Application acting for that user. | `lasuite.auth.method` = `user_access_jwt` |
 
 ## Answering common questions
 
@@ -184,7 +191,7 @@ what ECS does not define: `lasuite.*`, and `entity.target.raw.*` for the fields 
 | `lasuite.outcome` | `success`, `failure`, `denied` or `unknown`: the same as `event.outcome`, with refusals kept apart |
 | `lasuite.actor.type` | `user`, `application`, `service`, `system` or `anonymous`, see [Actors](#actors) |
 | `lasuite.actor.sub` | The OIDC `sub` of the account in `user.*`, when it has one: the identity it shares with the other La Suite products |
-| `lasuite.auth.method` | `session`, `application_jwt`, `addons_jwt`, `resource_server`, `livekit_token`, `shared_secret`, `client_credentials`, `oidc`, `password`, `none`, or `unknown` for an authentication class that is not registered. Requests served outside DRF, such as the admin and logout, report `session` when signed in |
+| `lasuite.auth.method` | `session`, `application_jwt`, `addons_jwt`, `user_access_jwt`, `resource_server`, `livekit_token`, `shared_secret`, `client_credentials`, `transit_code`, `oidc`, `password`, `none`, or `unknown` for an authentication class that is not registered. Requests served outside DRF, such as the admin and logout, report `session` when signed in |
 | `lasuite.application.client_id` | The external application acting, if any. Only set once its credentials are verified |
 | `user.id`, `user.domain` | The account whose authority the action used (see [Actors](#actors)): its primary key and email domain. The email address itself is never recorded |
 | `user.roles` | That account's privileges when the event happened: `superuser`, `staff` |
@@ -209,7 +216,7 @@ The resource an action was performed on is described with ECS `entity.target`, t
 | Field | Meaning |
 |---|---|
 | `entity.target.id` | Its primary key |
-| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess`... |
+| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess` or `transit_code` (identified by its SHA-256) |
 | `entity.target.type` | Its ECS entity type, when one fits: `user` for an account, `application` for an application |
 | `entity.target.name` | Its name, when its model registers one |
 | `entity.target.raw.*` | The other fields its model registers, such as a room's `slug` and `access_level`, or the OIDC `sub` of a user |
@@ -222,7 +229,7 @@ an application acts for a user, the actor is the application, but `user.*` is th
 | `lasuite.actor.type` | Who | `user.*` |
 |---|---|---|
 | `user` | A person's account acting for itself: through a session, an OIDC or password login, an add-on token, or the LiveKit token of a known account | That account |
-| `application` | A client application acting on behalf of a user. Either a Meet application, through its client credentials or its delegated token, or another La Suite application, through the resource server. `lasuite.application.client_id` names it | The delegating user |
+| `application` | A client application acting on behalf of a user. Either a Meet application, through its client credentials, its delegated token or the user access token of its embedded frontend, or another La Suite application, through the resource server. `lasuite.application.client_id` names it | The delegating user |
 | `service` | An internal service of the deployment, named by `service.origin.name`: the LiveKit SIP bridge (`roomkit`), the summary service (`summary`), or the LiveKit server reporting on a recording (`livekit`) | Absent |
 | `system` | The backend itself, with no inbound request | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
@@ -260,6 +267,8 @@ is told by `event.outcome`, `lasuite.outcome` and `event.reason`, never by the n
 |---|---|---|
 | `application.token.issue` | An application asks for a delegated token (`POST /external-api/v1.0/application/token/`), whether it gets one or is refused. It can be refused for bad credentials, an inactive application, an invalid or unauthorized email domain, an unknown user, or a provisioning conflict | On success: `user.*` is the delegated user, `entity.target` the application, and `lasuite.details` holds `scopes`, `user_provisioned` and `expires_in`. On refusal: `event.reason`, `http.response.status_code` and `lasuite.details.requested_domain`. Until its credentials are verified, the client id the caller submitted is only recorded as `lasuite.details.claimed_client_id`: it never sets `lasuite.application` or `organization` |
 | `user.provision` | An application creates a provisional user from an email address, or fails to. It is a `failure` with reason `conflict` when a concurrent request created the user first | `user.target` and `entity.target` are the user, the existing one on a conflict. A provisional user has no `sub` yet: its id links this event to the winning one and to its later `user.login` |
+| `transit_code.issue` | An application mints a single-use transit code for its delegated user | `entity.target` is the code, whose `id` is its SHA-256. `user.target` is the user it is minted for. `lasuite.details.expires_in` |
+| `transit_code.exchange` | An embedded frontend exchanges a transit code for a user access token | `event.category` is `authentication`, `lasuite.auth.method` is `transit_code`, and `entity.target` is the code's SHA-256. Once the code verifies, even if the exchange is then refused: `lasuite.actor.type` is `application` (the one that minted it), and `user.target` the user it was minted for. On success, `user.*` is that user too, with `lasuite.details.expires_in`. A code that does not verify is recorded as an `anonymous` failed authentication |
 
 ### Rooms
 
@@ -401,7 +410,8 @@ class RoomViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
 - The outcome, reason and status code come from the response status: 401, 403 and 429 are `denied`, other errors are
   `failure`, and a 401 is always filed under `authentication`.
 - The target is the object `get_object()` returned, unless the view assigns `audit_target`.
-- A view can also assign `audit_actor` (`None` records no account) and `audit_details`, or override `get_audit_fields()`.
+- A view can also assign `audit_user_target`, `audit_actor` (`None` records no account) and `audit_details`, or override
+  `get_audit_fields()`.
 
 ### Auditing from anywhere else
 
