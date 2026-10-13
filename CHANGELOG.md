@@ -54,6 +54,7 @@ and this project adheres to
 - ✨(backend) audit external API token and room operations
 - 🔒️(backend) audit writes and bulk actions made in the Django admin
 - ✨(backend) audit recordings, transcripts and summaries
+- ✨(backend) audit transit code issuance and exchange
 
 ### Changed
 

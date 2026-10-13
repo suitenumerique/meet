@@ -11,12 +11,14 @@ from core import audit, models
 from core.audit import EventCategory, EventType
 from core.authentication.backends import OIDCAuthenticationBackend
 from core.authentication.livekit import LiveKitTokenAuthentication
+from core.authentication.user_token import UserAccessJWTAuthentication
 from core.external_api.authentication import (
     AddonsJWTAuthentication,
     ApplicationJWTAuthentication,
 )
 from core.recording.event.authentication import HeaderBasedAuthentication
 from core.roomkit.authentication import ServerToServerAuthentication
+from core.services.transit_code import TransitCodeService
 
 # Actions
 
@@ -29,6 +31,12 @@ USER_PROVISION = audit.Action(
     "user.provision",
     category=EventCategory.IAM,
     types=(EventType.USER, EventType.CREATION),
+)
+TRANSIT_CODE_ISSUE = audit.Action("transit_code.issue", types=(EventType.CREATION,))
+TRANSIT_CODE_EXCHANGE = audit.Action(
+    "transit_code.exchange",
+    category=EventCategory.AUTHENTICATION,
+    types=(EventType.START,),
 )
 ROOM_CREATE = audit.Action("room.create")
 ROOM_LIST = audit.Action("room.list")
@@ -105,5 +113,14 @@ audit.register_auth_method(ApplicationJWTAuthentication, "application_jwt")
 audit.register_auth_method(AddonsJWTAuthentication, "addons_jwt")
 audit.register_auth_method(ResourceServerAuthentication, "resource_server")
 audit.register_auth_method(LiveKitTokenAuthentication, "livekit_token")
+audit.register_auth_method(UserAccessJWTAuthentication, "user_access_jwt")
 audit.register_auth_method(HeaderBasedAuthentication, "shared_secret")
 audit.register_auth_method(ServerToServerAuthentication, "shared_secret")
+
+
+# Targets that are not models
+
+
+def transit_code_target(code: str) -> dict[str, str]:
+    """Describe a transit code as a target, by its digest: never the code itself."""
+    return {"id": TransitCodeService.digest(code), "sub_type": "transit_code"}

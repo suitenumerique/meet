@@ -125,13 +125,19 @@ class Pagination(pagination.PageNumberPagination):
 
 
 class UserViewSet(
-    mixins.UpdateModelMixin, viewsets.GenericViewSet, mixins.ListModelMixin
+    audit.AuditViewMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
 ):
     """User ViewSet"""
 
     permission_classes = [permissions.IsSelf]
     queryset = models.User.objects.all()
     serializer_class = serializers.UserSerializer
+
+    audit_client_id = None
+    audit_code_refused = False
 
     def get_queryset(self):
         """
@@ -174,6 +180,7 @@ class UserViewSet(
         url_path="exchange-access-token",
         permission_classes=[],
         throttle_classes=[throttling.ExchangeAccessTokenAnonRateThrottle],
+        audit_action=auditing.TRANSIT_CODE_EXCHANGE,
     )
     @FeatureFlag.require("user_access_token")
     def exchange_access_token(self, request):
@@ -191,44 +198,38 @@ class UserViewSet(
         any URL. Role-based permissions apply unchanged.
         """
         if request.user and request.user.is_authenticated:
-            logger.warning(
-                "Transit code exchange refused: request is already "
-                "session-authenticated (user_id=%s)",
-                request.user.id,
-            )
             raise drf_exceptions.PermissionDenied("Already authenticated.")
 
         serializer = serializers.TransitCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        code_data = TransitCodeService().consume_code(serializer.validated_data["code"])
+        code = serializer.validated_data["code"]
+        self.audit_target = auditing.transit_code_target(code)
+
+        code_data = TransitCodeService().consume_code(code)
 
         if code_data is None:
-            logger.warning("Invalid, expired or already used transit code")
+            self.audit_code_refused = True
             raise drf_exceptions.PermissionDenied(
                 "Invalid, expired or already used transit code."
             )
 
+        client_id = code_data.get("client_id")
+        self.audit_client_id = client_id
+
         # Re-check the user at exchange time so that a deactivation after
         # the transit code was minted is taken into account.
-        user_id = code_data["user_id"]
-        try:
-            user = models.User.objects.get(id=user_id, is_active=True)
-        except models.User.DoesNotExist as e:
+        user = models.User.objects.filter(id=code_data["user_id"]).first()
+        self.audit_user_target = user
+
+        if user is None or not user.is_active:
             raise drf_exceptions.PermissionDenied(
                 "This account can no longer access the application."
-            ) from e
+            )
 
-        client_id = code_data.get("client_id")
         if not models.Application.has_active_scope(
             client_id, models.ApplicationScope.USERS_SESSION
         ):
-            logger.warning(
-                "Transit code exchange refused: application '%s' no longer "
-                "holds the '%s' grant",
-                client_id,
-                models.ApplicationScope.USERS_SESSION,
-            )
             raise drf_exceptions.PermissionDenied(
                 "This application can no longer create user sessions."
             )
@@ -251,14 +252,27 @@ class UserViewSet(
             },
         )
 
-        # Log for auditing
-        logger.info(
-            "User access token issued from transit code: user_id=%s, client_id=%s",
-            user_id,
-            client_id,
-        )
+        self.audit_actor = user
+        self.audit_details = {"expires_in": settings.USER_ACCESS_TOKEN_TTL}
 
         return drf_response.Response(data)
+
+    def get_audit_fields(self, status_code, error=None):
+        """Report an exchange as an authentication with its transit code.
+
+        The caller is anonymous until the code is consumed, then the
+        application that minted it, a refusal included, acting for its user
+        once the exchange succeeds. A code that does not verify is a failed
+        authentication, though answered with a 403. A request already signed
+        in is reported as it is.
+        """
+        fields = super().get_audit_fields(status_code, error)
+        if self.action != "exchange_access_token" or self.request.user.is_authenticated:
+            return fields
+        fields |= {"auth_method": "transit_code", "client_id": self.audit_client_id}
+        if self.audit_code_refused:
+            fields["reason"] = audit.Reason.AUTHENTICATION_FAILED
+        return fields
 
 
 class RoomViewSet(

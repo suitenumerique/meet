@@ -16,6 +16,7 @@ from core.audit.registry import (
     unregister,
 )
 from core.audit.testing import override_registration
+from core.authentication.user_token import UserAccessJWTAuthentication
 from core.external_api.authentication import ApplicationJWTAuthentication
 from core.models import Application, Resource, ResourceAccess, Room
 
@@ -80,6 +81,9 @@ def test_project_declarations_are_discovered():
     assert model_options(ResourceAccess).user_target == "user"
     assert auth_methods()[dotted_path(ApplicationJWTAuthentication)] == (
         "application_jwt"
+    )
+    assert auth_methods()[dotted_path(UserAccessJWTAuthentication)] == (
+        "user_access_jwt"
     )
     assert (
         auth_method_for_backend(
