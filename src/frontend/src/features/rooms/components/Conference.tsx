@@ -11,6 +11,7 @@ import {
   DisconnectReason,
   MediaDeviceFailure,
   Room,
+  RoomEvent,
   type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
@@ -139,8 +140,13 @@ export const Conference = ({
   const room = useMemo(() => {
     const room = new Room(roomOptions)
     // Where the meeting can split, nobody receives this browser until it knows its room.
+    // Sent as each join's signal connects, ahead of LiveKitRoom's publish: a list
+    // set before is held until the peer connection is up. A restart emits no
+    // SignalConnected, so the list it replays stands.
     if (isBreakoutEnabled)
-      room.localParticipant.setTrackSubscriptionPermissions(false)
+      room.on(RoomEvent.SignalConnected, () =>
+        room.localParticipant.setTrackSubscriptionPermissions(false)
+      )
     return room
   }, [roomOptions, isBreakoutEnabled])
 

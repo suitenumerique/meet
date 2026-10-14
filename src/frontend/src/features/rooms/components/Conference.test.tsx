@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { RoomEvent } from 'livekit-client'
 import { Conference } from './Conference'
 import type { ApiRoom } from '../api/ApiRoom'
 
@@ -29,6 +30,14 @@ vi.mock('livekit-client', async (orig) => {
     localParticipant = {
       name: 'guest',
       setTrackSubscriptionPermissions: vi.fn(),
+    }
+    listeners: Record<string, (() => void)[]> = {}
+    on(event: string, listener: () => void) {
+      ;(this.listeners[event] ??= []).push(listener)
+      return this
+    }
+    emit(event: string) {
+      this.listeners[event]?.forEach((listener) => listener())
     }
     prepareConnection = async () => undefined
     constructor() {
@@ -105,14 +114,18 @@ afterEach(() => {
 })
 
 describe('Conference', () => {
-  it('lets nobody receive this browser before it knows its room', () => {
+  it('lets nobody receive this browser as each join connects', () => {
     h.breakout = true
     mount()
 
     const room = h.roomGivenToLiveKit[0]
-    expect(
-      room.localParticipant.setTrackSubscriptionPermissions
-    ).toHaveBeenCalledWith(false)
+    const permissions = room.localParticipant.setTrackSubscriptionPermissions
+    // Before connecting the SDK would hold the list, not send it.
+    expect(permissions).not.toHaveBeenCalled()
+    room.emit(RoomEvent.SignalConnected)
+    expect(permissions).toHaveBeenCalledWith(false)
+    room.emit(RoomEvent.SignalConnected)
+    expect(permissions).toHaveBeenCalledTimes(2)
     expect(h.restrictedBeforeConnect).toBe(true)
   })
 
@@ -121,6 +134,7 @@ describe('Conference', () => {
     mount()
 
     const room = h.roomGivenToLiveKit[0]
+    room.emit(RoomEvent.SignalConnected)
     expect(
       room.localParticipant.setTrackSubscriptionPermissions
     ).not.toHaveBeenCalled()

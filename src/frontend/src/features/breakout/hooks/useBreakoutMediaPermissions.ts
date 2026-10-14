@@ -15,7 +15,7 @@ import { allowedListeners, inSameBreakoutRoom, readSplit } from '../utils/split'
 
 // Keeps this browser's audio and video inside its breakout room. The media server
 // refuses anyone a publisher does not list, whatever their browser does.
-// restrictedBeforeConnect: Conference listed nobody before connecting.
+// restrictedBeforeConnect: Conference lists nobody as the join connects.
 export const useBreakoutMediaPermissions = (
   restrictedBeforeConnect: boolean
 ) => {
