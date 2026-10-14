@@ -71,10 +71,10 @@ export const QuickAccessRooms = () => {
             <li
               key={room.id}
               className={css({
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                display: 'grid',
+                gridTemplateColumns: '1fr auto auto',
                 gap: '1rem',
+                alignItems: 'center',
                 padding: '0.5rem 0',
                 borderBottom: '1px solid',
                 borderColor: 'greyscale.500',
@@ -87,26 +87,17 @@ export const QuickAccessRooms = () => {
               >
                 {room.slug}
               </Link>
-              <div
-                className={css({
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end',
-                  gap: '0.15rem',
-                })}
+              <Text
+                variant="smNote"
+                title={
+                  room.created_at ? formatDate(room.created_at) : undefined
+                }
               >
-                <Text
-                  variant="smNote"
-                  title={
-                    room.created_at ? formatDate(room.created_at) : undefined
-                  }
-                >
-                  {room.created_at
-                    ? formatRelativeDate(room.created_at, i18n.language)
-                    : ''}
-                </Text>
-                <AccessLevelLabel accessLevel={room.access_level} />
-              </div>
+                {room.created_at
+                  ? formatRelativeDate(room.created_at, i18n.language)
+                  : ''}
+              </Text>
+              <AccessLevelLabel accessLevel={room.access_level} />
             </li>
           ))}
         </ul>
