@@ -177,18 +177,31 @@ export const MainNotificationToast = () => {
       changedAttributes: Record<string, string>,
       participant: Participant
     ) => {
-      if (!participant.isLocal || !('room_role' in changedAttributes)) return
-      const newRole = changedAttributes['room_role']
-      toastQueue.add(
-        {
-          participant,
-          type: NotificationType.RoleChanged,
-          newRole: newRole,
-        },
-        {
-          timeout: NotificationDuration.ROLE_CHANGED,
-        }
-      )
+      if (!participant.isLocal) return
+      if ('room_role' in changedAttributes) {
+        toastQueue.add(
+          {
+            participant,
+            type: NotificationType.RoleChanged,
+            newRole: changedAttributes['room_role'],
+          },
+          {
+            timeout: NotificationDuration.ROLE_CHANGED,
+          }
+        )
+      }
+      if ('is_speaker' in changedAttributes) {
+        toastQueue.add(
+          {
+            participant,
+            type: NotificationType.SpeakerChanged,
+            isSpeaker: changedAttributes['is_speaker'] === 'true',
+          },
+          {
+            timeout: NotificationDuration.ROLE_CHANGED,
+          }
+        )
+      }
     }
     room.on(RoomEvent.ParticipantAttributesChanged, handleAttributeChanged)
 

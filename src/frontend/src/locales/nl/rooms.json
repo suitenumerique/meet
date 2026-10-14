@@ -670,6 +670,7 @@
     "host": "Host",
     "cohost": "Co-host",
     "member": "Lid",
+    "speaker": "Spreker",
     "contributors": "Deelnemers",
     "collapsable": {
       "open": "Open {{name}} lijst",
@@ -725,6 +726,14 @@
     "demote": {
       "label": "Co-hostrol verwijderen",
       "ariaLabel": "De co-hostrol van {{name}} verwijderen"
+    },
+    "makeSpeaker": {
+      "label": "Spreker maken",
+      "ariaLabel": "{{name}} spreker maken"
+    },
+    "removeSpeaker": {
+      "label": "Sprekersrol verwijderen",
+      "ariaLabel": "Sprekersrol van {{name}} verwijderen"
     }
   },
   "pinAnnouncements": {

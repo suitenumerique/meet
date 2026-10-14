@@ -68,5 +68,9 @@
       "member": "Lid"
     }
   },
+  "speakerChanged": {
+    "granted": "Je bent nu spreker. Je kunt je microfoon, camera en schermdeling gebruiken.",
+    "removed": "Je bent geen spreker meer."
+  },
   "openMenu": "Menu openen"
 }

@@ -670,6 +670,7 @@
     "host": "Host",
     "cohost": "Co-host",
     "member": "Member",
+    "speaker": "Speaker",
     "contributors": "Contributors",
     "collapsable": {
       "open": "Open {{name}} list",
@@ -725,6 +726,14 @@
     "demote": {
       "label": "Remove co-host role",
       "ariaLabel": "Remove {{name}}'s co-host role"
+    },
+    "makeSpeaker": {
+      "label": "Make speaker",
+      "ariaLabel": "Make {{name}} a speaker"
+    },
+    "removeSpeaker": {
+      "label": "Remove speaker",
+      "ariaLabel": "Remove {{name}} as speaker"
     }
   },
   "pinAnnouncements": {

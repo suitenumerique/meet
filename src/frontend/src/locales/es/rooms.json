@@ -670,6 +670,7 @@
     "host": "Organizador de la reunión",
     "cohost": "Coorganizador",
     "member": "Miembro",
+    "speaker": "Ponente",
     "collapsable": {
       "open": "Abrir la lista {{name}}",
       "close": "Cerrar la lista {{name}}"
@@ -724,6 +725,14 @@
     "demote": {
       "label": "Retirar el rol de coorganizador",
       "ariaLabel": "Retirar el rol de coorganizador a {{name}}"
+    },
+    "makeSpeaker": {
+      "label": "Nombrar ponente",
+      "ariaLabel": "Nombrar ponente a {{name}}"
+    },
+    "removeSpeaker": {
+      "label": "Quitar rol de ponente",
+      "ariaLabel": "Quitar el rol de ponente a {{name}}"
     }
   },
   "pinAnnouncements": {

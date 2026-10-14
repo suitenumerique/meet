@@ -68,5 +68,9 @@
       "member": "Mitglied"
     }
   },
+  "speakerChanged": {
+    "granted": "Du bist jetzt Sprecher. Du kannst dein Mikrofon, deine Kamera und die Bildschirmfreigabe nutzen.",
+    "removed": "Du bist nicht mehr Sprecher."
+  },
   "openMenu": "Menü öffnen"
 }
