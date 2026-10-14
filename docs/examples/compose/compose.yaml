@@ -13,7 +13,7 @@ services:
     - ./data/databases/backend:/var/lib/postgresql/data
 
   redis:
-    image: redis:5
+    image: valkey/valkey:8.1-alpine
 
   backend:
     image: lasuite/meet-backend:latest

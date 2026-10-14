@@ -33,7 +33,7 @@ To enable the transcription feature, the following components must be in place:
 * Recording feature components: All dependencies and configurations required for the [recording feature](https://github.com/suitenumerique/meet/blob/main/docs/features/recording.md).
 * LaSuite Docs instance: A running [LaSuite Docs](https://github.com/suitenumerique/docs) capable of handling requests to the `/create-for-owner` endpoint.
 * WhisperX API: A running WhisperX service. An open-source implementation combining WhisperX and FastAPI is available [here](https://github.com/suitenumerique/meet-whisperx).
-* Deployment of the [summary service](https://hub.docker.com/r/lasuite/meet-summary), a Celery worker, and a Redis instance.
+* Deployment of the [summary service](https://hub.docker.com/r/lasuite/meet-summary), a Celery worker, and a Valkey instance.
 
 ## How It Works
 
