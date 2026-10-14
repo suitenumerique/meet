@@ -35,6 +35,20 @@ def test_user_access_token_users_me():
     assert response.data["email"] == user.email
 
 
+def test_user_access_token_custom_token_type(settings):
+    """The Authorization scheme should match the configured token type."""
+    settings.USER_ACCESS_TOKEN_TYPE = "Token"
+    user = UserFactory()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Token {generate_user_access_token(user)}")
+
+    response = client.get("/api/v1.0/users/me/")
+
+    assert response.status_code == 200
+    assert response.data["email"] == user.email
+
+
 def test_user_access_token_expired():
     """An expired user access token should be rejected."""
     user = UserFactory()

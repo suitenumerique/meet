@@ -17,7 +17,16 @@ def sub_validator(value):
     ``isprintable()`` is false exactly for those control characters, while
     space (U+0020) remains allowed.
     """
+    msg = (
+        "Enter a valid sub. This value should be printable ASCII only, "
+        "with 255 characters or less."
+    )
+
+    if value is None:
+        raise ValidationError(_(msg))
+
+    if len(value) > 255:
+        raise ValidationError(_(msg))
+
     if not value.isascii() or not value.isprintable():
-        raise ValidationError(
-            _("Enter a valid sub. This value should be printable ASCII only.")
-        )
+        raise ValidationError(_(msg))

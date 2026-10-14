@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.13"
 
 [[package]]
@@ -1327,6 +1327,7 @@ dependencies = [
     { name = "jsonschema" },
     { name = "livekit-api" },
     { name = "markdown" },
+    { name = "menshen-client" },
     { name = "mozilla-django-oidc" },
     { name = "nested-multipart-parser" },
     { name = "phonenumbers" },
@@ -1392,6 +1393,7 @@ requires-dist = [
     { name = "jsonschema", specifier = "==4.26.0" },
     { name = "livekit-api", specifier = "==1.2.0" },
     { name = "markdown", specifier = "==3.10.3" },
+    { name = "menshen-client", specifier = "==0.2.0" },
     { name = "mozilla-django-oidc", specifier = "==5.0.2" },
     { name = "nested-multipart-parser", specifier = "==1.6.0" },
     { name = "phonenumbers", specifier = "==9.0.37" },
@@ -1426,6 +1428,18 @@ dev = [
     { name = "responses", specifier = "==0.26.2" },
     { name = "ruff", specifier = "==0.16.4" },
     { name = "types-requests", specifier = "==2.33.0.20260712" },
+]
+
+[[package]]
+name = "menshen-client"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/57/a2/5862b0a39d5f96301e1daff146445f591b1980412c20417162f5cfd6aa34/menshen_client-0.2.0.tar.gz", hash = "sha256:548c4224c38b2c844a76325b5a4b65da520ea9eba23aafb004da0f430a7e4fcf", size = 6326, upload-time = "2026-10-13T10:19:34.344Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/53/4d/932efd81c340d12d07b1c33633c6e7a4a2d0c9086ac0da7ffe9a1ce17068/menshen_client-0.2.0-py3-none-any.whl", hash = "sha256:415eaba30184452bc393b528c6088ed6e37cbd00ce60716aef9e2d9bd0697221", size = 7149, upload-time = "2026-10-13T10:19:33.272Z" },
 ]
 
 [[package]]
