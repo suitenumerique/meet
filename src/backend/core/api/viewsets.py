@@ -335,7 +335,10 @@ class RoomViewSet(
 
         if user.is_authenticated:
             queryset = (
-                self.filter_queryset(self.get_queryset()).filter(users=user).distinct()
+                self.filter_queryset(self.get_queryset())
+                .filter(users=user)
+                .order_by("-created_at")
+                .distinct()
             )
             role_filter = request.query_params.get("role", None)
             if role_filter:

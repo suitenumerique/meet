@@ -81,7 +81,6 @@ export const QuickAccessRooms = () => {
             >
               <Link
                 to={String(getRoutePath('room', room.slug))}
-                underline={false}
                 data-attr="link-to-room"
               >
                 {room.slug}
