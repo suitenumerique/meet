@@ -1164,3 +1164,99 @@ class File(BaseModel):
 
         self.hard_deleted_at = timezone.now()
         self.save(update_fields=["hard_deleted_at"])
+
+
+BREAKOUT_SESSION_LABEL = _("Breakout session")
+
+
+class BreakoutSession(BaseModel):
+    """One round of splitting a meeting into breakout rooms, from opening to closing."""
+
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="breakout_sessions",
+        verbose_name=_("Room"),
+    )
+    is_active = models.BooleanField(default=True, verbose_name=_("Active"))
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("Created by"),
+    )
+
+    class Meta:
+        db_table = "meet_breakout_session"
+        ordering = ("-created_at",)
+        verbose_name = BREAKOUT_SESSION_LABEL
+        verbose_name_plural = _("Breakout sessions")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["room"],
+                condition=models.Q(is_active=True),
+                name="unique_active_breakout_session_per_room",
+            )
+        ]
+
+    def __str__(self):
+        state = "active" if self.is_active else "closed"
+        return f"Breakout session {self.id!s} ({state})"
+
+
+class BreakoutRoom(BaseModel):
+    """One of the groups a meeting is split into, inside the meeting's own room."""
+
+    session = models.ForeignKey(
+        BreakoutSession,
+        on_delete=models.CASCADE,
+        related_name="rooms",
+        verbose_name=BREAKOUT_SESSION_LABEL,
+    )
+    name = models.CharField(max_length=200, verbose_name=_("Name"))
+    # The room's index in the host's split, which orders the rooms.
+    position = models.PositiveSmallIntegerField(verbose_name=_("Position"))
+
+    class Meta:
+        db_table = "meet_breakout_room"
+        ordering = ("position",)
+        verbose_name = _("Breakout room")
+        verbose_name_plural = _("Breakout rooms")
+
+    def __str__(self):
+        return self.name
+
+
+class BreakoutAssignment(BaseModel):
+    """Which breakout room one participant of the meeting belongs in."""
+
+    session = models.ForeignKey(
+        BreakoutSession,
+        on_delete=models.CASCADE,
+        related_name="assignments",
+        verbose_name=BREAKOUT_SESSION_LABEL,
+    )
+    breakout_room = models.ForeignKey(
+        BreakoutRoom,
+        on_delete=models.CASCADE,
+        related_name="assignments",
+        verbose_name=_("Breakout room"),
+    )
+    identity = models.CharField(max_length=255, verbose_name=_("Participant identity"))
+
+    class Meta:
+        db_table = "meet_breakout_assignment"
+        ordering = ("created_at",)
+        verbose_name = _("Breakout assignment")
+        verbose_name_plural = _("Breakout assignments")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["session", "identity"],
+                name="unique_breakout_assignment_per_identity",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.identity} in {self.breakout_room_id!s}"

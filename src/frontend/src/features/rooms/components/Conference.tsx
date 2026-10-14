@@ -11,6 +11,7 @@ import {
   DisconnectReason,
   MediaDeviceFailure,
   Room,
+  RoomEvent,
   type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
@@ -44,6 +45,8 @@ import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
+import { BreakoutRoomTracker } from '@/features/breakout/components/BreakoutRoomTracker'
+import { useBreakoutEnabled } from '@/features/breakout/hooks/useCanManageBreakout'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 
@@ -133,7 +136,19 @@ export const Conference = ({
     apiConfig?.livekit.default_video_codec,
   ])
 
-  const room = useMemo(() => new Room(roomOptions), [roomOptions])
+  const isBreakoutEnabled = useBreakoutEnabled()
+  const room = useMemo(() => {
+    const room = new Room(roomOptions)
+    // Where the meeting can split, nobody receives this browser until it knows its room.
+    // Sent as each join's signal connects, ahead of LiveKitRoom's publish: a list
+    // set before is held until the peer connection is up. A restart emits no
+    // SignalConnected, so the list it replays stands.
+    if (isBreakoutEnabled)
+      room.on(RoomEvent.SignalConnected, () =>
+        room.localParticipant.setTrackSubscriptionPermissions(false)
+      )
+    return room
+  }, [roomOptions, isBreakoutEnabled])
 
   useEffect(() => {
     /**
@@ -299,6 +314,7 @@ export const Conference = ({
         >
           <WatchMediaDeviceErrors />
           <VideoConference />
+          <BreakoutRoomTracker restrictedBeforeConnect={isBreakoutEnabled} />
           {!isMobile && <InviteDialog mode={mode} />}
           <PictureInPictureConference />
           <MeetDevtools />

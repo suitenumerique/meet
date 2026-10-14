@@ -12,6 +12,9 @@ import {
   ScreenRecordingSidePanel,
 } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
+import { RiLayoutGridLine } from '@remixicon/react'
+import { BreakoutPanel } from '@/features/breakout/components/BreakoutPanel'
+import { useCanManageBreakout } from '@/features/breakout/hooks/useCanManageBreakout'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -93,11 +96,27 @@ const ToolButton = ({
   )
 }
 
+// Reads the meeting's metadata, so only this button renders again when it changes.
+const BreakoutToolButton = ({ onPress }: { onPress: () => void }) => {
+  const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
+  const { canManage } = useCanManageBreakout()
+  if (!canManage) return null
+  return (
+    <ToolButton
+      icon={<RiLayoutGridLine size={24} />}
+      title={t('tools.breakout.title')}
+      description={t('tools.breakout.body')}
+      onPress={onPress}
+    />
+  )
+}
+
 export const Tools = () => {
   const { data } = useConfig()
   const {
     openTranscript,
     openScreenRecording,
+    openBreakout,
     activeSubPanelId,
     isToolsOpen,
     isSidePanelOpen,
@@ -134,6 +153,8 @@ export const Tools = () => {
       return <TranscriptSidePanel />
     case SubPanelId.SCREEN_RECORDING:
       return <ScreenRecordingSidePanel />
+    case SubPanelId.BREAKOUT:
+      return <BreakoutPanel />
     default:
       break
   }
@@ -188,6 +209,7 @@ export const Tools = () => {
           onPress={() => openScreenRecording()}
         />
       )}
+      <BreakoutToolButton onPress={openBreakout} />
     </Div>
   )
 }

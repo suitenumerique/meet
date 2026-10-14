@@ -1,7 +1,10 @@
 import { useCallback, useEffect } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
-import { type ChatMessage, isMobileBrowser } from '@livekit/components-core'
+import {
+  type ReceivedChatMessage,
+  isMobileBrowser,
+} from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
@@ -15,6 +18,17 @@ import { Emoji } from '@/features/reactions/types'
 import { useReactions } from '@/features/reactions/hooks/useReactions'
 import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
+import { useMyBreakoutRoom } from '@/features/breakout/hooks/useMyBreakoutRoom'
+import { isToEveryRoom } from '@/features/breakout/utils/split'
+
+const SENT_BY_BROWSERS = new Set<NotificationType>([
+  NotificationType.TranscriptionRequested,
+  NotificationType.ScreenRecordingRequested,
+  NotificationType.TranscriptionStarted,
+  NotificationType.TranscriptionStopped,
+  NotificationType.ScreenRecordingStarted,
+  NotificationType.ScreenRecordingStopped,
+])
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -24,13 +38,21 @@ export const MainNotificationToast = () => {
   const announce = useScreenReaderAnnounce()
 
   const { appendReaction } = useReactions()
+  const { isInMyBreakoutRoom, isSplit } = useMyBreakoutRoom()
 
   useEffect(() => {
     const handleChatMessage = (
-      chatMessage: ChatMessage,
+      chatMessage: ReceivedChatMessage,
       participant?: Participant | undefined
     ) => {
+      // In a split, a message from another room never toasts, unless a host
+      // sent it to every room.
       if (!participant || participant.isLocal) return
+      if (
+        !isInMyBreakoutRoom(participant.identity) &&
+        !isToEveryRoom(chatMessage)
+      )
+        return
       triggerNotificationSound(NotificationType.MessageReceived)
       toastQueue.add(
         {
@@ -54,7 +76,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.ChatMessage, handleChatMessage)
     }
-  }, [room, triggerNotificationSound, announce, t])
+  }, [room, triggerNotificationSound, announce, t, isInMyBreakoutRoom])
 
   const handleEmoji = useCallback(
     (emoji: string, participant: Participant) => {
@@ -72,6 +94,17 @@ export const MainNotificationToast = () => {
       const notification = decodeNotificationDataReceived(payload)
 
       if (!notification) return
+      // In a split, a notice from another room never shows. A change to the
+      // receiver's own rights does, whoever made it.
+      const isFromAnotherRoom =
+        !!participant && !isInMyBreakoutRoom(participant.identity)
+      const isAboutMyRights =
+        notification.type === NotificationType.PermissionsRemoved
+      if (isFromAnotherRoom && !isAboutMyRights) return
+      // In a split, a browser's notice from a sender not yet known may come from
+      // another room; the backend's own notices carry no sender at all.
+      if (!participant && isSplit && SENT_BY_BROWSERS.has(notification.type))
+        return
 
       switch (notification.type) {
         case NotificationType.ParticipantMuted:
@@ -139,7 +172,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived)
     }
-  }, [room, handleEmoji])
+  }, [room, handleEmoji, isInMyBreakoutRoom, isSplit])
 
   const triggerNotificationSoundIfRoomIsSmall = useCallback(
     (type: NotificationType) => {
@@ -152,7 +185,7 @@ export const MainNotificationToast = () => {
 
   useEffect(() => {
     const showJoinNotification = (participant: Participant) => {
-      if (isMobileBrowser()) {
+      if (isMobileBrowser() || !isInMyBreakoutRoom(participant.identity)) {
         return
       }
       triggerNotificationSoundIfRoomIsSmall(NotificationType.ParticipantJoined)
@@ -170,7 +203,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.ParticipantConnected, showJoinNotification)
     }
-  }, [room, triggerNotificationSoundIfRoomIsSmall])
+  }, [room, triggerNotificationSoundIfRoomIsSmall, isInMyBreakoutRoom])
 
   useEffect(() => {
     const handleAttributeChanged = (
@@ -236,6 +269,8 @@ export const MainNotificationToast = () => {
         return
       }
 
+      if (!isInMyBreakoutRoom(participant.identity)) return
+
       if (!existingToast && !!changedAttributes?.handRaisedAt) {
         triggerNotificationSound(NotificationType.HandRaised)
         toastQueue.add(
@@ -256,7 +291,7 @@ export const MainNotificationToast = () => {
         handleNotificationReceived
       )
     }
-  }, [room, triggerNotificationSound])
+  }, [room, triggerNotificationSound, isInMyBreakoutRoom])
 
   useEffect(() => {
     const closeAllToasts = () => {

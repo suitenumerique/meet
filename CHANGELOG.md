@@ -51,6 +51,8 @@ and this project adheres to
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✅(frontend) add vitest so the frontend can carry unit tests
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
+- ✨(fullstack) split a meeting into breakout rooms and bring everyone back
+- ✨(frontend) move someone to another breakout room while rooms are open
 
 ### Changed
 
