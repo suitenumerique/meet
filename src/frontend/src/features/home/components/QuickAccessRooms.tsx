@@ -7,8 +7,10 @@ import { keys } from '@/api/queryKeys'
 import { useUser } from '@/features/auth/api/useUser'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { fetchRooms } from '@/features/rooms/api/fetchRooms'
-import { formatDate } from '@/utils/formatDate'
+import { formatDate, formatRelativeDate } from '@/utils/formatDate'
 import { getRoutePath } from '@/navigation/getRoutePath'
+
+const MAX_ROOMS = 5
 
 const AccessLevelLabel = ({ accessLevel }: { accessLevel: ApiAccessLevel }) => {
   const { t } = useTranslation('home', {
@@ -25,12 +27,12 @@ const AccessLevelLabel = ({ accessLevel }: { accessLevel: ApiAccessLevel }) => {
 }
 
 export const QuickAccessRooms = () => {
-  const { t } = useTranslation('home', { keyPrefix: 'quickAccessRooms' })
+  const { t, i18n } = useTranslation('home', { keyPrefix: 'quickAccessRooms' })
   const { isLoggedIn } = useUser()
 
   const { data, isLoading } = useQuery({
-    queryKey: [keys.rooms, { role: 'owner' }],
-    queryFn: () => fetchRooms({ role: 'owner' }),
+    queryKey: [keys.rooms, { role: 'owner', pageSize: MAX_ROOMS }],
+    queryFn: () => fetchRooms({ role: 'owner', pageSize: MAX_ROOMS }),
     enabled: isLoggedIn === true,
   })
 
@@ -65,7 +67,7 @@ export const QuickAccessRooms = () => {
         <Text variant="note">{t('empty')}</Text>
       ) : (
         <ul>
-          {rooms.map((room) => (
+          {rooms.slice(0, MAX_ROOMS).map((room) => (
             <li
               key={room.id}
               className={css({
@@ -93,12 +95,17 @@ export const QuickAccessRooms = () => {
                   gap: '0.15rem',
                 })}
               >
-                <AccessLevelLabel accessLevel={room.access_level} />
-                <Text variant="smNote">
-                  {t('created', {
-                    date: room.created_at ? formatDate(room.created_at) : '',
-                  })}
+                <Text
+                  variant="smNote"
+                  title={
+                    room.created_at ? formatDate(room.created_at) : undefined
+                  }
+                >
+                  {room.created_at
+                    ? formatRelativeDate(room.created_at, i18n.language)
+                    : ''}
                 </Text>
+                <AccessLevelLabel accessLevel={room.access_level} />
               </div>
             </li>
           ))}

@@ -10,9 +10,14 @@ export type ApiRoomListResponse = {
 
 export const fetchRooms = ({
   role,
+  pageSize,
 }: {
   role?: 'owner' | 'administrator' | 'member'
+  pageSize?: number
 } = {}): Promise<ApiRoomListResponse> => {
-  const query = role ? `?role=${role}` : ''
+  const params = new URLSearchParams()
+  if (role) params.set('role', role)
+  if (pageSize) params.set('page_size', String(pageSize))
+  const query = params.toString() ? `?${params.toString()}` : ''
   return fetchApi<ApiRoomListResponse>(`/rooms/${query}`)
 }

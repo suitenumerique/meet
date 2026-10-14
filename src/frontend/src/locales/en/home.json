@@ -63,7 +63,6 @@
   "quickAccessRooms": {
     "heading": "Your meeting links",
     "empty": "You haven't created any meetings yet.",
-    "created": "Created {{date}}",
     "access": {
       "open": "Open",
       "trusted": "Trusted",
