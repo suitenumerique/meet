@@ -370,6 +370,7 @@ class Base(Configuration):
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
             "core.authentication.backends.SessionAuthenticationWith401",
+            "core.authentication.user_token.UserAccessJWTAuthentication",
         ),
         "DEFAULT_PARSER_CLASSES": [
             "rest_framework.parsers.JSONParser",
@@ -397,6 +398,11 @@ class Base(Configuration):
             "request_entry": values.Value(
                 default="150/minute",
                 environ_name="REQUEST_ENTRY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "exchange_access_token": values.Value(
+                default="30/minute",
+                environ_name="EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES",
                 environ_prefix=None,
             ),
             "creation_callback": values.Value(
@@ -502,6 +508,7 @@ class Base(Configuration):
     EMAIL_PORT = values.PositiveIntegerValue(None)
     EMAIL_USE_TLS = values.BooleanValue(False)
     EMAIL_USE_SSL = values.BooleanValue(False)
+    EMAIL_TIMEOUT = values.PositiveIntegerValue(30)
     EMAIL_FROM = values.Value("from@example.com")
     EMAIL_BRAND_NAME = values.Value(None)
     EMAIL_SUPPORT_EMAIL = values.Value(None)
@@ -980,11 +987,6 @@ class Base(Configuration):
         environ_name="LOBBY_NOTIFICATION_TYPE",
         environ_prefix=None,
     )
-    LOBBY_COOKIE_NAME = values.Value(
-        "lobbyParticipantId",
-        environ_name="LOBBY_COOKIE_NAME",
-        environ_prefix=None,
-    )
 
     # Calendar integrations
     ROOM_CREATION_CALLBACK_CACHE_TIMEOUT = values.PositiveIntegerValue(
@@ -1075,7 +1077,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     APPLICATION_CLIENT_SECRET_LENGTH = values.PositiveIntegerValue(
-        128,
+        50,
         environ_name="APPLICATION_CLIENT_SECRET_LENGTH",
         environ_prefix=None,
     )
@@ -1110,6 +1112,66 @@ class Base(Configuration):
     APPLICATION_BASE_URL = values.Value(
         None,
         environ_name="APPLICATION_BASE_URL",
+        environ_prefix=None,
+    )
+
+    # User access tokens (embedded frontend / iframe support)
+    USER_ACCESS_TOKEN_ENABLED = values.BooleanValue(
+        False, environ_name="USER_ACCESS_TOKEN_ENABLED", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_SECRET_KEY = SecretFileValue(
+        None, environ_name="USER_ACCESS_TOKEN_SECRET_KEY", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_ALG = values.Value(
+        "HS256",
+        environ_name="USER_ACCESS_TOKEN_ALG",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_ISSUER = values.Value(
+        "lasuite-meet",
+        environ_name="USER_ACCESS_TOKEN_ISSUER",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_AUDIENCE = values.Value(
+        None,
+        environ_name="USER_ACCESS_TOKEN_AUDIENCE",
+        environ_prefix=None,
+    )
+    # Lifetime of the user access token obtained through the exchange
+    # endpoint. It never transits through a URL, so it can cover a full
+    # meeting (default: 2 hours).
+    USER_ACCESS_TOKEN_TTL = values.PositiveIntegerValue(
+        7200,
+        environ_name="USER_ACCESS_TOKEN_TTL",
+        environ_prefix=None,
+    )
+    # Lifetime of the single-use transit code handed to the frontend
+    # through a URL fragment. Kept very short by design: it must only
+    # survive the redirect and the exchange call.
+    TRANSIT_CODE_TTL = values.PositiveIntegerValue(
+        60,
+        environ_name="TRANSIT_CODE_TTL",
+        environ_prefix=None,
+    )
+    TRANSIT_CODE_CACHE_PREFIX = values.Value(
+        "transit-code",
+        environ_name="TRANSIT_CODE_CACHE_PREFIX",
+        environ_prefix=None,
+    )
+    # Number of random bytes per code (48 bytes -> 64 url-safe characters)
+    TRANSIT_CODE_NBYTES = values.PositiveIntegerValue(
+        48,
+        environ_name="TRANSIT_CODE_NBYTES",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_TYPE = values.Value(
+        "Bearer",
+        environ_name="USER_ACCESS_TOKEN_TYPE",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_TYPE_CLAIM = values.Value(
+        "user_token",
+        environ_name="USER_ACCESS_TOKEN_TYPE_CLAIM",
         environ_prefix=None,
     )
     # Warning: EXTERNAL_API_ALLOW_PUBLIC_ACCESS is ignored when
@@ -1437,6 +1499,20 @@ class Base(Configuration):
                     stacklevel=2,
                 )
 
+        # Secrets use a 62-character alphanumeric charset (~5.95 bits/char).
+        # 43 characters provide at least 256 bits of entropy; 42 provide ~250 bits.
+        if cls.APPLICATION_CLIENT_SECRET_LENGTH < 43:
+            warnings.warn(
+                f"APPLICATION_CLIENT_SECRET_LENGTH={cls.APPLICATION_CLIENT_SECRET_LENGTH} "
+                "is below the recommended 43 characters (256 bits of entropy). "
+                "Application secrets use a fast hash and rely on high entropy to "
+                "resist offline guessing if the database leaks. "
+                "Please set APPLICATION_CLIENT_SECRET_LENGTH to at least 43.",
+                # We use UserWarning to make sure it shows up in production deployment
+                UserWarning,
+                stacklevel=2,
+            )
+
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:
             sentry_sdk.init(
@@ -1522,6 +1598,7 @@ class Test(Base):
     )
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     ]
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True
@@ -1542,6 +1619,9 @@ class Test(Base):
     ADDONS_ENABLED = True
     ADDONS_CSRF_SECRET = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
     ADDONS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
+    USER_ACCESS_TOKEN_ENABLED = True
+    USER_ACCESS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-room"  # noqa:S105
+    USER_ACCESS_TOKEN_AUDIENCE = "Test inc."  # noqa:S105
 
     CONNECTION_TEST_ENABLED = True
     BREAKOUT_ROOMS_ENABLED = True

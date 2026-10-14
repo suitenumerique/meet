@@ -47,6 +47,7 @@ import { MeetDevtools } from '@/features/devtools'
 import { BreakoutRoomTracker } from '@/features/breakout/components/BreakoutRoomTracker'
 import { useBreakoutEnabled } from '@/features/breakout/hooks/useCanManageBreakout'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
+import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 
 export const Conference = ({
   roomId,
@@ -122,7 +123,7 @@ export const Conference = ({
         ...VOICE_AUDIO_CONSTRAINTS,
       },
       audioOutput: {
-        deviceId: userConfig.audioOutputDeviceId ?? undefined,
+        deviceId: resolveAudioOutputDeviceId(userConfig.audioOutputDeviceId),
       },
     }
     // do not rely on the userConfig object directly as its reference may change on every render

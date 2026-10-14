@@ -15,6 +15,7 @@ from ...api.throttling import (
 )
 from ...factories import RoomFactory, UserFactory
 from ...models import Room, RoomAccessLevel
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -458,3 +459,16 @@ def test_api_rooms_create_daily_throttle_does_not_limit_other_actions(
     assert client.get("/api/v1.0/rooms/").status_code == 200
     response = client.patch(f"/api/v1.0/rooms/{room_id}/", {"name": "Renamed"})
     assert response.status_code == 200
+
+
+def test_api_rooms_create_authenticated_with_user_access_token():
+    """A user access token should create a room exactly like a session would."""
+    user = UserFactory()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+    response = client.post("/api/v1.0/rooms/", {"name": "my room"})
+
+    assert response.status_code == 201
+    room = Room.objects.get()
+    assert room.accesses.filter(role="owner", user=user).exists()

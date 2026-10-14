@@ -187,10 +187,46 @@
     "accessibility": "Barrierefreiheit",
     "transcription": "Transkription",
     "shortcuts": "Tastenkürzel",
-    "rooms": "Räume"
+    "rooms": "Räume",
+    "recording": "Aufzeichnung"
   },
   "roomDefaults": {
     "heading": "Standardeinstellungen für Räume",
     "description": "Wählen Sie die Einstellungen, die standardmäßig auf neue von Ihnen erstellte Räume angewendet werden. Sie können sie für jedes Meeting weiterhin in den Moderationseinstellungen ändern."
+  },
+  "recording": {
+    "heading": "Aufzeichnungsqualität",
+    "locked": "Diese Einstellungen können nicht geändert werden, während eine Aufzeichnung startet oder läuft.",
+    "profile": {
+      "label": "Inhaltstyp",
+      "options": {
+        "talking_heads": {
+          "label": "Sprechende Personen",
+          "description": "Optimiert für Personen vor der Kamera mit gelegentlichen Folien. Kleinste Dateien."
+        },
+        "text": {
+          "label": "Präsentationen und Text",
+          "description": "Hält Text beim Teilen von Folien, Dokumenten oder Code scharf."
+        },
+        "mixed": {
+          "label": "Gemischte Inhalte",
+          "description": "Ausgewogen für Kameras, Bildschirmfreigabe und moderate Bewegung."
+        },
+        "full": {
+          "label": "Maximale Qualität",
+          "description": "Höchste Wiedergabetreue und flüssigste Bewegung. Größte Dateien."
+        }
+      }
+    },
+    "resolution": {
+      "label": "Auflösung",
+      "description": "Höhere Auflösungen erzeugen größere Dateien.",
+      "options": {
+        "540p": "540p (qHD)",
+        "720p": "720p (HD)",
+        "1080p": "1080p (Full HD)"
+      }
+    },
+    "defaultOption": "Standard"
   }
 }

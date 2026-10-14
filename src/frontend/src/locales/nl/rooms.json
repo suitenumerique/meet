@@ -545,7 +545,9 @@
       "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
       "loading": "Opname wordt gestart",
       "linkMore": "Meer informatie",
-      "transcription": "Transcribeer deze opname"
+      "transcription": "Transcribeer deze opname",
+      "quality": "Videokwaliteit aanpasbaar.",
+      "qualityEdit": "Wijzigen"
     },
     "button": {
       "start": "Start met opnemen van de vergadering",

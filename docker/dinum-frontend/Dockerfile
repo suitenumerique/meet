@@ -58,7 +58,7 @@ FROM nginxinc/nginx-unprivileged:1.30.4-alpine3.24 AS frontend-production
 
 USER root
 RUN apk upgrade --no-cache libexpat && \
-    apk add --no-cache --upgrade 'pcre2>=10.49-r0' && \
+    apk add --no-cache --upgrade 'pcre2>=10.49-r0' 'tiff>=4.7.2-r0' && \
     apk del curl
 USER nginx
 

@@ -187,10 +187,46 @@
     "accessibility": "Toegankelijkheid",
     "transcription": "Transcriptie",
     "shortcuts": "Sneltoetsen",
-    "rooms": "Vergaderingen"
+    "rooms": "Vergaderingen",
+    "recording": "Opname"
   },
   "roomDefaults": {
     "heading": "Standaardinstellingen voor vergaderingen",
     "description": "Kies de instellingen die standaard worden toegepast op nieuwe vergaderingen die u aanmaakt. U kunt ze voor elke vergadering nog steeds wijzigen via de hostinstellingen."
+  },
+  "recording": {
+    "heading": "Opnamekwaliteit",
+    "locked": "Deze instellingen kunnen niet worden gewijzigd terwijl een opname start of bezig is.",
+    "profile": {
+      "label": "Type inhoud",
+      "options": {
+        "talking_heads": {
+          "label": "Sprekende personen",
+          "description": "Geoptimaliseerd voor mensen voor de camera met af en toe dia's. Kleinste bestanden."
+        },
+        "text": {
+          "label": "Presentaties en tekst",
+          "description": "Houdt tekst scherp bij het delen van dia's, documenten of code."
+        },
+        "mixed": {
+          "label": "Gemengde inhoud",
+          "description": "Gebalanceerd voor camera's, schermdeling en matige beweging."
+        },
+        "full": {
+          "label": "Maximale kwaliteit",
+          "description": "Hoogste getrouwheid en vloeiendste beweging. Grootste bestanden."
+        }
+      }
+    },
+    "resolution": {
+      "label": "Resolutie",
+      "description": "Hogere resoluties leveren grotere bestanden op.",
+      "options": {
+        "540p": "540p (qHD)",
+        "720p": "720p (HD)",
+        "1080p": "1080p (Full HD)"
+      }
+    },
+    "defaultOption": "Standaard"
   }
 }

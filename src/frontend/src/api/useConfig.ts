@@ -36,6 +36,13 @@ export interface ApiConfig {
     available_modes?: RecordingMode[]
     expiration_days?: number
     max_duration?: number
+    encoding?: {
+      is_custom_enabled: boolean
+      available_resolutions: string[]
+      available_profiles: string[]
+      default_resolution?: string | null
+      default_profile?: string | null
+    }
   }
   background_image: {
     upload_is_enabled: boolean

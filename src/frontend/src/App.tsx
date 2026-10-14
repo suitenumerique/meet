@@ -12,6 +12,7 @@ import { routes } from './routes'
 import './i18n/init'
 import { queryClient } from '@/api/queryClient'
 import { AppInitialization } from '@/components/AppInitialization'
+import { TransitCodeGate } from '@/features/auth/components/TransitCodeGate'
 import { useIsSdkContext } from '@/features/sdk/hooks/useIsSdkContext'
 import { useApplyA11yFonts } from '@/hooks/useApplyA11yFonts'
 
@@ -24,23 +25,29 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {!isSDKContext && <AppInitialization />}
-      <Suspense fallback={null}>
-        <I18nProvider locale={i18n.language}>
-          <Layout>
-            <Switch>
-              {Object.entries(routes).map(([, route], i) => (
-                <Route key={i} path={route.path} component={route.Component} />
-              ))}
-              <Route component={NotFoundScreen} />
-            </Switch>
-          </Layout>
-          <ReactQueryDevtools
-            initialIsOpen={false}
-            buttonPosition="bottom-left"
-          />
-        </I18nProvider>
-      </Suspense>
+      <TransitCodeGate>
+        {!isSDKContext && <AppInitialization />}
+        <Suspense fallback={null}>
+          <I18nProvider locale={i18n.language}>
+            <Layout>
+              <Switch>
+                {Object.entries(routes).map(([, route], i) => (
+                  <Route
+                    key={i}
+                    path={route.path}
+                    component={route.Component}
+                  />
+                ))}
+                <Route component={NotFoundScreen} />
+              </Switch>
+            </Layout>
+            <ReactQueryDevtools
+              initialIsOpen={false}
+              buttonPosition="bottom-left"
+            />
+          </I18nProvider>
+        </Suspense>
+      </TransitCodeGate>
     </QueryClientProvider>
   )
 }

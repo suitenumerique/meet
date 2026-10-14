@@ -10,6 +10,39 @@ and this project adheres to
 
 ### Added
 
+- ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
+
+## [1.35.0] - 2026-10-13
+
+### Added
+
+- ✨(frontend) let users pick the recording encoding
+- ✨(backend) introduce a token exchange endpoint for iframe embeds
+- ⚡️(backend) send recording notification emails from a Celery task
+- ✨(backend) allow static feature flags without an analytics backend #1809
+
+### Changed
+
+- ⚡️(backend) hash application secrets with SHA-256
+- ⚡️(backend) reduce domain queries on the application token endpoint
+- ♻️️️(backend) use a dedicated auth scheme for LiveKit token auth
+- ♻️(all) stop relying on cookies for the lobby flow
+- ♿️(frontend) show a visible focus outline on menu items #1797
+
+### Fixed
+
+- 🔒️(backend) prevent editing client id and secret in Django admin
+- 🔒️(frontend) upgrade tiff to fix CVE-2026-4775
+- 🔒️(backend) bind accepted lobby entries to the current username
+- 🔒️(backend) sign lobby participant id
+- 🐛(frontend) omit the default speaker id sent to LiveKit
+- 🐛(frontend) play the speaker test when no output is picked
+- 🐛(frontend) keep the admin panel in place when changing a setting #1804
+
+## [1.34.0] - 2026-10-07
+
+### Added
+
 - ✨(helm) import environment variables from Secrets and ConfigMaps
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation
@@ -97,7 +130,7 @@ and this project adheres to
 
 ### Fixed
 
-- 🐛(helm) probe liveness on **lbheartbeat** and readiness on **heartbeat**
+- 🐛(helm) probe liveness on __lbheartbeat__ and readiness on __heartbeat__
 - 🐛(helm) render periodSeconds and failureThreshold on probes
 - 🐛(backend) report the app release to Sentry instead of "NA"
 - 🐛(frontend) play the waiting room notification sound on every arrival

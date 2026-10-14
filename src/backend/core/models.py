@@ -14,6 +14,7 @@ from typing import List, Optional
 from django.conf import settings
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.hashers import identify_hasher
 from django.contrib.postgres.fields import ArrayField
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -25,7 +26,7 @@ from django.utils.translation import gettext_lazy as _
 from lasuite.tools.email import get_domain_from_email
 from timezone_field import TimeZoneField
 
-from . import fields, utils
+from . import fields, hashers, utils
 from .recording.enums import FileExtension
 from .validators import sub_validator
 
@@ -244,6 +245,9 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
                 condition=models.Q(sub__isnull=True),
                 name="unique_email_when_sub_is_null",
             )
+        ]
+        indexes = [
+            models.Index(models.functions.Upper("email"), name="user_email_upper_idx"),
         ]
 
     def __str__(self):
@@ -799,6 +803,7 @@ class ApplicationScope(models.TextChoices):
     ROOMS_RETRIEVE = "rooms:retrieve", _("Retrieve room details")
     ROOMS_UPDATE = "rooms:update", _("Update rooms")
     ROOMS_DELETE = "rooms:delete", _("Delete rooms")
+    USERS_SESSION = "users:session", _("Create user session tokens")
 
 
 class Application(BaseModel):
@@ -824,6 +829,9 @@ class Application(BaseModel):
         default=utils.generate_client_secret,
         help_text=_("Hashed on Save. Copy it now if this is a new secret."),
     )
+    client_secret_sha256 = models.CharField(
+        max_length=255, null=True, blank=True, editable=False
+    )
     scopes = ArrayField(
         models.CharField(max_length=50, choices=ApplicationScope.choices),
         default=list,
@@ -839,14 +847,84 @@ class Application(BaseModel):
     def __str__(self):
         return f"{self.name!s}"
 
+    def save(self, *args, **kwargs):
+        """Populate the fast hash on creation when the raw secret is available."""
+        if self._state.adding:
+            # Prevent hashing an existing hash instead of the original secret
+            try:
+                if not hashers.CLIENT_SECRET_HASH_PATTERN.fullmatch(self.client_secret):
+                    identify_hasher(self.client_secret)
+            except ValueError:
+                # SecretField.pre_save hashes the legacy field after this method
+                self.client_secret_sha256 = hashers.hash_client_secret(
+                    self.client_secret
+                )
+
+        return super().save(*args, **kwargs)
+
+    def rotate_client_secret(self):
+        """Persist a new generated secret and return its raw value to the caller.
+
+        This is the only supported rotation path while both credential fields coexist.
+        Direct writes may leave a stale fast hash that still accepts the revoked secret,
+        while saving a stale instance may restore previous credentials.
+
+        This transitional risk is accepted until the legacy field is removed
+        and rotation writes only the fast hash.
+        """
+        secret = utils.generate_client_secret()
+        self.client_secret = secret
+        self.client_secret_sha256 = hashers.hash_client_secret(secret)
+        self.save(update_fields=["client_secret", "client_secret_sha256"])
+        return secret
+
+    def check_client_secret(self, raw_secret):
+        """Verify the secret and lazily populate its fast hash for future logins."""
+        if self.client_secret_sha256 is not None:
+            return hashers.verify_client_secret(raw_secret, self.client_secret_sha256)
+
+        original_hash = self.client_secret
+        if not hashers.verify_client_secret(raw_secret, original_hash):
+            return False
+
+        encoded = hashers.hash_client_secret(raw_secret)
+        updated = Application.objects.filter(
+            pk=self.pk, client_secret=original_hash, client_secret_sha256__isnull=True
+        ).update(client_secret_sha256=encoded)
+
+        if updated:
+            self.client_secret_sha256 = encoded
+            return True
+
+        try:
+            self.refresh_from_db()
+        except Application.DoesNotExist:
+            return False
+
+        current_hash = self.client_secret_sha256 or self.client_secret
+        return hashers.verify_client_secret(raw_secret, current_hash)
+
     def can_delegate_email(self, email):
         """Check if this application can delegate the given email."""
 
-        if not self.allowed_domains.exists():
+        allowed_domains = {d.domain for d in self.allowed_domains.all()}
+        if not allowed_domains:
             return True  # No domain restrictions
 
         domain = get_domain_from_email(email)
-        return self.allowed_domains.filter(domain__iexact=domain).exists()
+        return bool(domain) and domain.lower() in allowed_domains
+
+    @classmethod
+    def has_active_scope(cls, client_id, scope) -> bool:
+        """Check that an active application holds a scope."""
+        if not client_id or not scope:
+            return False
+
+        return cls.objects.filter(
+            client_id=client_id,
+            is_active=True,
+            scopes__contains=[scope],
+        ).exists()
 
 
 class ApplicationDomain(BaseModel):

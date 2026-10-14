@@ -187,10 +187,46 @@
     "accessibility": "Accessibilité",
     "transcription": "Transcription",
     "shortcuts": "Raccourcis",
-    "rooms": "Réunions"
+    "rooms": "Réunions",
+    "recording": "Enregistrement"
   },
   "roomDefaults": {
     "heading": "Paramètres par défaut des réunions",
     "description": "Choisissez les paramètres appliqués par défaut aux nouvelles réunions que vous créez. Vous pourrez toujours les modifier pour chaque réunion depuis les paramètres d’administration."
+  },
+  "recording": {
+    "heading": "Qualité de l'enregistrement",
+    "locked": "Ces paramètres ne peuvent pas être modifiés pendant le démarrage ou le déroulement d'un enregistrement.",
+    "profile": {
+      "label": "Type de contenu",
+      "options": {
+        "talking_heads": {
+          "label": "Visioconférence",
+          "description": "Optimisé pour des personnes à la caméra avec quelques diapositives. Fichiers les plus légers."
+        },
+        "text": {
+          "label": "Présentations et texte",
+          "description": "Garde le texte net lors du partage de diapositives, de documents ou de code."
+        },
+        "mixed": {
+          "label": "Contenu mixte",
+          "description": "Équilibré entre caméras, partage d'écran et mouvements modérés."
+        },
+        "full": {
+          "label": "Qualité maximale",
+          "description": "Meilleure fidélité et mouvements les plus fluides. Fichiers les plus lourds."
+        }
+      }
+    },
+    "resolution": {
+      "label": "Résolution",
+      "description": "Une résolution plus élevée produit des fichiers plus lourds.",
+      "options": {
+        "540p": "540p (qHD)",
+        "720p": "720p (HD)",
+        "1080p": "1080p (Full HD)"
+      }
+    },
+    "defaultOption": "Par défaut"
   }
 }

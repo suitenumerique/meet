@@ -187,10 +187,46 @@
     "accessibility": "Accessibility",
     "transcription": "Transcription",
     "shortcuts": "Shortcuts",
-    "rooms": "Rooms"
+    "rooms": "Rooms",
+    "recording": "Recording"
   },
   "roomDefaults": {
     "heading": "Default room settings",
     "description": "Choose the settings applied by default to the new rooms you create. You can still change them for each meeting from the host settings."
+  },
+  "recording": {
+    "heading": "Recording quality",
+    "locked": "These settings can't be changed while a recording is starting or in progress.",
+    "profile": {
+      "label": "Content type",
+      "options": {
+        "talking_heads": {
+          "label": "Talking heads",
+          "description": "Optimized for people speaking on camera with occasional slides. Smallest files."
+        },
+        "text": {
+          "label": "Presentations and text",
+          "description": "Keeps text sharp when sharing slides, documents or code."
+        },
+        "mixed": {
+          "label": "Mixed content",
+          "description": "Balanced for a mix of cameras, screen sharing and moderate motion."
+        },
+        "full": {
+          "label": "Maximum quality",
+          "description": "Highest fidelity and smoothest motion. Largest files."
+        }
+      }
+    },
+    "resolution": {
+      "label": "Resolution",
+      "description": "Higher resolutions produce larger files.",
+      "options": {
+        "540p": "540p (qHD)",
+        "720p": "720p (HD)",
+        "1080p": "1080p (Full HD)"
+      }
+    },
+    "defaultOption": "Default"
   }
 }

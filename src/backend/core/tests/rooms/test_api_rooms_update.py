@@ -18,6 +18,7 @@ from ...services.room_management import (
     RoomManagementException,
     RoomNotFoundException,
 )
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -446,3 +447,24 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata, exception):
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
+
+
+@pytest.mark.parametrize("privileged_role", ["administrator", "owner"])
+def test_api_rooms_update_authenticated_with_user_access_token(privileged_role):
+    """Role-based permissions apply unchanged with a user access token."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "member")])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+
+    # A simple member cannot update the room
+    response = client.patch(f"/api/v1.0/rooms/{room.id!s}/", {"name": "new name"})
+    assert response.status_code == 403
+
+    # An administrator or an owner can
+    room.accesses.filter(user=user).update(role=privileged_role)
+    response = client.patch(f"/api/v1.0/rooms/{room.id!s}/", {"name": "new name"})
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.name == "new name"

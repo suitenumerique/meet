@@ -545,7 +545,9 @@
       "destination": "Cet enregistrement sera conservé temporairement sur nos serveurs",
       "loading": "Démarrage de l'enregistrement",
       "linkMore": "En savoir plus",
-      "transcription": "Transcrire cet enregistrement"
+      "transcription": "Transcrire cet enregistrement",
+      "quality": "Qualité vidéo ajustable.",
+      "qualityEdit": "Modifier"
     },
     "button": {
       "start": "Commencer à enregistrer la réunion",

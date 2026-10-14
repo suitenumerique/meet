@@ -29,6 +29,7 @@ import { NoAccessView } from './NoAccessView'
 import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
 import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useRecordingEncoding } from '../hooks/useRecordingEncoding'
 import { useIsMetadataCollectorEnabled } from '../hooks/useMetadataCollectorEnabled'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
@@ -65,6 +66,8 @@ export const TranscriptSidePanel = () => {
   const isAdminOrOwner = useIsAdminOrOwner()
 
   const isMetadataCollectorEnabled = useIsMetadataCollectorEnabled()
+
+  const { encoding } = useRecordingEncoding()
 
   const roomId = useRoomId()
 
@@ -114,6 +117,7 @@ export const TranscriptSidePanel = () => {
           ...(withScreenRecording && {
             transcribe: true,
             original_mode: RecordingMode.Transcript,
+            ...(encoding && { encoding }),
           }),
           collect_metadata: isMetadataCollectorEnabled,
         }
