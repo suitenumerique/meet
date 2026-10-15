@@ -2,10 +2,10 @@ import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { getScrollBarWidth } from '@livekit/components-core'
 import * as React from 'react'
 import { TrackLoop, useVisualStableUpdate } from '@livekit/components-react'
+import { Track } from 'livekit-client'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
+import { useLastRemoteSpeaker } from '../hooks/useLastRemoteSpeaker'
 import { useSpeakerPromotionTrigger } from '../hooks/useSpeakerPromotionTrigger'
-import { useTopSpeaker } from '../hooks/useTopSpeaker'
-import { splitCarouselTiles } from '../utils/splitCarouselTiles'
 
 const MIN_HEIGHT = 130
 const MIN_WIDTH = 140
@@ -69,20 +69,21 @@ export function CarouselLayout({
     setPrevTiles(tilesThatFit)
   }
 
-  const topSpeakerId = useTopSpeaker(tracks)
-  const { head, rest, restSlots } = splitCarouselTiles(
-    tracks,
-    topSpeakerId,
-    maxVisibleTiles
-  )
-  // useVisualStableUpdate needs a page of at least one tile.
-  const stableRest = useVisualStableUpdate(rest, Math.max(restSlots, 1))
-  const sortedTiles = [...head, ...stableRest]
+  const stableTiles = useVisualStableUpdate(tracks, maxVisibleTiles)
+  const speakerId = useLastRemoteSpeaker()
 
-  // When the head fills the carousel, no rest speaker can be brought on
-  // screen, so the trigger ignores them instead of re-rendering for nothing.
-  const onScreen = sortedTiles.slice(0, maxVisibleTiles)
-  useSpeakerPromotionTrigger(onScreen, restSlots > 0 ? tracks : onScreen)
+  // Reordered after useVisualStableUpdate so its page size never changes,
+  // which would make it re-sort every tile.
+  const isLocalCamera = (t: TrackReferenceOrPlaceholder) =>
+    t.source === Track.Source.Camera && t.participant.isLocal
+  const isSpeakerCamera = (t: TrackReferenceOrPlaceholder) =>
+    t.source === Track.Source.Camera && t.participant.identity === speakerId
+  const sortedTiles = [
+    ...stableTiles.filter(isLocalCamera),
+    ...stableTiles.filter(isSpeakerCamera),
+    ...stableTiles.filter((t) => !isLocalCamera(t) && !isSpeakerCamera(t)),
+  ]
+  useSpeakerPromotionTrigger(sortedTiles.slice(0, maxVisibleTiles), tracks)
 
   React.useLayoutEffect(() => {
     if (asideEl.current) {

@@ -34,16 +34,13 @@ export function useSpeakerPromotionTrigger(
   useEffect(() => {
     const onActiveSpeakersChanged = (speakers: Participant[]) => {
       const { visibleTiles, allTiles } = tilesRef.current
-      const hasTileIn =
-        (tiles: TrackReferenceOrPlaceholder[]) => (identity: string) =>
-          tiles.some((t) => t.participant.identity === identity)
-      const isShown = hasTileIn(allTiles)
-      const isVisible = hasTileIn(visibleTiles)
-
-      const isHidden = (identity: string) =>
-        isShown(identity) && !isVisible(identity)
-
-      if (speakers.some(({ identity }) => isHidden(identity))) {
+      const visible = new Set(visibleTiles.map((t) => t.participant.identity))
+      const shown = new Set(allTiles.map((t) => t.participant.identity))
+      const hidden = speakers.some(
+        (speaker) =>
+          shown.has(speaker.identity) && !visible.has(speaker.identity)
+      )
+      if (hidden) {
         forceRender()
       }
     }
