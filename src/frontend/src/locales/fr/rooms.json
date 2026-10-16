@@ -4,7 +4,9 @@
       "normal": "Vous avez quitté la réunion",
       "duplicateIdentity": "Vous avez rejoint la réunion depuis un autre appareil",
       "participantRemoved": "Vous avez été exclu de l'appel par un administrateur",
-      "roomDeleted": "Cette réunion a été supprimée"
+      "roomDeleted": "Cette réunion a été supprimée",
+      "connectionLost": "La connexion à la réunion a été perdue",
+      "connectionFailed": "Impossible de rejoindre la réunion"
     },
     "home": "Retourner à l'accueil",
     "back": "Réintégrer la réunion"
