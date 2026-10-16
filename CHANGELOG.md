@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ⬆️(frontend) upgrade livekit-client to 2.23.0
+- ✨(backend) expose LiveKit reconnection settings in the config
 
 ### Fixed
 
