@@ -4,7 +4,9 @@
       "normal": "Has salido de la reunión",
       "duplicateIdentity": "Te has unido a la reunión desde otro dispositivo",
       "participantRemoved": "Un administrador te ha expulsado de la llamada",
-      "roomDeleted": "Esta reunión ha sido eliminada"
+      "roomDeleted": "Esta reunión ha sido eliminada",
+      "connectionLost": "Se ha perdido la conexión con la reunión",
+      "connectionFailed": "No se ha podido acceder a la reunión"
     },
     "home": "Volver al inicio",
     "back": "Volver a la reunión"

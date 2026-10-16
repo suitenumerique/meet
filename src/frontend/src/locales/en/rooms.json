@@ -4,7 +4,9 @@
       "normal": "You have left the meeting",
       "duplicateIdentity": "You have joined the meeting from another device",
       "participantRemoved": "You have been removed from the meeting by a host",
-      "roomDeleted": "This meeting has been deleted"
+      "roomDeleted": "This meeting has been deleted",
+      "connectionLost": "The connection to the meeting was lost",
+      "connectionFailed": "Unable to join the meeting"
     },
     "home": "Return to home",
     "back": "Rejoin the meeting"

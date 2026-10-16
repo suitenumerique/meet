@@ -1,12 +1,13 @@
 import { useConfig } from '@/api/useConfig'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import {
+  useConnectionState,
   useRemoteParticipants,
   useRoomContext,
 } from '@livekit/components-react'
 import { useEffect, useRef } from 'react'
 import { useSnapshot } from 'valtio'
-import { DisconnectReason, RoomEvent } from 'livekit-client'
+import { ConnectionState, DisconnectReason, RoomEvent } from 'livekit-client'
 
 import { userPreferencesStore } from '@/stores/userPreferences'
 
@@ -31,6 +32,7 @@ export const ConnectionObserver = () => {
       RoomEvent.ParticipantDisconnected,
     ],
   })
+  const connectionState = useConnectionState(room)
 
   useEffect(() => {
     // Always clear existing timer on dependency change
@@ -48,6 +50,10 @@ export const ConnectionObserver = () => {
       return
     }
 
+    // A full reconnection removes every remote participant until it
+    // succeeds: being alone then doesn't mean being idle
+    if (connectionState !== ConnectionState.Connected) return
+
     if (remoteParticipants.length === 0) {
       idleDisconnectModalTimeoutRef.current = setTimeout(() => {
         connectionObserverStore.isIdleDisconnectModalOpen = true
@@ -64,6 +70,7 @@ export const ConnectionObserver = () => {
     }
   }, [
     remoteParticipants.length,
+    connectionState,
     data?.idle_disconnect_warning_delay,
     userPreferencesSnap.is_idle_disconnect_modal_enabled,
   ])

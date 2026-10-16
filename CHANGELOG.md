@@ -12,6 +12,10 @@ and this project adheres to
 
 - ⬆️(frontend) upgrade livekit-client to 2.23.0
 
+### Fixed
+
+- 🐛(frontend) show a page when the connection ends unexpectedly
+
 ## [1.37.0] - 2026-11-01
 
 ### Changed
