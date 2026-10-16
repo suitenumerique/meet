@@ -15,6 +15,7 @@ and this project adheres to
 - 🔒️(frontend) keep rooms out of search engine and AI indexes
 - ⬆️(backend) upgrade django-lasuite to v1.0.0
 - ⚡️(docker) build frontend assets natively for arm64 images
+- ⬆️(frontend) upgrade livekit-client to 2.23.0
 
 ## [1.36.3] - 2026-10-23
 
