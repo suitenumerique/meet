@@ -42,6 +42,7 @@ and this project adheres to
 - 🐛(frontend) omit the default speaker id sent to LiveKit
 - 🐛(frontend) play the speaker test when no output is picked
 - 🐛(frontend) keep the admin panel in place when changing a setting #1804
+- 🐛(frontend) promote the active speaker in the carousel layout
 
 ## [1.34.0] - 2026-10-07
 

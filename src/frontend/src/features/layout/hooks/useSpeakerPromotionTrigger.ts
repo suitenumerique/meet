@@ -8,35 +8,39 @@ import { useEffect, useReducer, useRef } from 'react'
  * Tripwire for speaker promotion.
  *
  * Listens to `RoomEvent.ActiveSpeakersChanged` imperatively and forces ONE
- * re-render of the host component only when an active speaker has none of
- * their tiles are within the visible span (`maxVisibleTiles`). That render
- * re-runs `useVisualStableUpdate`, which reads live `participant.isSpeaking`
- * state and performs the actual swap.
+ * re-render of the host when a speaker has a tile in `allTiles` but none in
+ * `visibleTiles`. That render re-runs `useVisualStableUpdate`, which reads
+ * live `participant.isSpeaking` state and performs the actual swap.
  *
- * Speakers already visible are ignored. Everything else costs zero React work.
+ * Speakers already visible cost nothing, nor do speakers the layout doesn't
+ * show at all (e.g. the pinned participant, rendered by the focus view).
  *
  * Requires the parent to NOT re-render on speaker events itself, i.e.
  * `useTracks(..., { updateOnlyOn: [] })` upstream.
  */
 export function useSpeakerPromotionTrigger(
-  sortedTiles: TrackReferenceOrPlaceholder[]
+  /** Tiles inside the span the layout guarantees to speakers. */
+  visibleTiles: TrackReferenceOrPlaceholder[],
+  /** Every tile the layout shows, visible or not. */
+  allTiles: TrackReferenceOrPlaceholder[]
 ) {
   const room = useRoomContext()
   const [, forceRender] = useReducer((n: number) => n + 1, 0)
 
-  // Refs so the listener reads current values without re-subscribing
-  // and without itself being a render dependency.
-  const tilesRef = useRef(sortedTiles)
-  tilesRef.current = sortedTiles
+  // Read by the listener at event time, so it never re-subscribes.
+  const tilesRef = useRef({ visibleTiles, allTiles })
+  tilesRef.current = { visibleTiles, allTiles }
 
   useEffect(() => {
     const onActiveSpeakersChanged = (speakers: Participant[]) => {
-      const tiles = tilesRef.current
-      const hiddenSpeakerExists = speakers.some(
+      const { visibleTiles, allTiles } = tilesRef.current
+      const visible = new Set(visibleTiles.map((t) => t.participant.identity))
+      const shown = new Set(allTiles.map((t) => t.participant.identity))
+      const hidden = speakers.some(
         (speaker) =>
-          !tiles.some((t) => t.participant.identity === speaker.identity)
+          shown.has(speaker.identity) && !visible.has(speaker.identity)
       )
-      if (hiddenSpeakerExists) {
+      if (hidden) {
         forceRender()
       }
     }
