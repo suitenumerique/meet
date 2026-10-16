@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- ⬆️(frontend) upgrade livekit-client to 2.23.0
+
 ## [1.37.0] - 2026-11-01
 
 ### Changed
