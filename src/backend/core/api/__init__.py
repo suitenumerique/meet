@@ -86,6 +86,13 @@ def get_frontend_configuration(request):
             "enable_firefox_proxy_workaround": settings.LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND,
             "default_sources": settings.LIVEKIT_DEFAULT_SOURCES,
             "default_video_codec": settings.LIVEKIT_DEFAULT_VIDEO_CODEC,
+            "reconnect": {
+                "backoff_enabled": settings.LIVEKIT_RECONNECT_BACKOFF_ENABLED,
+                "base_delay_ms": settings.LIVEKIT_RECONNECT_BASE_DELAY_MS,
+                "max_delay_ms": settings.LIVEKIT_RECONNECT_MAX_DELAY_MS,
+                "give_up_after_ms": settings.LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS,
+                "backoff_reset_ms": settings.LIVEKIT_RECONNECT_BACKOFF_RESET_MS,
+            },
         },
         "allow_unregistered_rooms": settings.ALLOW_UNREGISTERED_ROOMS,
         "authenticated_users_can_edit_display_name": (
