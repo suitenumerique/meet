@@ -1,10 +1,10 @@
-import { ChatRow } from '@/stores/chat'
+import { ChatTextRow } from '@/stores/chat'
 import React, { useMemo } from 'react'
 import { formatChatMessageLinks } from '../utils'
 import { css } from '@/styled-system/css'
 import { Text } from '@/primitives'
 
-type ChatMessageBodyProps = Pick<ChatRow, 'message'>
+type ChatMessageBodyProps = Pick<ChatTextRow, 'message'>
 
 export const ChatMessageBody = React.memo(
   ({ message }: ChatMessageBodyProps) => {

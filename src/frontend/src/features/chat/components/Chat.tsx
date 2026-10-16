@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { Text } from '@/primitives'
 import { ChatMessages } from './ChatMessages'
 import { ChatTextArea } from './ChatTextArea'
+import { ChatDropZone } from './ChatDropZone'
+import { ChatPendingAttachment } from './ChatPendingAttachment'
 import { styled } from '@/styled-system/jsx'
 
 const ChatContainer = styled('div', {
@@ -41,10 +43,13 @@ export const Chat = () => {
       <TextContainer>
         <Text variant="sm">{t('disclaimer')}</Text>
       </TextContainer>
-      <ChatMessagesContainer>
-        <ChatMessages />
-      </ChatMessagesContainer>
-      <ChatTextArea />
+      <ChatDropZone>
+        <ChatMessagesContainer>
+          <ChatMessages />
+        </ChatMessagesContainer>
+        <ChatPendingAttachment />
+        <ChatTextArea />
+      </ChatDropZone>
     </ChatContainer>
   )
 }

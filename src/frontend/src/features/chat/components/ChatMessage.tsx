@@ -2,6 +2,7 @@ import type { ChatRow } from '@/stores/chat'
 import { styled } from '@/styled-system/jsx'
 import { ChatMessageMetadata } from './ChatMessageMedata'
 import { ChatMessageBody } from './ChatMessageBody'
+import { ChatMessageImage } from './ChatMessageImage'
 
 const StyledContainer = styled('li', {
   base: {
@@ -28,7 +29,11 @@ export const ChatMessage = ({ item }: ChatMessageProps) => {
           identity={item.identity}
         />
       )}
-      <ChatMessageBody message={item.message} />
+      {item.kind === 'text' ? (
+        <ChatMessageBody message={item.message} />
+      ) : (
+        <ChatMessageImage item={item} />
+      )}
     </StyledContainer>
   )
 }

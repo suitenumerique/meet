@@ -9,10 +9,13 @@ import {
   persistTextAreaValue,
 } from '@/stores/chat'
 import { ChatSubmitButton } from './ChatSubmitButton'
+import { ChatAttachButton } from './ChatAttachButton'
+import { useSendChatMedia } from '../media/useSendChatMedia'
 
 const StyledContainer = styled('div', {
   base: {
     display: 'flex',
+    alignItems: 'flex-end',
     margin: '0.75rem 0 1.5rem',
     padding: '0.5rem',
     backgroundColor: 'gray.100',
@@ -21,9 +24,17 @@ const StyledContainer = styled('div', {
 })
 
 export const ChatTextArea = () => {
-  const { isSending, send, textAreaValue } = useSnapshot(chatStore, {
-    sync: true,
-  })
+  const {
+    isSending,
+    isSendingMedia,
+    isPreparing,
+    send,
+    textAreaValue,
+    pendingAttachment,
+  } = useSnapshot(chatStore, { sync: true })
+  const { stage, send: sendMedia, limits } = useSendChatMedia()
+  const isMediaEnabled = limits.enabled
+  const isBusy = isSending || isSendingMedia || isPreparing
 
   const { t } = useTranslation('rooms', { keyPrefix: 'controls.chat.input' })
 
@@ -41,14 +52,21 @@ export const ChatTextArea = () => {
   }, [])
 
   const handleSubmit = useCallback(async () => {
+    // A staged image takes precedence: the text box then holds its caption,
+    // and the two go out as one stream rather than as two messages.
+    if (chatStore.pendingAttachment) {
+      await sendMedia()
+      inputRef?.current?.focus({ preventScroll: true })
+      return
+    }
     const text = chatStore.textAreaValue
     if (!send || !text) return
     await send(text)
     inputRef?.current?.focus({ preventScroll: true })
     clearTextAreaValue()
-  }, [send, inputRef])
+  }, [send, inputRef, sendMedia])
 
-  const isDisabled = !textAreaValue.trim() || isSending
+  const isDisabled = (!textAreaValue.trim() && !pendingAttachment) || isBusy
 
   const onKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Escape') e.stopPropagation()
@@ -62,13 +80,35 @@ export const ChatTextArea = () => {
     e.stopPropagation()
   }
 
+  /**
+   * Pasting is what a screenshot actually wants: the operating system puts it
+   * on the clipboard, and there is no file on disk to pick or drag.
+   */
+  const onPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (!isMediaEnabled) return
+    const file = Array.from(e.clipboardData.files).find((candidate) =>
+      candidate.type.startsWith('image/')
+    )
+    if (!file) return
+    e.preventDefault()
+    stage(file)
+  }
+
   return (
     <StyledContainer>
+      {isMediaEnabled && (
+        <ChatAttachButton
+          onSelect={stage}
+          isDisabled={isBusy}
+          acceptedMimetypes={limits.allowedMimetypes}
+        />
+      )}
       <TextArea
         ref={inputRef}
         value={textAreaValue}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
+        onPaste={onPaste}
         onChange={(e) => {
           persistTextAreaValue(e.target.value)
         }}
@@ -85,7 +125,11 @@ export const ChatTextArea = () => {
         placeholderStyle="strong"
         spellCheck={false}
         maxLength={2000}
-        placeholder={t('textArea.placeholder')}
+        placeholder={t(
+          pendingAttachment
+            ? 'textArea.captionPlaceholder'
+            : 'textArea.placeholder'
+        )}
         aria-label={t('textArea.label')}
       />
       <ChatSubmitButton handleSubmit={handleSubmit} isDisabled={isDisabled} />
