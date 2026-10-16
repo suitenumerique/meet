@@ -75,6 +75,13 @@ export interface ApiConfig {
     enable_firefox_proxy_workaround: boolean
     default_sources: Source[]
     default_video_codec: VideoCodec
+    reconnect?: {
+      backoff_enabled: boolean
+      base_delay_ms: number
+      max_delay_ms: number
+      give_up_after_ms: number
+      backoff_reset_ms: number
+    }
   }
   transcription_destination?: string
   max_participants_for_sound: number

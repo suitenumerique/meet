@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) add jittered exponential backoff to LiveKit reconnections
+
 ### Changed
 
 - ⬆️(frontend) upgrade livekit-client to 2.23.0
