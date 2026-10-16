@@ -325,13 +325,27 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         return drf_response.Response(data)
 
     def list(self, request, *args, **kwargs):
-        """Limit listed rooms to the ones related to the authenticated user."""
+        """Limit listed rooms to the ones related to the authenticated user.
+
+        Supports an optional `role` query parameter to filter by the user's
+        role on the room (e.g. `?role=owner` for "rooms I created", used by the
+        home page Quick Access Rooms widget). Without it, the pre-existing
+        behavior is kept: all rooms the user has any access on.
+        """
         user = self.request.user
 
         if user.is_authenticated:
             queryset = (
-                self.filter_queryset(self.get_queryset()).filter(users=user).distinct()
+                self.filter_queryset(self.get_queryset())
+                .filter(users=user)
+                .order_by("-created_at")
+                .distinct()
             )
+            role_filter = request.query_params.get("role", None)
+            if role_filter:
+                queryset = queryset.filter(
+                    accesses__user=user, accesses__role=role_filter
+                )
         else:
             queryset = self.get_queryset().none()
 
