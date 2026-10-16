@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) add jittered exponential backoff to LiveKit reconnections
+
 ### Changed
 
 - ⬆️(summary) update ffmpeg to 8.1.3-r0
