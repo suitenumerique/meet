@@ -7,6 +7,7 @@ import { Rating } from '@/features/rooms/components/Rating.tsx'
 import { useLocation } from 'wouter'
 import { useMemo } from 'react'
 import { DisconnectReason } from 'livekit-client'
+import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
 
 // fixme - duplicated with home, refactor in a proper style
 const Heading = styled('h1', {
@@ -32,6 +33,8 @@ enum DisconnectReasonKey {
   DuplicateIdentity = 'duplicateIdentity',
   ParticipantRemoved = 'participantRemoved',
   RoomDeleted = 'roomDeleted',
+  ConnectionLost = 'connectionLost',
+  ConnectionFailed = 'connectionFailed',
 }
 
 const FeedbackRoute = () => {
@@ -49,6 +52,10 @@ const FeedbackRoute = () => {
         return DisconnectReasonKey.ParticipantRemoved
       case DisconnectReason.ROOM_DELETED:
         return DisconnectReasonKey.RoomDeleted
+      case ConnectionEndReason.Lost:
+        return DisconnectReasonKey.ConnectionLost
+      case ConnectionEndReason.Failed:
+        return DisconnectReasonKey.ConnectionFailed
     }
   }, [])
 
@@ -91,7 +98,9 @@ const FeedbackRoute = () => {
               {t('feedback.home')}
             </Button>
           </Stack>
-          <Rating metadata={metadata} />
+          {reasonKey !== DisconnectReasonKey.ConnectionFailed && (
+            <Rating metadata={metadata} />
+          )}
         </VStack>
       </Center>
     </Screen>

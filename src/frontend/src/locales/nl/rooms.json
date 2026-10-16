@@ -4,7 +4,9 @@
       "normal": "Je hebt de vergadering verlaten",
       "duplicateIdentity": "U heeft de vergadering via een ander apparaat geopend",
       "participantRemoved": "U bent door een beheerder uit het gesprek verwijderd",
-      "roomDeleted": "Deze vergadering is verwijderd"
+      "roomDeleted": "Deze vergadering is verwijderd",
+      "connectionLost": "De verbinding met de vergadering is verbroken",
+      "connectionFailed": "Deelnemen aan de vergadering is niet gelukt"
     },
     "home": "Keer terug naar het hoofdscherm",
     "back": "Sluit weer bij de vergadering aan"

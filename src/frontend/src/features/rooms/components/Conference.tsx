@@ -46,6 +46,7 @@ import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
+import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
 
 export const Conference = ({
   roomId,
@@ -186,6 +187,7 @@ export const Conference = ({
   const isMobile = useIsMobile()
 
   const hasAutoMutedRef = useRef(false)
+  const hasConnectedRef = useRef(false)
 
   /*
    * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
@@ -266,6 +268,7 @@ export const Conference = ({
             })
           }}
           onConnected={async () => {
+            hasConnectedRef.current = true
             if (!apiConfig) return
             if (
               userPreferencesSnap.is_auto_mute_large_room_enabled &&
@@ -307,6 +310,20 @@ export const Conference = ({
                   }
                 )
                 return
+              default:
+                // Reconnecting gave up, or the join itself failed
+                navigateTo(
+                  'feedback',
+                  {},
+                  {
+                    state: {
+                      reason: hasConnectedRef.current
+                        ? ConnectionEndReason.Lost
+                        : ConnectionEndReason.Failed,
+                      ...metadata,
+                    },
+                  }
+                )
             }
           }}
         >
