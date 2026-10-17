@@ -58,6 +58,8 @@ const renderToast = (
     case NotificationType.ScreenRecordingStarted:
     case NotificationType.ScreenRecordingStopped:
     case NotificationType.ScreenRecordingLimitReached:
+    case NotificationType.TranscriptionInterrupted:
+    case NotificationType.ScreenRecordingInterrupted:
     case NotificationType.TranscriptionFailed:
     case NotificationType.ScreenRecordingFailed:
     case NotificationType.TranscriptionAborted:
