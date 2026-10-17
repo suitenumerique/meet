@@ -27,6 +27,9 @@ class RecordingWorkerEvent(Enum):
     COMPLETED = "completed"
     # The recording ended on its configured limit, its media file is available.
     LIMIT_REACHED = "limit reached"
+    # The recording ended early without being stopped, its partial media file
+    # is available.
+    INTERRUPTED = "interrupted"
     # The worker stopped before it ever started recording, there is no media file.
     ABORTED = "aborted"
     # The worker hit a runtime error once recording had started; its media file
@@ -44,6 +47,7 @@ SUCCESSFUL_EVENTS = frozenset(
     {
         RecordingWorkerEvent.COMPLETED,
         RecordingWorkerEvent.LIMIT_REACHED,
+        RecordingWorkerEvent.INTERRUPTED,
     }
 )
 

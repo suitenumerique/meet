@@ -33,6 +33,7 @@ NOTIFICATION_PREFIXES = {
 }
 NOTIFICATION_SUFFIXES = {
     RecordingWorkerEvent.LIMIT_REACHED: "LimitReached",
+    RecordingWorkerEvent.INTERRUPTED: "Interrupted",
     RecordingWorkerEvent.FAILED: "Failed",
     RecordingWorkerEvent.ABORTED: "Aborted",
 }
@@ -61,24 +62,29 @@ class RecordingEventsService:
     """
 
     @staticmethod
-    def log_worker_error(recording, event, error=None, error_code=None):
-        """Log FAILED at error level and expected ABORTED outcomes at info level."""
+    def log_worker_error(recording, event, error=None, error_code=None, details=None):
+        """Log FAILED at error level, INTERRUPTED at warning level and expected
+        ABORTED outcomes at info level."""
 
         if event == RecordingWorkerEvent.FAILED:
             log = logger.error
+        elif event == RecordingWorkerEvent.INTERRUPTED:
+            log = logger.warning
         elif event == RecordingWorkerEvent.ABORTED:
             log = logger.info
         else:
             return
 
         log(
-            "Recording worker reported %s for recording %s (room=%s, mode=%s): %s (error_code=%s)",
+            "Recording worker reported %s for recording %s (room=%s, mode=%s): %s "
+            "(error_code=%s, details=%s)",
             event.value,
             recording.id,
             recording.room.id,
             recording.mode,
             error or "no error reported",
             error_code or "no error_code reported",
+            details or "no details reported",
         )
 
     @staticmethod
@@ -196,6 +202,13 @@ class RecordingEventsService:
         ):
             self._apply_outcome(recording, event, self._handle_limit_reached)
 
+        # Interrupted
+        if (
+            event == RecordingWorkerEvent.INTERRUPTED
+            and recording.status == models.RecordingStatusChoices.ACTIVE
+        ):
+            self._apply_outcome(recording, event, self._handle_interrupted)
+
         try:
             self._handle_successful(recording)
         except RecordingNotSavableError:
@@ -223,6 +236,20 @@ class RecordingEventsService:
         recording.save()
 
         cls._notify_participants(recording, RecordingWorkerEvent.LIMIT_REACHED)
+
+    @classmethod
+    def _handle_interrupted(cls, recording: Recording):
+        """Stop recording and notify participants that only part of it is saved.
+
+        INTERRUPTED: used when the worker ended the recording early on its own
+        because it lost the room or ran out of resources but kept what it had
+        recorded so far
+        """
+
+        recording.status = models.RecordingStatusChoices.STOPPED
+        recording.save()
+
+        cls._notify_participants(recording, RecordingWorkerEvent.INTERRUPTED)
 
     @classmethod
     def _handle_failed(cls, recording: Recording):
