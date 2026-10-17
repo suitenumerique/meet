@@ -16,3 +16,11 @@ export const convertToBackendLanguage = (
 ): BackendLanguage => {
   return frontendToBackendMap[frontendLang as FrontendLanguage]
 }
+
+export const convertToFrontendLanguage = (
+  backendLang: string
+): FrontendLanguage | undefined => {
+  return (Object.keys(frontendToBackendMap) as FrontendLanguage[]).find(
+    (key) => frontendToBackendMap[key] === backendLang
+  )
+}
