@@ -8,9 +8,12 @@ import hashlib
 import json
 from unittest import mock
 
+from django.utils import timezone
+
 import pytest
 from livekit import api
 
+from ...factories import RecordingFactory
 from ...services.livekit_events import ActionFailedError, LiveKitEventsService
 
 
@@ -184,3 +187,75 @@ def test_action_error(client, mock_livekit_config):
             content_type="application/json",
             HTTP_AUTHORIZATION=auth_token,
         )
+
+
+@pytest.mark.django_db
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services",
+    return_value=False,
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_egress_ended_keeps_a_partial_transcript(
+    mock_update_metadata,
+    mock_notify,
+    mock_notify_external_services,
+    client,
+    mock_livekit_config,
+):
+    """Should save a transcript whose egress lost the room but uploaded its file.
+
+    LiveKit Egress v1.14 reports it as failed. The payload mirrors the one it
+    sends, including a field unknown to the pinned livekit-protocol, which
+    must be ignored rather than rejected.
+    """
+    recording = RecordingFactory(
+        worker_id="EG_hycBMAjmt6Ub", mode="transcript", status="active"
+    )
+    event_data = json.dumps(
+        {
+            "event": "egress_ended",
+            "egressInfo": {
+                "egressId": "EG_hycBMAjmt6Ub",
+                "roomId": "RM_hycBMAjmt6Ub",
+                "roomName": str(recording.room.id),
+                "status": "EGRESS_FAILED",
+                "error": "recording ended early: connection to room failed",
+                "errorCode": 503,
+                "details": "End reason: Source closed",
+                "fileResults": [
+                    {
+                        "filename": f"recordings/{recording.id}.ogg",
+                        "location": f"https://s3.example.com/recordings/{recording.id}.ogg",
+                        "size": "123456",
+                    }
+                ],
+            },
+            "id": "EV_eugWmGhovZmm",
+            "createdAt": str(int(timezone.now().timestamp())),
+        }
+    )
+    hash64 = base64.b64encode(hashlib.sha256(event_data.encode()).digest()).decode()
+    token = api.AccessToken(
+        mock_livekit_config["api_key"], mock_livekit_config["api_secret"]
+    )
+    token.claims.sha256 = hash64
+
+    response = client.post(
+        "/api/v1.0/rooms/webhooks-livekit/",
+        data=event_data,
+        content_type="application/json",
+        HTTP_AUTHORIZATION=token.to_jwt(),
+    )
+
+    assert response.status_code == 200
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id),
+        notification_data={"type": "transcriptionInterrupted"},
+    )
+    mock_notify_external_services.assert_called_once_with(recording)
+
+    recording.refresh_from_db()
+
+    assert recording.status == "saved"

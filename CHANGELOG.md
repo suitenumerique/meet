@@ -21,6 +21,7 @@ and this project adheres to
 - ⚡️(docker) build frontend assets natively for arm64 images
 - ⬆️(frontend) upgrade livekit-client to 2.23.0
 - ✨(backend) expose LiveKit reconnection settings in the config
+- ✨(backend) keep recordings cut short by LiveKit egress
 
 ### Fixed
 
