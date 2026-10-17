@@ -1,8 +1,12 @@
 replicaCount: 1
 terminationGracePeriodSeconds: 18000
 
+image:
+  tag: v1.15.0
+
 egress:
-  log_level: debug
+  logging:
+    level: debug
   ws_url: ws://livekit-livekit-server:80
   insecure: true
   enable_chrome_sandbox: true
