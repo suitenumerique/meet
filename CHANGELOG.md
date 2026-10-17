@@ -15,6 +15,10 @@ and this project adheres to
 - ✨(all) allow any authenticated user to start a recording
 - ✨(backend) authenticate external API calls with Menshen exchanged tokens
 
+### Fixed
+
+- 🐛(frontend) stop overwriting saved language on page load #1414
+
 ## [1.35.0] - 2026-10-13
 
 ### Added
