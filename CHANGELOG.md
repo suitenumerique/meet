@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
+- ✨(frontend) tell participants when a recording is interrupted
 
 ### Changed
 
