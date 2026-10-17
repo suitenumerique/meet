@@ -22,6 +22,7 @@ and this project adheres to
 ### Fixed
 
 - 🐛(frontend) show a page when the connection ends unexpectedly
+- 🐛(frontend) show the transcript mic hint when every mic is muted
 
 ## [1.37.0] - 2026-11-01
 

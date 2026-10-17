@@ -12,6 +12,10 @@ export const useRecordingWaitingForTracks = (mode: RecordingMode) => {
     mode === RecordingMode.Transcript ? [Track.Source.Microphone] : undefined,
     { onlySubscribed: false }
   )
+  const hasTracks =
+    mode === RecordingMode.Transcript
+      ? tracks.some((track) => !track.publication.isMuted)
+      : tracks.length > 0
   const [delayElapsed, setDelayElapsed] = useState(false)
 
   useEffect(() => {
@@ -25,5 +29,5 @@ export const useRecordingWaitingForTracks = (mode: RecordingMode) => {
     return () => window.clearTimeout(timeout)
   }, [isStarting, mode])
 
-  return isStarting && delayElapsed && tracks.length === 0
+  return isStarting && delayElapsed && !hasTracks
 }
