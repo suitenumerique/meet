@@ -96,6 +96,8 @@ export const MainNotificationToast = () => {
         case NotificationType.ScreenRecordingStopped:
         case NotificationType.TranscriptionLimitReached:
         case NotificationType.ScreenRecordingLimitReached:
+        case NotificationType.TranscriptionInterrupted:
+        case NotificationType.ScreenRecordingInterrupted:
         case NotificationType.TranscriptionFailed:
         case NotificationType.ScreenRecordingFailed:
         case NotificationType.TranscriptionAborted:

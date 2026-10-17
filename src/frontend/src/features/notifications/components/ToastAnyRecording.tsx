@@ -22,6 +22,8 @@ export function ToastAnyRecording({ state, ...props }: Readonly<ToastProps>) {
         return 'transcript.stopped'
       case NotificationType.TranscriptionLimitReached:
         return 'transcript.limitReached'
+      case NotificationType.TranscriptionInterrupted:
+        return 'transcript.interrupted'
       case NotificationType.TranscriptionFailed:
         return 'transcript.failed'
       case NotificationType.TranscriptionAborted:
@@ -32,6 +34,8 @@ export function ToastAnyRecording({ state, ...props }: Readonly<ToastProps>) {
         return 'screenRecording.stopped'
       case NotificationType.ScreenRecordingLimitReached:
         return 'screenRecording.limitReached'
+      case NotificationType.ScreenRecordingInterrupted:
+        return 'screenRecording.interrupted'
       case NotificationType.ScreenRecordingFailed:
         return 'screenRecording.failed'
       case NotificationType.ScreenRecordingAborted:
