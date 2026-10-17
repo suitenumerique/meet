@@ -1,4 +1,5 @@
-log_level: debug
+logging:
+  level: debug
 api_key: devkey
 api_secret: secret
 ws_url: "ws://livekit:7880"

@@ -26,6 +26,16 @@ The former help links for recording/transcription are now redirecting to the adh
 Every page except `/` now carries a `noindex` tag and, with the provided nginx configurations, an `X-Robots-Tag` header to stay out of search indexes.
 A new `robots.txt` also blocks the main AI crawlers. If you maintain your own nginx configuration, copy the `location = /` and `location = /home.html` blocks from `src/frontend/default.conf`, and the `X-Robots-Tag` header from its `location /`.
 
+### LiveKit server v1.13.11 and egress v1.15.0
+
+The development stack now runs LiveKit server v1.13.11 and LiveKit Egress v1.15.0. When upgrading your own deployment:
+
+- Deploy this release of Meet first, then upgrade egress, then the server. Older Meet releases discard the partial recordings described below.
+- Transcripts no longer go through Chrome. Since egress v1.13, audio-only recordings always use the egress SDK pipeline.
+- A transcript now waits for actual audio: it stays "starting", and participants are asked to turn on their microphone, while every microphone is muted.
+- Recordings cut short are now kept. Since egress v1.14, a transcript that lost the room, or any recording drained because its egress host ran out of CPU, still uploads what it recorded, even though egress may report it as failed. Meet saves and processes it as usual, and tells participants the recording was interrupted. A screen recording that loses the room is still reported as complete, and saved without a warning.
+- Telephony: since server v1.13.8, a call that matches no dispatch rule, for example while no room is active, is rejected with a SIP 404 instead of being silently dropped.
+
 ## [v1.35.0]
 
 ### Purging deleted rooms

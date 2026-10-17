@@ -23,6 +23,7 @@ and this project adheres to
 - ⬆️(frontend) upgrade livekit-client to 2.23.0
 - ✨(backend) expose LiveKit reconnection settings in the config
 - ✨(backend) keep recordings cut short by LiveKit egress
+- ⬆️(dev) upgrade LiveKit server to v1.13.11 and egress to v1.15.0
 
 ### Fixed
 
