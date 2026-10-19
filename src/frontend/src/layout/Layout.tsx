@@ -6,6 +6,7 @@ import { useSnapshot } from 'valtio'
 import { Footer } from '@/layout/Footer'
 import { ScreenReaderAnnouncer } from '@/primitives'
 import { SkipLink, MAIN_CONTENT_ID } from './SkipLink'
+import { usePageDataAttribute } from '@/navigation/usePageDataAttribute'
 
 export type Layout = 'fullpage' | 'centered'
 
@@ -16,6 +17,8 @@ export type Layout = 'fullpage' | 'centered'
  * In a specific page, use the `Screen` component and change its props to change global page layout.
  */
 export const Layout = ({ children }: { children: ReactNode }) => {
+  usePageDataAttribute()
+
   const layoutSnap = useSnapshot(layoutStore)
   const showHeader = layoutSnap.showHeader
   const showFooter = layoutSnap.showFooter

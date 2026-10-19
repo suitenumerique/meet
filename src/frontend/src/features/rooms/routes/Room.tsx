@@ -18,6 +18,7 @@ import { LogLevel, setLogLevel } from 'livekit-client'
 import { useWatchDeviceAvailability } from '@/features/rooms/hooks/useWatchDeviceAvailability'
 import { useWatchDeviceReleased } from '@/features/rooms/hooks/useWatchDeviceReleased'
 import { useRoomPageTitle } from '@/features/rooms/livekit/hooks/useRoomPageTitle'
+import { usePageDataAttribute } from '@/navigation/usePageDataAttribute'
 
 const BaseRoom = ({ children }: { children: ReactNode }) => {
   return (
@@ -38,10 +39,12 @@ const Room = () => {
   const initialRoomData = history.state?.initialRoomData
   const mode = isLoggedIn && history.state?.create ? 'create' : 'join'
   const skipJoinScreen = isLoggedIn && mode === 'create'
+  const isJoinScreen = !hasSubmittedEntry && !skipJoinScreen
 
   const { data } = useConfig()
 
   useRoomPageTitle(roomId)
+  usePageDataAttribute(isJoinScreen ? 'join' : 'conference')
 
   useEffect(() => {
     const shouldSilenceLogs = data?.silence_livekit_debug_logs || false
@@ -75,7 +78,7 @@ const Room = () => {
     return <ErrorScreen />
   }
 
-  if (!hasSubmittedEntry && !skipJoinScreen) {
+  if (isJoinScreen) {
     return (
       <BaseRoom>
         <Join enterRoom={() => setHasSubmittedEntry(true)} roomId={roomId} />
