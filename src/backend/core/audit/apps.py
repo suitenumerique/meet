@@ -16,11 +16,11 @@ class AuditConfig(AppConfig):
     def ready(self):
         """Connect the login, failed login and logout receivers.
 
-        Then import the ``auditing`` module of every installed app, where the
-        project registers its models and authentication classes.
+        Then import the ``audit_registry`` module of every installed app, where
+        the project registers its models and authentication classes.
         """
         connect_auth_signals()
-        autodiscover_modules("auditing")
+        autodiscover_modules("audit_registry")
 
 
 class AuditedAdminConfig(AdminConfig):

@@ -1,23 +1,12 @@
-"""What Meet audits, and what its audit events may say.
+"""The catalogue of what Meet audits: its actions and the targets that are not models.
 
-Imported by the audit app once it is ready, see ``core.audit.apps``.
+It imports nothing but the audit facility and leaf helpers, so that any module can
+import it, authentication classes included. Models and authentication classes
+are registered in ``core.audit_registry``.
 """
 
-from django.contrib.auth.models import Group
-
-from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
-
-from core import audit, models
+from core import audit
 from core.audit import EventCategory, EventType
-from core.authentication.backends import OIDCAuthenticationBackend
-from core.authentication.livekit import LiveKitTokenAuthentication
-from core.authentication.user_token import UserAccessJWTAuthentication
-from core.external_api.authentication import (
-    AddonsJWTAuthentication,
-    ApplicationJWTAuthentication,
-)
-from core.recording.event.authentication import HeaderBasedAuthentication
-from core.roomkit.authentication import ServerToServerAuthentication
 from core.services.transit_code import TransitCodeService
 
 # Actions
@@ -56,68 +45,6 @@ RECORDING_TRANSCRIPT_REPORT = audit.Action(
 RECORDING_SUMMARY_REPORT = audit.Action(
     "recording.summary.report", types=(EventType.END,)
 )
-
-# Models
-
-audit.register(
-    models.User,
-    category=EventCategory.IAM,
-    admin_values=(
-        "is_active",
-        "is_staff",
-        "is_superuser",
-        "is_device",
-        "groups",
-        "user_permissions",
-    ),
-)
-audit.register(Group, category=EventCategory.IAM, admin_values=("name", "permissions"))
-audit.register(
-    models.Application,
-    category=EventCategory.IAM,
-    entity_type="application",
-    fields=("client_id", "name", "is_active", "scopes"),
-    admin_values=("name", "is_active", "scopes"),
-)
-audit.register(
-    models.ApplicationDomain, category=EventCategory.IAM, admin_values=("domain",)
-)
-audit.register(
-    models.ResourceAccess,
-    category=EventCategory.IAM,
-    fields=("resource_id", "user_id", "role"),
-    admin_values=("role",),
-    user_target="user",
-)
-audit.register(
-    models.RecordingAccess,
-    category=EventCategory.IAM,
-    admin_values=("role",),
-    user_target="user",
-)
-audit.register(
-    models.Room,
-    fields=("slug", "name", "access_level"),
-    admin_values=("name", "slug", "access_level", "configuration"),
-)
-audit.register(
-    models.Recording,
-    fields=("room_id", "status", "mode", "requested_mode", "is_transcribed"),
-    admin_values=("status", "mode"),
-)
-audit.register(models.File, admin_values=("title", "upload_state"))
-
-# Authentication classes and login backends -> ``lasuite.auth.method``
-
-audit.register_auth_method(OIDCAuthenticationBackend, "oidc")
-audit.register_auth_method(ApplicationJWTAuthentication, "application_jwt")
-audit.register_auth_method(AddonsJWTAuthentication, "addons_jwt")
-audit.register_auth_method(ResourceServerAuthentication, "resource_server")
-audit.register_auth_method(LiveKitTokenAuthentication, "livekit_token")
-audit.register_auth_method(UserAccessJWTAuthentication, "user_access_jwt")
-audit.register_auth_method(HeaderBasedAuthentication, "shared_secret")
-audit.register_auth_method(ServerToServerAuthentication, "shared_secret")
-
 
 # Targets that are not models
 

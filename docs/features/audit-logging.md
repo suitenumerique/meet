@@ -383,6 +383,9 @@ APPLICATION_TOKEN_ISSUE = audit.Action(
 ROOM_CREATE = audit.Action("room.create")
 ```
 
+`core/auditing.py` imports nothing but the audit facility, so that any module can import it, authentication classes
+included. Models and authentication classes are registered apart, in `core/audit_registry.py`.
+
 ### Auditing a DRF view
 
 A DRF view only declares the actions it audits: everything else is derived from the response. CRUD actions are mapped
@@ -466,8 +469,8 @@ on. A registered field that cannot be read is left out of the target, and the ev
 
 ### Registering models and authentication methods
 
-The project describes itself to the audit facility in code, in `core/auditing.py`. Once the audit app is ready, it
-imports the `auditing` module of every installed app.
+The project describes itself to the audit facility in code, in `core/audit_registry.py`. Once the audit app is ready,
+it imports the `audit_registry` module of every installed app.
 
 **`audit.register(Model, ...)`** tells the audit log how to handle a model:
 

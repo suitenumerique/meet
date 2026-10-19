@@ -1,6 +1,6 @@
 """Declare what audit events may say about models and authentication classes.
 
-The project registers them from an ``auditing`` module in one of its apps,
+The project registers them from an ``audit_registry`` module in one of its apps,
 imported once the audit app is ready::
 
     audit.register(
