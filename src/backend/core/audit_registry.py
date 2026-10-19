@@ -16,6 +16,7 @@ from core.authentication.user_token import UserAccessJWTAuthentication
 from core.external_api.authentication import (
     AddonsJWTAuthentication,
     ApplicationJWTAuthentication,
+    MenshenAuthentication,
 )
 from core.recording.event.authentication import HeaderBasedAuthentication
 from core.roomkit.authentication import ServerToServerAuthentication
@@ -76,6 +77,7 @@ audit.register_auth_method(OIDCAuthenticationBackend, "oidc")
 audit.register_auth_method(ApplicationJWTAuthentication, "application_jwt")
 audit.register_auth_method(AddonsJWTAuthentication, "addons_jwt")
 audit.register_auth_method(ResourceServerAuthentication, "resource_server")
+audit.register_auth_method(MenshenAuthentication, "menshen_token")
 audit.register_auth_method(LiveKitTokenAuthentication, "livekit_token")
 audit.register_auth_method(UserAccessJWTAuthentication, "user_access_jwt")
 audit.register_auth_method(HeaderBasedAuthentication, "shared_secret")

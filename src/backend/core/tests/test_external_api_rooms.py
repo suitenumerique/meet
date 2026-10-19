@@ -3057,3 +3057,50 @@ def test_api_rooms_resource_server_is_audited_as_application(audit_events, setti
     assert event["lasuite"]["auth"] == {"method": "resource_server"}
     assert event["lasuite"]["application"] == {"client_id": "some_service_provider"}
     assert event["user"]["id"] == str(user.pk)
+
+
+@responses.activate
+def test_api_rooms_resource_server_user_creation_is_audited(audit_events, settings):
+    """A user created on first authentication is provisioned by the client the
+    introspected token was issued to."""
+    settings.OIDC_CREATE_USER = True
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:list",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    user = User.objects.get(sub="very-specific-sub")
+
+    [event] = find_events(audit_events, "user.provision")
+
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["auth"] == {"method": "resource_server"}
+    assert event["lasuite"]["application"] == {"client_id": "some_service_provider"}
+    assert event["user"] == {"target": {"id": str(user.pk)}}
+    assert event["entity"]["target"]["id"] == str(user.pk)
+    assert event["entity"]["target"]["raw"] == {"sub": "very-specific-sub"}

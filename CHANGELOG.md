@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(backend) add room soft-deletion to the external API
 - ✨(all) allow any authenticated user to start a recording
 - ✨(backend) authenticate external API calls with Menshen exchanged tokens
+- ✨(backend) audit Menshen calls and users created from introspected tokens
 
 ## [1.35.0] - 2026-10-13
 

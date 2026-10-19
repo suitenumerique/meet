@@ -7,6 +7,7 @@ import responses
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
 from rest_framework.test import APIClient
 
+from core.audit.testing import find_events
 from core.factories import UserFactory
 from core.models import RoleChoices, Room, User
 
@@ -302,3 +303,112 @@ def test_menshen_unknown_user_email_already_used(settings, existing_sub):
     existing_user.refresh_from_db()
     assert existing_user.sub == existing_sub
     assert not Room.objects.exists()
+
+
+@responses.activate
+def test_menshen_is_audited_as_application(audit_events):
+    """A call with a Menshen token is made by the client Menshen reports, acting for
+    the user. Neither the token, nor the jti Menshen derives from an opaque token,
+    nor the email ever appear."""
+
+    user = UserFactory(email="user@example.com")
+
+    responses.add(
+        responses.POST,
+        INTROSPECTION_ENDPOINT,
+        json=_introspection(user.sub, email="user@example.com", jti=TOKEN[:50]),
+    )
+
+    response = _create_room()
+
+    assert response.status_code == 201
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "menshen_token"}
+    assert event["lasuite"]["application"] == {"client_id": "menshen"}
+    assert event["user"] == {"id": str(user.pk), "domain": "example.com"}
+    assert event["entity"]["target"]["id"] == response.data["id"]
+    assert not find_events(audit_events, "user.provision")
+    assert TOKEN not in str(audit_events)
+    assert "user@example.com" not in str(audit_events)
+
+
+@responses.activate
+def test_menshen_unknown_user_created_is_audited(audit_events, settings):
+    """A user created for an unknown sub is provisioned by the client Menshen reports,
+    before the call it makes as that user."""
+
+    settings.OIDC_CREATE_USER = True
+
+    responses.add(
+        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
+    )
+
+    response = _create_room()
+
+    assert response.status_code == 201
+    user = User.objects.get(sub="new-sub")
+    [provision, create] = audit_events
+
+    assert provision["event"]["action"] == "user.provision"
+    assert provision["event"]["category"] == ["iam"]
+    assert provision["event"]["type"] == ["user", "creation"]
+    assert provision["lasuite"]["outcome"] == "success"
+    assert provision["lasuite"]["actor"] == {"type": "application"}
+    assert provision["lasuite"]["auth"] == {"method": "menshen_token"}
+    assert provision["lasuite"]["application"] == {"client_id": "menshen"}
+    assert provision["user"] == {
+        "target": {"id": str(user.pk), "domain": "example.com"}
+    }
+    assert provision["entity"]["target"] == {
+        "id": str(user.pk),
+        "type": ["user"],
+        "sub_type": "user",
+        "raw": {"sub": "new-sub"},
+    }
+    assert provision["http"]["request"]["id"] == create["http"]["request"]["id"]
+    assert "user@example.com" not in str(provision)
+
+    assert create["event"]["action"] == "room.create"
+    assert create["user"]["id"] == str(user.pk)
+
+
+@responses.activate
+def test_menshen_unknown_user_email_already_used_is_audited(audit_events, settings):
+    """A user that is not created because its email is already used is a conflict
+    with the existing account, recorded with the sub that was refused."""
+
+    settings.OIDC_CREATE_USER = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+
+    existing_user = UserFactory(sub=None, email="User@Example.com")
+
+    responses.add(
+        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
+    )
+
+    response = _create_room()
+
+    assert response.status_code == 401
+
+    [provision] = find_events(audit_events, "user.provision")
+
+    assert provision["event"]["outcome"] == "failure"
+    assert provision["event"]["reason"] == "conflict"
+    assert provision["lasuite"]["outcome"] == "failure"
+    assert provision["lasuite"]["actor"] == {"type": "application"}
+    assert provision["lasuite"]["auth"] == {"method": "menshen_token"}
+    assert provision["lasuite"]["application"] == {"client_id": "menshen"}
+    assert provision["user"] == {
+        "target": {"id": str(existing_user.pk), "domain": "example.com"}
+    }
+    assert provision["entity"]["target"]["id"] == str(existing_user.pk)
+    assert provision["lasuite"]["details"] == {"requested_sub": "new-sub"}
+    assert provision["log"]["level"] == "warning"
+    assert "user@example.com" not in str(provision).lower()
+
+    [create] = find_events(audit_events, "room.create")
+
+    assert create["lasuite"]["outcome"] == "denied"
+    assert create["event"]["reason"] == "authentication_failed"

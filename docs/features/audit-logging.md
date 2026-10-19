@@ -98,7 +98,7 @@ find each one in the JSON above.
 |---|---|---|
 | **Actor** | Who is behind an Action. It always has an Actor Type. When a person's account is involved, the event also carries the account id, its OIDC `sub` when it has one, and its email domain. | `lasuite.actor.*`, `user.*` |
 | **Actor Type** | What kind of Actor it is: `user`, `application`, `service`, `system` or `anonymous`. See [Actors](#actors). Device accounts are `user`s like any other account. | `lasuite.actor.type` |
-| **Auth Method** | How the Actor proved who it is for this request: `session`, `oidc`, `password`, `application_jwt`, `client_credentials`, `addons_jwt`, `user_access_jwt`, `transit_code`, `resource_server`, `livekit_token`, `shared_secret`, `none` when it did not authenticate, or `unknown`. | `lasuite.auth.method` |
+| **Auth Method** | How the Actor proved who it is for this request: `session`, `oidc`, `password`, `application_jwt`, `client_credentials`, `addons_jwt`, `user_access_jwt`, `transit_code`, `resource_server`, `menshen_token`, `livekit_token`, `shared_secret`, `none` when it did not authenticate, or `unknown`. | `lasuite.auth.method` |
 | **Application** | A registered third-party integration, identified by its client id, that calls the external API on behalf of users. | `lasuite.application.client_id` |
 | **Delegation** | An Application acting for one specific user, through the delegated token it obtained with `application.token.issue`. The event then names both: the Application as the Actor, and the user in `user.*`. | `lasuite.actor.type` = `application`, with `user.*` set |
 | **Provisional User** | An account an Application created from an email address before that person ever signed in. It has no OIDC `sub` yet, so its account id is what links its `user.provision` event to its later `user.login`. | `event.action` = `user.provision` |
@@ -191,8 +191,8 @@ what ECS does not define: `lasuite.*`, and `entity.target.raw.*` for the fields 
 | `lasuite.outcome` | `success`, `failure`, `denied` or `unknown`: the same as `event.outcome`, with refusals kept apart |
 | `lasuite.actor.type` | `user`, `application`, `service`, `system` or `anonymous`, see [Actors](#actors) |
 | `lasuite.actor.sub` | The OIDC `sub` of the account in `user.*`, when it has one: the identity it shares with the other La Suite products |
-| `lasuite.auth.method` | `session`, `application_jwt`, `addons_jwt`, `user_access_jwt`, `resource_server`, `livekit_token`, `shared_secret`, `client_credentials`, `transit_code`, `oidc`, `password`, `none`, or `unknown` for an authentication class that is not registered. Requests served outside DRF, such as the admin and logout, report `session` when signed in |
-| `lasuite.application.client_id` | The external application acting, if any. Only set once its credentials are verified |
+| `lasuite.auth.method` | `session`, `application_jwt`, `addons_jwt`, `user_access_jwt`, `resource_server`, `menshen_token`, `livekit_token`, `shared_secret`, `client_credentials`, `transit_code`, `oidc`, `password`, `none`, or `unknown` for an authentication class that is not registered. Requests served outside DRF, such as the admin and logout, report `session` when signed in |
+| `lasuite.application.client_id` | The external application acting, if any. Only set once its credentials are verified. For a Menshen token, Menshen's own client id (see [Actors](#actors)) |
 | `user.id`, `user.domain` | The account whose authority the action used (see [Actors](#actors)): its primary key and email domain. The email address itself is never recorded |
 | `user.roles` | That account's privileges when the event happened: `superuser`, `staff` |
 | `user.target.id`, `user.target.domain` | The account the action was about: the target when it is a user, or the user an access grants a role to. `user.*` stays the actor |
@@ -229,7 +229,7 @@ an application acts for a user, the actor is the application, but `user.*` is th
 | `lasuite.actor.type` | Who | `user.*` |
 |---|---|---|
 | `user` | A person's account acting for itself: through a session, an OIDC or password login, an add-on token, or the LiveKit token of a known account | That account |
-| `application` | A client application acting on behalf of a user. Either a Meet application, through its client credentials, its delegated token or the user access token of its embedded frontend, or another La Suite application, through the resource server. `lasuite.application.client_id` names it | The delegating user |
+| `application` | A client application acting on behalf of a user. Either a Meet application, through its client credentials, its delegated token or the user access token of its embedded frontend, or another La Suite application, through the resource server or a token exchanged with Menshen. `lasuite.application.client_id` names it | The delegating user |
 | `service` | An internal service of the deployment, named by `service.origin.name`: the LiveKit SIP bridge (`roomkit`), the summary service (`summary`), or the LiveKit server reporting on a recording (`livekit`) | Absent |
 | `system` | The backend itself, with no inbound request | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
@@ -241,6 +241,12 @@ The backend picks the actor type by applying these rules in order:
 3. The caller authenticated without an account, as a Machine User: `service`.
 4. The caller is an account: `user`.
 5. Anything else: `anonymous`.
+
+A La Suite application calling the external API with a token it exchanged through Menshen, La Suite's token exchange
+server, is recorded as an `application`, with `lasuite.auth.method` `menshen_token`. Menshen reports itself as the client
+the token was issued to, not the application that exchanged it, so `lasuite.application.client_id` and `organization.id`
+are Menshen's client id for every such call. The token is never recorded, nor its `jti`, which for an opaque token
+Menshen takes from the token itself, nor the email Menshen reports.
 
 ### Classification
 
@@ -266,7 +272,7 @@ is told by `event.outcome`, `lasuite.outcome` and `event.reason`, never by the n
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
 | `application.token.issue` | An application asks for a delegated token (`POST /external-api/v1.0/application/token/`), whether it gets one or is refused. It can be refused for bad credentials, an inactive application, an invalid or unauthorized email domain, an unknown user, or a provisioning conflict | On success: `user.*` is the delegated user, `entity.target` the application, and `lasuite.details` holds `scopes`, `user_provisioned` and `expires_in`. On refusal: `event.reason`, `http.response.status_code` and `lasuite.details.requested_domain`. Until its credentials are verified, the client id the caller submitted is only recorded as `lasuite.details.claimed_client_id`: it never sets `lasuite.application` or `organization` |
-| `user.provision` | An application creates a provisional user from an email address, or fails to. It is a `failure` with reason `conflict` when a concurrent request created the user first | `user.target` and `entity.target` are the user, the existing one on a conflict. A provisional user has no `sub` yet: its id links this event to the winning one and to its later `user.login` |
+| `user.provision` | An application creates a provisional user from an email address, or fails to. It is a `failure` with reason `conflict` when a concurrent request created the user first. Also emitted when a La Suite application calls the external API, through the resource server or with a Menshen token, for a `sub` no account has and `OIDC_CREATE_USER` lets the backend create one | `user.target` and `entity.target` are the user, the existing one on a conflict. `lasuite.auth.method` is `client_credentials`, `resource_server` or `menshen_token`. A provisional user has no `sub` yet: its id links this event to the winning one and to its later `user.login`. On a conflict over an email, `lasuite.details.requested_sub` is the `sub` no account was created for |
 | `transit_code.issue` | An application mints a single-use transit code for its delegated user | `entity.target` is the code, whose `id` is its SHA-256. `user.target` is the user it is minted for. `lasuite.details.expires_in` |
 | `transit_code.exchange` | An embedded frontend exchanges a transit code for a user access token | `event.category` is `authentication`, `lasuite.auth.method` is `transit_code`, and `entity.target` is the code's SHA-256. Once the code verifies, even if the exchange is then refused: `lasuite.actor.type` is `application` (the one that minted it), and `user.target` the user it was minted for. On success, `user.*` is that user too, with `lasuite.details.expires_in`. A code that does not verify is recorded as an `anonymous` failed authentication |
 

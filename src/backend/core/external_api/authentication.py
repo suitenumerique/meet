@@ -17,6 +17,7 @@ from menshen_client import Configuration, IntrospectionRequest, TokenExchangeCli
 from menshen_client.exceptions import ResponseParsingError
 from rest_framework import authentication, exceptions
 
+from core import audit, auditing
 from core.models import Application, ApplicationScope
 from core.services import jwt_token
 from core.validators import sub_validator
@@ -56,7 +57,7 @@ def get_token(request, token_type):
         raise exceptions.AuthenticationFailed("Invalid token encoding.") from e
 
 
-def get_or_create_user_by_sub(sub, email=None):
+def get_or_create_user_by_sub(sub, email=None, *, auth_method, client_id=None):
     """Retrieve the user matching a token subject, creating it if allowed.
 
     Shared by the resource server backends, so that tokens introspected with the
@@ -65,6 +66,8 @@ def get_or_create_user_by_sub(sub, email=None):
     Args:
         sub: Subject identifier from the introspected token
         email: Email to store on a newly created user
+        auth_method: How the token was validated, for the audit log
+        client_id: Client the token was issued to, for the audit log
 
     Returns:
         User instance, or None if unknown and OIDC_CREATE_USER is unset
@@ -90,12 +93,23 @@ def get_or_create_user_by_sub(sub, email=None):
         # Users are never identified by email here. But a second account with the
         # same email (e.g. provisionnal account) would break the lookups by email:
         # refuse it.
-        if (
-            settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION
-            and email
-            and User.objects.filter(email__iexact=email).exists()
-        ):
+        existing_user = (
+            User.objects.filter(email__iexact=email).first()
+            if settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION and email
+            else None
+        )
+        if existing_user is not None:
             logger.warning("Email already used, not creating user: %s", sub)
+            audit.log(
+                auditing.USER_PROVISION,
+                outcome=audit.Outcome.FAILURE,
+                reason=audit.Reason.CONFLICT,
+                actor=None,
+                auth_method=auth_method,
+                client_id=client_id,
+                target=existing_user,
+                requested_sub=sub,
+            )
             raise SuspiciousOperation(
                 "Email already used by another account."
             ) from None
@@ -103,6 +117,13 @@ def get_or_create_user_by_sub(sub, email=None):
         user = User(sub=sub, email=email)
         user.set_unusable_password()
         user.save()
+        audit.log(
+            auditing.USER_PROVISION,
+            actor=None,
+            auth_method=auth_method,
+            client_id=client_id,
+            target=user,
+        )
 
     if not user.is_active:
         logger.warning("Inactive user attempted authentication: %s", user.pk)
@@ -385,7 +406,7 @@ class MenshenAuthentication(authentication.BaseAuthentication):
             logger.warning("Menshen introspection failed: %s", e)
             return None
 
-        # Permission classes expect a dict payload in request.auth
+        # Permission classes expect a dict payload in request.auth.
         payload = asdict(response)
 
         if not payload.get("active"):
@@ -427,7 +448,12 @@ class MenshenAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed("Invalid token claims.")
 
         try:
-            user = get_or_create_user_by_sub(sub, email=payload.get("email"))
+            user = get_or_create_user_by_sub(
+                sub,
+                email=payload.get("email"),
+                auth_method="menshen_token",
+                client_id=payload.get("client_id"),
+            )
         except SuspiciousOperation as e:
             raise exceptions.AuthenticationFailed(str(e)) from e
 
@@ -471,4 +497,6 @@ class ResourceServerBackend(LaSuiteBackend):
             logger.debug(message)
             raise SuspiciousOperation(message)
 
-        return get_or_create_user_by_sub(sub)
+        return get_or_create_user_by_sub(
+            sub, auth_method="resource_server", client_id=payload.get("client_id")
+        )
