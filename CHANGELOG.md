@@ -16,6 +16,10 @@ and this project adheres to
 - ✨(backend) authenticate external API calls with Menshen exchanged tokens
 - ✨(backend) audit Menshen calls and users created from introspected tokens
 
+### Fixed
+
+- 🔒️(frontend) upgrade libx11 to fix CVE-2026-88806
+
 ## [1.35.0] - 2026-10-13
 
 ### Added
