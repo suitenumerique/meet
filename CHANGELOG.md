@@ -22,6 +22,7 @@ and this project adheres to
 - 🔒️(backend) throttle the start recording endpoint
 - 🐛(backend) put a timeout on every LiveKit API call
 - 🔒️(backend) upgrade aiohttp to 3.14.5 to fix CVE-2026-111064
+- ♿️(frontend) announce the microphone turning off on shortcut #1816
 
 ## [1.35.0] - 2026-10-13
 
