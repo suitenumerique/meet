@@ -3,7 +3,7 @@ import {
   ToggleButton as RACToggleButton,
   ToggleButtonProps as RACToggleButtonProps,
 } from 'react-aria-components'
-import { type ButtonRecipeProps, buttonRecipe } from './buttonRecipe'
+import { type ButtonRecipeProps, buttonRecipe, buttonRecipeDefaultVariants } from './buttonRecipe'
 import { TooltipWrapper, type TooltipWrapperProps } from './TooltipWrapper'
 
 export type ToggleButtonProps = RACToggleButtonProps &
@@ -25,7 +25,14 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
         <RACToggleButton
           ref={ref}
           {...componentProps}
-          className={[buttonRecipe(variantProps), props.className].join(' ')}
+          className={[
+            buttonRecipe(variantProps),
+            props.className,
+            // These are not necessary for the app, but can help people using custom CSS for theming
+            'Button Button--toggle',
+            `Button--variant-${variantProps.variant || buttonRecipeDefaultVariants.variant}`,
+            `Button--size-${variantProps.size || buttonRecipeDefaultVariants.size}`,
+          ].join(' ')}
         >
           <>
             {componentProps.children as ReactNode}

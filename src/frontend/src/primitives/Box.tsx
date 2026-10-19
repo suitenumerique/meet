@@ -1,5 +1,11 @@
+import { ComponentProps, forwardRef } from 'react'
 import { cva } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
+
+const boxDefaultVariants = {
+  variant: 'light',
+  size: 'default',
+} as const
 
 const box = cva({
   base: {
@@ -64,10 +70,25 @@ const box = cva({
       },
     },
   },
-  defaultVariants: {
-    variant: 'light',
-    size: 'default',
-  },
+  defaultVariants: boxDefaultVariants,
 })
 
-export const Box = styled('div', box)
+const StyledBox = styled('div', box)
+
+export const Box = forwardRef<HTMLDivElement, ComponentProps<typeof StyledBox>>(
+  ({ className, ...props }, ref) => (
+    <StyledBox
+      ref={ref}
+      className={[
+        // These are not necessary for the app, but can help people using custom CSS for theming
+        'Box',
+        `Box--variant-${props.variant || boxDefaultVariants.variant}`,
+        `Box--size-${props.size || boxDefaultVariants.size}`,
+        props.type && `Box--type-${props.type}`,
+        className,
+      ].filter(Boolean).join(' ')}
+      {...props}
+    />
+  )
+)
+Box.displayName = 'Box'

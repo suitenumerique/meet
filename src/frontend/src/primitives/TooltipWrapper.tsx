@@ -114,10 +114,11 @@ const TooltipArrow = () => {
 
 const Tooltip = ({
   children,
+  className,
   ...props
 }: Omit<TooltipProps, 'children'> & { children: ReactNode }) => {
   return (
-    <StyledTooltip {...props}>
+    <StyledTooltip {...props} className={[className, 'Tooltip'].filter(Boolean).join(' ')}>
       <TooltipArrow />
       {children}
     </StyledTooltip>

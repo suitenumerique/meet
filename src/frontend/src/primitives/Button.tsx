@@ -3,7 +3,7 @@ import {
   type ButtonProps as RACButtonsProps,
 } from 'react-aria-components'
 import { type RecipeVariantProps } from '@/styled-system/css'
-import { buttonRecipe, type ButtonRecipe } from './buttonRecipe'
+import { buttonRecipe, buttonRecipeDefaultVariants, type ButtonRecipe } from './buttonRecipe'
 import { TooltipWrapper, type TooltipWrapperProps } from './TooltipWrapper'
 import { ReactNode, forwardRef } from 'react'
 import { Loader } from './Loader'
@@ -26,7 +26,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <TooltipWrapper tooltip={tooltip} tooltipType={tooltipType}>
         <RACButton
           ref={ref}
-          className={[buttonRecipe(variantProps), className].join(' ')}
+          className={[
+            buttonRecipe(variantProps),
+            className,
+            // These are not necessary for the app, but can help people using custom CSS for theming
+            'Button',
+            `Button--variant-${variantProps.variant || buttonRecipeDefaultVariants.variant}`,
+            `Button--size-${variantProps.size || buttonRecipeDefaultVariants.size}`,
+          ].join(' ')}
           {...(remainingComponentProps as RACButtonsProps)}
         >
           {!props.loading && props.icon}

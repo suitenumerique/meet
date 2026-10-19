@@ -1,5 +1,11 @@
 import { type RecipeVariantProps, cva } from '@/styled-system/css'
 
+
+export const buttonRecipeDefaultVariants = {
+  size: 'default',
+  variant: 'primary',
+} as const
+
 export const buttonRecipe = cva({
   base: {
     display: 'flex',
@@ -393,10 +399,7 @@ export const buttonRecipe = cva({
       },
     },
   ],
-  defaultVariants: {
-    size: 'default',
-    variant: 'primary',
-  },
+  defaultVariants: buttonRecipeDefaultVariants,
 })
 
 export type ButtonRecipe = typeof buttonRecipe
