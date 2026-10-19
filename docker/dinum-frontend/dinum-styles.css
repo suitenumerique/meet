@@ -1,35 +1,3 @@
-:root {
-    --fonts-sans: 'Marianne', ui-sans-serif, system-ui, sans-serif;
-    --avatar-cap-height: 0.7;
-}
-
-.Header-beforeLogo {
-    display: block;
-}
-
-.Header-beforeLogo::before {
-    content: '';
-    display: block;
-    background-image: url(/assets/marianne.svg);
-    background-position: 0 -0.046875rem;
-    background-size: 2.0625rem 0.84375rem;
-    height: 0.75rem;
-    margin-bottom: 0.1rem;
-    width: 2.0625rem;
-}
-
-.Header-beforeLogo::after {
-    content: '';
-    display: block;
-    background-image: url(/assets/gouvernement.svg), url(/assets/devise.svg);
-    background-repeat: no-repeat, no-repeat;
-    background-size: 108.8px 10px, 40px 29px;
-    background-position: 0 3px, 0 18.9px;
-    width: 108.8px;
-    height: 48px;
-    margin-top: 0.25rem;
-}
-
 @font-face {
     font-family: 'Marianne';
     src: url('/assets/fonts/Marianne-Regular-subset.woff2') format('woff2');
@@ -68,4 +36,197 @@
     font-weight: 800;
     font-style: normal;
     font-display: swap;
+}
+
+.Header-beforeLogo {
+    display: block;
+}
+
+.Header-beforeLogo::before {
+    content: '';
+    display: block;
+    background-image: url(/assets/marianne.svg);
+    background-position: 0 -0.046875rem;
+    background-size: 2.0625rem 0.84375rem;
+    height: 0.75rem;
+    margin-bottom: 0.1rem;
+    width: 2.0625rem;
+}
+
+.Header-beforeLogo::after {
+    content: '';
+    display: block;
+    background-image: url(/assets/gouvernement.svg), url(/assets/devise.svg);
+    background-repeat: no-repeat, no-repeat;
+    background-size: 108.8px 10px, 40px 29px;
+    background-position: 0 3px, 0 18.9px;
+    width: 108.8px;
+    height: 48px;
+    margin-top: 0.25rem;
+}
+
+:root {
+    --fonts-sans: Marianne, "Mona Sans VF", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Backtick Fix", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --global-font-body: var(--fonts-sans);
+
+    --avatar-cap-height: 0.7;
+
+    /* use hand-picked variables from UI-kit and apply them to meet's variables */
+    --c--globals--colors--brand-050: #EDF0FF;
+    --c--globals--colors--brand-100: #DAE2FF;
+    --c--globals--colors--brand-250: #A2B6FF;
+    --c--globals--colors--brand-550: #3E5DE7;
+    --c--globals--colors--brand-600: #304DDF;
+    --c--globals--colors--brand-650: #2845C1;
+    --c--globals--colors--brand-700: #223E9E;
+    --c--globals--colors--gray-050: #F0F0F3;
+    --c--globals--colors--gray-100: #DFE2EA;
+    --c--globals--colors--gray-150: #CFD5DE;
+    --c--globals--colors--gray-250: #B2B9C7;
+    --c--globals--colors--gray-300: #A4ABBC;
+    --c--globals--colors--gray-550: #626A80;
+    --c--globals--colors--gray-600: #555E74;
+    --c--globals--colors--gray-650: #4A5267;
+    --c--globals--colors--gray-700: #3F4759;
+    --c--globals--colors--gray-750: #363B4C;
+    --c--globals--colors--gray-800: #2B303D;
+    --c--globals--colors--gray-850: #222631;
+    --c--globals--colors--gray-900: #181B24;
+    --c--globals--colors--white-050: #F6F8F90D;
+    --c--globals--colors--white-950: #F6F8F9F2;
+    --c--globals--colors--black-050: #181B240D;
+    --c--globals--colors--black-850: #181B24D9;
+    --c--globals--colors--error-550: #CF202D;
+    --c--globals--colors--error-650: #9D2227;
+
+    --colors-primary-800: var(--c--contextuals--background--semantic--brand--primary);
+    --colors-primary: var(--c--contextuals--background--semantic--brand--primary);
+    --colors-primary-action: var(--c--contextuals--background--semantic--brand--primary-hover);
+    --colors-default-subtle-text: var(--c--contextuals--content--semantic--neutral--secondary);
+    --colors-default-text: var(--c--contextuals--content--semantic--neutral--primary);
+    --colors-primary-subtle: var(--c--contextuals--background--semantic--brand--secondary);
+    --colors-primary-subtle-text: var(--c--contextuals--content--semantic--brand--secondary);
+    --colors-greyscale-250: var(--c--globals--colors--gray-100);
+    /* for the room's page background color */
+    --colors-primary-dark-50: var(--c--globals--colors--gray-900);
+
+    /* light theme specific UI-kit semantic values */
+    --c--contextuals--background--semantic--brand--primary: var(--c--globals--colors--brand-550);
+    --c--contextuals--background--semantic--brand--primary-hover: var(--c--globals--colors--brand-650);
+    --c--contextuals--content--semantic--brand--on-brand: var(--c--globals--colors--brand-050);
+    --c--contextuals--content--semantic--neutral--secondary: var(--c--globals--colors--gray-600);
+    --c--contextuals--content--semantic--neutral--primary: var(--c--globals--colors--gray-850);
+    --c--contextuals--background--semantic--brand--secondary: var(--c--globals--colors--brand-100);
+    --c--contextuals--content--semantic--brand--secondary: var(--c--globals--colors--brand-600);
+    --c--contextuals--content--semantic--brand--tertiary: var(--c--globals--colors--brand-550);
+    --c--contextuals--background--semantic--contextual--primary: var(--c--globals--colors--black-050);
+    --c--contextuals--content--semantic--contextual--primary: var(--c--globals--colors--white-950);
+    --c--contextuals--background--semantic--error--primary: var(--c--globals--colors--error-550);
+    --c--contextuals--background--semantic--error--primary-hover: var(--c--globals--colors--error-650);
+    --c--contextuals--background--semantic--neutral--tertiary: var(--c--globals--colors--gray-050);
+    --c--contextuals--border--semantic--neutral--tertiary: var(--c--globals--colors--gray-150);
+    --c--contextuals--content--semantic--neutral--tertiary: var(--c--globals--colors--gray-550);
+
+    /* try to match the UI-kit's control border color, but keep a 3:1 contrast ratio with white to pass WCAG rules on input borders */
+    --colors-control-border: #8996A9;
+}
+
+/* dark theme matching (room page) */
+.Box--variant-dark,
+.Tooltip,
+#control-bar {
+    --c--contextuals--background--semantic--brand--primary: var(--c--globals--colors--brand-550);
+    --c--contextuals--background--semantic--brand--primary-hover: var(--c--globals--colors--brand-650);
+    --c--contextuals--content--semantic--brand--on-brand: var(--c--globals--colors--brand-050);
+    --c--contextuals--content--semantic--neutral--secondary: var(--c--globals--colors--gray-100);
+    --c--contextuals--content--semantic--neutral--primary: var(--c--globals--colors--gray-050);
+    --c--contextuals--background--semantic--brand--secondary: var(--c--globals--colors--brand-700);
+    --c--contextuals--content--semantic--brand--secondary: var(--c--globals--colors--brand-100);
+    --c--contextuals--content--semantic--brand--tertiary: var(--c--globals--colors--brand-250);
+    --c--contextuals--background--semantic--contextual--primary: var(--c--globals--colors--white-050);
+    --c--contextuals--content--semantic--contextual--primary: var(--c--globals--colors--black-850);
+    --c--contextuals--background--semantic--error--primary: var(--c--globals--colors--error-550);
+    --c--contextuals--background--semantic--error--primary-hover: var(--c--globals--colors--error-650);
+    --c--contextuals--background--semantic--neutral--secondary: var(--c--globals--colors--gray-700);
+    --c--contextuals--background--semantic--neutral--secondary-hover: var(--c--globals--colors--gray-750);
+    --c--contextuals--content--semantic--neutral--on-neutral: var(--c--globals--colors--gray-050);
+    --c--contextuals--background--surface--primary: var(--c--globals--colors--gray-800);
+    --c--contextuals--background--semantic--neutral--tertiary: var(--c--globals--colors--gray-750);
+    --c--contextuals--border--semantic--neutral--tertiary: var(--c--globals--colors--gray-700);
+    --c--contextuals--content--semantic--neutral--tertiary: var(--c--globals--colors--gray-250);
+}
+
+.Button--variant-primary {
+    background-color: var(--c--contextuals--background--semantic--brand--primary);
+    color: var(--c--contextuals--content--semantic--brand--on-brand);
+}
+.Button--variant-primary:is([data-hovered], [data-pressed]) {
+    background-color: var(--c--contextuals--background--semantic--brand--primary-hover);
+}
+
+.Button--variant-secondary {
+    border-color: #CFD5DE;
+}
+
+.Button--variant-secondaryText {
+    background: transparent;
+    color: var(--c--contextuals--content--semantic--brand--tertiary);
+}
+
+.Button--variant-secondaryText:is([data-hovered], [data-pressed]) {
+    background-color: var(--c--contextuals--background--semantic--contextual--primary);
+}
+
+.Button--variant-primaryDark {
+    background-color: var(--c--contextuals--background--semantic--neutral--secondary);
+    color: var(--c--contextuals--content--semantic--neutral--secondary);
+}
+.Button--variant-primaryDark:is([data-hovered], [data-pressed]) {
+    background-color: var(--c--contextuals--background--semantic--neutral--secondary-hover);
+}
+
+.Button--variant-danger {
+    background-color: var(--c--contextuals--background--semantic--error--primary);
+    color: var(--c--contextuals--content--semantic--brand--on-brand);
+}
+.Button--variant-danger:is([data-hovered], [data-pressed]) {
+    background-color: var(--c--contextuals--background--semantic--error--primary-hover);
+}
+
+.Button--variant-primaryTextDark {
+    background: transparent;
+    color: var(--c--contextuals--content--semantic--neutral--tertiary);
+}
+
+.Button--variant-primaryTextDark:is([data-hovered], [data-pressed]) {
+    background-color: var(--c--contextuals--background--semantic--contextual--primary);
+}
+
+.Box--variant-dark.Box--type-popover {
+    background-color: var(--c--contextuals--background--surface--primary);
+}
+
+.Tooltip {
+    background: var(--c--contextuals--background--semantic--neutral--tertiary);
+    border-color: var(--c--contextuals--border--semantic--neutral--tertiary);
+    color: var(--c--contextuals--content--semantic--neutral--tertiary);
+}
+
+/* switch component */
+.indicator,
+[data-selected="true"] .indicator::before {
+    background-color: var(--c--contextuals--content--semantic--contextual--primary);
+}
+.indicator .cross {
+    color: var(--c--contextuals--content--semantic--contextual--primary);
+}
+label:not([data-selected="true"]) .indicator::before,
+[data-selected="true"] .indicator {
+    background: var(--colors-primary-800);
+}
+/* end switch component */
+
+/* prevent impacting the toolbar buttons (primaryDark variant) */
+.Button--size-default:is(.Button--variant-primary, .Button--variant-secondary) {
+    padding-block: 0.4375rem;
 }
