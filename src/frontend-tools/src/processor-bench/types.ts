@@ -110,9 +110,9 @@ export type ContenderResult = {
   contenderId: string
   label: string
   runs: RunMetrics[]
-  /** First run: model download and compile included. */
+  /** Pass 0: model download and compile included. Null when pass 0 failed. */
   coldStartupMs: number | null
-  /** Later runs: assets already cached. */
+  /** Mean over every later pass: assets already cached. */
   warmStartupMs: number | null
   /** Highest heap peak across every pass. Null where the browser has no `performance.memory`. */
   heapPeakBytes: number | null
@@ -143,6 +143,7 @@ export type BenchReport = {
 
 export type BenchPhase =
   | 'idle'
+  | 'preparing'
   | 'starting'
   | 'warmup'
   | 'measuring'

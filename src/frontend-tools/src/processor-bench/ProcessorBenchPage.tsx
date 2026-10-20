@@ -35,6 +35,26 @@ const fmt = (value: number | null | undefined, digits = 1): string =>
 const fmtMb = (bytes: number | null | undefined): string =>
   typeof bytes === 'number' ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : '—'
 
+/**
+ * The size is only requested as `ideal`, so a camera without that mode runs
+ * at its own size with no error. This line is what the numbers were taken at.
+ */
+const describeSource = (
+  settings: MediaTrackSettings | null,
+  requested: { width: number; height: number }
+): string => {
+  if (!settings?.width || !settings.height) return 'Camera size unknown'
+  const actual = `${settings.width}x${settings.height}`
+  const fps = settings.frameRate
+    ? ` @ ${Math.round(settings.frameRate)} fps`
+    : ''
+  const mismatch =
+    settings.width !== requested.width || settings.height !== requested.height
+      ? ` (requested ${requested.width}x${requested.height}; the camera has no such mode)`
+      : ''
+  return `Camera delivered ${actual}${fps}${mismatch}`
+}
+
 const PHASE_VERBS: Partial<Record<BenchPhase, string>> = {
   starting: 'Initialising',
   warmup: 'Warming up',
@@ -45,6 +65,9 @@ const describeProgress = (progress: BenchProgress): string => {
   const verb = PHASE_VERBS[progress.phase]
   if (verb) {
     return `${verb} ${progress.contenderLabel} (pass ${(progress.pass ?? 0) + 1})`
+  }
+  if (progress.phase === 'preparing') {
+    return 'Opening the camera and collecting machine specs'
   }
   if (progress.phase === 'cooldown') {
     return `Cooling down after ${progress.contenderLabel}`
@@ -214,6 +237,7 @@ const ProcessorBenchPage = () => {
     const controller = new AbortController()
     abortRef.current = controller
     setRunning(true)
+    setProgress({ phase: 'preparing' })
     setFailure(null)
     setReport(null)
 
@@ -399,6 +423,11 @@ const ProcessorBenchPage = () => {
 
       {report && (
         <>
+          <p>
+            <strong>
+              {describeSource(report.sourceSettings, report.options)}
+            </strong>
+          </p>
           <div className="tableWrap">
             <table className="table">
               <thead>

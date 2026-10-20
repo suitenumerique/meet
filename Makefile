@@ -256,6 +256,8 @@ run-frontend-tools-nogpu: ## open the processor benchmark in Chrome with the GPU
 	@echo "The benchmark's specs panel should report software rendering; if it does not, the flag did not take."
 	@"$(CHROME)" \
 		--disable-gpu \
+		--enable-unsafe-swiftshader \
+		--enable-precise-memory-info \
 		--user-data-dir="$(BENCH_NOGPU_PROFILE)" \
 		--no-first-run \
 		--no-default-browser-check \

@@ -66,7 +66,12 @@ what keeps the harness processor-agnostic.
 | Blocking (ms)       | Total Blocking Time: each long task's excess over 50ms                                         | Chromium                          |
 | Long tasks, Busy %  | count of >50ms tasks, and the share of the window spent in them                                | Chromium                          |
 | Startup cold / warm | `init()` until the first frame leaves the processor                                            | everywhere                        |
-| Heap peak (max)     | sampled `performance.memory`, highest across passes; a leak smell test, not a measurement      | Chromium                          |
+| Heap peak (max)     | sampled `performance.memory`, highest across passes; a leak smell test, not a measurement      | Chromium, with a flag (see below) |
+
+Chromium buckets and caches `performance.memory` unless it is launched with
+`--enable-precise-memory-info`. Without that flag Heap peak barely moves however much the heap grows, so
+it cannot show a leak. `make run-frontend-tools-nogpu` passes the flag. For a GPU run, launch Chrome with
+that one flag and a throwaway `--user-data-dir`.
 
 GPU time is not measured — there is no portable API for it — and neither are the internals
 of any processor. Compare rows only when their notes agree: a processor that self-tunes at
@@ -106,7 +111,10 @@ make run-frontend-tools         # in one shell
 make run-frontend-tools-nogpu   # in another
 ```
 
-That launches Chrome with `--disable-gpu` against a throwaway profile. The profile is
+That launches Chrome with `--disable-gpu` against a throwaway profile, plus
+`--enable-unsafe-swiftshader`: since Chrome 137, `--disable-gpu` alone leaves the page with no WebGL at
+all, instead of falling back to SwiftShader, so the panel reads _GPU unknown_. It also passes
+`--enable-precise-memory-info`, for Heap peak. The profile is
 mandatory: with the default profile, if Chrome is already running the second launch just
 opens a tab in the existing process and the flag is **silently ignored** — you would get
 an ordinary GPU run that looks like a GPU-less one. The specs panel closes that loop, so
@@ -133,6 +141,7 @@ Nothing else changes: the protocol and the metrics apply to whatever the entry c
 
 ### Tests
 
-`stats.ts` and `sequencing.ts` are pure and unit-tested (`make frontend-tools-test`) — the latter pins the
-init-before-attach ordering and the abort behaviour described above. The collectors and the page
+`stats.ts`, `sequencing.ts` and `options.ts` are pure and unit-tested (`make frontend-tools-test`).
+`sequencing.ts` pins the init-before-attach ordering, and pins that Stop gives up waiting on an `init()`
+that never settles. The collectors and the page
 need a real camera, GPU and compositor, so they are verified by running the page.

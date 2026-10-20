@@ -40,7 +40,12 @@ export function raceAbort<T>(
   signal: AbortSignal | undefined
 ): Promise<T> {
   if (!signal) return promise
-  if (signal.aborted) return Promise.reject(new BenchAbortError())
+  if (signal.aborted) {
+    // Nobody else waits on `promise` now, so its rejection must not surface
+    // as unhandled; the live path below swallows it the same way.
+    promise.catch(() => {})
+    return Promise.reject(new BenchAbortError())
+  }
 
   return new Promise<T>((resolve, reject) => {
     const onAbort = () => reject(new BenchAbortError())

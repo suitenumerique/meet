@@ -172,14 +172,16 @@ async function runSingle(
       attach: () => {
         sourceVideo.srcObject = new MediaStream([sourceClone])
       },
-      play: () => playSilently(sourceVideo),
+      play: () => raceAbort(playSilently(sourceVideo), signal),
     })
 
     const processedTrack = processor.processedTrack
     if (!processedTrack) return failed('Processor produced no processedTrack')
 
     outputVideo.srcObject = new MediaStream([processedTrack])
-    await playSilently(outputVideo)
+    // Not awaited: on a track that never delivers a frame play() never
+    // settles, and the first-frame wait below owns both timeout and abort.
+    void playSilently(outputVideo)
 
     frames.start()
     const firstFrameAt = await raceAbort(
@@ -202,19 +204,38 @@ async function runSingle(
     onProgress({ phase: 'measuring', contenderLabel: label, pass })
     await delay(0, signal)
 
+    // A background tab throttles rAF and pauses requestVideoFrameCallback,
+    // so a pass that was hidden at any point measures the browser, not the
+    // processor.
+    let hiddenDuringMeasure = document.hidden
+    const onVisibilityChange = () => {
+      if (document.hidden) hiddenDuringMeasure = true
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
     raf.start()
     longTasks.start()
     heap.start()
     frames.startRecording()
     const measureStartedAt = performance.now()
 
-    await delay(options.measureMs, signal)
+    try {
+      await delay(options.measureMs, signal)
+    } finally {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
 
     const measuredMs = performance.now() - measureStartedAt
     frames.stopRecording()
     raf.stop()
     longTasks.stop()
     heap.stop()
+
+    if (hiddenDuringMeasure) {
+      return failed(
+        'The tab was hidden during measurement, so this pass is discarded. Keep the bench tab in front.'
+      )
+    }
 
     const frameStats = frames.summarize(measuredMs)
 
@@ -279,14 +300,19 @@ function aggregate(
 ): ContenderResult {
   const good = runs.filter((run) => !run.error)
   const ordered = [...runs].sort((a, b) => a.pass - b.pass)
-  const timed = ordered.filter((run) => run.startupMs !== null)
+  // Averaging zeroes from a browser that never reported long tasks would
+  // read as a processor that never blocks; leave those cells empty instead.
+  const longTaskRuns = good.filter((run) => run.longTasks.supported)
 
   return {
     contenderId: contender.id,
     label: contender.label,
     runs: ordered,
-    coldStartupMs: timed[0]?.startupMs ?? null,
-    warmStartupMs: timed[1]?.startupMs ?? null,
+    // Pass 0 only: a later pass standing in for a failed one is warm.
+    coldStartupMs: ordered[0]?.pass === 0 ? ordered[0].startupMs : null,
+    warmStartupMs: averageOf(
+      ordered.filter((run) => run.pass > 0).map((run) => run.startupMs)
+    ),
     // The worst pass, not the first: a leak shows up in a later one.
     heapPeakBytes: maxOf(runs.map((run) => run.heap.peakBytes)),
     averaged: {
@@ -294,9 +320,13 @@ function aggregate(
       frameP95Ms: averageOf(good.map((run) => run.frameIntervals?.p95Ms)),
       rafP50Ms: averageOf(good.map((run) => run.rafIntervals?.p50Ms)),
       rafP95Ms: averageOf(good.map((run) => run.rafIntervals?.p95Ms)),
-      blockingMs: averageOf(good.map((run) => run.longTasks.blockingMs)),
-      longTaskCount: averageOf(good.map((run) => run.longTasks.count)),
-      longTaskSharePct: averageOf(good.map((run) => run.longTasks.sharePct)),
+      blockingMs: averageOf(
+        longTaskRuns.map((run) => run.longTasks.blockingMs)
+      ),
+      longTaskCount: averageOf(longTaskRuns.map((run) => run.longTasks.count)),
+      longTaskSharePct: averageOf(
+        longTaskRuns.map((run) => run.longTasks.sharePct)
+      ),
     },
     notes: [
       ...new Set(runs.map((run) => run.note).filter((n): n is string => !!n)),
@@ -348,6 +378,7 @@ export async function runBenchmark(
   if (contenders.length === 0)
     throw new Error('Select at least one processor to benchmark')
 
+  const startedAt = new Date().toISOString()
   // Every read below uses the resolved options, never the caller's.
   const resolved = resolveBenchOptions(options)
 
@@ -387,7 +418,7 @@ export async function runBenchmark(
   onProgress({ phase: 'done' })
 
   return {
-    startedAt: new Date().toISOString(),
+    startedAt,
     userAgent: navigator.userAgent,
     specs,
     options: resolved,

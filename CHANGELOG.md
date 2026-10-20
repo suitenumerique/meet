@@ -15,6 +15,7 @@ and this project adheres to
 - 🔧(summary) add setting to control Sentry traces sampling rate
 - ✨(frontend) let signed-out visitors start a meeting
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
+- ✨(frontend-tools) add a benchmark harness for livekit track processors
 
 ### Changed
 
@@ -114,7 +115,6 @@ and this project adheres to
 - 🔊(backend) log request duration in Gunicorn workers
 - 📈(frontend) track missing lobby participant on accept/reject
 - ✨(backend) sort waiting participants by their arrival time
-- ✨(frontend-tools) add a benchmark harness for livekit track processors
 
 ### Changed
 

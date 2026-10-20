@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -17,19 +17,45 @@ const toolsPackage = readPackageJson(
 )
 const frontendPackage = readPackageJson(frontendPath('package.json'))
 
+/** The version actually on disk, or null when the package is not hoisted there. */
+const installedVersion = (nodeModules: string, name: string): string | null => {
+  const path = `${nodeModules}/${name}/package.json`
+  return existsSync(path) ? readPackageJson(path).version : null
+}
+const toolsModules = fileURLToPath(new URL('./node_modules', import.meta.url))
+const frontendModules = frontendPath('node_modules')
+
 // A diagnostic is only meaningful against what production ships: every
-// package both apps declare must be pinned to the same version.
-for (const field of ['dependencies', 'devDependencies'] as const) {
-  for (const [name, version] of Object.entries(toolsPackage[field])) {
-    const shipped =
-      frontendPackage.dependencies[name] ??
-      frontendPackage.devDependencies[name]
-    if (shipped && shipped !== version) {
-      throw new Error(
-        `${name}@${version} is pinned in src/frontend-tools, but ` +
-          `src/frontend ships "${shipped}". Pin the same version in both.`
-      )
-    }
+// package both apps declare, and each runtime one's own dependencies (jose
+// and loglevel arrive through livekit-client), must be installed at the same
+// version. Installed, not declared: a stale node_modules would otherwise pass.
+const shared = Object.keys({
+  ...toolsPackage.dependencies,
+  ...toolsPackage.devDependencies,
+}).filter(
+  (name) =>
+    name in frontendPackage.dependencies ||
+    name in frontendPackage.devDependencies
+)
+// Dev tooling (vite, @types) never reaches the page, so only runtime
+// dependencies are followed one level down.
+const checked = new Set(shared)
+for (const name of shared.filter((n) => n in toolsPackage.dependencies)) {
+  const path = `${toolsModules}/${name}/package.json`
+  if (!existsSync(path)) continue
+  for (const dep of Object.keys(readPackageJson(path).dependencies ?? {}))
+    checked.add(dep)
+}
+
+for (const name of checked) {
+  const tools = installedVersion(toolsModules, name)
+  const shipped = installedVersion(frontendModules, name)
+  if (tools && shipped && tools !== shipped) {
+    throw new Error(
+      `${name}@${tools} is installed in src/frontend-tools, but ` +
+        `src/frontend has ${shipped}. Pin ${shipped} (under "overrides" ` +
+        `when it is transitive), then npm install.`
+    )
   }
 }
 

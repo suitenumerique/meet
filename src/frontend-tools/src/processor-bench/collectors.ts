@@ -1,4 +1,4 @@
-import { computeFps, summarizeIntervals, type SampleSummary } from './stats'
+import { computeFps, summarizeWindow, type SampleSummary } from './stats'
 import type { HeapMetrics, LongTaskMetrics } from './types'
 
 const LONG_TASK_THRESHOLD_MS = 50
@@ -95,11 +95,13 @@ export class FrameRateCollector {
 
   startRecording() {
     this.recording = true
+    this.recordStartedAt = performance.now()
     this.frameCountAtRecordStart = this.decodedFrameCount()
   }
 
   stopRecording() {
     this.recording = false
+    this.recordStoppedAt = performance.now()
     this.frameCountAtRecordStop = this.decodedFrameCount()
   }
 
@@ -112,6 +114,8 @@ export class FrameRateCollector {
     }
   }
 
+  private recordStartedAt = 0
+  private recordStoppedAt = 0
   private frameCountAtRecordStart: number | null = null
   private frameCountAtRecordStop: number | null = null
 
@@ -130,7 +134,11 @@ export class FrameRateCollector {
       return {
         framesDelivered: this.timestamps.length,
         fps: computeFps(this.timestamps.length, measuredMs),
-        frameIntervals: summarizeIntervals(this.timestamps),
+        frameIntervals: summarizeWindow(
+          this.timestamps,
+          this.recordStartedAt,
+          this.recordStoppedAt
+        ),
       }
     }
 
@@ -154,10 +162,13 @@ export class RafCollector {
   private readonly timestamps: number[] = []
   private active = false
   private handle: number | null = null
+  private startedAt = 0
+  private stoppedAt = 0
 
   start() {
     if (this.active) return
     this.active = true
+    this.startedAt = performance.now()
     const tick = (now: number) => {
       if (!this.active) return
       this.timestamps.push(now)
@@ -167,6 +178,7 @@ export class RafCollector {
   }
 
   stop() {
+    if (this.active) this.stoppedAt = performance.now()
     this.active = false
     if (this.handle !== null) {
       cancelAnimationFrame(this.handle)
@@ -175,7 +187,7 @@ export class RafCollector {
   }
 
   summarize(): SampleSummary | null {
-    return summarizeIntervals(this.timestamps)
+    return summarizeWindow(this.timestamps, this.startedAt, this.stoppedAt)
   }
 }
 
