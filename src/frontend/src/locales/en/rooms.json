@@ -3,7 +3,8 @@
     "heading": {
       "normal": "You have left the meeting",
       "duplicateIdentity": "You have joined the meeting from another device",
-      "participantRemoved": "You have been removed from the meeting by a host"
+      "participantRemoved": "You have been removed from the meeting by a host",
+      "roomDeleted": "This meeting has been deleted"
     },
     "home": "Return to home",
     "back": "Rejoin the meeting"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "You cannot join this call",
       "body": "No one responded to your request"
+    },
+    "deleted": {
+      "title": "You cannot join this call",
+      "body": "This meeting has been deleted."
     }
   },
   "leaveRoomPrompt": "This will make you leave the meeting.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Authentication Required",
       "body": "This room has not been created yet. Please authenticate to create it or wait for an authenticated user to do so."
+    },
+    "deletedRoom": {
+      "heading": "Meeting deleted",
+      "body": "This meeting has been deleted and can no longer be joined."
     },
     "screenShare": {
       "title": "Unable to share your screen",
@@ -507,6 +516,22 @@
         "buttonLabel": "Request"
       }
     },
+    "notLoggedIn": {
+      "heading": "Log in to transcribe",
+      "body": "In this meeting, any logged-in participant can start a transcription (beta).",
+      "linkMore": "Open documentation",
+      "linkAriaLabel": "Open documentation about transcription access - opens in new window",
+      "dividerLabel": "OR",
+      "login": {
+        "heading": "Login Required",
+        "body": "Log in, then come back to this panel to start the transcription."
+      },
+      "request": {
+        "heading": "Request Transcription",
+        "body": "The host will be notified and can enable transcription for you.",
+        "buttonLabel": "Request"
+      }
+    },
     "premium": {
       "heading": "Advanced feature",
       "body": "This feature is not available to you. Please contact support for more information.",
@@ -535,7 +560,9 @@
       "destination": "This recording will be temporarily stored on our servers",
       "loading": "Starting recording",
       "linkMore": "Learn more",
-      "transcription": "Transcribe this recording"
+      "transcription": "Transcribe this recording",
+      "quality": "Adjustable video quality.",
+      "qualityEdit": "Change"
     },
     "button": {
       "start": "Start recording the meeting",
@@ -553,6 +580,22 @@
       "login": {
         "heading": "Login Required",
         "body": "Only the meeting creator or an admin can start screen recording. Log in to verify your permissions."
+      },
+      "request": {
+        "heading": "Request Recording",
+        "body": "The host will be notified and can enable recording for you.",
+        "buttonLabel": "Request"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Log in to record",
+      "body": "In this meeting, any logged-in participant can start a recording (beta).",
+      "linkMore": "Open documentation",
+      "linkAriaLabel": "Open documentation about recording access - opens in new window",
+      "dividerLabel": "OR",
+      "login": {
+        "heading": "Login Required",
+        "body": "Log in, then come back to this panel to start the recording."
       },
       "request": {
         "heading": "Request Recording",
@@ -784,6 +827,7 @@
     "actions": {
       "open-shortcuts": "Open shortcuts help",
       "focus-toolbar": "Focus bottom toolbar",
+      "focus-pagination": "Focus participant pagination",
       "toggle-microphone": "Toggle microphone",
       "toggle-camera": "Toggle camera",
       "push-to-talk": "Push-to-talk (hold to unmute)",

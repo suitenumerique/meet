@@ -14,6 +14,7 @@ from typing import List, Optional
 from django.conf import settings
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.hashers import identify_hasher
 from django.contrib.postgres.fields import ArrayField
 from django.core import mail, validators
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -25,7 +26,7 @@ from django.utils.translation import gettext_lazy as _
 from lasuite.tools.email import get_domain_from_email
 from timezone_field import TimeZoneField
 
-from . import fields, utils
+from . import fields, hashers, utils
 from .recording.enums import FileExtension
 from .validators import sub_validator
 
@@ -245,6 +246,9 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
                 name="unique_email_when_sub_is_null",
             )
         ]
+        indexes = [
+            models.Index(models.functions.Upper("email"), name="user_email_upper_idx"),
+        ]
 
     def __str__(self):
         return self.email or self.admin_email or str(self.id)
@@ -406,6 +410,33 @@ class ResourceAccess(BaseModel):
         return super().delete(*args, **kwargs)
 
 
+class RoomQuerySet(models.QuerySet):
+    """QuerySet exposing the room lifecycle filters."""
+
+    def active(self):
+        """Rooms that have not been soft deleted."""
+        return self.filter(deleted_at__isnull=True)
+
+    def deleted(self):
+        """Rooms that have been soft deleted."""
+        return self.filter(deleted_at__isnull=False)
+
+
+class RoomManager(models.Manager.from_queryset(RoomQuerySet)):
+    """Manager hiding soft-deleted rooms, exposed as ``Room.objects``.
+
+    It is deliberately not the model's default manager: Django relies on
+    ``_default_manager`` for unique validation, which must see deleted rooms as
+    they still guard their slug and pin code. Other object relations (e.g.
+    ``recording.room``) go through the base manager and still resolve deleted
+    rooms, which keeps recordings and their notifications working.
+    """
+
+    def get_queryset(self):
+        """Exclude soft-deleted rooms."""
+        return super().get_queryset().active()
+
+
 class Room(Resource):
     """Model for one room"""
 
@@ -429,6 +460,7 @@ class Room(Resource):
         verbose_name=_("Visio room configuration"),
         help_text=_("Values for Visio parameters to configure the room."),
     )
+    deleted_at = models.DateTimeField(null=True, blank=True)
     pin_code = models.CharField(
         max_length=None,
         unique=True,
@@ -445,8 +477,13 @@ class Room(Resource):
         editable=False,
     )
 
+    # Managers
+    objects = RoomManager()
+    all_objects = models.Manager.from_queryset(RoomQuerySet)()
+
     class Meta:
         db_table = "meet_room"
+        default_manager_name = "all_objects"
         ordering = ("name",)
         verbose_name = _("Room")
         verbose_name_plural = _("Rooms")
@@ -468,6 +505,28 @@ class Room(Resource):
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )
         super().save(*args, **kwargs)
+
+    @property
+    def is_deleted(self):
+        """Whether the room has been soft deleted."""
+        return self.deleted_at is not None
+
+    def soft_delete(self):
+        """Soft delete the room.
+
+        The room is hidden from the default manager making it impossible to
+        list, join or update.
+        """
+        deleted_at = timezone.now()
+
+        updated = Room.all_objects.filter(pk=self.pk, deleted_at__isnull=True).update(
+            deleted_at=deleted_at
+        )
+
+        if not updated:
+            raise RuntimeError("This room is already deleted.")
+
+        self.deleted_at = deleted_at
 
     def clean_fields(self, exclude=None):
         """
@@ -504,7 +563,7 @@ class Room(Resource):
 
         for _ in range(settings.ROOM_TELEPHONY_PIN_MAX_RETRIES):
             pin_code = str(secrets.randbelow(max_value)).zfill(length)
-            if not Room.objects.filter(pin_code=pin_code).exists():
+            if not Room.all_objects.filter(pin_code=pin_code).exists():
                 return pin_code
 
         # Log a warning as a temporary measure until backend observability is implemented.
@@ -684,10 +743,37 @@ class Recording(BaseModel):
         return {
             "destroy": is_owner_or_admin and is_final_status,
             "partial_update": False,
-            "retrieve": is_owner_or_admin,
+            "retrieve": bool(roles),
             "stop": is_owner_or_admin and not is_final_status,
             "update": False,
         }
+
+    def grant_initial_accesses(self, starter):
+        """Grant the starter and the room's owners/administrators access to the recording.
+
+        The starter's access is created first, so it is the oldest one: the
+        transcript summary, which goes to a single user, is sent to them.
+
+        Room roles are copied when the recording starts: later changes to the
+        room's accesses do not affect existing recordings.
+        """
+        room_privileged_user_ids = set(
+            self.room.accesses.filter(
+                role__in=[RoleChoices.OWNER, RoleChoices.ADMIN]
+            ).values_list("user_id", flat=True)
+        )
+        starter_is_privileged = starter.id in room_privileged_user_ids
+        room_privileged_user_ids.discard(starter.id)
+
+        RecordingAccess.objects.create(
+            user=starter,
+            role=RoleChoices.OWNER if starter_is_privileged else RoleChoices.MEMBER,
+            recording=self,
+        )
+        RecordingAccess.objects.bulk_create(
+            RecordingAccess(user_id=user_id, role=RoleChoices.OWNER, recording=self)
+            for user_id in room_privileged_user_ids
+        )
 
     def is_savable(self) -> bool:
         """Determine if the recording can be saved based on its current status."""
@@ -701,6 +787,22 @@ class Recording(BaseModel):
     def is_saved(self) -> bool:
         """Check if the recording is in a saved state."""
         return self.status in RecordingStatusChoices.saved_statuses()
+
+    @property
+    def requested_mode(self) -> str:
+        """Return the mode the user asked for.
+
+        A transcript started with a screen capture is stored as a screen
+        recording, which keeps the transcript as its original mode.
+        """
+        return (self.options or {}).get("original_mode") or self.mode
+
+    @property
+    def is_transcribed(self) -> bool:
+        """Tell whether the recording is sent to the summary service."""
+        return self.mode == RecordingModeChoices.TRANSCRIPT or bool(
+            (self.options or {}).get("transcribe", False)
+        )
 
     @property
     def extension(self):
@@ -799,6 +901,7 @@ class ApplicationScope(models.TextChoices):
     ROOMS_RETRIEVE = "rooms:retrieve", _("Retrieve room details")
     ROOMS_UPDATE = "rooms:update", _("Update rooms")
     ROOMS_DELETE = "rooms:delete", _("Delete rooms")
+    USERS_SESSION = "users:session", _("Create user session tokens")
 
 
 class Application(BaseModel):
@@ -824,6 +927,9 @@ class Application(BaseModel):
         default=utils.generate_client_secret,
         help_text=_("Hashed on Save. Copy it now if this is a new secret."),
     )
+    client_secret_sha256 = models.CharField(
+        max_length=255, null=True, blank=True, editable=False
+    )
     scopes = ArrayField(
         models.CharField(max_length=50, choices=ApplicationScope.choices),
         default=list,
@@ -839,14 +945,84 @@ class Application(BaseModel):
     def __str__(self):
         return f"{self.name!s}"
 
+    def save(self, *args, **kwargs):
+        """Populate the fast hash on creation when the raw secret is available."""
+        if self._state.adding:
+            # Prevent hashing an existing hash instead of the original secret
+            try:
+                if not hashers.CLIENT_SECRET_HASH_PATTERN.fullmatch(self.client_secret):
+                    identify_hasher(self.client_secret)
+            except ValueError:
+                # SecretField.pre_save hashes the legacy field after this method
+                self.client_secret_sha256 = hashers.hash_client_secret(
+                    self.client_secret
+                )
+
+        return super().save(*args, **kwargs)
+
+    def rotate_client_secret(self):
+        """Persist a new generated secret and return its raw value to the caller.
+
+        This is the only supported rotation path while both credential fields coexist.
+        Direct writes may leave a stale fast hash that still accepts the revoked secret,
+        while saving a stale instance may restore previous credentials.
+
+        This transitional risk is accepted until the legacy field is removed
+        and rotation writes only the fast hash.
+        """
+        secret = utils.generate_client_secret()
+        self.client_secret = secret
+        self.client_secret_sha256 = hashers.hash_client_secret(secret)
+        self.save(update_fields=["client_secret", "client_secret_sha256"])
+        return secret
+
+    def check_client_secret(self, raw_secret):
+        """Verify the secret and lazily populate its fast hash for future logins."""
+        if self.client_secret_sha256 is not None:
+            return hashers.verify_client_secret(raw_secret, self.client_secret_sha256)
+
+        original_hash = self.client_secret
+        if not hashers.verify_client_secret(raw_secret, original_hash):
+            return False
+
+        encoded = hashers.hash_client_secret(raw_secret)
+        updated = Application.objects.filter(
+            pk=self.pk, client_secret=original_hash, client_secret_sha256__isnull=True
+        ).update(client_secret_sha256=encoded)
+
+        if updated:
+            self.client_secret_sha256 = encoded
+            return True
+
+        try:
+            self.refresh_from_db()
+        except Application.DoesNotExist:
+            return False
+
+        current_hash = self.client_secret_sha256 or self.client_secret
+        return hashers.verify_client_secret(raw_secret, current_hash)
+
     def can_delegate_email(self, email):
         """Check if this application can delegate the given email."""
 
-        if not self.allowed_domains.exists():
+        allowed_domains = {d.domain for d in self.allowed_domains.all()}
+        if not allowed_domains:
             return True  # No domain restrictions
 
         domain = get_domain_from_email(email)
-        return self.allowed_domains.filter(domain__iexact=domain).exists()
+        return bool(domain) and domain.lower() in allowed_domains
+
+    @classmethod
+    def has_active_scope(cls, client_id, scope) -> bool:
+        """Check that an active application holds a scope."""
+        if not client_id or not scope:
+            return False
+
+        return cls.objects.filter(
+            client_id=client_id,
+            is_active=True,
+            scopes__contains=[scope],
+        ).exists()
 
 
 class ApplicationDomain(BaseModel):

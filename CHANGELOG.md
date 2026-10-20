@@ -10,11 +10,62 @@ and this project adheres to
 
 ### Added
 
+- ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
+- ✨(backend) add room soft-deletion to the external API
+- ✨(all) allow any authenticated user to start a recording
+- ✨(backend) authenticate external API calls with Menshen exchanged tokens
+- ✨(backend) audit Menshen calls and users created from introspected tokens
+
+### Fixed
+
+- 🔒️(frontend) upgrade libx11 to fix CVE-2026-88806
+- 🔒️(backend) throttle the start recording endpoint
+
+## [1.35.0] - 2026-10-13
+
+### Added
+
+- ✨(frontend) let users pick the recording encoding
+- ✨(backend) introduce a token exchange endpoint for iframe embeds
+- ⚡️(backend) send recording notification emails from a Celery task
+- ✨(backend) allow static feature flags without an analytics backend #1809
+
+### Changed
+
+- ⚡️(backend) hash application secrets with SHA-256
+- ⚡️(backend) reduce domain queries on the application token endpoint
+- ♻️️️(backend) use a dedicated auth scheme for LiveKit token auth
+- ♻️(all) stop relying on cookies for the lobby flow
+- ♿️(frontend) show a visible focus outline on menu items #1797
+- ⬆️(backend) upgrade pylint to 4.1.3
+
+### Fixed
+
+- 🔒️(backend) prevent editing client id and secret in Django admin
+- 🔒️(frontend) upgrade tiff to fix CVE-2026-4775
+- 🔒️(backend) bind accepted lobby entries to the current username
+- 🔒️(backend) sign lobby participant id
+- 🐛(frontend) omit the default speaker id sent to LiveKit
+- 🐛(frontend) play the speaker test when no output is picked
+- 🐛(frontend) keep the admin panel in place when changing a setting #1804
+
+## [1.34.0] - 2026-10-07
+
+### Added
+
+- ✨(helm) import environment variables from Secrets and ConfigMaps
 - 🔒(backend) throttle meeting link generation
 - 🔒️(backend) add a daily cap on room creation
 - 🔧(summary) add setting to control Sentry traces sampling rate
 - ✨(frontend) let signed-out visitors start a meeting
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
+- ✅(frontend) add vitest so the frontend can carry unit tests
+- ♿️(frontend) make participant pagination readable and keyboard reachable #1775
+- ✨(backend) add structured audit logging facility
+- ✨(backend) audit external API token and room operations
+- 🔒️(backend) audit writes and bulk actions made in the Django admin
+- ✨(backend) audit recordings, transcripts and summaries
+- ✨(backend) audit transit code issuance and exchange
 - ✨(frontend-tools) add a benchmark harness for livekit track processors
 
 ### Changed
@@ -32,6 +83,9 @@ and this project adheres to
 - 🐛(summary) disable default S3 checksums for GCS-compatible storage
 - 🔒️(summary) redact meeting content from Sentry events
 - 🐛(frontend) hide tooltips until they have a computed placement
+- 🐛(brevo) use django-lasuite for marketing management
+- ♿️(frontend) expose loading state to assistive technology
+- 🐛(frontend) honour Keep hand raised when picture-in-picture is open
 
 ## [1.33.0] - 2026-09-30
 
@@ -162,6 +216,7 @@ and this project adheres to
 ### Added
 
 - ✨(any) let any authenticated user manage the lobby on trusted rooms
+
 ### Changed
 
 - 📱(frontend) collapse mobile control bar items on narrow viewports

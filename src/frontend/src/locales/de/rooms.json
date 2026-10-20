@@ -3,7 +3,8 @@
     "heading": {
       "normal": "Du hast das Meeting verlassen",
       "duplicateIdentity": "Du bist dem Meeting von einem anderen Gerät aus beigetreten",
-      "participantRemoved": "Du wurdest vom Host aus dem Meeting entfernt"
+      "participantRemoved": "Du wurdest vom Host aus dem Meeting entfernt",
+      "roomDeleted": "Dieses Meeting wurde gelöscht"
     },
     "home": "Zur Startseite zurückkehren",
     "back": "Dem Meeting erneut beitreten"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "Du kannst diesem Meeting nicht beitreten",
       "body": "Niemand hat auf deine Anfrage reagiert"
+    },
+    "deleted": {
+      "title": "Du kannst diesem Meeting nicht beitreten",
+      "body": "Dieses Meeting wurde gelöscht."
     }
   },
   "leaveRoomPrompt": "Hiermit verlässt du das Meeting.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Authentifizierung erforderlich",
       "body": "Dieser Raum wurde noch nicht erstellt. Bitte authentifiziere dich, um ihn zu erstellen, oder warte, bis eine authentifizierte Person dies tut."
+    },
+    "deletedRoom": {
+      "heading": "Meeting gelöscht",
+      "body": "Dieses Meeting wurde gelöscht und kann nicht mehr betreten werden."
     },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",
@@ -507,6 +516,22 @@
         "buttonLabel": "Anfragen"
       }
     },
+    "notLoggedIn": {
+      "heading": "Zum Transkribieren anmelden",
+      "body": "In diesem Meeting kann jede angemeldete Person eine Transkription (Beta) starten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Transkriptionszugang öffnen – öffnet in neuem Tab",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Melden Sie sich an und kehren Sie dann zu diesem Bereich zurück, um die Transkription zu starten."
+      },
+      "request": {
+        "heading": "Transkription anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Transkription starten.",
+        "buttonLabel": "Anfragen"
+      }
+    },
     "premium": {
       "heading": "Advanced-Funktion",
       "body": "Diese Funktion ist für Sie nicht verfügbar. Bitte wenden Sie sich an den Support, um weitere Informationen zu erhalten.",
@@ -535,7 +560,9 @@
       "destination": "Diese Aufzeichnung wird vorübergehend auf unseren Servern gespeichert",
       "loading": "Aufzeichnung wird gestartet",
       "linkMore": "Mehr erfahren",
-      "transcription": "Diese Aufzeichnung transkribieren"
+      "transcription": "Diese Aufzeichnung transkribieren",
+      "quality": "Videoqualität anpassbar.",
+      "qualityEdit": "Ändern"
     },
     "button": {
       "start": "Meeting-Aufzeichnung starten",
@@ -553,6 +580,22 @@
       "login": {
         "heading": "Anmeldung erforderlich",
         "body": "Nur die*der Ersteller:in bzw. Admin kann die Aufzeichnung starten. Melde dich an, um deine Berechtigungen zu überprüfen."
+      },
+      "request": {
+        "heading": "Aufnahme anfragen",
+        "body": "Die Moderation wird benachrichtigt und kann die Aufnahme starten.",
+        "buttonLabel": "Anfrage senden"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Zum Aufnehmen anmelden",
+      "body": "In diesem Meeting kann jede angemeldete Person eine Videoaufnahme (Beta) starten.",
+      "linkMore": "Dokumentation öffnen",
+      "linkAriaLabel": "Dokumentation zum Aufzeichnungszugang öffnen – öffnet in neuem Tab",
+      "dividerLabel": "ODER",
+      "login": {
+        "heading": "Anmeldung erforderlich",
+        "body": "Melden Sie sich an und kehren Sie dann zu diesem Bereich zurück, um die Aufnahme zu starten."
       },
       "request": {
         "heading": "Aufnahme anfragen",
@@ -784,6 +827,7 @@
     "actions": {
       "open-shortcuts": "Tastenkürzel-Hilfe öffnen",
       "focus-toolbar": "Fokus auf die untere Symbolleiste",
+      "focus-pagination": "Fokus auf die Teilnehmerseiten",
       "toggle-microphone": "Mikrofon umschalten",
       "toggle-camera": "Kamera umschalten",
       "push-to-talk": "Push-to-talk",

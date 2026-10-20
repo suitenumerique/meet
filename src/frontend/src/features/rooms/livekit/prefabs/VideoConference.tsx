@@ -31,6 +31,7 @@ import { PinAnnouncer } from '@/features/layout/components/PinAnnouncer'
 import { ChatProvider } from '@/features/chat/components/ChatProvider'
 import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncDevicePreferences'
 import { RoomSilentMicDetector } from '@/features/rooms/components/SilentMicDetector'
+import { LowerHandOnSpeaking } from '@/features/rooms/livekit/components/LowerHandOnSpeaking'
 import { LobbyProvider } from '@/features/rooms/components/LobbyProvider'
 
 /**
@@ -119,6 +120,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
       <ConnectionObserver />
       <SyncDevicePreferences />
       <RoomSilentMicDetector />
+      <LowerHandOnSpeaking />
       <MediaStateObserver />
       <ChatProvider />
       <LobbyProvider />

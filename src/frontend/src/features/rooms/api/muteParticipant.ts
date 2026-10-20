@@ -10,6 +10,7 @@ import { useIsAdminOrOwner } from '../livekit/hooks/useIsAdminOrOwner'
 
 import { useCallback } from 'react'
 import { reportError } from '@/features/analytics/telemetry'
+import { getLiveKitAuthHeaders } from '../utils/getLiveKitAuthHeaders'
 
 export const useMuteParticipant = () => {
   const apiRoomData = useRoomData()
@@ -40,7 +41,7 @@ export const useMuteParticipant = () => {
       }
 
       const headers = !isAdminOrOwner
-        ? { Authorization: `Bearer ${apiRoomData.livekit.token}` }
+        ? getLiveKitAuthHeaders(apiRoomData.livekit.token)
         : undefined
 
       let response

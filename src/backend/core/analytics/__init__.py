@@ -39,7 +39,7 @@ def get_analytics() -> AnalyticsBackend:
     options = getattr(settings, "ANALYTICS_BACKEND_SETTINGS", {}) or {}
 
     if not dotted_path:
-        return NoOpAnalytics()
+        return NoOpAnalytics(**options)
 
     backend_class = import_string(dotted_path)
     return backend_class(**options)

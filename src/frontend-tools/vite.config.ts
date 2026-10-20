@@ -23,12 +23,17 @@ const installedVersion = (nodeModules: string, name: string): string | null => {
   return existsSync(path) ? readPackageJson(path).version : null
 }
 const toolsModules = fileURLToPath(new URL('./node_modules', import.meta.url))
-const frontendModules = frontendPath('node_modules')
+// What production ships is its lockfile, which is always checked in; its
+// node_modules may not be installed (the tools CI job never installs it).
+const shippedPackages: Record<string, { version: string }> = readPackageJson(
+  frontendPath('package-lock.json')
+).packages
 
 // A diagnostic is only meaningful against what production ships: every
 // package both apps declare, and each runtime one's own dependencies (jose
-// and loglevel arrive through livekit-client), must be installed at the same
-// version. Installed, not declared: a stale node_modules would otherwise pass.
+// and loglevel arrive through livekit-client), must be installed here at the
+// version production locks. Installed, not declared: a stale node_modules
+// would otherwise pass.
 const shared = Object.keys({
   ...toolsPackage.dependencies,
   ...toolsPackage.devDependencies,
@@ -49,11 +54,11 @@ for (const name of shared.filter((n) => n in toolsPackage.dependencies)) {
 
 for (const name of checked) {
   const tools = installedVersion(toolsModules, name)
-  const shipped = installedVersion(frontendModules, name)
+  const shipped = shippedPackages[`node_modules/${name}`]?.version
   if (tools && shipped && tools !== shipped) {
     throw new Error(
       `${name}@${tools} is installed in src/frontend-tools, but ` +
-        `src/frontend has ${shipped}. Pin ${shipped} (under "overrides" ` +
+        `src/frontend locks ${shipped}. Pin ${shipped} (under "overrides" ` +
         `when it is transitive), then npm install.`
     )
   }

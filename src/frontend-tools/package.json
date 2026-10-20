@@ -26,7 +26,7 @@
     "typescript": "6.0.3",
     "vite": "8.0.14",
     "vite-plugin-static-copy": "4.1.1",
-    "vitest": "3.2.7"
+    "vitest": "5.0.2"
   },
   "overrides": {
     "jose": "6.1.3",

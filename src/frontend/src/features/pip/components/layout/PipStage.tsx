@@ -4,7 +4,7 @@ import { RoomEvent, Track } from 'livekit-client'
 import { styled } from '@/styled-system/jsx'
 import { PipFocusLayout } from './PipFocusLayout'
 import { PipGridLayout } from './PipGridLayout'
-import { PipPagination } from './PipPagination'
+import { PaginationControl } from '@/features/layout/components/PaginationControl'
 import { PipScreenShareLayout } from './PipScreenShareLayout'
 import { StageFrame } from './StageFrame'
 import { MAX_PIP_TILES } from '../../utils/pipGrid'
@@ -120,12 +120,7 @@ const PaginatedStage = ({
 }) => (
   <StageWrapper>
     <StageFrame>{children}</StageFrame>
-    <PipPagination
-      totalPageCount={pagination.totalPageCount}
-      currentPage={pagination.currentPage}
-      nextPage={pagination.nextPage}
-      prevPage={pagination.prevPage}
-    />
+    <PaginationControl {...pagination} placement="inline" />
   </StageWrapper>
 )
 

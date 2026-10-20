@@ -7,6 +7,7 @@ from typing import Literal
 from urllib.parse import quote
 
 from django.conf import settings
+from django.core import signing
 from django.core.exceptions import SuspiciousOperation
 
 # pylint: disable=abstract-method,no-name-in-module
@@ -25,6 +26,7 @@ from rest_framework.exceptions import PermissionDenied
 from timezone_field.rest_framework import TimeZoneSerializerField
 
 from core import models, utils
+from core.api.exceptions import ensure_room_not_deleted
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +115,7 @@ class ResourceAccessSerializerMixin:
                 _("You must be administrator or owner of a room to add accesses to it.")
             )
 
+        ensure_room_not_deleted(resource)
         return resource
 
 
@@ -356,6 +359,26 @@ class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
     username = serializers.CharField(required=True)
+    participant_id = serializers.CharField(
+        required=False, allow_null=True, max_length=128
+    )
+
+    @staticmethod
+    def sign_participant_id(participant_id):
+        """Sign with Django's SECRET_KEY and a lobby-specific namespace."""
+        return signing.Signer(salt="core.lobby.participant").sign(participant_id)
+
+    def validate_participant_id(self, value):
+        """Require a valid server signature before looking up a participant."""
+        if value is None:
+            return None
+        try:
+            participant_id = signing.Signer(salt="core.lobby.participant").unsign(value)
+        except signing.BadSignature as exc:
+            raise serializers.ValidationError(
+                "Invalid participant credential."
+            ) from exc
+        return serializers.UUIDField().run_validation(participant_id)
 
 
 class ParticipantEntrySerializer(BaseValidationOnlySerializer):
@@ -663,3 +686,20 @@ class ExternalProcessEventSerializer(BaseValidationOnlySerializer):
     # useless bad requests
     type = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     status = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+
+class TransitCodeSerializer(BaseValidationOnlySerializer):
+    """Validate the single-use transit code sent to the exchange endpoint."""
+
+    code = serializers.CharField(trim_whitespace=True)
+
+    def validate_code(self, value):
+        """Reject codes whose length cannot match a generated one."""
+
+        # Calculates urlsafe_b64encode length without padding
+        expected_length = (4 * settings.TRANSIT_CODE_NBYTES + 2) // 3
+
+        if len(value) != expected_length:
+            raise serializers.ValidationError("Invalid transit code format.")
+
+        return value

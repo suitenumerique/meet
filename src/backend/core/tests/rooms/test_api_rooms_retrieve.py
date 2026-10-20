@@ -7,13 +7,18 @@ from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.test.utils import override_settings
-from django.utils import timezone
+from django.utils import timezone as dj_timezone
 
 import pytest
 from rest_framework.test import APIClient
 
-from ...factories import RoomFactory, UserFactory, UserResourceAccessFactory
+from ...factories import (
+    RoomFactory,
+    UserFactory,
+    UserResourceAccessFactory,
+)
 from ...models import RoleChoices, RoomAccessLevel
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -186,6 +191,28 @@ def test_api_rooms_retrieve_anonymous_unregistered_not_allowed():
 
     assert response.status_code == 404
     assert response.json() == {"detail": "No Room matches the given query."}
+
+
+@pytest.mark.parametrize("allow_unregistered_rooms", [True, False])
+@pytest.mark.parametrize("lookup", ["id", "slug"])
+@mock.patch("core.utils.generate_token", return_value="foo")
+def test_api_rooms_retrieve_soft_deleted(
+    mock_token, lookup, allow_unregistered_rooms, settings
+):
+    """
+    Retrieving a soft-deleted room should return a 410, and never fall back
+    to an unregistered room with the same slug.
+    """
+    settings.ALLOW_UNREGISTERED_ROOMS = allow_unregistered_rooms
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    room.soft_delete()
+
+    client = APIClient()
+    response = client.get(f"/api/v1.0/rooms/{getattr(room, lookup)!s}/")
+
+    assert response.status_code == 410
+    assert response.json() == {"detail": "This room has been deleted."}
+    mock_token.assert_not_called()
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
@@ -514,7 +541,7 @@ def test_api_rooms_retrieve_administrators(
 @pytest.mark.parametrize("role", [None, *RoleChoices])
 def test_api_rooms_retrieve_last_started_at_not_exposed(role, access_level):
     """Should not expose when the room was last started, whoever the requester is."""
-    room = RoomFactory(access_level=access_level, last_started_at=timezone.now())
+    room = RoomFactory(access_level=access_level, last_started_at=dj_timezone.now())
     client = APIClient()
     user = UserFactory()
     if role is not None:
@@ -525,3 +552,18 @@ def test_api_rooms_retrieve_last_started_at_not_exposed(role, access_level):
 
     assert response.status_code == 200
     assert "last_started_at" not in response.json()
+
+
+def test_api_rooms_retrieve_authenticated_with_user_access_token():
+    """A user access token should retrieve a room exactly like a session would."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert response.data["id"] == str(room.id)
+    assert response.data["pin_code"] == room.pin_code
+    assert "accesses" in response.data

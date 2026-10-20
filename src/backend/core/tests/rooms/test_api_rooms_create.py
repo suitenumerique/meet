@@ -15,6 +15,7 @@ from ...api.throttling import (
 )
 from ...factories import RoomFactory, UserFactory
 from ...models import Room, RoomAccessLevel
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -114,6 +115,29 @@ def test_api_rooms_create_authenticated_existing_slug():
 
     assert response.status_code == 400
     assert response.json() == {"slug": ["Room with this Slug already exists."]}
+
+
+def test_api_rooms_create_authenticated_slug_held_by_soft_deleted_room():
+    """
+    A deleted room keeps its slug: creating a room with the same name should
+    fail validation rather than hit the database constraint.
+    """
+    RoomFactory(name="my room").soft_delete()
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {
+            "name": "My Room!",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"slug": ["Room with this Slug already exists."]}
+    assert Room.all_objects.count() == 1
 
 
 def test_api_rooms_create_authenticated_user_default_access_level():
@@ -458,3 +482,16 @@ def test_api_rooms_create_daily_throttle_does_not_limit_other_actions(
     assert client.get("/api/v1.0/rooms/").status_code == 200
     response = client.patch(f"/api/v1.0/rooms/{room_id}/", {"name": "Renamed"})
     assert response.status_code == 200
+
+
+def test_api_rooms_create_authenticated_with_user_access_token():
+    """A user access token should create a room exactly like a session would."""
+    user = UserFactory()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+    response = client.post("/api/v1.0/rooms/", {"name": "my room"})
+
+    assert response.status_code == 201
+    room = Room.objects.get()
+    assert room.accesses.filter(role="owner", user=user).exists()

@@ -2,9 +2,12 @@
 
 # pylint: disable=no-name-in-module
 
+import contextlib
 import json
 from logging import getLogger
 from typing import Dict, Optional
+
+from django.conf import settings
 
 from asgiref.sync import async_to_sync
 from livekit.api import (
@@ -15,6 +18,9 @@ from livekit.api import (
 )
 
 from core import utils
+from core.models import Room
+
+from .sip_management import SIPException, SIPManagement
 
 logger = getLogger(__name__)
 
@@ -114,6 +120,54 @@ class RoomManagement:
             raise RoomManagementException("Could not delete room") from e
         finally:
             await lkapi.aclose()
+
+    @classmethod
+    def soft_delete(cls, room: Room):
+        """Soft delete a room, remove its SIP routing and close its LiveKit room."""
+
+        room.soft_delete()
+        rule_deleted = False
+
+        try:
+            rule_deleted = cls._delete_dispatch_rule(room)
+
+            with contextlib.suppress(RoomNotFoundException):
+                cls.delete_room(str(room.id))
+        except Exception:
+            Room.all_objects.filter(pk=room.pk, deleted_at=room.deleted_at).update(
+                deleted_at=None
+            )
+            room.deleted_at = None
+            if rule_deleted:
+                cls._restore_dispatch_rule(room)
+            raise
+
+    @staticmethod
+    def _delete_dispatch_rule(room: Room):
+        """Delete a room's SIP dispatch rule, so its PIN no longer routes calls.
+
+        This cannot be left to the room_finished webhook: a roomkit join creates
+        the rule before any LiveKit room exists, so no room may ever finish.
+
+        Returns whether a rule was deleted
+        """
+
+        if not (settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED):
+            return False
+
+        try:
+            return SIPManagement().delete_dispatch_rule(room.id)
+        except SIPException as e:
+            raise RoomManagementException("Could not delete dispatch rule") from e
+
+    @staticmethod
+    def _restore_dispatch_rule(room: Room):
+        """Recreate a room's SIP dispatch rule after a failed soft delete."""
+
+        try:
+            SIPManagement().ensure_dispatch_rule(room)
+        except Exception:  # pylint: disable=broad-exception-caught
+            logger.exception("Could not restore dispatch rule for room %s", room.id)
 
     @classmethod
     def sync_room_metadata(cls, room):

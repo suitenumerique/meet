@@ -2,6 +2,8 @@
 Test resource accesses API endpoints in the Meet core app.
 """
 
+# pylint: disable=too-many-lines
+
 import random
 from unittest import mock
 from uuid import uuid4
@@ -956,3 +958,99 @@ def test_api_room_user_access_delete_owners_last_owner():
 
     assert response.status_code == 403
     assert ResourceAccess.objects.count() == 1
+
+
+# Soft-deleted rooms
+
+
+def test_api_room_user_accesses_create_soft_deleted_room():
+    """
+    Owners of a soft-deleted room should not be allowed to add accesses to it.
+    """
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    room.soft_delete()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/resource-accesses/",
+        {
+            "user": str(UserFactory().id),
+            "resource": str(room.id),
+            "role": "member",
+        },
+    )
+
+    assert response.status_code == 410
+    assert response.json() == {"detail": "This room has been deleted."}
+    assert ResourceAccess.objects.count() == 1
+
+
+def test_api_room_user_accesses_create_soft_deleted_room_not_administrator():
+    """
+    Users without privileges on a soft-deleted room should get a 403,
+    not revealing that the room has been deleted.
+    """
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "member")])
+    room.soft_delete()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/resource-accesses/",
+        {
+            "user": str(UserFactory().id),
+            "resource": str(room.id),
+            "role": "member",
+        },
+    )
+
+    assert response.status_code == 403
+    assert ResourceAccess.objects.count() == 1
+
+
+def test_api_room_user_accesses_update_soft_deleted_room():
+    """
+    Owners of a soft-deleted room should not be allowed to update its accesses.
+    """
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    access = UserResourceAccessFactory(resource=room, role="member")
+    room.soft_delete()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/resource-accesses/{access.id!s}/",
+        {"role": "administrator"},
+        format="json",
+    )
+
+    assert response.status_code == 410
+    access.refresh_from_db()
+    assert access.role == "member"
+
+
+def test_api_room_user_access_delete_soft_deleted_room():
+    """
+    Owners of a soft-deleted room should not be allowed to remove its accesses.
+    """
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+    access = UserResourceAccessFactory(resource=room, role="member")
+    room.soft_delete()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.delete(
+        f"/api/v1.0/resource-accesses/{access.id!s}/",
+    )
+
+    assert response.status_code == 410
+    assert ResourceAccess.objects.filter(id=access.id).exists() is True

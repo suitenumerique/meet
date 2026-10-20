@@ -3,7 +3,8 @@
     "heading": {
       "normal": "Je hebt de vergadering verlaten",
       "duplicateIdentity": "U heeft de vergadering via een ander apparaat geopend",
-      "participantRemoved": "U bent door een beheerder uit het gesprek verwijderd"
+      "participantRemoved": "U bent door een beheerder uit het gesprek verwijderd",
+      "roomDeleted": "Deze vergadering is verwijderd"
     },
     "home": "Keer terug naar het hoofdscherm",
     "back": "Sluit weer bij de vergadering aan"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "U kunt niet deelnemen aan dit gesprek",
       "body": "Niemand heeft gereageerd op uw verzoek om deel te nemen aan het gesprek"
+    },
+    "deleted": {
+      "title": "U kunt niet deelnemen aan dit gesprek",
+      "body": "Deze vergadering is verwijderd."
     }
   },
   "leaveRoomPrompt": "Dat zal u de vergadering doen verlaten.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Verificatie vereist",
       "body": "Deze ruimte is nog niet gemaakt. Logt u alstublieft in om hem aan te maken, of wacht tot een ingelogde gebruiker dat doet."
+    },
+    "deletedRoom": {
+      "heading": "Vergadering verwijderd",
+      "body": "Deze vergadering is verwijderd en u kunt er niet meer aan deelnemen."
     },
     "screenShare": {
       "title": "Kan uw scherm niet delen",
@@ -507,6 +516,22 @@
         "buttonLabel": "Aanvragen"
       }
     },
+    "notLoggedIn": {
+      "heading": "Log in om te transcriberen",
+      "body": "In deze vergadering kan elke ingelogde deelnemer een transcriptie starten (beta).",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over transcriptietoegang openen - opent in nieuw venster",
+      "dividerLabel": "OF",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Log in en kom daarna terug naar dit paneel om de transcriptie te starten."
+      },
+      "request": {
+        "heading": "Transcriptie aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de transcriptie voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
+      }
+    },
     "premium": {
       "heading": "Geavanceerde functie",
       "body": "Deze functie is niet voor u beschikbaar. Neem contact op met de ondersteuning voor meer informatie.",
@@ -535,7 +560,9 @@
       "destination": "Deze opname wordt tijdelijk op onze servers bewaard",
       "loading": "Opname wordt gestart",
       "linkMore": "Meer informatie",
-      "transcription": "Transcribeer deze opname"
+      "transcription": "Transcribeer deze opname",
+      "quality": "Videokwaliteit aanpasbaar.",
+      "qualityEdit": "Wijzigen"
     },
     "button": {
       "start": "Start met opnemen van de vergadering",
@@ -553,6 +580,22 @@
       "login": {
         "heading": "Inloggen vereist",
         "body": "Alleen de maker van de vergadering of een beheerder kan de opname starten. Log in om uw machtigingen te controleren."
+      },
+      "request": {
+        "heading": "Opname aanvragen",
+        "body": "De host wordt op de hoogte gebracht en kan de opname voor u inschakelen.",
+        "buttonLabel": "Aanvragen"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Log in om op te nemen",
+      "body": "In deze vergadering kan elke ingelogde deelnemer een opname starten (beta).",
+      "linkMore": "Documentatie openen",
+      "linkAriaLabel": "Documentatie over opnametoegang openen - opent in nieuw venster",
+      "dividerLabel": "OF",
+      "login": {
+        "heading": "Inloggen vereist",
+        "body": "Log in en kom daarna terug naar dit paneel om de opname te starten."
       },
       "request": {
         "heading": "Opname aanvragen",
@@ -784,6 +827,7 @@
     "actions": {
       "open-shortcuts": "Sneltoetsenhulp openen",
       "focus-toolbar": "Focus op de onderste werkbalk",
+      "focus-pagination": "Focus op de paginering van deelnemers",
       "toggle-microphone": "Microfoon aan/uit",
       "toggle-camera": "Camera aan/uit",
       "push-to-talk": "Push-to-talk (ingedrukt houden om te activeren)",

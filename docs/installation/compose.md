@@ -113,11 +113,32 @@ DJANGO_EMAIL_FROM=<your email address>
 
 #DJANGO_EMAIL_USE_TLS=true # A flag to enable or disable TLS for email sending.
 #DJANGO_EMAIL_USE_SSL=true # A flag to enable or disable SSL for email sending.
+#DJANGO_EMAIL_TIMEOUT=30 # Seconds before a stalled SMTP connection times out.
 
 
 DJANGO_EMAIL_BRAND_NAME=<brand name used in email templates> # e.g. "La Suite Numérique"
 DJANGO_EMAIL_LOGO_IMG=<logo image to use in email templates.> # e.g. "https://meet.yourdomain.tld/assets/logo-suite-numerique.png" 
 ```
+
+### Feature flags without an analytics backend
+
+Some features, such as automatic meeting summaries (`summary-enabled`), are gated by a feature flag read from the analytics backend. You do not need an analytics backend to enable them: leave `ANALYTICS_BACKEND` unset and declare the flags in `env.d/common`. No data is sent anywhere.
+
+```env
+ANALYTICS_BACKEND_SETTINGS={"feature_flags": {"summary-enabled": True}}
+```
+
+You can also set it directly in `compose.yaml`:
+
+```yaml
+services:
+  backend:
+    environment:
+      ANALYTICS_BACKEND_SETTINGS: '{"feature_flags": {"summary-enabled": True}}'
+```
+
+> [!NOTE]
+> The value is a Python dictionary, not JSON: write `True`, not `true`. Set it on every container running the backend image.
 
 ## Step 3: Configure your firewall
 

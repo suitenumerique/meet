@@ -91,7 +91,7 @@ def test_models_recording_get_abilities_privileges_active(role):
 
 
 def test_models_recording_get_abilities_member_active():
-    """Test abilities for a user who is unprivileged."""
+    """A member can retrieve the recording but not stop or delete it."""
 
     user = UserFactory()
     access = UserRecordingAccessFactory(role="member", user=user)
@@ -101,7 +101,7 @@ def test_models_recording_get_abilities_member_active():
     assert abilities == {
         "destroy": False,
         "partial_update": False,
-        "retrieve": False,
+        "retrieve": True,
         "stop": False,
         "update": False,
     }
@@ -129,7 +129,7 @@ def test_models_recording_get_abilities_privileges_final(role):
 
 
 def test_models_recording_get_abilities_member_final():
-    """Test abilities for a user who is unprivileged."""
+    """A member can retrieve the recording but not stop or delete it."""
 
     user = UserFactory()
     access = UserRecordingAccessFactory(role="member", user=user)
@@ -139,7 +139,7 @@ def test_models_recording_get_abilities_member_final():
     assert abilities == {
         "destroy": False,
         "partial_update": False,
-        "retrieve": False,
+        "retrieve": True,
         "stop": False,
         "update": False,
     }

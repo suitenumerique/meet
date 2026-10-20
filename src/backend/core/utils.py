@@ -333,7 +333,8 @@ def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
         str: The detected MIME type
 
     Notes:
-        Originally from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L166 # pylint:disable=line-too-long
+        Originally from
+        https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L166
     """
     # Initialize magic detector
     mime_detector = magic.Magic(mime=True)
