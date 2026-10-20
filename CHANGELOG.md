@@ -10,6 +10,16 @@ and this project adheres to
 
 ### Added
 
+### Changed
+
+- 🔖(helm) release chart 0.0.28
+
+### Fixed
+
+## [1.36.0] - 2026-10-20
+
+### Added
+
 - ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
 - ✨(backend) add room soft-deletion to the external API
 - ✨(all) allow any authenticated user to start a recording
