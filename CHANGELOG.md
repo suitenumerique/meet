@@ -21,6 +21,7 @@ and this project adheres to
 - 🔒️(frontend) upgrade libx11 to fix CVE-2026-88806
 - 🔒️(backend) throttle the start recording endpoint
 - 🐛(backend) put a timeout on every LiveKit API call
+- 🔒️(backend) upgrade aiohttp to 3.14.5 to fix CVE-2026-111064
 
 ## [1.35.0] - 2026-10-13
 
