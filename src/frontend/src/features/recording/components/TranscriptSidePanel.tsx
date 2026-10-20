@@ -37,6 +37,7 @@ import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOw
 import { LimitDescription } from './LimitDescription'
 import { openSettingsDialog } from '@/stores/settings'
 import { captureEvent, reportError } from '@/features/analytics/telemetry'
+import { TranscriptDetailsList } from './TranscriptDetailsList'
 
 export const TranscriptSidePanel = () => {
   const { data } = useConfig()
@@ -212,42 +213,44 @@ export const TranscriptSidePanel = () => {
         />
       </VStack>
       <VStack gap={0} marginBottom={25}>
-        <RowWrapper iconName="article" position="first">
-          <Text variant="sm">
-            {data?.transcription_destination ? (
-              <>
-                {t('details.destination')}{' '}
-                <A
-                  href={data.transcription_destination}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  externalIcon
-                >
-                  {data.transcription_destination.replace('https://', '')}
-                </A>
-              </>
-            ) : (
-              t('details.destinationUnknown')
-            )}
-          </Text>
-        </RowWrapper>
-        <RowWrapper iconName="mail">
-          <Text variant="sm">{t('details.receiver')}</Text>
-        </RowWrapper>
-        <RowWrapper iconName="language" position="last">
-          <Text variant="sm">{t('details.language')}</Text>
-          <Text variant="sm">
-            <Button
-              variant="text"
-              size="xs"
-              onPress={() =>
-                openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
-              }
-            >
-              {selectedLanguageLabel}
-            </Button>
-          </Text>
-        </RowWrapper>
+        <TranscriptDetailsList>
+          <RowWrapper iconName="article" position="first">
+            <Text variant="sm">
+              {data?.transcription_destination ? (
+                <>
+                  {t('details.destination')}{' '}
+                  <A
+                    href={data.transcription_destination}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    externalIcon
+                  >
+                    {data.transcription_destination.replace('https://', '')}
+                  </A>
+                </>
+              ) : (
+                t('details.destinationUnknown')
+              )}
+            </Text>
+          </RowWrapper>
+          <RowWrapper iconName="mail">
+            <Text variant="sm">{t('details.receiver')}</Text>
+          </RowWrapper>
+          <RowWrapper iconName="language" position="last">
+            <Text variant="sm">{t('details.language')}</Text>
+            <Text variant="sm">
+              <Button
+                variant="text"
+                size="xs"
+                onPress={() =>
+                  openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
+                }
+              >
+                {selectedLanguageLabel}
+              </Button>
+            </Text>
+          </RowWrapper>
+        </TranscriptDetailsList>
         {hasScreenRecordingAccess && (
           <>
             <div className={css({ height: '15px' })} />
