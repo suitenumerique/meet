@@ -236,7 +236,7 @@ export const ScreenRecordingSidePanel = () => {
             </Text>
           </RowWrapper>
         )}
-        {hasTranscriptAccess && (
+        {hasTranscriptAccess && data?.show_transcription_button && (
           <>
             <div className={css({ height: '15px' })} />
             <div
