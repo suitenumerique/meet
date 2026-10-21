@@ -39,7 +39,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked --no-dev
 
 # ---- mails ----
-FROM node:22-alpine AS mail-builder
+FROM node:22.23.4-alpine AS mail-builder
 
 RUN apk upgrade --no-cache ca-certificates
 

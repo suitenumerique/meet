@@ -1,5 +1,5 @@
 # ---- Front-end image ----
-FROM node:22-alpine AS frontend-deps
+FROM node:22.23.4-alpine AS frontend-deps
 
 RUN apk upgrade --no-cache ca-certificates
 
