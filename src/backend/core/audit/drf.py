@@ -52,10 +52,14 @@ _logger = logging.getLogger(__name__)
 
 
 def error_message(response) -> Any:
-    """Return the message of an error response, as DRF or the view wrote it."""
+    """Return the message of an error response, as DRF or the view wrote it.
+
+    An OAuth 2.0 error (RFC 6749 §5.2) carries its message in
+    ``error_description``, its ``error`` being only a code.
+    """
     data = getattr(response, "data", None)
     if isinstance(data, Mapping):
-        return data.get("detail") or data.get("error")
+        return data.get("detail") or data.get("error_description") or data.get("error")
     return None
 
 

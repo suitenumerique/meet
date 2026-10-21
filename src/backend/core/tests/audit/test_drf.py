@@ -33,6 +33,7 @@ class ThingViewSet(audit.AuditViewMixin, viewsets.ViewSet):
     permission_classes = []
     audit_actions = {"list": "thing.list", "create": "thing.create"}
     error = None
+    error_body = {"error": "Already exists."}
 
     def list(self, request):
         if self.error is not None:
@@ -41,7 +42,7 @@ class ThingViewSet(audit.AuditViewMixin, viewsets.ViewSet):
         return Response([])
 
     def create(self, request):
-        return Response({"error": "Already exists."}, status=409)
+        return Response(self.error_body, status=409)
 
     def destroy(self, request, pk=None):
         return Response(status=204)
@@ -195,6 +196,22 @@ def test_error_message_of_a_view_response(audit_events):
     assert event["event"]["type"] == ["creation"]
     assert event["event"]["reason"] == "conflict"
     assert event["lasuite"]["outcome"] == "failure"
+    assert event["error"] == {"message": "Already exists."}
+
+
+def test_error_message_of_an_oauth2_error_response(audit_events):
+    """An OAuth 2.0 error reports its description rather than its code."""
+    view = ThingViewSet.as_view(
+        {"post": "create"},
+        error_body={"error": "server_error", "error_description": "Already exists."},
+    )
+
+    response = view(APIRequestFactory().post("/things/"))
+
+    assert response.status_code == 409
+
+    [event] = find_events(audit_events, "thing.create")
+
     assert event["error"] == {"message": "Already exists."}
 
 

@@ -22,6 +22,7 @@ and this project adheres to
 - ♿️(frontend) name the in-meeting settings dialog on small screens
 - ♿️(frontend) stop exposing the header actions as a navigation
 - ♿️(frontend) size video elements in CSS, not with HTML attributes
+- 🐛(backend) return RFC 6749 errors from the application token endpoint
 
 ## [1.38.0] - 2026-11-24
 
