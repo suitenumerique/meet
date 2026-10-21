@@ -16,6 +16,8 @@ and this project adheres to
 
 ### Fixed
 
+- 🔒️(docker) distrust compromised eMudhra emSign G3 CA roots
+
 ## [1.36.0] - 2026-10-20
 
 ### Added

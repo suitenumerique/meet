@@ -1,8 +1,9 @@
-FROM python:3.14.7-slim AS base
+FROM python:3.14.8-slim AS base
 
 # Install system dependencies required by LiveKit, fetching packages over HTTPS only for Bureautix proxy
 RUN sed -i "s|^URIs: http://|URIs: https://|" /etc/apt/sources.list.d/debian.sources \
     && apt-get update && apt-get install -y --no-install-recommends  \
+    ca-certificates \
     libglib2.0-0 \
     libgobject-2.0-0 \
     libpcre2-8-0 \
@@ -18,7 +19,7 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_DOWNLOADS=0
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /uvx /bin/
 
 WORKDIR /app
 
@@ -41,7 +42,7 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=0
 
-COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /uvx /bin/
 
 WORKDIR /app
 
