@@ -393,11 +393,28 @@ components:
 
     OAuthError:
       type: object
-      description: OAuth2-compliant error response
+      description: OAuth 2.0 error response (RFC 6749, section 5.2)
+      required:
+        - error
+        - error_description
       properties:
         error:
           type: string
-          description: Human-readable error description
+          description: |
+            Error code. `server_error` is not defined by RFC 6749 for the token
+            endpoint and is only returned on an unexpected server-side failure.
+          enum:
+            - invalid_request
+            - invalid_client
+            - unsupported_grant_type
+            - invalid_scope
+            - server_error
+          example: "invalid_client"
+        error_description:
+          type: string
+          description: |
+            Human-readable description of the error. Contains printable ASCII
+            characters only, without double quotes or backslashes.
           example: "Invalid credentials"
 
     Error:

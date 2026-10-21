@@ -27,6 +27,11 @@ from core.services import provisional_user_service
 
 pytestmark = pytest.mark.django_db
 
+INVALID_CREDENTIALS_ERROR = {
+    "error": "invalid_client",
+    "error_description": "Invalid credentials",
+}
+
 
 def test_api_applications_generate_token_application_disabled(settings):
     """When APPLICATION_ENABLED is False, the endpoint should return 404."""
@@ -53,6 +58,7 @@ def test_api_applications_generate_token_application_disabled(settings):
     )
 
     assert response.status_code == 404
+    assert response.json() == {"detail": "Not found."}
 
 
 def test_api_applications_generate_token_success(settings):
@@ -140,7 +146,7 @@ def test_api_applications_generate_token_invalid_credentials_query_count(
         )
 
     assert response.status_code == 401
-    assert "Invalid credentials" in str(response.data)
+    assert response.json() == INVALID_CREDENTIALS_ERROR
 
 
 def test_api_applications_generate_token_form_urlencoded(settings):
@@ -201,7 +207,7 @@ def test_api_applications_generate_token_form_urlencoded_invalid_credentials():
     )
 
     assert response.status_code == 401
-    assert "Invalid credentials" in str(response.data)
+    assert response.json() == INVALID_CREDENTIALS_ERROR
 
 
 def test_api_applications_generate_token_form_urlencoded_missing_fields():
@@ -215,8 +221,14 @@ def test_api_applications_generate_token_form_urlencoded_missing_fields():
     )
 
     assert response.status_code == 400
-    for field in ("client_id", "client_secret", "scope"):
-        assert field in response.data
+    assert response.json() == {
+        "error": "invalid_client",
+        "error_description": (
+            "client_id : This field is required.; "
+            "client_secret : This field is required.; "
+            "scope : This field is required."
+        ),
+    }
 
 
 def test_api_applications_generate_token_form_urlencoded_invalid_grant_type():
@@ -240,7 +252,12 @@ def test_api_applications_generate_token_form_urlencoded_invalid_grant_type():
     )
 
     assert response.status_code == 400
-    assert "grant_type" in response.data
+    assert response.json() == {
+        "error": "unsupported_grant_type",
+        "error_description": (
+            "grant_type : 'authorization_code' is not a valid choice."
+        ),
+    }
 
 
 def test_api_applications_generate_token_form_urlencoded_special_characters():
@@ -283,6 +300,75 @@ def test_api_applications_generate_token_unsupported_media_type():
     )
 
     assert response.status_code == 415
+    assert response.json() == {
+        "error": "invalid_request",
+        "error_description": "Unsupported media type 'text/plain' in request.",
+    }
+
+
+def test_api_applications_generate_token_missing_fields():
+    """Missing fields should return an RFC 6749 error listing every invalid
+    field, reported as "invalid_client" when client credentials are missing."""
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "error": "invalid_client",
+        "error_description": (
+            "client_id : This field is required.; "
+            "client_secret : This field is required.; "
+            "grant_type : This field is required.; "
+            "scope : This field is required."
+        ),
+    }
+
+
+def test_api_applications_generate_token_missing_grant_type():
+    """A request with client credentials but no grant_type should return
+    an "invalid_request" error."""
+    user = UserFactory(email="user@example.com")
+    plain_secret = "test-secret-123"
+    application = ApplicationFactory(client_secret=plain_secret, is_active=True)
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": application.client_id,
+            "client_secret": plain_secret,
+            "scope": user.email,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "error": "invalid_request",
+        "error_description": "grant_type : This field is required.",
+    }
+
+
+def test_api_applications_generate_token_error_description_charset():
+    """Translated error descriptions should only contain the characters
+    allowed by RFC 6749 section 5.2: printable ASCII, except double quotes
+    and backslashes."""
+    user = UserFactory(email="user@example.com")
+    application = ApplicationFactory(is_active=True)
+
+    response = _post_token(
+        application.client_id, "", user.email, HTTP_ACCEPT_LANGUAGE="fr-fr"
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "error": "invalid_client",
+        "error_description": "client_secret : Ce champ ne peut etre vide.",
+    }
 
 
 def test_api_applications_generate_token_invalid_client_id():
@@ -302,7 +388,7 @@ def test_api_applications_generate_token_invalid_client_id():
     )
 
     assert response.status_code == 401
-    assert "Invalid credentials" in str(response.data)
+    assert response.json() == INVALID_CREDENTIALS_ERROR
 
 
 def test_api_applications_generate_token_invalid_client_secret():
@@ -323,7 +409,7 @@ def test_api_applications_generate_token_invalid_client_secret():
     )
 
     assert response.status_code == 401
-    assert "Invalid credentials" in str(response.data)
+    assert response.json() == INVALID_CREDENTIALS_ERROR
 
 
 def test_token_unknown_client_id_with_valid_secret():
@@ -344,7 +430,7 @@ def test_token_unknown_client_id_with_valid_secret():
     )
 
     assert response.status_code == 401
-    assert "Invalid credentials" in str(response.data)
+    assert response.json() == INVALID_CREDENTIALS_ERROR
 
 
 def test_token_rejects_secret_owned_by_another_application():
@@ -366,7 +452,7 @@ def test_token_rejects_secret_owned_by_another_application():
     )
 
     assert response.status_code == 401
-    assert "Invalid credentials" in str(response.data)
+    assert response.json() == INVALID_CREDENTIALS_ERROR
 
 
 def test_api_applications_generate_token_inactive_application():
@@ -388,7 +474,10 @@ def test_api_applications_generate_token_inactive_application():
     )
 
     assert response.status_code == 401
-    assert "Application is inactive" in str(response.data)
+    assert response.json() == {
+        "error": "invalid_client",
+        "error_description": "Application is inactive",
+    }
 
 
 def test_api_applications_generate_token_inactive_application_wrong_secret():
@@ -409,7 +498,7 @@ def test_api_applications_generate_token_inactive_application_wrong_secret():
     )
 
     assert response.status_code == 401
-    assert "Invalid credentials" in str(response.data)
+    assert response.json() == INVALID_CREDENTIALS_ERROR
     assert "inactive" not in str(response.data).lower()
 
 
@@ -431,7 +520,10 @@ def test_api_applications_generate_token_invalid_email_format():
     )
 
     assert response.status_code == 400
-    assert "scope should be a valid email address." in str(response.data).lower()
+    assert response.json() == {
+        "error": "invalid_scope",
+        "error_description": "Scope should be a valid email address.",
+    }
 
 
 def test_api_applications_generate_token_domain_not_authorized():
@@ -454,7 +546,12 @@ def test_api_applications_generate_token_domain_not_authorized():
     )
 
     assert response.status_code == 403
-    assert "not authorized for this email domain" in str(response.data)
+    assert response.json() == {
+        "error": "invalid_scope",
+        "error_description": (
+            "This application is not authorized for this email domain."
+        ),
+    }
 
 
 def test_api_applications_generate_token_domain_authorized():
@@ -502,7 +599,10 @@ def test_api_applications_generate_token_user_not_found():
     )
 
     assert response.status_code == 404
-    assert "User not found" in str(response.data)
+    assert response.json() == {
+        "error": "invalid_scope",
+        "error_description": "User not found.",
+    }
 
 
 @freeze_time("2023-01-15 12:00:00")
@@ -715,7 +815,7 @@ def test_api_applications_token_new_user_race_condition(mock_get_by_email, setti
 def test_api_applications_token_new_user_race_condition_unrecoverable(
     mock_get_or_create, settings
 ):
-    """Should return 500 when ProvisionalUserIntegrityError is raised."""
+    """Should return 409 when ProvisionalUserIntegrityError is raised."""
 
     settings.APPLICATION_ALLOW_USER_CREATION = True
     settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
@@ -739,6 +839,10 @@ def test_api_applications_token_new_user_race_condition_unrecoverable(
     )
 
     assert response.status_code == 409
+    assert response.json() == {
+        "error": "server_error",
+        "error_description": "Failed to create or retrieve provisional user.",
+    }
     assert mock_get_or_create.call_count == 1
 
 
@@ -1069,6 +1173,9 @@ def test_api_applications_generate_token_domain_denied_is_audited(audit_events):
     assert event["entity"]["target"]["id"] == str(application.pk)
     assert event["lasuite"]["details"] == {"requested_domain": "random.com"}
     assert event["http"]["response"] == {"status_code": 403}
+    assert event["error"] == {
+        "message": "This application is not authorized for this email domain."
+    }
 
 
 def test_api_applications_generate_token_invalid_email_is_audited(audit_events):
@@ -1084,6 +1191,7 @@ def test_api_applications_generate_token_invalid_email_is_audited(audit_events):
     assert event["event"]["reason"] == "validation_error"
     assert event["lasuite"]["actor"] == {"type": "application"}
     assert event["http"]["response"] == {"status_code": 400}
+    assert event["error"] == {"message": "Scope should be a valid email address."}
     assert "details" not in event["lasuite"]
 
 
@@ -1102,6 +1210,7 @@ def test_api_applications_generate_token_unknown_user_is_audited(audit_events):
     assert event["event"]["reason"] == "not_found"
     assert event["lasuite"]["details"] == {"requested_domain": "example.com"}
     assert event["http"]["response"] == {"status_code": 404}
+    assert event["error"] == {"message": "User not found."}
 
 
 def test_api_applications_generate_token_provisioning_is_audited(
