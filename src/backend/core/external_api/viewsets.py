@@ -35,7 +35,7 @@ from ..services.provisional_user_service import (
     ProvisionalUserIntegrityError,
     ProvisionalUserService,
 )
-from . import authentication, permissions, serializers
+from . import authentication, exceptions, permissions, serializers
 
 
 class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
@@ -43,6 +43,10 @@ class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
 
     audit_actor = None
     audit_claimed_client_id = None
+
+    def get_exception_handler(self):
+        """Render errors as OAuth 2.0 error responses (RFC 6749 section 5.2)."""
+        return exceptions.oauth2_exception_handler
 
     @decorators.action(
         detail=False,
@@ -92,31 +96,33 @@ class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
 
         try:
             validate_email(email)
-        except ValidationError:
-            return drf_response.Response(
-                {
-                    "error": "Scope should be a valid email address.",
-                },
-                status=drf_status.HTTP_400_BAD_REQUEST,
-            )
+        except ValidationError as e:
+            raise exceptions.OAuth2Error(
+                exceptions.OAUTH2_ERROR_INVALID_SCOPE,
+                "Scope should be a valid email address.",
+            ) from e
 
         if not application.can_delegate_email(email):
-            return drf_response.Response(
-                {
-                    "error": "This application is not authorized for this email domain.",
-                },
-                status=drf_status.HTTP_403_FORBIDDEN,
+            raise exceptions.OAuth2Error(
+                exceptions.OAUTH2_ERROR_INVALID_SCOPE,
+                "This application is not authorized for this email domain.",
+                status_code=drf_status.HTTP_403_FORBIDDEN,
             )
 
         try:
             user, created = ProvisionalUserService().get_or_create(email, client_id)
         except ProvisionalUserCreationDisabledError as not_found_error:
-            raise drf_exceptions.NotFound("User not found.") from not_found_error
-        except ProvisionalUserIntegrityError:
-            return drf_response.Response(
-                {"error": "Failed to create or retrieve provisional user."},
-                status=drf_status.HTTP_409_CONFLICT,
-            )
+            raise exceptions.OAuth2Error(
+                exceptions.OAUTH2_ERROR_INVALID_SCOPE,
+                "User not found.",
+                status_code=drf_status.HTTP_404_NOT_FOUND,
+            ) from not_found_error
+        except ProvisionalUserIntegrityError as integrity_error:
+            raise exceptions.OAuth2Error(
+                exceptions.OAUTH2_ERROR_SERVER_ERROR,
+                "Failed to create or retrieve provisional user.",
+                status_code=drf_status.HTTP_409_CONFLICT,
+            ) from integrity_error
 
         scope = " ".join(application.scopes or [])
 

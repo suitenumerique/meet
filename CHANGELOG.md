@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(backend) return RFC 6749 errors from the application token endpoint
+
 ## [1.36.1] - 2026-10-21
 
 ### Added

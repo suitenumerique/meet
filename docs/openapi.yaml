@@ -94,8 +94,38 @@ paths:
                     token_type: "Bearer"
                     expires_in: 3600
                     scope: "rooms:list rooms:retrieve rooms:create"
+        '400':
+          description: |
+            Invalid request. When several parameters are invalid, `error` reports
+            the most relevant one (client credentials first, then grant type) and
+            `error_description` lists every invalid parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+              examples:
+                missingClientCredentials:
+                  summary: Missing client credentials
+                  value:
+                    error: "invalid_client"
+                    error_description: "client_id : This field is required.; client_secret : This field is required."
+                unsupportedGrantType:
+                  summary: Unsupported grant type
+                  value:
+                    error: "unsupported_grant_type"
+                    error_description: "grant_type : 'authorization_code' is not a valid choice."
+                missingParameter:
+                  summary: Missing required parameter
+                  value:
+                    error: "invalid_request"
+                    error_description: "grant_type : This field is required."
+                invalidScope:
+                  summary: Scope is not a valid email address
+                  value:
+                    error: "invalid_scope"
+                    error_description: "Scope should be a valid email address."
         '401':
-          description: Authentication failed
+          description: Client authentication failed
           content:
             application/json:
               schema:
@@ -104,22 +134,13 @@ paths:
                 invalidCredentials:
                   summary: Invalid credentials
                   value:
-                    error: "Invalid credentials"
+                    error: "invalid_client"
+                    error_description: "Invalid credentials"
                 inactiveApplication:
                   summary: Application is inactive
                   value:
-                    error: "Application is inactive"
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OAuthError'
-              examples:
-                userNotFound:
-                  summary: User not found
-                  value:
-                    error: "User not found."
+                    error: "invalid_client"
+                    error_description: "Application is inactive"
         '403':
           description: Access denied - cannot delegate user
           content:
@@ -130,7 +151,36 @@ paths:
                 delegationDenied:
                   summary: Domain not authorized
                   value:
-                    error: "This application is not authorized for this email domain."
+                    error: "invalid_scope"
+                    error_description: "This application is not authorized for this email domain."
+        '404':
+          description: |
+            User not found. Only returned when the application is not allowed
+            to create users.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+              examples:
+                userNotFound:
+                  summary: User not found
+                  value:
+                    error: "invalid_scope"
+                    error_description: "User not found."
+        '409':
+          description: |
+            The user could not be created or retrieved because of a concurrent
+            request. Retrying the request should succeed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+              examples:
+                provisionalUserConflict:
+                  summary: Concurrent user creation
+                  value:
+                    error: "server_error"
+                    error_description: "Failed to create or retrieve provisional user."
         '415':
           description: |
             Unsupported media type. The request body must be sent as
@@ -138,12 +188,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/OAuthError'
               examples:
                 unsupportedMediaType:
                   summary: Unsupported request content type
                   value:
-                    detail: 'Unsupported media type "text/plain" in request.'
+                    error: "invalid_request"
+                    error_description: "Unsupported media type 'text/plain' in request."
 
   /rooms:
     get:
@@ -552,11 +603,28 @@ components:
 
     OAuthError:
       type: object
-      description: OAuth2-compliant error response
+      description: OAuth 2.0 error response (RFC 6749, section 5.2)
+      required:
+        - error
+        - error_description
       properties:
         error:
           type: string
-          description: Human-readable error description
+          description: |
+            Error code. `server_error` is not defined by RFC 6749 for the token
+            endpoint and is only returned on an unexpected server-side failure.
+          enum:
+            - invalid_request
+            - invalid_client
+            - unsupported_grant_type
+            - invalid_scope
+            - server_error
+          example: "invalid_client"
+        error_description:
+          type: string
+          description: |
+            Human-readable description of the error. Contains printable ASCII
+            characters only, without double quotes or backslashes.
           example: "Invalid credentials"
 
     Error:
