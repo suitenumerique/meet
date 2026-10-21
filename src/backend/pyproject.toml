@@ -66,6 +66,7 @@ dependencies = [
     "urllib3==2.8.0",
     "phonenumbers==9.0.37",
     "cryptography==50.0.1", # CVE-2026-69247
+    "pillow==13.0.0", # CVE-2026-112403
 ]
 
 [project.urls]
