@@ -35,6 +35,10 @@ and this project adheres to
 - ♿️(frontend) announce the microphone turning off on shortcut #1816
 - 🐛(release) use env bash in prepare-release script for NixOS
 
+### Fixed
+
+- 🐛(frontend) stop overwriting saved language on page load #1414
+
 ## [1.35.0] - 2026-10-13
 
 ### Added

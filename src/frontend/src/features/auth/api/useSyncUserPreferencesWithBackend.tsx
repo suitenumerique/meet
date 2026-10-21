@@ -1,54 +1,42 @@
-import { useMutation } from '@tanstack/react-query'
-import { keys } from '@/api/queryKeys'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { queryClient } from '@/api/queryClient'
-import { updateUserPreferences } from './updateUserPreferences'
-import { convertToBackendLanguage } from '@/utils/languages'
+import {
+  convertToBackendLanguage,
+  convertToFrontendLanguage,
+} from '@/utils/languages'
 import { useUser } from './useUser'
-import { ApiError } from '@/api/ApiError.ts'
-import { reportError } from '@/features/analytics/telemetry'
+import { usePatchUserPreferences, type PatchUserParams } from './patchUser'
 
 /**
- * Hook that synchronizes user browser preferences (language, timezone) with backend user settings.
- * Automatically updates backend when browser settings change for logged-in users.
+ * Applies the saved language on load. The browser language is saved only
+ * while the user has none yet; after that, only the language picker writes it.
  */
 export const useSyncUserPreferencesWithBackend = () => {
   const { i18n } = useTranslation()
-  const { user, isLoggedIn } = useUser()
-
-  const { mutateAsync } = useMutation({
-    mutationFn: updateUserPreferences,
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData([keys.user], updatedUser)
-    },
-  })
+  const { user } = useUser()
+  const syncedUserId = useRef<string>()
+  const { mutate } = usePatchUserPreferences()
 
   useEffect(() => {
-    if (!user || !isLoggedIn) return
+    if (!user || syncedUserId.current === user.id) return
+    syncedUserId.current = user.id
 
-    const syncBrowserPreferencesToBackend = async () => {
-      const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-      const currentLanguage = convertToBackendLanguage(i18n.language)
-      if (
-        currentLanguage !== user.language ||
-        currentTimezone !== user.timezone
-      ) {
-        await mutateAsync({
-          user: {
-            id: user.id,
-            timezone: currentTimezone,
-            language: currentLanguage,
-          },
-        })
+    const changes: PatchUserParams['user'] = {}
+
+    if (user.language) {
+      const savedLanguage = convertToFrontendLanguage(user.language)
+      if (savedLanguage && savedLanguage !== i18n.language) {
+        i18n.changeLanguage(savedLanguage)
       }
+    } else {
+      changes.language = convertToBackendLanguage(i18n.language)
     }
 
-    syncBrowserPreferencesToBackend().catch((error) => {
-      if (error instanceof ApiError && error.statusCode === 401) return
-      reportError('generic_failure', error, {
-        context: '[useSyncUserPreferencesWithBackend] Failed to sync:',
-      })
-    })
-  }, [i18n.language, isLoggedIn, user, mutateAsync])
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    if (timezone !== user.timezone) changes.timezone = timezone
+
+    if (Object.keys(changes).length) {
+      mutate({ userId: user.id, user: changes })
+    }
+  }, [user, i18n, mutate])
 }
