@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.36.2] - 2026-10-21
+
 ### Fixed
 
 - 🔒️(frontend) upgrade Node to 22.23.4 and 24.22.1 security releases
