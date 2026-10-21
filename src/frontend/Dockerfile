@@ -1,5 +1,7 @@
 FROM node:22-alpine AS frontend-deps
 
+RUN apk upgrade --no-cache ca-certificates
+
 USER node
 
 WORKDIR /home/frontend/
@@ -45,12 +47,12 @@ ENV VITE_MEDIA_BASE_URL=${VITE_MEDIA_BASE_URL}
 RUN npm run build
 
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:1.30.4-alpine3.24 AS frontend-production
+FROM nginxinc/nginx-unprivileged:1.30.5-alpine3.24 AS frontend-production
 
 USER root
 RUN apk upgrade --no-cache libexpat && \
     apk add --no-cache --upgrade 'pcre2>=10.49-r0' 'tiff>=4.7.2-r0' \
-        'libx11>=1.8.14-r0' && \
+        'libx11>=1.8.14-r0' 'ca-certificates>=20261020-r0' && \
     apk del curl
 USER nginx
 
