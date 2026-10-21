@@ -17,6 +17,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒️(docker) distrust compromised eMudhra emSign G3 CA roots
+- 🔒️(backend) upgrade pillow to 13.0.0 to fix CVE-2026-112403
 
 ## [1.36.0] - 2026-10-20
 
