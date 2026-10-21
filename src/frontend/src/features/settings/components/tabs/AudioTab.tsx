@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { SoundTester } from '@/components/SoundTester'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import { useNoiseReductionAvailable } from '@/features/rooms/livekit/hooks/useNoiseReductionAvailable'
+import { useLocalAudioLevel } from '@/features/rooms/livekit/hooks/useLocalAudioLevel'
 import { RowWrapper } from './layout/RowWrapper'
 import { useSnapshot } from 'valtio'
 import {
@@ -33,7 +34,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
   const { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId } =
     useSnapshot(userChoicesStore)
 
-  const isSpeaking = useIsSpeaking(localParticipant)
+  const isRoomSpeaking = useIsSpeaking(localParticipant)
 
   const { devices: devicesOut, setActiveMediaDevice: setActiveMediaDeviceOut } =
     useMediaDeviceSelect({ kind: 'audiooutput' })
@@ -55,6 +56,12 @@ export const AudioTab = ({ id }: AudioTabProps) => {
   // may raise an error. As a workaround, we infer microphone permission status by checking if the list of audio input
   // devices (devicesIn) is non-empty. If the list has one or more devices, we assume the user has granted microphone access.
   const isMicEnabled = devicesIn?.length > 0
+  const isMicrophoneMuted = !localParticipant.isMicrophoneEnabled
+  const isLocalPreviewSpeaking = useLocalAudioLevel({
+    deviceId: audioDeviceId,
+    enabled: isMicEnabled && isMicrophoneMuted,
+  })
+  const isSpeaking = isMicrophoneMuted ? isLocalPreviewSpeaking : isRoomSpeaking
 
   const disabledProps = isMicEnabled
     ? {}
@@ -83,13 +90,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
             width: '100%',
           }}
         />
-        <>
-          {localParticipant.isMicrophoneEnabled ? (
-            <ActiveSpeaker isSpeaking={isSpeaking} />
-          ) : (
-            <span>{t('audio.microphone.disabled')}</span>
-          )}
-        </>
+        <ActiveSpeaker isSpeaking={isSpeaking} />
       </RowWrapper>
       {/* Safari has a known limitation where its implementation of 'enumerateDevices' does not include audio output devices.
         To prevent errors or an empty selection list, we only render the speakers selection field on non-Safari browsers. */}
