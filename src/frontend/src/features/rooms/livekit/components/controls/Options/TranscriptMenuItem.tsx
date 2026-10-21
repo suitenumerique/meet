@@ -5,8 +5,10 @@ import { menuRecipe } from '@/primitives/menuRecipe'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { RecordingMode, useHasRecordingAccess } from '@/features/recording'
 import { FeatureFlags } from '@/features/analytics/enums'
+import { useConfig } from '@/api/useConfig'
 
 export const TranscriptMenuItem = () => {
+  const { data } = useConfig()
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
   const { isTranscriptOpen, openTranscript, toggleTools } = useSidePanel()
 
@@ -15,7 +17,7 @@ export const TranscriptMenuItem = () => {
     FeatureFlags.Transcript
   )
 
-  if (!hasTranscriptAccess) return null
+  if (!hasTranscriptAccess || !data?.show_transcription_button) return null
 
   return (
     <MenuItem
