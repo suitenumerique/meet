@@ -68,5 +68,9 @@
       "member": "Member"
     }
   },
+  "speakerChanged": {
+    "granted": "You are now a speaker. You can use your microphone, camera and screen sharing.",
+    "removed": "You are no longer a speaker."
+  },
   "openMenu": "Open menu"
 }
