@@ -10,7 +10,7 @@ and this project adheres to
 
 ### Added
 
-- 🌐(i18n) add Russian language support
+- 🌐(i18n) add Russian language support #1912
 
 ## [1.36.2] - 2026-10-21
 
