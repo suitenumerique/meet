@@ -366,6 +366,22 @@ def test_rename_participant_name_too_long(room, token):
     assert "name" in response.data
 
 
+def test_rename_participant_name_at_max_length(mock_livekit_client, room, token):
+    """Test rename accepts a name of exactly 255 characters."""
+    client = APIClient()
+    url = reverse("rooms-rename", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"name": "a" * 255},
+        format="json",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    call_kwargs = mock_livekit_client.room.update_participant.call_args
+    assert call_kwargs[0][0].name == "a" * 255
+
+
 def test_rename_participant_forbidden_without_token(room):
     """Test rename returns 403 when no LiveKit token is provided."""
     client = APIClient()

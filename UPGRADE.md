@@ -16,6 +16,24 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+
+### Room access tokens moved to POST /join/
+
+LiveKit access tokens are no longer returned when reading a room. They are henceforth issued by a dedicated `POST
+/api/v1.0/rooms/{id}/join/` endpoint, which receives the display name in its JSON body. Display names therefore no
+longer appear in URLs and token retrieval by logged-in users is now protected against CSRF.
+
+- `GET /api/v1.0/rooms/{id}/` no longer returns the `livekit` block, and neither do the list, create and update
+responses
+- The `username` field of `POST /api/v1.0/rooms/{id}/request-entry/` is now limited to 255 characters
+- When the caller may enter the room directly, the response contains the room data plus a `livekit` block
+- When the caller must go through the lobby, the response has no `livekit` block
+- Session-authenticated callers must send the CSRF token (`X-CSRFToken` header and `csrftoken` cookie)
+- Every join returning a `livekit` block mints a new token, valid for 6 hours, and anonymous callers get a new
+participant identity each time.
+- Joining again returns no `livekit` block to callers admitted through the lobby.
+- Unregistered rooms are always entered directly: joining one always returns a `livekit` block.
+
 ## v1.37.0
 
 ### Crisp support chat replaced by the La Suite support form

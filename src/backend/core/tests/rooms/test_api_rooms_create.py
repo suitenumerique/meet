@@ -66,6 +66,8 @@ def test_api_rooms_create_authenticated(reset_cache):
     assert room.name == "my room"
     assert room.slug == "my-room"
     assert room.accesses.filter(role="owner", user=user).exists() is True
+    assert "livekit" not in response.json()
+    assert response.json()["pin_code"] == room.pin_code
 
     rooms_data = cache.keys("room-creation-callback_*")
     assert not rooms_data
@@ -495,3 +497,4 @@ def test_api_rooms_create_authenticated_with_user_access_token():
     assert response.status_code == 201
     room = Room.objects.get()
     assert room.accesses.filter(role="owner", user=user).exists()
+    assert "livekit" not in response.json()

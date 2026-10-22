@@ -1,11 +1,8 @@
-"""
-Test rooms API endpoints in the Meet core app: retrieve.
-"""
+"""Test rooms API endpoints in the Meet core app: retrieve."""
 
 import random
 from unittest import mock
 
-from django.contrib.auth.models import AnonymousUser
 from django.test.utils import override_settings
 from django.utils import timezone as dj_timezone
 
@@ -112,18 +109,11 @@ def test_api_rooms_retrieve_anonymous_private_slug_not_normalized():
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True)
-@override_settings(
-    LIVEKIT_CONFIGURATION={
-        "api_key": "key",
-        "api_secret": "secret",
-        "url": "test_url_value",
-    }
-)
 @mock.patch("core.utils.generate_token", return_value="foo")
 def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
     """
-    Retrieving an unregistered room should return a Livekit token
-    if unregistered rooms are allowed.
+    Retrieving an unregistered room should describe it if unregistered rooms
+    are allowed, without any LiveKit token: those are obtained by joining.
     """
     client = APIClient()
     response = client.get("/api/v1.0/rooms/unregistered-room/")
@@ -134,31 +124,17 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
         "slug": "unregistered-room",
         "access_level": "public",
         "is_administrable": False,
-        "livekit": {
-            "url": "test_url_value",
-            "room": "unregistered-room",
-            "token": "foo",
-        },
     }
 
-    mock_token.assert_called_once_with(
-        room="unregistered-room", user=AnonymousUser(), username=None
-    )
+    mock_token.assert_not_called()
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=True)
-@override_settings(
-    LIVEKIT_CONFIGURATION={
-        "api_key": "key",
-        "api_secret": "secret",
-        "url": "test_url_value",
-    }
-)
 @mock.patch("core.utils.generate_token", return_value="foo")
 def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_token):
     """
     Getting an unregistered room by a slug that is not normalized should work
-    and use the Livekit room on the url-safe name.
+    and return the url-safe slug.
     """
     client = APIClient()
     response = client.get("/api/v1.0/rooms/Réunion/")
@@ -169,16 +145,9 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
         "slug": "reunion",
         "access_level": "public",
         "is_administrable": False,
-        "livekit": {
-            "url": "test_url_value",
-            "room": "reunion",
-            "token": "foo",
-        },
     }
 
-    mock_token.assert_called_once_with(
-        room="reunion", user=AnonymousUser(), username=None
-    )
+    mock_token.assert_not_called()
 
 
 @override_settings(ALLOW_UNREGISTERED_ROOMS=False)
@@ -188,6 +157,20 @@ def test_api_rooms_retrieve_anonymous_unregistered_not_allowed():
     """
     client = APIClient()
     response = client.get("/api/v1.0/rooms/unregistered-room/")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No Room matches the given query."}
+
+
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+@pytest.mark.parametrize("lookup", ["---", "!!!", "_"])
+def test_api_rooms_retrieve_anonymous_unregistered_empty_slug(lookup):
+    """
+    Retrieving an unregistered room whose slug is empty once normalized should
+    return a 404.
+    """
+    client = APIClient()
+    response = client.get(f"/api/v1.0/rooms/{lookup}/")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "No Room matches the given query."}
@@ -216,52 +199,33 @@ def test_api_rooms_retrieve_soft_deleted(
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
-@override_settings(
-    LIVEKIT_CONFIGURATION={
-        "api_key": "key",
-        "api_secret": "secret",
-        "url": "test_url_value",
-    }
-)
 def test_api_rooms_retrieve_anonymous_public(mock_token):
     """
-    Anonymous users should be able to retrieve a room with a token provided, if the room is public.
+    Anonymous users should be able to retrieve a public room with its pin code,
+    but should not be given any token: those are obtained by joining.
     """
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
     response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
 
     assert response.status_code == 200
-    expected_name = f"{room.id!s}"
     assert response.json() == {
         "configuration": {},
         "access_level": str(room.access_level),
         "id": str(room.id),
-        "livekit": {
-            "url": "test_url_value",
-            "room": expected_name,
-            "token": "foo",
-        },
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once()
+    mock_token.assert_not_called()
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
-@override_settings(
-    LIVEKIT_CONFIGURATION={
-        "api_key": "key",
-        "api_secret": "secret",
-        "url": "test_url_value",
-    }
-)
 def test_api_rooms_retrieve_authenticated_public(mock_token):
     """
-    Authenticated users should be allowed to retrieve a room and get a token for a room to
-    which they are not related, provided the room is public.
+    Authenticated users should be allowed to retrieve a public room to which
+    they are not related, with its pin code but without any token.
     They should not see related users.
     """
     room = RoomFactory(
@@ -278,44 +242,23 @@ def test_api_rooms_retrieve_authenticated_public(mock_token):
     )
     assert response.status_code == 200
 
-    expected_name = f"{room.id!s}"
     assert response.json() == {
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
         "id": str(room.id),
-        "livekit": {
-            "url": "test_url_value",
-            "room": expected_name,
-            "token": "foo",
-        },
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once_with(
-        room=expected_name,
-        user=user,
-        username=None,
-        color=None,
-        sources=["camera"],
-        role=None,
-        participant_id=None,
-    )
+    mock_token.assert_not_called()
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
-@override_settings(
-    LIVEKIT_CONFIGURATION={
-        "api_key": "key",
-        "api_secret": "secret",
-        "url": "test_url_value",
-    }
-)
 def test_api_rooms_retrieve_authenticated_trusted(mock_token):
     """
-    Authenticated users should be allowed to retrieve a room and get a token for a room to
-    which they are not related, provided the room has a trusted access_level.
+    Authenticated users should be allowed to retrieve a trusted room to which
+    they are not related, with its pin code but without any token.
     They should not see related users.
     """
     room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
@@ -329,30 +272,16 @@ def test_api_rooms_retrieve_authenticated_trusted(mock_token):
     )
     assert response.status_code == 200
 
-    expected_name = f"{room.id!s}"
     assert response.json() == {
         "configuration": {},
         "access_level": str(room.access_level),
         "id": str(room.id),
-        "livekit": {
-            "url": "test_url_value",
-            "room": expected_name,
-            "token": "foo",
-        },
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once_with(
-        room=expected_name,
-        user=user,
-        username=None,
-        color=None,
-        sources=None,
-        role=None,
-        participant_id=None,
-    )
+    mock_token.assert_not_called()
 
 
 def test_api_rooms_retrieve_authenticated():
@@ -381,13 +310,6 @@ def test_api_rooms_retrieve_authenticated():
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
-@override_settings(
-    LIVEKIT_CONFIGURATION={
-        "api_key": "key",
-        "api_secret": "secret",
-        "url": "test_url_value",
-    }
-)
 def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, settings):
     """
     Users who are members of a room should not be allowed to see related users.
@@ -415,40 +337,19 @@ def test_api_rooms_retrieve_members(mock_token, django_assert_num_queries, setti
 
     assert "accesses" not in content_dict
 
-    expected_name = str(room.id)
     assert content_dict == {
         "configuration": {"can_publish_sources": ["camera"]},
         "access_level": str(room.access_level),
         "id": str(room.id),
-        "livekit": {
-            "url": "test_url_value",
-            "room": expected_name,
-            "token": "foo",
-        },
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once_with(
-        room=expected_name,
-        user=user,
-        username=None,
-        color=None,
-        sources=["camera"],
-        role=str(RoleChoices.MEMBER),
-        participant_id=None,
-    )
+    mock_token.assert_not_called()
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
-@override_settings(
-    LIVEKIT_CONFIGURATION={
-        "api_key": "key",
-        "api_secret": "secret",
-        "url": "test_url_value",
-    }
-)
 def test_api_rooms_retrieve_administrators(
     mock_token, django_assert_num_queries, settings
 ):
@@ -511,30 +412,16 @@ def test_api_rooms_retrieve_administrators(
         ],
         key=lambda x: x["id"],
     )
-    expected_name = str(room.id)
     assert content_dict == {
         "access_level": str(room.access_level),
         "id": str(room.id),
         "configuration": {},
-        "livekit": {
-            "url": "test_url_value",
-            "room": expected_name,
-            "token": "foo",
-        },
         "name": room.name,
         "pin_code": room.pin_code,
         "slug": room.slug,
     }
 
-    mock_token.assert_called_once_with(
-        room=expected_name,
-        user=user,
-        username=None,
-        color=None,
-        sources=None,
-        role=str(user_access.role),
-        participant_id=None,
-    )
+    mock_token.assert_not_called()
 
 
 @pytest.mark.parametrize("access_level", RoomAccessLevel)
@@ -567,3 +454,77 @@ def test_api_rooms_retrieve_authenticated_with_user_access_token():
     assert response.data["id"] == str(room.id)
     assert response.data["pin_code"] == room.pin_code
     assert "accesses" in response.data
+    assert "livekit" not in response.data
+
+
+@pytest.mark.parametrize("access_level", RoomAccessLevel)
+@pytest.mark.parametrize("role", [None, *RoleChoices])
+@mock.patch("core.utils.generate_token", return_value="foo")
+def test_api_rooms_retrieve_never_returns_livekit_credentials(
+    mock_token, role, access_level
+):
+    """Retrieving a room should never mint a LiveKit token."""
+    room = RoomFactory(access_level=access_level)
+    user = UserFactory()
+    if role is not None:
+        UserResourceAccessFactory(resource=room, user=user, role=role)
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert "livekit" not in response.json()
+    mock_token.assert_not_called()
+
+
+@pytest.mark.parametrize("access_level", RoomAccessLevel)
+@mock.patch("core.utils.generate_token", return_value="foo")
+def test_api_rooms_retrieve_anonymous_never_returns_livekit_credentials(
+    mock_token, access_level
+):
+    """An anonymous user should never get a LiveKit token by retrieving a room."""
+    room = RoomFactory(access_level=access_level)
+
+    response = APIClient().get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert "livekit" not in response.json()
+    mock_token.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("access_level", "authenticated", "role", "pin_code_exposed"),
+    [
+        (RoomAccessLevel.PUBLIC, False, None, True),
+        (RoomAccessLevel.TRUSTED, False, None, False),
+        (RoomAccessLevel.RESTRICTED, False, None, False),
+        (RoomAccessLevel.PUBLIC, True, None, True),
+        (RoomAccessLevel.TRUSTED, True, None, True),
+        (RoomAccessLevel.RESTRICTED, True, None, False),
+        (RoomAccessLevel.RESTRICTED, True, RoleChoices.MEMBER, True),
+        (RoomAccessLevel.RESTRICTED, True, RoleChoices.ADMIN, True),
+        (RoomAccessLevel.RESTRICTED, True, RoleChoices.OWNER, True),
+    ],
+)
+def test_api_rooms_retrieve_pin_code_exposure(
+    access_level, authenticated, role, pin_code_exposed
+):
+    """
+    The pin code should only be exposed to users who may join the room
+    without going through the lobby.
+    """
+    room = RoomFactory(access_level=access_level)
+    client = APIClient()
+    if authenticated:
+        user = UserFactory()
+        if role is not None:
+            UserResourceAccessFactory(resource=room, user=user, role=role)
+        client.force_login(user)
+
+    response = client.get(f"/api/v1.0/rooms/{room.id!s}/")
+
+    assert response.status_code == 200
+    assert ("pin_code" in response.json()) is pin_code_exposed
+    if pin_code_exposed:
+        assert response.json()["pin_code"] == room.pin_code

@@ -22,6 +22,7 @@ and this project adheres to
 - ⬆️(backend) update python dependencies
 - ⬆️(agents) update python dependencies
 - ⬆️(summary) update python dependencies
+- 🔒️(backend) issue room access tokens via POST rooms/{id}/join/ only
 
 ### Fixed
 

@@ -27,8 +27,11 @@ from timezone_field.rest_framework import TimeZoneSerializerField
 
 from core import models, utils
 from core.api.exceptions import ensure_room_not_deleted
+from core.services.lobby import LobbyService
 
 logger = logging.getLogger(__name__)
+
+DISPLAY_NAME_MAX_LENGTH = 255
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -170,17 +173,18 @@ class RoomSerializer(serializers.ModelSerializer):
         return value
 
     def to_representation(self, instance):
-        """
-        Add users only for administrator users.
-        Add LiveKit credentials for public instance or related users/groups
-        """
+        """Add accesses only for administrator and owner users."""
         output = super().to_representation(instance)
         request = self.context.get("request")
 
         if not request:
             return output
 
-        role = instance.get_role(request.user)
+        if "role" in self.context:
+            role = self.context["role"]
+        else:
+            role = instance.get_role(request.user)
+
         is_admin_or_owner = models.RoleChoices.check_administrator_role(
             role
         ) or models.RoleChoices.check_owner_role(role)
@@ -193,26 +197,9 @@ class RoomSerializer(serializers.ModelSerializer):
             )
             output["accesses"] = access_serializer.data
 
-        should_access_room = (
-            (
-                instance.access_level == models.RoomAccessLevel.TRUSTED
-                and request.user.is_authenticated
-            )
-            or role is not None
-            or instance.is_public
-        )
-
-        if should_access_room:
-            room_id = f"{instance.id!s}"
-            username = request.query_params.get("username", None)
-            output["livekit"] = utils.generate_livekit_config(
-                room_id=room_id,
-                user=request.user,
-                username=username,
-                configuration=output["configuration"],
-                role=role,
-            )
-        else:
+        if not LobbyService.can_bypass_lobby(
+            room=instance, user=request.user, role=role
+        ):
             del output["pin_code"]
 
         return output
@@ -355,10 +342,23 @@ class StartRecordingSerializer(BaseValidationOnlySerializer):
         return value
 
 
+class JoinRoomSerializer(BaseValidationOnlySerializer):
+    """Validate the data sent to join a room."""
+
+    username = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=DISPLAY_NAME_MAX_LENGTH,
+        help_text="Display name in the room. The default name is used when it "
+        "is missing, null or blank.",
+    )
+
+
 class RequestEntrySerializer(BaseValidationOnlySerializer):
     """Validate request entry data."""
 
-    username = serializers.CharField(required=True)
+    username = serializers.CharField(required=True, max_length=DISPLAY_NAME_MAX_LENGTH)
     participant_id = serializers.CharField(
         required=False, allow_null=True, max_length=128
     )
@@ -675,7 +675,9 @@ class RaiseHandSerializer(BaseValidationOnlySerializer):
 class RenameParticipantSerializer(BaseValidationOnlySerializer):
     """Serializer for renaming a participant in a room."""
 
-    name = serializers.CharField(min_length=1, max_length=255, allow_blank=False)
+    name = serializers.CharField(
+        min_length=1, max_length=DISPLAY_NAME_MAX_LENGTH, allow_blank=False
+    )
 
 
 class ExternalProcessEventSerializer(BaseValidationOnlySerializer):

@@ -113,6 +113,7 @@ def test_api_rooms_update_administrators(mock_update_metadata):
         format="json",
     )
     assert response.status_code == 200
+    assert "livekit" not in response.json()
     room.refresh_from_db()
     assert room.name == "New name"
     assert room.slug == "new-name"
@@ -467,6 +468,7 @@ def test_api_rooms_update_authenticated_with_user_access_token(privileged_role):
     room.accesses.filter(user=user).update(role=privileged_role)
     response = client.patch(f"/api/v1.0/rooms/{room.id!s}/", {"name": "new name"})
     assert response.status_code == 200
+    assert "livekit" not in response.json()
     room.refresh_from_db()
     assert room.name == "new name"
 

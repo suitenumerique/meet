@@ -309,35 +309,36 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         ensure_room_not_deleted(obj)
         return obj
 
+    def _get_object_or_unregistered_slug(self):
+        """Return the requested room, or the slug of an unregistered room."""
+        try:
+            return self.get_object(), None
+        except Http404:
+            slug = slugify(self.kwargs["pk"])
+            if not settings.ALLOW_UNREGISTERED_ROOMS or not slug:
+                raise
+            return None, slug
+
+    @staticmethod
+    def _get_unregistered_room_data(slug):
+        """Describe an unregistered room, which only exists by its slug."""
+        return {
+            "id": None,
+            "slug": slug,
+            "is_administrable": False,
+            "access_level": RoomAccessLevel.PUBLIC,
+        }
+
     def retrieve(self, request, *args, **kwargs):
         """
         Allow unregistered rooms when activated.
-        For unregistered rooms we only return a null id and the livekit room and token.
+        LiveKit credentials are never returned: they are obtained by joining.
         """
-        try:
-            instance = self.get_object()
-        except Http404:
-            if not settings.ALLOW_UNREGISTERED_ROOMS:
-                raise
-            slug = slugify(self.kwargs["pk"])
-            username = request.query_params.get("username", None)
-            data = {
-                "id": None,
-                "slug": slug,
-                "is_administrable": False,
-                "access_level": RoomAccessLevel.PUBLIC,
-                "livekit": {
-                    "url": settings.LIVEKIT_CONFIGURATION["url"],
-                    "room": slug,
-                    "token": utils.generate_token(
-                        room=slug, user=request.user, username=username
-                    ),
-                },
-            }
-        else:
-            data = self.get_serializer(instance).data
+        room, slug = self._get_object_or_unregistered_slug()
+        if room is None:
+            return drf_response.Response(self._get_unregistered_room_data(slug))
 
-        return drf_response.Response(data)
+        return drf_response.Response(self.get_serializer(room).data)
 
     def list(self, request, *args, **kwargs):
         """Limit listed rooms to the ones related to the authenticated user."""
@@ -571,6 +572,55 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         return drf_response.Response(
             {"message": f"Recording stopped for room {room.slug}."}
         )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="join",
+        permission_classes=[],
+    )
+    def join(self, request, pk=None):  # pylint: disable=unused-argument
+        """
+        Join a room, getting LiveKit credentials when allowed to enter directly.
+
+        The response contains the room with a livekit object holding the url,
+        room and token to connect with when the requester may enter without
+        going through the lobby. Otherwise, it has no livekit object and the
+        client should request entry through the lobby.
+
+        Unregistered rooms, when allowed, are always joined directly.
+        """
+
+        serializer = serializers.JoinRoomSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get("username") or None
+
+        room, slug = self._get_object_or_unregistered_slug()
+        if room is None:
+            return drf_response.Response(
+                {
+                    **self._get_unregistered_room_data(slug),
+                    "livekit": utils.generate_livekit_config(
+                        room_id=slug, user=request.user, username=username
+                    ),
+                }
+            )
+
+        role = room.get_role(request.user)
+        data = self.get_serializer(
+            room, context={**self.get_serializer_context(), "role": role}
+        ).data
+
+        if LobbyService.can_bypass_lobby(room=room, user=request.user, role=role):
+            data["livekit"] = utils.generate_livekit_config(
+                room_id=str(room.id),
+                user=request.user,
+                username=username,
+                configuration=data["configuration"],
+                role=role,
+            )
+
+        return drf_response.Response(data)
 
     @decorators.action(
         detail=True,
