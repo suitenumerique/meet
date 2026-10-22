@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- 🌐(i18n) add Russian language support
+
 ## [1.36.2] - 2026-10-21
 
 ### Fixed
