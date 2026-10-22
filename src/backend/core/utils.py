@@ -20,6 +20,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.utils.crypto import salted_hmac
 
 import aiohttp
 import boto3
@@ -61,6 +62,14 @@ def generate_color(identity: str) -> str:
     return f"hsl({hue}, {saturation}%, {lightness}%)"
 
 
+def user_id_proof(room: str, identity: str, user_id: str) -> str:
+    """Ties the `user_id` attribute to the room and identity of its token: the
+    attributes can be changed during the call, the room and identity cannot."""
+    return salted_hmac(
+        "core.livekit.user_id", f"{room}:{identity}:{user_id}", algorithm="sha256"
+    ).hexdigest()
+
+
 def generate_token(  # noqa: PLR0917
     room: str,
     user,
@@ -86,6 +95,10 @@ def generate_token(  # noqa: PLR0917
         participant_id (Optional[str]): Stable identifier for anonymous users;
                          used as identity when user.is_anonymous.
         ttl (Optional[timedelta]): Token validity duration. Defaults to LiveKit SDK default.
+
+    The token of an authenticated user carries the user in its `user_id`
+    attribute, with its `user_id_proof`: the identity alone names nobody, an
+    anonymous participant's comes from the client.
 
     Returns:
         str: The LiveKit JWT access token.
@@ -123,6 +136,16 @@ def generate_token(  # noqa: PLR0917
     )
     display_name = (username or default_username) if can_edit else default_username
 
+    attributes = {
+        "color": color,
+        "room_role": role,
+        "is_authenticated": "true" if user.is_authenticated else "false",
+    }
+    if user.is_authenticated:
+        # The user behind the identity, for LiveKitTokenAuthentication
+        attributes["user_id"] = str(user.pk)
+        attributes["user_id_proof"] = user_id_proof(room, identity, str(user.pk))
+
     token = (
         AccessToken(
             api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
@@ -131,13 +154,7 @@ def generate_token(  # noqa: PLR0917
         .with_grants(video_grants)
         .with_identity(identity)
         .with_name(display_name)
-        .with_attributes(
-            {
-                "color": color,
-                "room_role": role,
-                "is_authenticated": "true" if user.is_authenticated else "false",
-            }
-        )
+        .with_attributes(attributes)
     )
     if ttl is not None:
         token = token.with_ttl(ttl)
