@@ -61,6 +61,7 @@ def test_api_rooms_list_authenticated():
     }
     results_id = {result["id"] for result in results}
     assert expected_ids == results_id
+    assert all("livekit" not in result for result in results)
 
 
 @mock.patch.object(PageNumberPagination, "get_page_size", return_value=2)
@@ -172,3 +173,4 @@ def test_api_rooms_list_authenticated_with_user_access_token():
     assert response.status_code == 200
     assert response.data["count"] == 1
     assert response.data["results"][0]["id"] == str(room.id)
+    assert "livekit" not in response.data["results"][0]

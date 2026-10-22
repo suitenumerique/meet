@@ -2,7 +2,7 @@
 Test rooms API endpoints in the Meet core app: lobby functionality.
 """
 
-# pylint: disable=W0621,W0613,W0212
+# pylint: disable=W0621,W0613,W0212,too-many-lines
 import uuid
 from unittest import mock
 
@@ -358,6 +358,40 @@ def test_request_entry_invalid_data():
     )
 
     assert response.status_code == 400
+
+
+def test_request_entry_username_too_long():
+    """Should return 400 for a username exceeding 255 characters."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    with mock.patch.object(utils, "notify_participants") as mock_notify:
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "a" * 256},
+        )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "username": ["Ensure this field has no more than 255 characters."]
+    }
+    mock_notify.assert_not_called()
+    assert not LobbyService()._index_members(room.id)
+
+
+def test_request_entry_username_at_max_length():
+    """Should accept a username of exactly 255 characters."""
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    client = APIClient()
+
+    with mock.patch.object(utils, "notify_participants", return_value=None):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "a" * 255},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["username"] == "a" * 255
 
 
 def test_request_entry_room_not_found():
