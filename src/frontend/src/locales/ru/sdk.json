@@ -1,0 +1,18 @@
+{
+  "createMeeting": {
+    "createButton": "Создать",
+    "joinButton": "Присоединиться через Visio",
+    "copyLinkTooltip": "Скопировать ссылку",
+    "resetLabel": "Сбросить",
+    "participantLimit": "До 150 участников.",
+    "popupBlocked": "Всплывающее окно заблокировано. Разрешите всплывающие окна для этого сайта.",
+    "settingsTooltip": "Настройки встречи"
+  },
+  "roomSettings": {
+    "title": "Настройки встречи",
+    "description": "Настройка встречи {{roomSlug}}.",
+    "notAllowed": "У вас нет прав на изменение настроек этой встречи.",
+    "error": "Не удалось загрузить настройки встречи.",
+    "closeButton": "Закрыть"
+  }
+}

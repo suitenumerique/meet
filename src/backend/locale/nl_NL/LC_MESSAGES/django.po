@@ -703,3 +703,7 @@ msgstr "Duits"
 #: meet/settings.py:242
 msgid "Spanish"
 msgstr "Spaans"
+
+#: meet/settings.py:294
+msgid "Russian"
+msgstr "Russisch"
