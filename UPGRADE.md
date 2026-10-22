@@ -16,6 +16,24 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### LiveKit token authentication
+
+The endpoints authenticated by a LiveKit room token (`start-subtitle`,
+`mute-participant`, `toggle-hand`, `rename`) no longer take the user from the
+token identity: Meet now sets a `user_id` attribute and its `user_id_proof` in
+the token of every authenticated user, and only that proof names a user. A
+token minted before the upgrade has no proof, so on these endpoints its holder
+is anonymous until they join the room again (reloading the page is enough). The
+proof is keyed by `DJANGO_SECRET_KEY`: all backend replicas must share it, and a
+rotation has the same effect as the upgrade on the tokens already minted.
+
+### External API: LiveKit tokens
+
+The new `POST /external-api/v1.0/rooms/{id}/livekit-token/` needs the
+`rooms:livekit_token` scope, which no application has: give it to the
+applications that mint LiveKit tokens. Its tokens live
+`APPLICATION_LIVEKIT_TOKEN_TTL_SECONDS` (six hours by default).
+
 ### Purging deleted rooms
 
 Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/features/room-purge.md).

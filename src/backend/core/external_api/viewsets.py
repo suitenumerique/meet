@@ -1,6 +1,7 @@
 """External API endpoints"""
 
 import copy
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -22,7 +23,7 @@ from rest_framework import (
 )
 from rest_framework.generics import get_object_or_404
 
-from core import analytics, api, audit, auditing, models
+from core import analytics, api, audit, auditing, models, utils
 from core.api.exceptions import ensure_room_not_deleted
 from core.api.feature_flag import FeatureFlag
 from core.api.locks import room_locked_for_update
@@ -196,6 +197,9 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
       administrators and owners only (requires 'rooms:update' scope)
     - destroy: Soft delete a room and close its LiveKit room, for owners only
       (requires 'rooms:delete' scope)
+    - livekit-token: Mint a LiveKit token for the user in a room (applications
+      only, requires 'rooms:livekit_token' scope; no role on the room needed,
+      the application vouches for the user)
 
     Detail operations on a soft-deleted room answer 410 Gone.
     """
@@ -257,6 +261,75 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
         self.audit_details = {"total": len(serializer.data)}
         return drf_response.Response(serializer.data)
 
+    @decorators.action(
+        detail=True,
+        methods=["post"],
+        url_path="livekit-token",
+        url_name="livekit-token",
+        # Applications only: the token is minted for any room, with the role
+        # the caller gives, so no token an end user can hold may reach it
+        authentication_classes=[authentication.ApplicationJWTAuthentication],
+        permission_classes=[
+            api.permissions.IsAuthenticated & permissions.HasRequiredRoomScope
+        ],
+        audit_action=auditing.ROOM_LIVEKIT_TOKEN,
+    )
+    def livekit_token(self, request, pk=None):  # pylint: disable=unused-argument
+        """Mint a LiveKit token for the delegated user, with the identity the
+        application imposes (`@user:server:device`, as a MatrixRTC client
+        derives it). Meet then knows the participant: recording, transcription
+        and the raised hands follow its rules."""
+        serializer = serializers.LivekitTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        room = self.get_object()
+        user = request.user
+        client_id = (request.auth or {}).get("client_id")
+
+        # Only the rooms this application created: its secret, once leaked,
+        # must not open the rooms people made in Meet
+        application = room.created_by_application
+        if application is None or application.client_id != client_id:
+            raise drf_exceptions.NotFound()
+
+        sub_set = None
+        sub = data.get("sub")
+        if sub and not user.sub:
+            user.sub = sub
+            try:
+                user.save(update_fields=["sub"])
+                sub_set = True
+            except ValidationError:
+                # Say nothing of it to the caller: the answer would tell
+                # whether a sub exists
+                user.sub = None
+                sub_set = False
+
+        identity = data["identity"]
+        matrix_user_id, _, matrix_device_id = identity.rpartition(":")
+        role = data.get("role")
+        livekit_config = utils.generate_livekit_config(
+            room_id=str(room.id),
+            user=user,
+            username=data.get("username"),
+            role=role,
+            configuration=room.configuration,
+            identity=identity,
+            extra_attributes={
+                "matrix_user_id": matrix_user_id,
+                "matrix_device_id": matrix_device_id,
+            },
+            ttl=timedelta(seconds=settings.APPLICATION_LIVEKIT_TOKEN_TTL_SECONDS),
+        )
+
+        self.audit_target = room
+        self.audit_user_target = user
+        self.audit_details = {"identity": identity, "role": role}
+        if sub_set is not None:
+            self.audit_details["sub_set"] = sub_set
+
+        return drf_response.Response(livekit_config)
+
     def _track_room_event(self, room, event, **extra_properties):
         """Add a room operation to the audit event and forward it to analytics."""
 
@@ -281,8 +354,17 @@ class RoomViewSet(  # pylint: disable=too-many-ancestors
         )
 
     def perform_create(self, serializer: serializers.RoomSerializer):
-        """Set the current user as owner of the newly created room."""
-        room = serializer.save()
+        """Set the current user as owner of the newly created room, and keep
+        the application that created it."""
+        application = None
+        if isinstance(
+            self.request.successful_authenticator,
+            authentication.ApplicationJWTAuthentication,
+        ):
+            application = models.Application.objects.filter(
+                client_id=self.request.auth.get("client_id")
+            ).first()
+        room = serializer.save(created_by_application=application)
         self.audit_target = room
         models.ResourceAccess.objects.create(
             resource=room,

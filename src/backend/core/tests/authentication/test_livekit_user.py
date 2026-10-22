@@ -2,15 +2,20 @@
 Tests of the user LiveKitTokenAuthentication resolves.
 """
 
+from unittest import mock
+
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 
+import jwt
 import pytest
 from livekit.api import AccessToken, TokenVerifier, VideoGrants
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APIClient, APIRequestFactory
 
+from core import utils
 from core.authentication.livekit import LiveKitTokenAuthentication
-from core.factories import UserFactory
+from core.factories import RoomFactory, UserFactory
+from core.models import RoomAccessLevel
 from core.utils import generate_token
 
 pytestmark = pytest.mark.django_db
@@ -58,6 +63,19 @@ def test_user_of_a_token_meet_minted_for_them():
     user, claims = authenticate(generate_token(room="room", user=alice))
 
     assert claims.identity == "alice-sub"
+    assert user == alice
+
+
+def test_user_behind_an_imposed_identity():
+    """An imposed identity (`user:device`) names nobody: the `user_id`
+    attribute does, even for a user without a sub."""
+    alice = UserFactory(sub=None)
+
+    user, claims = authenticate(
+        generate_token(room="room", user=alice, identity="@alice:localhost:DEVICE")
+    )
+
+    assert claims.identity == "@alice:localhost:DEVICE"
     assert user == alice
 
 
@@ -136,3 +154,28 @@ def test_no_user_for_a_disabled_account():
     user, _ = authenticate(token)
 
     assert user.is_anonymous
+
+
+def test_request_entry_authenticated_user_keeps_its_sub_as_identity():
+    """The LiveKit identity of a signed in user is its sub, not the lobby id:
+    the roles of the participants are found by it."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+
+    with mock.patch.object(utils, "notify_participants", return_value=None):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/",
+            {"username": "test_user"},
+        )
+
+    assert response.status_code == 200
+    claims = jwt.decode(
+        response.json()["livekit"]["token"],
+        settings.LIVEKIT_CONFIGURATION["api_secret"],
+        algorithms=["HS256"],
+    )
+    assert claims["sub"] == str(user.sub)
+    assert claims["sub"] != response.json()["id"]
+    assert claims["attributes"]["user_id"] == str(user.pk)
