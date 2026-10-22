@@ -8,6 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) mint LiveKit tokens for delegated users in the external API
+
+### Changed
+
+- ♻️(backend) name the user of a LiveKit token by a signed attribute
+
 ## [1.36.2] - 2026-10-21
 
 ### Fixed

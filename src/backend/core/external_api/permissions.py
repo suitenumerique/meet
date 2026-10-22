@@ -143,6 +143,7 @@ class HasRequiredRoomScope(BaseScopePermission):
         "update": models.ApplicationScope.ROOMS_UPDATE,
         "partial_update": models.ApplicationScope.ROOMS_UPDATE,
         "destroy": models.ApplicationScope.ROOMS_DELETE,
+        "livekit_token": models.ApplicationScope.ROOMS_LIVEKIT_TOKEN,
     }
 
 

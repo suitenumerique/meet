@@ -477,6 +477,17 @@ class Room(Resource):
         editable=False,
     )
 
+    created_by_application = models.ForeignKey(
+        "Application",
+        on_delete=models.SET_NULL,
+        related_name="rooms",
+        blank=True,
+        null=True,
+        editable=False,
+        verbose_name=_("Application that created the room"),
+        help_text=_("Set when the room was created through the external API."),
+    )
+
     # Managers
     objects = RoomManager()
     all_objects = models.Manager.from_queryset(RoomQuerySet)()
@@ -902,6 +913,7 @@ class ApplicationScope(models.TextChoices):
     ROOMS_UPDATE = "rooms:update", _("Update rooms")
     ROOMS_DELETE = "rooms:delete", _("Delete rooms")
     USERS_SESSION = "users:session", _("Create user session tokens")
+    ROOMS_LIVEKIT_TOKEN = "rooms:livekit_token", _("Mint LiveKit tokens")
 
 
 class Application(BaseModel):

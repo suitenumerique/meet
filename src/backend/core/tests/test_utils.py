@@ -28,6 +28,7 @@ from core.utils import (
     create_livekit_client,
     generate_token,
     notify_participants,
+    user_id_proof,
 )
 
 pytestmark = pytest.mark.django_db
@@ -114,6 +115,42 @@ def test_anonymous_falls_back_to_anonymous_label():
     token = generate_token(room="my-room", user=AnonymousUser())
     claims = decode_token(token)
     assert claims["name"] == "Anonymous"
+
+
+def test_generate_token_authenticated_carries_the_user_and_its_proof():
+    """The token of a user carries the user and the proof that ties it to the
+    room and identity of the token."""
+    user = UserFactory()
+
+    claims = decode_token(generate_token(room="my-room", user=user))
+
+    assert claims["attributes"]["user_id"] == str(user.pk)
+    assert claims["attributes"]["user_id_proof"] == user_id_proof(
+        "my-room", str(user.sub), str(user.pk)
+    )
+
+
+def test_generate_token_anonymous_carries_no_user():
+    """The token of an anonymous participant names no user, whatever its
+    identity."""
+    UserFactory(sub="alice-sub")
+
+    claims = decode_token(
+        generate_token(room="my-room", user=AnonymousUser(), participant_id="alice-sub")
+    )
+
+    assert "user_id" not in claims["attributes"]
+    assert "user_id_proof" not in claims["attributes"]
+
+
+def test_user_id_proof_depends_on_the_room_the_identity_and_the_user():
+    """The proof of one (room, identity, user) is not that of another."""
+    proof = user_id_proof("room", "identity", "user")
+
+    assert proof == user_id_proof("room", "identity", "user")
+    assert proof != user_id_proof("other", "identity", "user")
+    assert proof != user_id_proof("room", "other", "user")
+    assert proof != user_id_proof("room", "identity", "other")
 
 
 @pytest.fixture

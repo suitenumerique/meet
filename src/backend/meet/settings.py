@@ -1162,6 +1162,15 @@ class Base(Configuration):
         environ_name="APPLICATION_JWT_EXPIRATION_SECONDS",
         environ_prefix=None,
     )
+    # Lifetime of the LiveKit tokens minted for an application. A participant
+    # the application no longer vouches for keeps the token that long. Six
+    # hours is the default of the LiveKit SDK: a client that does not renew
+    # its token needs it to outlive the call.
+    APPLICATION_LIVEKIT_TOKEN_TTL_SECONDS = values.PositiveIntegerValue(
+        21600,
+        environ_name="APPLICATION_LIVEKIT_TOKEN_TTL_SECONDS",
+        environ_prefix=None,
+    )
     APPLICATION_JWT_TOKEN_TYPE = values.Value(
         "Bearer",
         environ_name="APPLICATION_JWT_TOKEN_TYPE",

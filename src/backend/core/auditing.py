@@ -30,6 +30,7 @@ TRANSIT_CODE_EXCHANGE = audit.Action(
 ROOM_CREATE = audit.Action("room.create")
 ROOM_LIST = audit.Action("room.list")
 ROOM_RETRIEVE = audit.Action("room.retrieve")
+ROOM_LIVEKIT_TOKEN = audit.Action("room.livekit_token", types=(EventType.CREATION,))
 ROOM_DELETE = audit.Action("room.delete")
 ROOM_UPDATE = audit.Action("room.update")
 RECORDING_START = audit.Action("recording.start", types=(EventType.START,))
