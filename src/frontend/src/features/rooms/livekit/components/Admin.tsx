@@ -3,13 +3,11 @@ import { css } from '@/styled-system/css'
 import { Separator as RACSeparator } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
-import { fetchRoom } from '@/features/rooms/api/fetchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
-import { keys } from '@/api/queryKeys'
-import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
 import { usePermissionsManager } from '../hooks/usePermissionsManager'
+import { useRoomData } from '../hooks/useRoomData'
 import { useEffect } from 'react'
 import { closeSidePanel } from '@/stores/layout'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
@@ -34,12 +32,10 @@ export const Admin = () => {
     }
   }, [isAdminOrOwner])
 
-  const { data: readOnlyData } = useQuery({
-    queryKey: [keys.room, roomId],
-    queryFn: () => fetchRoom({ roomId }),
-    retry: false,
-    enabled: false,
-  })
+  // Read the cached room only: an observer with its own queryFn could serve
+  // the refetch that follows a setting change with a GET, which returns no
+  // LiveKit credentials
+  const readOnlyData = useRoomData()
 
   const {
     toggleMicrophone,

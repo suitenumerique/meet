@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useSnapshot } from 'valtio'
 import { css } from '@/styled-system/css'
 import { VStack } from '@/styled-system/jsx'
@@ -10,14 +10,39 @@ import { Form, Text } from '@/primitives'
 import { Spinner } from '@/primitives/Spinner'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
+import type { ApiError } from '@/api/ApiError'
 import { useLoginHint } from '@/hooks/useLoginHint'
 import { useUser } from '@/features/auth/api/useUser'
 import { useConfig } from '@/api/useConfig'
 import { saveUsername, userStore } from '@/stores/user'
-import { fetchRoom } from '../api/fetchRoom'
-import { ApiAccessLevel } from '../api/ApiRoom'
-import { ApiLobbyStatus, type ApiRequestEntry } from '../api/requestEntry'
+import { joinRoom, type JoinRoomParams } from '../api/joinRoom'
+import { ApiAccessLevel, type ApiRoom } from '../api/ApiRoom'
+import { ApiLobbyStatus } from '../api/requestEntry'
 import { useLobby } from '../hooks/useLobby'
+
+const LobbyMessage = ({
+  title,
+  body,
+  children,
+}: {
+  title: string
+  body: string
+  children?: ReactNode
+}) => (
+  <VStack alignItems="center" textAlign="center">
+    <H lvl={1} margin={false} centered>
+      {title}
+    </H>
+    <Text
+      as="p"
+      variant="note"
+      className={children ? css({ marginBottom: '1.5rem' }) : undefined}
+    >
+      {body}
+    </Text>
+    {children}
+  </VStack>
+)
 
 export const Lobby = ({
   roomId,
@@ -27,124 +52,97 @@ export const Lobby = ({
   enterRoom: () => void
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join' })
-
   const { data: configData } = useConfig()
   const { isLoggedIn, user } = useUser()
   const { username } = useSnapshot(userStore)
+  const { openLoginHint } = useLoginHint()
 
-  // Room data strategy:
-  // 1. Initial fetch is performed to check access and get LiveKit configuration
-  // 2. Data remains valid for 6 hours to avoid unnecessary refetches
-  // 3. State is manually updated via queryClient when a waiting participant is accepted
-  // 4. No automatic refetching or revalidation occurs during this period
+  const displayName = username || user?.full_name
+
+  // Join strategy:
+  // 1. Submitting the form asks to join the room, which checks access
+  // 2. The response is written to the [keys.room] cache entry, which
+  //    Conference reuses without refetching. It holds the LiveKit credentials
+  //    when the user may bypass the lobby
+  // 3. Otherwise the user waits in the lobby, and the credentials returned
+  //    once accepted are added to it
   const {
+    mutate: join,
     data: roomData,
     error,
     isError,
-    refetch: refetchRoom,
-  } = useQuery({
-    queryKey: [keys.room, roomId],
-    queryFn: () => fetchRoom({ roomId, username: username || user?.full_name }),
-    staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
-    retry: false,
-    enabled: false,
-  })
-
-  useEffect(() => {
-    if (isError && error?.statusCode == 404) {
+  } = useMutation<ApiRoom, ApiError, JoinRoomParams>({
+    mutationFn: joinRoom,
+    onSuccess: (room) => {
+      queryClient.setQueryData([keys.room, roomId], room)
+    },
+    onError: ({ statusCode }) => {
       // The room component will handle the room creation if the user is authenticated
-      enterRoom()
-    }
-  }, [isError, error, enterRoom])
-
-  const handleAccepted = (response: ApiRequestEntry) => {
-    queryClient.setQueryData([keys.room, roomId], {
-      ...roomData,
-      livekit: response.livekit,
-    })
-    enterRoom()
-  }
+      if (statusCode == 404) enterRoom()
+    },
+  })
 
   const { status, startWaiting } = useLobby({
     roomId,
-    username: username || user?.full_name || 'anonymous',
-    onAccepted: handleAccepted,
+    username: displayName || 'anonymous',
+    onAccepted: (response) => {
+      queryClient.setQueryData([keys.room, roomId], {
+        ...roomData,
+        livekit: response.livekit,
+      })
+      enterRoom()
+    },
   })
-
-  const { openLoginHint } = useLoginHint()
-
-  const handleSubmit = async () => {
-    const { data, error } = await refetchRoom()
-
-    if (error?.statusCode == 410) return
-
-    if (!data?.livekit) {
-      // Display a message to inform the user that by logging in, they won't have to wait for room entry approval.
-      if (data?.access_level == ApiAccessLevel.TRUSTED) {
-        openLoginHint()
-      }
-      startWaiting()
-      return
-    }
-
-    enterRoom()
-  }
 
   const isRoomDeleted = isError && error?.statusCode == 410
   const lobbyStatus = isRoomDeleted ? ApiLobbyStatus.DELETED : status
 
+  const handleSubmit = () => {
+    join(
+      { roomId, username: displayName || undefined },
+      {
+        onSuccess: (data) => {
+          if (data.livekit) {
+            enterRoom()
+            return
+          }
+          if (data.access_level == ApiAccessLevel.TRUSTED) {
+            openLoginHint()
+          }
+          startWaiting()
+        },
+        onError: ({ statusCode }) => {
+          // 404 enters the room and creates it
+          // 410 shows the deleted room screen
+          // Any other error falls back to the lobby
+          if (statusCode != 404 && statusCode != 410) startWaiting()
+        },
+      }
+    )
+  }
+
   switch (lobbyStatus) {
     case ApiLobbyStatus.DELETED:
       return (
-        <VStack alignItems="center" textAlign="center">
-          <H lvl={1} margin={false} centered>
-            {t('deleted.title')}
-          </H>
-          <Text as="p" variant="note">
-            {t('deleted.body')}
-          </Text>
-        </VStack>
+        <LobbyMessage title={t('deleted.title')} body={t('deleted.body')} />
       )
 
     case ApiLobbyStatus.TIMEOUT:
       return (
-        <VStack alignItems="center" textAlign="center">
-          <H lvl={1} margin={false} centered>
-            {t('timeoutInvite.title')}
-          </H>
-          <Text as="p" variant="note">
-            {t('timeoutInvite.body')}
-          </Text>
-        </VStack>
+        <LobbyMessage
+          title={t('timeoutInvite.title')}
+          body={t('timeoutInvite.body')}
+        />
       )
 
     case ApiLobbyStatus.DENIED:
-      return (
-        <VStack alignItems="center" textAlign="center">
-          <H lvl={1} margin={false} centered>
-            {t('denied.title')}
-          </H>
-          <Text as="p" variant="note">
-            {t('denied.body')}
-          </Text>
-        </VStack>
-      )
+      return <LobbyMessage title={t('denied.title')} body={t('denied.body')} />
 
     case ApiLobbyStatus.WAITING:
       return (
-        <VStack alignItems="center" textAlign="center">
-          <H lvl={1} margin={false} centered>
-            {t('waiting.title')}
-          </H>
-          <Text
-            as="p"
-            variant="note"
-            className={css({ marginBottom: '1.5rem' })}
-          >
-            {t('waiting.body')}
-          </Text>
+        <LobbyMessage title={t('waiting.title')} body={t('waiting.body')}>
           <Spinner />
-        </VStack>
+        </LobbyMessage>
       )
 
     default:
@@ -168,7 +166,7 @@ export const Lobby = ({
                 label={t('usernameLabel')}
                 aria-label={t('usernameLabel')}
                 id="input-name"
-                defaultValue={username || user?.full_name}
+                defaultValue={displayName}
                 validate={(value) => !value && t('errors.usernameEmpty')}
                 wrapperProps={{
                   noMargin: true,

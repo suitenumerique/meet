@@ -23,11 +23,13 @@ and this project adheres to
 - ⬆️(agents) update python dependencies
 - ⬆️(summary) update python dependencies
 - 🔒️(backend) issue room access tokens via POST rooms/{id}/join/ only
+- 🔒️(frontend) send the display name in the join request body
 
 ### Fixed
 
 - 🐛(frontend) show a page when the connection ends unexpectedly
 - 🐛(frontend) show the transcript mic hint when every mic is muted
+- 🐛(frontend) send users who cannot enter directly back to the lobby
 
 ## [1.37.0] - 2026-11-01
 

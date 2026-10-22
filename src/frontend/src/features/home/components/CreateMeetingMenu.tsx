@@ -9,12 +9,8 @@ import { useState } from 'react'
 
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { ApiRoom } from '@/features/rooms/api/ApiRoom'
-import { useSnapshot } from 'valtio'
-import { userStore } from '@/stores/user'
 
 export const CreateMeetingMenu = () => {
-  const { username } = useSnapshot(userStore)
-
   const { t } = useTranslation('home')
   const { mutateAsync: createRoom } = useCreateRoom()
   const [laterRoom, setLaterRoom] = useState<null | ApiRoom>(null)
@@ -30,9 +26,9 @@ export const CreateMeetingMenu = () => {
             className={menuRecipe({ icon: true, variant: 'light' }).item}
             onAction={() => {
               const slug = generateRoomId()
-              createRoom({ slug, username }).then((data) =>
+              createRoom({ slug }).then((data) =>
                 navigateTo('room', data.slug, {
-                  state: { create: true, initialRoomData: data },
+                  state: { create: true },
                 })
               )
             }}
@@ -45,7 +41,7 @@ export const CreateMeetingMenu = () => {
             className={menuRecipe({ icon: true, variant: 'light' }).item}
             onAction={() => {
               const slug = generateRoomId()
-              createRoom({ slug, username }).then(setLaterRoom)
+              createRoom({ slug }).then(setLaterRoom)
             }}
             data-attr="create-option-later"
           >

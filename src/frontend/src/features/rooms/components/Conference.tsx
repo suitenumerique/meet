@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -10,17 +10,16 @@ import {
   ConnectionErrorReason,
   DisconnectReason,
   MediaDeviceFailure,
+  type Room,
   type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
 import { getMediaDeviceFailure } from '@/features/rooms/livekit/utils/mediaPermissions'
 import { keys } from '@/api/queryKeys'
-import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
-import { fetchRoom } from '../api/fetchRoom'
-import type { ApiRoom } from '../api/ApiRoom'
+import { joinRoom } from '../api/joinRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
 import { VideoConference } from '../livekit/prefabs/VideoConference'
@@ -32,7 +31,7 @@ import {
   captureMediaEvent,
   reportError,
 } from '@/features/analytics/telemetry'
-import { useConfig } from '@/api/useConfig'
+import { type ApiConfig, useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
@@ -47,6 +46,13 @@ import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constant
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
 import { createLiveKitRoom } from '@/features/rooms/livekit/utils/reconnectPolicy'
+
+// Some clients (like DINUM) operate in bandwidth-constrained environments
+// These settings help ensure successful connections in poor network conditions
+const connectOptions = {
+  maxRetries: 5, // Default: 1. Only for unreachable server scenarios
+  peerConnectionTimeout: 60000, // Default: 15s. Extended for slow TURN/TLS negotiation
+}
 
 const handleError = (e: Error) => {
   const failure = getMediaDeviceFailure(e)
@@ -66,64 +72,110 @@ const handleError = (e: Error) => {
   })
 }
 
+/**
+ * Warm up connection to LiveKit server before joining room
+ * This prefetch helps reduce initial connection latency by establishing
+ * an early HTTP connection to the WebRTC signaling server
+ *
+ * It should cache DNS and TLS keys.
+ */
+const warmUpConnection = async (room: Room, livekit: ApiConfig['livekit']) => {
+  await room.prepareConnection(livekit.url)
+
+  if (isFireFox() && livekit.enable_firefox_proxy_workaround) {
+    try {
+      const wssUrl =
+        livekit.url.replace('https://', 'wss://').replace(/\/$/, '') + '/rtc'
+
+      /**
+       * FIREFOX + PROXY WORKAROUND:
+       *
+       * Issue: On Firefox behind proxy configurations, WebSocket signaling fails to establish.
+       * Symptom: Client receives HTTP 200 instead of expected 101 (Switching Protocols).
+       * Root Cause: Certificate/security issue where the initial request is considered insecure.
+       *
+       * Solution: Pre-establish a WebSocket connection to the signaling server, which fails.
+       * This "primes" the connection, allowing subsequent WebSocket establishments to work correctly.
+       *
+       * Note: This issue is reproducible on LiveKit's demo app.
+       * Reference: livekit-examples/meet/issues/466
+       */
+      const ws = new WebSocket(wssUrl)
+      // 401 unauthorized response is expected
+      ws.onerror = () => ws.readyState <= 1 && ws.close()
+    } catch (e) {
+      console.debug('Firefox WebSocket workaround failed.', e)
+    }
+  }
+}
+
+const getConnectionEndReason = (
+  reason: DisconnectReason | undefined,
+  hasConnected: boolean
+) => {
+  switch (reason) {
+    case DisconnectReason.CLIENT_INITIATED:
+      return undefined
+    case DisconnectReason.DUPLICATE_IDENTITY:
+    case DisconnectReason.PARTICIPANT_REMOVED:
+    case DisconnectReason.ROOM_DELETED:
+      return reason
+    default:
+      // Reconnecting gave up, or the join itself failed
+      return hasConnected
+        ? ConnectionEndReason.Lost
+        : ConnectionEndReason.Failed
+  }
+}
+
 export const Conference = ({
   roomId,
-  initialRoomData,
   mode = 'join',
+  onLobbyRequired,
 }: {
   roomId: string
   mode?: 'join' | 'create'
-  initialRoomData?: ApiRoom
+  onLobbyRequired: () => void
 }) => {
+  const { t } = useTranslation('rooms')
   const { data: apiConfig } = useConfig()
-
   const { userChoices: userConfig } = usePersistentUserChoices() as {
     userChoices: LocalUserChoices
   }
-
   const { username } = useSnapshot(userStore)
-
-  useEffect(() => {
-    void captureMediaEvent('visit-room', { slug: roomId })
-  }, [roomId])
-  const fetchKey = [keys.room, roomId]
-
-  const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
-
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
+  const isMobile = useIsMobile()
 
-  const {
-    mutateAsync: createRoom,
-    status: createStatus,
-    isError: isCreateError,
-  } = useCreateRoom({
-    onSuccess: (data) => {
-      queryClient.setQueryData(fetchKey, data)
-    },
-  })
+  const [hasJoined, setHasJoined] = useState(false)
+  const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
+  const hasAutoMutedRef = useRef(false)
+  const hasConnectedRef = useRef(false)
 
+  const { mutateAsync: createRoom, isError: isCreateError } = useCreateRoom()
   const {
     status: fetchStatus,
-    isError: isFetchError,
     error: fetchError,
-    data,
+    data: createRoomData,
   } = useQuery({
-    queryKey: fetchKey,
+    queryKey: [keys.room, roomId],
     staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
-    initialData: initialRoomData,
     queryFn: () =>
-      fetchRoom({
-        roomId: roomId as string,
-        username: username,
-      }).catch((error) => {
-        if (error.statusCode == '404') {
-          createRoom({ slug: roomId, username })
-        }
-        // A deleted room can't be recreated, surface the error instead
-        if (error.statusCode == '410') throw error
+      joinRoom({ roomId, username }).catch(async (error) => {
+        if (error.statusCode != 404) throw error
+        await createRoom({ slug: roomId })
+        return joinRoom({ roomId, username })
       }),
     retry: false,
   })
+
+  const isLobbyRequired =
+    !!createRoomData && !createRoomData.livekit && !hasJoined
+  const status =
+    createRoomData?.livekit || hasJoined
+      ? 'success'
+      : isLobbyRequired
+        ? 'pending'
+        : fetchStatus
 
   const roomOptions = useMemo((): RoomOptions => {
     return {
@@ -155,61 +207,10 @@ export const Conference = ({
     apiConfig?.livekit.default_video_codec,
   ])
 
-  const reconnect = apiConfig?.livekit.reconnect
   const room = useMemo(
-    () => createLiveKitRoom(roomOptions, reconnect),
-    [roomOptions, reconnect]
+    () => createLiveKitRoom(roomOptions, apiConfig?.livekit.reconnect),
+    [roomOptions, apiConfig?.livekit.reconnect]
   )
-
-  useEffect(() => {
-    /**
-     * Warm up connection to LiveKit server before joining room
-     * This prefetch helps reduce initial connection latency by establishing
-     * an early HTTP connection to the WebRTC signaling server
-     *
-     * It should cache DNS and TLS keys.
-     */
-    const prepareConnection = async () => {
-      if (!apiConfig || isConnectionWarmedUp) return
-      await room.prepareConnection(apiConfig.livekit.url)
-
-      if (isFireFox() && apiConfig.livekit.enable_firefox_proxy_workaround) {
-        try {
-          const wssUrl =
-            apiConfig.livekit.url
-              .replace('https://', 'wss://')
-              .replace(/\/$/, '') + '/rtc'
-
-          /**
-           * FIREFOX + PROXY WORKAROUND:
-           *
-           * Issue: On Firefox behind proxy configurations, WebSocket signaling fails to establish.
-           * Symptom: Client receives HTTP 200 instead of expected 101 (Switching Protocols).
-           * Root Cause: Certificate/security issue where the initial request is considered insecure.
-           *
-           * Solution: Pre-establish a WebSocket connection to the signaling server, which fails.
-           * This "primes" the connection, allowing subsequent WebSocket establishments to work correctly.
-           *
-           * Note: This issue is reproducible on LiveKit's demo app.
-           * Reference: livekit-examples/meet/issues/466
-           */
-          const ws = new WebSocket(wssUrl)
-          // 401 unauthorized response is expected
-          ws.onerror = () => ws.readyState <= 1 && ws.close()
-        } catch (e) {
-          console.debug('Firefox WebSocket workaround failed.', e)
-        }
-      }
-
-      setIsConnectionWarmedUp(true)
-    }
-    prepareConnection()
-  }, [room, apiConfig, isConnectionWarmedUp])
-
-  const isMobile = useIsMobile()
-
-  const hasAutoMutedRef = useRef(false)
-  const hasConnectedRef = useRef(false)
 
   /*
    * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
@@ -225,7 +226,61 @@ export const Conference = ({
     return livekit_url
   }, [apiConfig?.livekit])
 
-  const { t } = useTranslation('rooms')
+  const handleConnected = useCallback(async () => {
+    hasConnectedRef.current = true
+    if (!apiConfig) return
+    if (
+      userPreferencesSnap.is_auto_mute_large_room_enabled &&
+      !hasAutoMutedRef.current &&
+      userConfig.audioEnabled &&
+      room.numParticipants > apiConfig.auto_mute_on_join_threshold
+    ) {
+      hasAutoMutedRef.current = true
+      await room.localParticipant.setMicrophoneEnabled(false)
+      notifyAutoMutedOnJoin()
+    }
+  }, [
+    apiConfig,
+    room,
+    userConfig.audioEnabled,
+    userPreferencesSnap.is_auto_mute_large_room_enabled,
+  ])
+
+  const handleDisconnected = useCallback(
+    (reason?: DisconnectReason) => {
+      navigateTo(
+        'feedback',
+        {},
+        {
+          state: {
+            reason: getConnectionEndReason(reason, hasConnectedRef.current),
+            room_id: roomId,
+          },
+        }
+      )
+    },
+    [roomId]
+  )
+
+  useEffect(() => {
+    void captureMediaEvent('visit-room', { slug: roomId })
+  }, [roomId])
+
+  useEffect(() => {
+    if (createRoomData?.livekit) setHasJoined(true)
+  }, [createRoomData?.livekit])
+
+  useEffect(() => {
+    if (isLobbyRequired) onLobbyRequired()
+  }, [isLobbyRequired, onLobbyRequired])
+
+  useEffect(() => {
+    if (!apiConfig || isConnectionWarmedUp) return
+    warmUpConnection(room, apiConfig.livekit).then(() =>
+      setIsConnectionWarmedUp(true)
+    )
+  }, [room, apiConfig, isConnectionWarmedUp])
+
   if (fetchError?.statusCode == 410) {
     return (
       <ErrorScreen
@@ -245,20 +300,13 @@ export const Conference = ({
     )
   }
 
-  // Some clients (like DINUM) operate in bandwidth-constrained environments
-  // These settings help ensure successful connections in poor network conditions
-  const connectOptions = {
-    maxRetries: 5, // Default: 1. Only for unreachable server scenarios
-    peerConnectionTimeout: 60000, // Default: 15s. Extended for slow TURN/TLS negotiation
-  }
-
   return (
-    <QueryAware status={isFetchError ? createStatus : fetchStatus}>
+    <QueryAware status={status}>
       <Screen header={false} footer={false}>
         <LiveKitRoom
           room={room}
           serverUrl={serverUrl}
-          token={data?.livekit?.token}
+          token={createRoomData?.livekit?.token}
           connect={isConnectionWarmedUp}
           audio={userConfig.audioEnabled}
           video={
@@ -273,65 +321,8 @@ export const Conference = ({
             backgroundColor: 'primaryDark.50 !important',
           })}
           onError={handleError}
-          onConnected={async () => {
-            hasConnectedRef.current = true
-            if (!apiConfig) return
-            if (
-              userPreferencesSnap.is_auto_mute_large_room_enabled &&
-              !hasAutoMutedRef.current &&
-              userConfig.audioEnabled &&
-              room.numParticipants > apiConfig.auto_mute_on_join_threshold
-            ) {
-              hasAutoMutedRef.current = true
-              await room.localParticipant.setMicrophoneEnabled(false)
-              notifyAutoMutedOnJoin()
-            }
-          }}
-          onDisconnected={(e) => {
-            const metadata = {
-              room_id: roomId,
-            }
-
-            switch (e) {
-              case DisconnectReason.CLIENT_INITIATED:
-                navigateTo(
-                  'feedback',
-                  {},
-                  {
-                    state: { ...metadata },
-                  }
-                )
-                return
-              case DisconnectReason.DUPLICATE_IDENTITY:
-              case DisconnectReason.PARTICIPANT_REMOVED:
-              case DisconnectReason.ROOM_DELETED:
-                navigateTo(
-                  'feedback',
-                  {},
-                  {
-                    state: {
-                      reason: e,
-                      ...metadata,
-                    },
-                  }
-                )
-                return
-              default:
-                // Reconnecting gave up, or the join itself failed
-                navigateTo(
-                  'feedback',
-                  {},
-                  {
-                    state: {
-                      reason: hasConnectedRef.current
-                        ? ConnectionEndReason.Lost
-                        : ConnectionEndReason.Failed,
-                      ...metadata,
-                    },
-                  }
-                )
-            }
-          }}
+          onConnected={handleConnected}
+          onDisconnected={handleDisconnected}
         >
           <WatchMediaDeviceErrors />
           <VideoConference />

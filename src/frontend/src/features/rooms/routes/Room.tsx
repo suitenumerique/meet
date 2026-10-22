@@ -32,10 +32,12 @@ const BaseRoom = ({ children }: { children: ReactNode }) => {
 const Room = () => {
   const { isLoggedIn } = useUser()
   const [hasSubmittedEntry, setHasSubmittedEntry] = useState(false)
+  // Set by the conference when the user turns out to have to go through the
+  // lobby, even when the join screen was skipped
+  const [isLobbyRequired, setIsLobbyRequired] = useState(false)
 
   const { roomId } = useParams()
   const [location, setLocation] = useLocation()
-  const initialRoomData = history.state?.initialRoomData
   const mode = isLoggedIn && history.state?.create ? 'create' : 'join'
   const skipJoinScreen = isLoggedIn && mode === 'create'
 
@@ -75,10 +77,16 @@ const Room = () => {
     return <ErrorScreen />
   }
 
-  if (!hasSubmittedEntry && !skipJoinScreen) {
+  if (isLobbyRequired || (!hasSubmittedEntry && !skipJoinScreen)) {
     return (
       <BaseRoom>
-        <Join enterRoom={() => setHasSubmittedEntry(true)} roomId={roomId} />
+        <Join
+          enterRoom={() => {
+            setIsLobbyRequired(false)
+            setHasSubmittedEntry(true)
+          }}
+          roomId={roomId}
+        />
       </BaseRoom>
     )
   }
@@ -86,9 +94,10 @@ const Room = () => {
   return (
     <BaseRoom>
       <Conference
-        initialRoomData={initialRoomData}
+        key={roomId}
         roomId={roomId}
         mode={mode}
+        onLobbyRequired={() => setIsLobbyRequired(true)}
       />
     </BaseRoom>
   )
