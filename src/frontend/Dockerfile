@@ -47,7 +47,7 @@ ENV VITE_MEDIA_BASE_URL=${VITE_MEDIA_BASE_URL}
 RUN npm run build
 
 # ---- Front-end image ----
-FROM nginxinc/nginx-unprivileged:1.30.5-alpine3.24 AS frontend-production
+FROM nginxinc/nginx-unprivileged:1.30.6-alpine3.24 AS frontend-production
 
 USER root
 RUN apk upgrade --no-cache libexpat && \
