@@ -33,6 +33,7 @@ responses
 participant identity each time.
 - Joining again returns no `livekit` block to callers admitted through the lobby.
 - Unregistered rooms are always entered directly: joining one always returns a `livekit` block.
+- Unregistered rooms are no longer described with an `is_administrable` field,
 
 ## v1.37.0
 

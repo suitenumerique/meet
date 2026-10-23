@@ -325,7 +325,6 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         return {
             "id": None,
             "slug": slug,
-            "is_administrable": False,
             "access_level": RoomAccessLevel.PUBLIC,
         }
 

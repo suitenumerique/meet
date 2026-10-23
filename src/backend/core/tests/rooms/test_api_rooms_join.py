@@ -217,7 +217,6 @@ def test_api_rooms_join_unregistered_allowed(mock_token, authenticated, settings
         "id": None,
         "slug": "unregistered-room",
         "access_level": "public",
-        "is_administrable": False,
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "room": "unregistered-room",
@@ -250,7 +249,6 @@ def test_api_rooms_join_unregistered_allowed_not_normalized(mock_token, settings
         "id": None,
         "slug": "reunion",
         "access_level": "public",
-        "is_administrable": False,
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "room": "reunion",
