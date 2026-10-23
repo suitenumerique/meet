@@ -11,6 +11,7 @@ and this project adheres to
 ### Fixed
 
 - 🔒️(backend) upgrade brotli to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) upgrade nginx to 1.30.6 to fix CVE-2026-15176
 - 🔒️(docker) upgrade brotli-libs to 1.2.1 to fix CVE-2026-111497
 - 🔒️(frontend) build the Outlook add-in on Node 22.23.4
 
