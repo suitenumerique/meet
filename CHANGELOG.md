@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(frontend) discard older notifications when the toast queue is full
+
 ## [1.36.2] - 2026-10-21
 
 ### Fixed
