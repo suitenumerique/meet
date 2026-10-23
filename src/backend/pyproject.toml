@@ -25,7 +25,7 @@ license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "boto3==1.43.80",
-    "Brotli==1.2.0",
+    "Brotli==1.2.1",
     "brevo-python==1.2.0",
     "celery[redis]==5.6.3",
     "dj-database-url==3.1.2",
@@ -41,7 +41,7 @@ dependencies = [
     "django-timezone-field>=5.1",
     "django-pydantic-field==0.5.4",
     "django==5.2.17",
-    "djangorestframework==3.18.0",
+    "djangorestframework==3.18.2",
     "drf_spectacular==0.30.0",
     "dockerflow==2026.3.4",
     "easy_thumbnails==2.10.1",

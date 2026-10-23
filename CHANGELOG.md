@@ -10,6 +10,12 @@ and this project adheres to
 
 ### Fixed
 
+- 🔒️(backend) upgrade brotli to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) upgrade nginx to 1.30.6 to fix CVE-2026-15176
+- 🔒️(docker) upgrade brotli-libs to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) build the Outlook add-in on Node 22.23.4
+- 🔒️(backend) upgrade djangorestframework to 3.18.2 to fix CVE-2026-114136,
+  CVE-2026-114137 and CVE-2026-114138
 - 🐛(frontend) discard older notifications when the toast queue is full
 
 ## [1.36.2] - 2026-10-21
