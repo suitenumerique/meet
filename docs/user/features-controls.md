@@ -2,233 +2,135 @@
 
 ![Features Tour](../assets/feature-tour.gif)
 
-Complete reference for everything available once you are inside a LaSuite Meet meeting: controls, features, permissions, and roles.
+Everything you can do once inside a meeting, who can do it, and where to find it. Joining and the pre-join screen are in [Getting Started](getting-started.md). ⚗️ marks a beta feature.
 
-> For joining a meeting and pre-join screen setup, see [Getting Started](getting-started.md).
-
-## Video layout
-
-The center of the screen shows all active participants as video tiles. The active speaker is automatically highlighted. You can pin any participant to the main view by hovering over their tile and clicking the **Pin** icon.
-
-## Picture-in-picture
-
-![Picture-in-picture](../assets/picture-in-picture.png)
-
-Click **...** (More options) → **Picture-in-picture** to detach the active speaker's video into a floating mini-window managed by your browser. The mini-window stays visible while you switch to other tabs or applications.
-
-To exit picture-in-picture, click the **×** on the mini-window or return to the Meet tab and click **Picture-in-picture** again.
-
-## Control bar
+## At a glance
 
 ![Meeting room](../assets/meeting-room.png)
 
-The control bar at the bottom provides all meeting actions.
+### In the call
 
-| Icon | Control | Action |
+| Feature | Where | Who | Notes |
+|---|---|---|---|
+| Microphone, camera | <img src="../assets/icons/mic-line.svg" width="20" /> <img src="../assets/icons/video-on-line.svg" width="20" /> in the control bar; the <img src="../assets/icons/arrow-up-s-line.svg" width="20" /> beside each picks the device | Everyone | `Ctrl+D`, `Ctrl+E` |
+| Push-to-talk | Hold `V` | Everyone | Unmutes while held |
+| Pin a participant | Hover their tile → **Pin** | Everyone | The active speaker is highlighted automatically |
+| Picture-in-picture | <img src="../assets/icons/more-fill.svg" width="20" /> **More options** → **Picture-in-picture** | Everyone | A floating window that stays visible over other tabs and applications |
+| Backgrounds and effects | <img src="../assets/icons/arrow-up-s-line.svg" width="20" /> beside the camera, **More options**, or the pre-join screen | Everyone | Blur or an image. Uploading your own, up to 10 JPEG or PNG of 2 MB each, only where the instance allows it |
+| Noise suppression ⚗️ | **Settings → Audio → Advanced voice optimization** | Everyone | |
+| Video quality | **Settings → Video → Resolution** | Everyone | Up to 1080p |
+| Leave | <img src="../assets/icons/phone-fill.svg" width="20" /> **Leave** | Everyone | The meeting goes on without you. There is no "end for all"; the room stays and can be reused |
+
+### Talking together
+
+| Feature | Where | Who | Notes |
+|---|---|---|---|
+| Screen sharing | <img src="../assets/icons/screen-share.svg" width="20" /> **Screen share** | Everyone, unless a host turns it off | Several at once. [Details](#screen-sharing) |
+| Chat | <img src="../assets/icons/chat-1-line.svg" width="20" /> **Chat** | Everyone | Not kept after the meeting. [Details](#chat) |
+| Reactions | <img src="../assets/icons/emotion-line.svg" width="20" /> **Reactions**, or `Ctrl+Shift+E` | Everyone | An emoji shown on your tile for a few seconds |
+| Raise hand | <img src="../assets/icons/hand.svg" width="20" /> **Raise hand** | Everyone | Queued in order. [Details](#raised-hands) |
+| Subtitles ⚗️ | <img src="../assets/icons/closed-captioning-line.svg" width="20" /> **Subtitles** | Everyone | Where the instance runs them. [Real-time Subtitles](subtitles.md) |
+| Phone dial-in | The room info panel shows the number and PIN | Anyone with the PIN | Audio only. [Details](#phone-dial-in) |
+
+### Hosting
+
+| Feature | Where | Who | Notes |
+|---|---|---|---|
+| Room access level | <img src="../assets/icons/admin-line.svg" width="20" /> **Open admin** → **Host settings** | Owners, administrators | [Who gets in](#roles-and-access) |
+| Admit from the waiting room | <img src="../assets/icons/group-line.svg" width="20" /> **Participants** → **Lobby**, or the pop-up | Owners, administrators | On trusted rooms, any signed-in participant |
+| Make co-host | **Participants** → menu beside the name → **Make co-host** | Owners, administrators | Signed-in participants only |
+| Mute someone | **Participants** → hover the name → **Mute** | Everyone, by default | Hosts can restrict it |
+| Remove someone | **Participants** → hover the name → **Remove from the call** | Owners, administrators | They can rejoin unless the room is **Restricted** |
+| Turn off screen sharing, muting others or video for participants | **Host settings** | Owners, administrators | [Permissions](#permissions) |
+
+### Recording and AI
+
+| Feature | Where | Who | Notes |
+|---|---|---|---|
+| Recording | **More options** → **Screen recording** | Owners, administrators | Everyone sees a red indicator; the download link goes to whoever started it. [Recording](recording.md) |
+| Transcription ⚗️ | **More options** → **Transcription** | Owners, administrators | Choose the language first; can start a recording too. [AI Transcription](transcription.md) |
+
+### Accessibility
+
+Keyboard-only use, screen readers, caption styling, reduced motion and high contrast are covered in [Accessibility](accessibility.md); every shortcut is in [Keyboard Shortcuts](keyboard-shortcuts.md), or press `Ctrl+Shift+/` in a meeting.
+
+### Set up by your administrator
+
+These appear only where the instance enables them.
+
+| Feature | Status | Set up in |
 |---|---|---|
-| <img src="../assets/icons/mic-line.svg" width="20" /><img src="../assets/icons/mic-off-line.svg" width="20" /> | Microphone | Mute or unmute your microphone |
-| <img src="../assets/icons/arrow-up-s-line.svg" width="20" /> | ↑ (next to microphone) | Select audio input device |
-| <img src="../assets/icons/video-on-line.svg" width="20" /><img src="../assets/icons/video-off-line.svg" width="20" /> | Camera | Enable or disable your video feed |
-| <img src="../assets/icons/arrow-up-s-line.svg" width="20" /> | ↑ (next to camera) | Select camera device or open **Background and effects** |
-| <img src="../assets/icons/emotion-line.svg" width="20" /> | Reactions | Open the emoji reaction toolbar |
-| <img src="../assets/icons/screen-share.svg" width="20" /> | Screen share | Start or stop sharing your screen |
-| <img src="../assets/icons/closed-captioning-line.svg" width="20" /> | Subtitles | Toggle live captions |
-| <img src="../assets/icons/hand.svg" width="20" /> | Raise hand | Signal you want to speak |
-| <img src="../assets/icons/more-fill.svg" width="20" /> | ... (More options) | Picture in picture, transcription, screen recording, fullscreen, backgrounds and effects, settings |
-| <img src="../assets/icons/phone-fill.svg" width="20" /> | Leave | Exit the meeting |
-| <img src="../assets/icons/chat-1-line.svg" width="20" /> | Chat | Open the chat panel |
-| <img src="../assets/icons/group-line.svg" width="20" /> | Participants | Open the participants panel |
-| <img src="../assets/icons/shapes-line.svg" width="20" /> | More tools | Transcribe, record |
-| <img src="../assets/icons/admin-line.svg" width="20" /> | Open admin | Room details, access rights, participants |
+| Recording | Available | [Recording](../self-hosting/configuration/recording.md) |
+| Transcription and AI summary | ⚗️ Beta | [AI Transcription](../self-hosting/configuration/transcription.md) |
+| Real-time subtitles | ⚗️ Beta | [Real-time Subtitles](../self-hosting/configuration/subtitles.md) |
+| Phone dial-in | Available | [Telephony](../self-hosting/configuration/telephony.md) |
+| Uploaded backgrounds | Off by default | `FILE_UPLOAD_ENABLED`, [Environment Variables](../reference/env-variables.md) |
+| Branding | Available | [Theming](../self-hosting/configuration/theming.md) |
+| Meeting-room devices (Roomkit) | ⚗️ Beta, off by default | [Environment Variables](../reference/env-variables.md#roomkit-meeting-room-sip-devices) |
+| Outlook add-in, other applications | Available | [API reference](../reference/api.md) |
+| End-to-end encryption | 🔜 In development | |
+
+## Roles and access
+
+### Roles
+
+A room's access list gives each person one role:
+
+| Role | Who |
+|---|---|
+| **Owner** | Whoever created the room, with **Start an instant meeting** or **Create a meeting for a later date** |
+| **Administrator** | Shown as **Co-host** in the meeting. Owners and administrators give it to a signed-in participant from the **Participants** panel |
+| **Member** | Granted through the API, as are roles for people not in the meeting, see [Room Access & Roles](../reference/api.md#room-access-roles) |
+
+Email invitations, also sent through the API, carry a join link and no role.
+
+### Permissions
+
+| Action | Owner | Administrator | Member |
+|---|---|---|---|
+| Start or stop recording and transcription | ✅ | ✅ | ❌ |
+| Change room settings and access level | ✅ | ✅ | ❌ |
+| Admit from the waiting room | ✅ | ✅ | ❌ † |
+| Remove participants | ✅ | ✅ | ❌ |
+| Mute others | ✅ | ✅ | ✅ * |
+| Share screen | ✅ | ✅ | ✅ * |
+| Chat, react, raise hand | ✅ | ✅ | ✅ |
+| Delete the room | ✅ | ❌ | ❌ |
+
+\* By default. Owners and administrators can turn **Mute others** and **Share their screen** off in the host settings.
+
+† In a room open to trusted people, any signed-in participant in the meeting can admit.
+
+No one can turn off a single participant's camera: **Enable video** in the host settings turns off video for everyone who is not an owner or administrator.
+
+### Access levels
+
+| Access level | Joins directly | Requests entry |
+|---|---|---|
+| **Open** | Anyone with the link | No one |
+| **Open to trusted people** | Signed-in users | Everyone else |
+| **Restricted** | People with a role on the room | Everyone else |
+
+People requesting entry appear under **Participants → Lobby**, and a pop-up tells the host someone is waiting. **Remove from the call** only disconnects someone: they can reopen the link, so keeping them out takes **Restricted**.
 
 ## Screen sharing
 
-Meet supports multiple simultaneous screen sharing streams. Any participant can share their screen at any time.
+Your browser asks what to share: the entire screen, a window, or a browser tab. Sharing a tab can also share its sound: tick **Share tab audio** in that dialog. Sound from a window or the whole screen depends on the browser: Chrome on Windows shares system audio, Firefox and Safari do not.
 
-### Starting a screen share
-
-1. Click the **Screen share** button
-2. Your browser opens a dialog to choose what to share:
-   - **Entire screen** - shares your full desktop
-   - **Window** - shares a single application window
-   - **Browser tab** - shares a specific tab (also shares the tab's audio)
-3. Select what you want to share and click **Share**
-
-### Sharing audio alongside your screen
-
-When sharing a **browser tab**, check **Share tab audio** in the browser dialog. Useful for videos, presentations with sound, or audio demos.
-
-> Audio sharing from windows or the entire screen is browser-dependent. Chrome on Windows supports system audio sharing; Firefox and Safari do not.
-
-### Stopping screen share
-
-- Click the **Stop sharing** button that appears in your browser's notification bar, or
-- Click the **Screen share** button again in the control bar
-
-### Screen share and recording
-
-All active screen shares are captured in recordings. The recording shows the same layout that participants see.
-
-### Tips
-
-- Close sensitive tabs or windows before sharing your entire screen
-- Use tab sharing when presenting from a browser: it isolates exactly what you want to show
-- Hide notifications before sharing to avoid interruptions
+To stop, click **Screen share** again or the browser's **Stop sharing** bar. Turning off **Share their screen** in the host settings also stops the shares in progress. Recordings capture every active share, in the layout participants see.
 
 ## Chat
 
 ![Chat panel](../assets/chat-panel.png)
 
-### Opening the chat
+Messages go to everyone in the meeting; there are no private messages. A dot on the **Chat** icon shows unread messages while the panel is closed, and screen readers announce new ones.
 
-Click the **Chat** icon in the control bar. A badge shows unread message count when the panel is closed.
+Nothing is kept once the last participant leaves, with one exception: during a transcription on an instance that runs the metadata collector, messages are saved with the transcription metadata, see [FAQ](../faq.md#is-chat-history-stored).
 
-### Sending a message
+## Raised hands
 
-Type your message and press **Enter** or click the send button.
+A raised hand puts a mark on your tile and you in a queue, in the order hands went up, visible to everyone. Click **Raise hand** again to lower it. If you start speaking with your hand up, it is lowered for you, unless you click **Keep hand raised**.
 
-### Chat characteristics
+## Phone dial-in
 
-- **Non-persistent**: Messages are not saved. When the last participant leaves, all chat history is cleared.
-- **Room-scoped**: Messages are visible to all current participants. There are no private messages.
-- New chat messages are announced to screen readers via ARIA live regions.
-
-## Reactions & Hand raise
-
-![Reactions toolbar](../assets/reactions-toolbar.png)
-
-### Sending a reaction
-
-Click the **Reactions** button or press `Ctrl+Shift+E`. Click any emoji in the toolbar. It appears as an animated overlay on your tile, visible to all participants for a few seconds.
-
-### Raise hand
-
-The **Raise hand** button (✋) stays visible until you lower it. It:
-
-- Adds a visual indicator to your tile
-- Places you in a queue visible to the host, in the order hands were raised
-
-To lower your hand, click the button again.
-
-### Keyboard access
-
-Press `Ctrl+Shift+E` to focus the reactions toolbar. Use arrow keys to navigate and Enter to send. Press `Escape` to close.
-
-### Reaction settings
-
-In **Settings → Accessibility** you can toggle whether reactions are announced to screen readers.
-
-## Backgrounds & Effects
-
-![More options menu](../assets/more-options-menu.png)
-
-You can configure a virtual background:
-- From the **pre-join screen**: click **Backgrounds and effects** before entering
-- During a meeting: click the **↑** arrow next to the camera button, or click **...** (More options) → **Background and effects**
-
-- **Blur** - blur your real background while keeping your face visible
-- **Custom image** - set any image as your background
-
-![Background effects panel](../assets/background-effects.png)
-
-If your instance allows it, you can upload your own background images (max 10, max 2 MB each, JPEG/PNG only).
-
-> Custom background image uploads are disabled by default. Administrators enable them by setting `FILE_UPLOAD_ENABLED=True` in the backend configuration. Background effects require camera access to function.
-
-## Telephony (dial-in)
-
-If telephony is configured on your instance, participants can join a meeting by phone without needing a browser or internet connection.
-
-**Finding the dial-in number and PIN:** Click the room info button (ℹ️ icon, in the meeting controls) to see the phone number and PIN code assigned to the room.
-
-**To join by phone:**
-1. Dial the phone number shown in the room info panel
-2. Enter the PIN when prompted
-3. You are connected as an audio-only participant
-
-**What to expect as a phone participant:**
-- Audio only (no video, screen sharing, reactions, or chat)
-- You cannot join before the first browser-based (WebRTC) participant has connected
-- Your participation is visible to other participants in the participants panel
-
-> Telephony must be enabled and configured by your administrator. If you do not see a phone number in the room info panel, the feature is not active on your instance.
-
-## Roles & Permissions
-
-### Roles
-
-Every participant has one of three roles:
-
-| Role | Description |
-|---|---|
-| **Owner** | Created the room. Has full control. |
-| **Administrator** | Granted elevated privileges by the owner. |
-| **Member** | Standard participant. |
-
-### How roles are assigned
-
-**Owner** is set automatically when a room is created - the user who clicks **Start an instant meeting** or **Create a meeting for later** becomes the owner.
-
-**Administrator** and **Member** roles must be explicitly granted. There is no in-meeting interface for this: role management is done outside the meeting via the API or the admin panel. See [Room Access & Roles](../reference/api.md#room-access-roles) in the API reference.
-
-**Email invitations** (via **...** → **Invite**) send a join link only - they do not grant a persistent role. A recipient who joins a public or trusted room through that link participates in the meeting but has no role record in the room's access list.
-
-### Permissions by role
-
-| Action | Owner | Administrator | Member |
-|---|---|---|---|
-| Start/stop recording | ✅ | ✅ | ❌ |
-| Start/stop transcription | ✅ | ✅ | ❌ |
-| Mute other participants | ✅ | ✅ | ✅ * |
-| Remove participants | ✅ | ✅ | ❌ |
-| Admit waiting participants | ✅ | ✅ | ❌ |
-| Share screen | ✅ | ✅ | ✅ |
-| Send chat messages | ✅ | ✅ | ✅ |
-| Send reactions | ✅ | ✅ | ✅ |
-| Raise hand | ✅ | ✅ | ✅ |
-| Update room settings | ✅ | ✅ | ❌ |
-| Delete room | ✅ | ❌ | ❌ |
-
-\* Members can mute by default. Owners and administrators can disable this by setting **everyone can mute** to off in room settings.
-
-### Room access levels
-
-Each room has one of three access settings, configurable by the owner or administrator from the room info panel:
-
-| Access level | Effect |
-|---|---|
-| **Open** | Anyone with the link can join immediately |
-| **Open to trusted people** | Authenticated users join directly; others must request entry |
-| **Restricted** | All participants must request entry |
-
-When access is **Restricted**, waiting participants appear in the **Participants panel → Lobby** section. A pop-up also appears for the host when someone is waiting.
-
-### Muting participants
-
-Open the **Participants** panel, hover over a name, and click **Mute**.
-
-> You cannot force someone's camera off. Only their microphone can be muted.
-
-### Removing participants
-
-Open the **Participants** panel, hover over the participant's name, and click **Remove**. They see a message and cannot rejoin without a new invite.
-
-### Push-to-talk
-
-Hold `V` to temporarily unmute while muted. Release `V` to mute again. Useful in formal meetings where participants are muted by default.
-
-### Leaving the meeting
-
-Click **Leave** to exit. The meeting continues for other participants. There is no "end for all" action. The room closes automatically when the last participant leaves. The room itself (name and settings) is not deleted and can be reused.
-
-## Recording
-
-Only room owners and administrators can start a recording. Click **...** (More options) → **Screen recording** to begin. All participants see a red recording indicator. Click **...** → **Screen recording** again to stop.
-
-For full details on downloading recordings and what gets captured, see [Recording](recording.md).
-
-## AI Transcription
-
-Room owners and administrators can start live transcription via **...** (More options) → **Transcription**. Select the meeting language before starting. Optionally enable recording at the same time.
-
-For full details, see [AI Transcription](transcription.md).
+Open the room info panel to see the number and the room's PIN, dial it, and enter the PIN. You join as audio only: no video, screen sharing, reactions or chat, and you appear in the participants panel. A phone caller cannot join before someone has joined from a browser. If the panel shows no number, the instance has no telephony.

@@ -1,17 +1,11 @@
 [project]
 site_name = "LaSuite Meet Documentation"
-site_url = "https://https://documentation-meet.beta.numerique.gouv.fr/"
+site_url = "https://documentation-meet.beta.numerique.gouv.fr/"
+extra_css = ["stylesheets/extra.css"]
 
 nav = [
   {"Home" = "index.md"},
-  {"Background" = [
-    {"What is LaSuite Meet?" = "overview/what-is-meet.md"},
-    {"Architecture" = "overview/architecture.md"},
-    {"Key Concepts" = "overview/key-concepts.md"},
-    {"Feature Matrix" = "overview/feature-matrix.md"},
-    {"Changelog" = "overview/changelog.md"}
-  ]},
-  {"User Guide" = [
+  {"Using Meet" = [
     {"Getting Started" = "user/getting-started.md"},
     {"Features & Controls" = "user/features-controls.md"},
     {"Settings" = "user/settings.md"},
@@ -19,17 +13,16 @@ nav = [
     {"AI Transcription" = "user/transcription.md"},
     {"Real-time Subtitles" = "user/subtitles.md"},
     {"Accessibility" = "user/accessibility.md"},
-    {"Keyboard Shortcuts" = "user/keyboard-shortcuts.md"}
+    {"Keyboard Shortcuts" = "user/keyboard-shortcuts.md"},
+    {"FAQ" = "faq.md"}
   ]},
+  {"How Meet works" = "overview/how-meet-works.md"},
   {"Self-Hosting" = [
     {"Overview" = "self-hosting/index.md"},
     {"Quick Start" = "self-hosting/compose/quick-start.md"},
     {"Docker Compose" = [
       {"Prerequisites" = "self-hosting/compose/prerequisites.md"},
-      {"Reverse Proxy" = [
-        {"nginx-proxy" = "self-hosting/compose/nginx.md"},
-        {"Traefik" = "self-hosting/compose/traefik.md"}
-      ]},
+      {"Reverse Proxy" = "self-hosting/compose/reverse-proxy.md"},
       {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"}
     ]},
     {"Kubernetes / Helm" = [
@@ -49,21 +42,21 @@ nav = [
       {"Email (SMTP)" = "self-hosting/configuration/email.md"},
       {"Theming" = "self-hosting/configuration/theming.md"},
       {"Upgrading" = "self-hosting/configuration/upgrade.md"}
-    ]}
+    ]},
+    {"Troubleshooting" = "reference/troubleshooting.md"}
+  ]},
+  {"Integrating" = [
+    {"API" = "reference/api.md"},
+    {"Application-Delegated" = "reference/external-api-delegated.md"},
+    {"Resource Server (OAuth2)" = "reference/external-api-resource-server.md"},
+    {"Calendar Add-ons" = "reference/external-api-addons.md"}
   ]},
   {"Reference" = [
-    {"API" = "reference/api.md"},
-    {"External API" = [
-      {"Application-Delegated" = "reference/external-api-delegated.md"},
-      {"Resource Server (OAuth2)" = "reference/external-api-resource-server.md"},
-      {"Calendar Add-ons" = "reference/external-api-addons.md"}
-    ]},
     {"Environment Variables" = "reference/env-variables.md"},
     {"Networking" = "reference/networking.md"},
-    {"Security" = "reference/security.md"}
+    {"Security" = "reference/security.md"},
+    {"Changelog" = "https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md"}
   ]},
-  {"Troubleshooting" = "reference/troubleshooting.md"},
-  {"FAQ" = "faq.md"},
   {"Contributing" = [
     {"Local Development" = "contributing/local-dev.md"},
     {"Repository Structure" = "contributing/repo-structure.md"},

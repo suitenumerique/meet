@@ -8,9 +8,9 @@ An interactive Swagger UI is available at `/api/v1.0/swagger/` on the `Developme
 
 Meet also exposes an **External API** at `/external-api/v1.0/` for server-to-server room management, with three authentication modes:
 
-- **[Application-Delegated](external-api-delegated.md)** (`EXTERNAL_API_ENABLED=True`): your backend exchanges credentials for a JWT and acts on behalf of a user. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](openapi.yaml)
-- **[Resource Server](external-api-resource-server.md)** (`OIDC_RS_*` vars): the user authenticates with the OIDC provider and presents their token directly. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](resource_server.yaml)
-- **[Calendar Add-ons](external-api-addons.md)** (`ADDONS_ENABLED=True`): secure token exchange flow for calendar add-ins (Outlook, etc.) running in embedded iframes.
+- **[Application-Delegated](external-api-delegated.md)** (`EXTERNAL_API_ENABLED=True` and `APPLICATION_ENABLED=True`): your backend exchanges credentials for a JWT and acts on behalf of a user. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](openapi.yaml)
+- **[Resource Server](external-api-resource-server.md)** (`EXTERNAL_API_ENABLED=True` and the `OIDC_RS_*` vars): the user authenticates with the OIDC provider and presents their token directly. [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](resource_server.yaml)
+- **[Calendar Add-ons](external-api-addons.md)** (`EXTERNAL_API_ENABLED=True` and `ADDONS_ENABLED=True`): secure token exchange flow for calendar add-ins (Outlook, etc.) running in embedded iframes.
 
 
 ## Authentication
@@ -86,7 +86,7 @@ When the user has access, the response includes a `livekit` object with the JWT 
   "configuration": {},
   "livekit": {
     "url": "https://livekit.example.com",
-    "room": "my-meeting-room",
+    "room": "<room id (UUID)>",
     "token": "<livekit-jwt>"
   }
 }
@@ -108,9 +108,9 @@ DELETE /api/v1.0/rooms/{id}/
 Room roles (`owner`, `administrator`, `member`) are stored as `ResourceAccess` records. All write operations require the caller to be an owner or administrator of the room.
 
 **Permission rules:**
-- Owners can assign any role, including `owner`.
+- Owners can assign any role, including `owner`, but cannot change or remove another owner's access.
 - Administrators can assign `member` or `administrator`, but not `owner`.
-- Only one owner may remain - the last owner record cannot be deleted or downgraded.
+- A room may have several owners; the last owner cannot be deleted or downgraded.
 
 > **Note:** Email invitations (`POST /api/v1.0/rooms/{id}/invite/`) send a join link but do **not** create an access record. The recipient joins as a plain participant with no persistent role.
 
@@ -120,18 +120,23 @@ Room roles (`owner`, `administrator`, `member`) are stored as `ResourceAccess` r
 GET /api/v1.0/resource-accesses/
 ```
 
-Returns accesses for rooms where the authenticated user is an owner or administrator.
+Returns accesses for rooms where the authenticated user is an owner or administrator, paginated.
 
 **Response:**
 ```json
-[
-  {
-    "id": "a1b2c3...",
-    "resource": "550e8400-...",
-    "user": {"id": "...", "email": "alice@example.com", "full_name": "Alice"},
-    "role": "administrator"
-  }
-]
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "a1b2c3...",
+      "resource": "550e8400-...",
+      "user": "<user id>",
+      "role": "administrator"
+    }
+  ]
+}
 ```
 
 ### Grant a role
@@ -326,8 +331,8 @@ GET /api/v1.0/config/
 ## Health check
 
 ```
-GET /__heartbeat__     # liveness
-GET /__lbheartbeat__   # readiness
+GET /__heartbeat__     # readiness
+GET /__lbheartbeat__   # liveness
 ```
 
 ## Pagination
@@ -343,11 +348,13 @@ Default `page_size` is 20, maximum is 100.
 
 ## Error responses
 
-All errors return a JSON body:
+Validation errors (`400`) return field names mapped to lists of messages:
 
 ```json
-{"detail": "Human-readable error message"}
+{"access_level": ["\"bogus\" is not a valid choice."]}
 ```
+
+Other errors return `{"detail": "Human-readable error message"}`. The external API's token endpoint is the exception and answers `{"error": "..."}`.
 
 | Code | Meaning |
 |---|---|
@@ -361,4 +368,4 @@ All errors return a JSON body:
 
 ## Rate limiting
 
-The API applies per-user rate limiting on specific endpoints (room entry requests, etc.). Rate limit errors return HTTP 429 with a `Retry-After` header.
+Four actions are rate limited, see [Security: Rate limiting](security.md#rate-limiting). Rate limit errors return HTTP 429 with a `Retry-After` header.

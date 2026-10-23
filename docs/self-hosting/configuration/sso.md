@@ -38,7 +38,7 @@ Any standards-compliant OIDC provider works. Tested and documented:
 | Provider | Type | Notes |
 |---|---|---|
 | Keycloak | Self-hosted | Included in the dev stack |
-| Authentik | Self-hosted | Recommended for new deployments |
+| Authentik | Self-hosted | Documented below |
 | Dex | Self-hosted | Lightweight, connector-based |
 | Auth0 | Cloud | Free tier available |
 | Google Workspace | Cloud | For Google-based orgs |
@@ -47,18 +47,19 @@ Any standards-compliant OIDC provider works. Tested and documented:
 
 ## Setting up Keycloak (self-hosted)
 
-The [Deployment Guide](../compose/deployment-guide.md) includes a complete, production-ready Keycloak setup (with TLS via your reverse proxy, a pre-imported realm, and correct redirect URIs). Follow that guide for the recommended setup.
+The [Deployment Guide](../compose/deployment-guide.md) includes a complete Keycloak setup (with TLS via your reverse proxy, a pre-imported realm, and correct redirect URIs). Follow that guide for the recommended setup.
 
 The summary of what the deployment setup does for Keycloak:
 
 ### Client configuration
 
-In your Keycloak realm (`meet`), the client must have:
+Whatever the provider, Meet's client must have the settings below; Keycloak's names are used, and the deployment's realm (`meet`) ships with them:
 
 - **Client ID**: `meet`
 - **Client authentication**: enabled (confidential client)
 - **Valid redirect URIs**: `https://meet.example.com/api/v1.0/callback/` . The trailing slash is required; the versioned path is not the standard `/oidc/callback/`
 - **Web origins**: `https://meet.example.com`
+- **Valid post logout redirect URIs**: `https://meet.example.com/*`. Without it, Keycloak refuses every logout Meet sends
 
 ### Meet environment variables
 
@@ -72,7 +73,7 @@ OIDC_OP_USER_ENDPOINT=https://auth.example.com/realms/meet/protocol/openid-conne
 OIDC_OP_LOGOUT_ENDPOINT=https://auth.example.com/realms/meet/protocol/openid-connect/logout
 ```
 
-> Keycloak must be served over HTTPS (`auth.example.com`, not `localhost:8080`). The backend resolves public hostnames via the `proxy` Docker network - ensure the backend service is in the `proxy` network in your compose file. See the [Deployment Guide](../compose/deployment-guide.md) for the full setup.
+> Keycloak must be served over HTTPS (`auth.example.com`, not `localhost:8080`). See the [Deployment Guide](../compose/deployment-guide.md) for the full setup.
 
 > If you need to make manual changes after deployment, the Keycloak admin console is at `https://auth.example.com` (not on a raw port; it is proxied by your reverse proxy).
 
@@ -128,11 +129,17 @@ OIDC_RP_SIGN_ALGO=RS256
 
 ## Unauthenticated access
 
-By default, unauthenticated users can create and join rooms (`ALLOW_UNREGISTERED_ROOMS=True`). To require authentication for all rooms:
+While [`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#rooms-and-waiting-room) is `True`, anyone can start a meeting without an account by opening a room code no room uses yet, from **Join a meeting** or straight from the address bar. That meeting is open to anyone with the code, has no owner, and creates no room. With `False`, such a code answers 404 and only existing rooms can be joined.
+
+Signed-in users create rooms from the home page. A room keeps its code and an owner, and its access level decides who joins: anyone with the link joins a `public` room, signed-in users join a `trusted` room directly, people holding a role on the room join a `restricted` one, and everyone else goes to the waiting room.
+
+A new room takes the level its creator picked under **Settings → Rooms**. A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#rooms-and-waiting-room). To make it `trusted`:
 
 ```dotenv
-ALLOW_UNREGISTERED_ROOMS=False
+RESOURCE_DEFAULT_ACCESS_LEVEL=trusted
 ```
+
+The setting changes neither existing rooms nor the level a user already picked.
 
 Unauthenticated users have limited permissions (no recording, no moderation).
 

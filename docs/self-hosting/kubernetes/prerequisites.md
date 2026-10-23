@@ -44,9 +44,9 @@ brew install helmfile   # macOS / Linux with Homebrew
 
 ### Required cluster components
 
-- **nginx-ingress controller**: the Meet Helm chart's recording ingress (`ingressMedia`) uses nginx-ingress annotations for authenticated MinIO proxying
+- **nginx-ingress controller**, if you enable recording: the Meet Helm chart's recording ingress (`ingressMedia`) uses nginx-ingress annotations for authenticated MinIO proxying
 - **cert-manager**: with a Let's Encrypt `ClusterIssuer` for automatic TLS
-- **LoadBalancer or NodePort**: for LiveKit's UDP port (7882) and TCP media port (7881)
+- **Public IPs on the LiveKit nodes**: the chart serves LiveKit's media ports, 7882/UDP and 7881/TCP, from the node itself through host networking
 
 > nginx-ingress is required if you plan to enable recording. For basic video conferencing only, any ingress controller works.
 
@@ -72,14 +72,14 @@ LiveKit's media ports must be reachable from the public internet:
 | 7881 | TCP | WebRTC ICE over TCP |
 | 7882 | UDP | WebRTC media (RTP/RTCP) |
 
-For UDP port 7882 in managed Kubernetes, use a **LoadBalancer** service with UDP support (supported by most cloud providers) or a **NodePort** with firewall rules opening the port on all nodes.
+No LoadBalancer or NodePort carries the media ports: open 7881/TCP and 7882/UDP in the security group of each node that runs LiveKit.
 
 ## DNS records
 
 | Record | Points to |
 |---|---|
 | `meet.example.com` | Ingress load balancer IP |
-| `livekit.example.com` | Ingress load balancer IP (WebSocket) |
+| `livekit.example.com` | The LiveKit Ingress address (`kubectl get ingress -n meet`), a CNAME or alias when it is an AWS ALB. It differs from the Meet ingress unless `loadBalancer.type` is `do`. |
 | `auth.example.com` | Ingress load balancer IP (OIDC provider) |
 
 ## Checklist

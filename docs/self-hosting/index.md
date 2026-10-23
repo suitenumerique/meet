@@ -1,6 +1,6 @@
 # Self-Hosting LaSuite Meet
 
-LaSuite Meet is fully self-hostable under the MIT license.
+LaSuite Meet is fully self-hostable under the MIT license. The maintainers run only the Kubernetes deployment in production, so advanced support is available for that setup alone. They also maintain the Docker Compose setup; Scalingo is officially supported, and the remaining methods come from the community.
 
 ## Deployment options
 
@@ -27,8 +27,8 @@ The method used by DINUM in production for Visio. For large organisations, high-
 | Method | Status | Notes |
 |---|---|---|
 | Scalingo PaaS | Official | See [Scalingo guide](scalingo.md) |
-| Nix | Community | Unstable |
-| YunoHost | Community | Small instances only, under construction |
+| Nix | Community | Unstable, see the [package](https://search.nixos.org/packages?channel=unstable&show=lasuite-meet&query=lasuite-meet) |
+| YunoHost | Community | Small instances only, under construction, see the [package](https://github.com/YunoHost-Apps/meet_ynh) |
 
 ---
 
@@ -75,7 +75,7 @@ After deploying the core, use the Configuration section to enable and tune featu
 - [SSO & Authentication](configuration/sso.md) - Keycloak, Authentik, Google, Microsoft, and others
 - [Recording](configuration/recording.md) - LiveKit Egress + MinIO
 - [AI Transcription](configuration/transcription.md) - WhisperX + summary service
-- [Real-time Subtitles](configuration/subtitles.md) - LiveKit agents with Deepgram/Kyutai
+- [Real-time Subtitles](configuration/subtitles.md) - LiveKit agents with Deepgram, Kyutai or Voxtral
 - [Telephony](configuration/telephony.md) - SIP dial-in via LiveKit SIP bridge
 - [Email (SMTP)](configuration/email.md) - recording notifications, room email invitations
 - [Theming](configuration/theming.md) - custom CSS, logo, build-time options
@@ -97,6 +97,4 @@ All LaSuite images are on [Docker Hub](https://hub.docker.com/u/lasuite). LiveKi
 
 ## Getting help
 
-- **Matrix**: [#meet-official:matrix.org](https://matrix.to/#/#meet-official:matrix.org)
-- **GitHub Issues**: [github.com/suitenumerique/meet/issues](https://github.com/suitenumerique/meet/issues)
-- **GitHub Discussions**: [github.com/suitenumerique/meet/discussions](https://github.com/suitenumerique/meet/discussions)
+See [Community and support](../index.md#community-and-support).

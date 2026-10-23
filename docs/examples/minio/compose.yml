@@ -10,10 +10,10 @@
 #   docker compose up -d
 #   # Then run the bucket initialization - see the Recording guide.
 #
-# MinIO console: https://s3.example.com (or http://localhost:9001 if not proxied)
+# The MinIO console (port 9001) is internal only. To reach it, add a ports
+# entry such as "127.0.0.1:9001:9001" and open an SSH tunnel.
 #
 # External network expected:
-#   proxy    - for reverse proxy access to the console (optional)
 #   internal - must match the network name used by your Meet stack
 
 services:

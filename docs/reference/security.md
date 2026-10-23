@@ -20,7 +20,7 @@ Clients authenticate with the LiveKit media server using JWTs:
 |---|---|---|
 | `public` | Anyone with the room link | No one |
 | `trusted` | Authenticated users | Unauthenticated users |
-| `restricted` | Only participants explicitly trusted by the owner | Everyone else, authenticated or not |
+| `restricted` | People holding a role on the room (owner, administrator, member) | Everyone else, authenticated or not |
 
 
 ## Media encryption
@@ -48,13 +48,13 @@ The Django backend uses CSRF tokens for browser-based requests. `DJANGO_CSRF_TRU
 
 ### Object-level permissions
 
-Reading a room requires no authentication or membership - anyone with the slug/PIN can join. Modifying or deleting a room requires being an administrator or owner.
+Reading a room requires no authentication or membership. In a browser, joining it depends on its access level: anyone with the slug joins a `public` room, signed-in users join a `trusted` room, people holding a role on the room join a `restricted` one, and everyone else goes through the waiting room. Modifying or deleting a room requires being an administrator or owner.
 
-By default (`ALLOW_UNREGISTERED_ROOMS=True`), joining a slug that doesn't exist yet creates the room on the fly instead of returning `404`. Set `ALLOW_UNREGISTERED_ROOMS=False` to require rooms to be explicitly created first.
+`ALLOW_UNREGISTERED_ROOMS` decides what a slug that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
 ### Rate limiting
 
-API endpoints are rate-limited per authenticated user. The lobby endpoint uses participant-ID-based throttling. Rate limit failures can be tracked via Sentry (`DJANGO_SENTRY_DSN`).
+Four actions are throttled, each by its own setting: requesting entry from the waiting room (`REQUEST_ENTRY_THROTTLE_RATES`), room creation callbacks (`CREATION_CALLBACK_THROTTLE_RATES`), connection tests (`CONNECTION_TEST_THROTTLE_RATES`) and Roomkit joins (`ROOMKIT_JOIN_THROTTLE_RATES`). Every other endpoint has no limit: set one at your reverse proxy.
 
 
 ## Known security fixes
@@ -106,27 +106,11 @@ Keep at 32+ characters. Treat like a database password.
 
 ### Docker
 
-The backend and frontend images run as non-root users. Avoid exposing `/var/run/docker.sock` in production (your reverse proxy requires it for container auto-discovery; scope access carefully).
+The backend and frontend images run as non-root users. Only the reverse proxy should mount `/var/run/docker.sock`, which it needs to discover containers; mount it read-only and give no other container access.
 
 ### Kubernetes
 
-The Meet Helm chart supports full `restricted` Pod Security Standards as of v1.14.0. These must be configured per-component:
-
-```yaml
-backend:
-  podSecurityContext:
-    runAsNonRoot: true
-  securityContext:
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop: [ALL]
-
-# Repeat for: frontend, summary, celeryBackend, celeryTranscribe,
-# celerySummarize, celerySummaryBackend, agentMetadata, agentSubtitles
-```
-
-See [Helm deployment security context](../self-hosting/kubernetes/helm.md#security-context-recommended) for full configuration.
+The Meet Helm chart supports full `restricted` Pod Security Standards as of v1.14.0. These must be configured per-component, see [Helm deployment security context](../self-hosting/kubernetes/helm.md#security-context-recommended).
 
 
 ## Reporting vulnerabilities

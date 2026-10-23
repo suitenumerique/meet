@@ -1,6 +1,6 @@
 # AI Transcription
 
-AI transcription is available in beta. When enabled, a recording session is automatically transcribed. Optionally, the transcript can be pushed to a LaSuite Docs instance for the room owner to read and edit.
+AI transcription is available in beta. When enabled, room owners and administrators can start a transcription, or add one to a screen recording; that recording is then sent to the summary service. Optionally, the transcript can be pushed to a LaSuite Docs instance for whoever started it to read and edit.
 
 !!!info
     **Prerequisite:** Transcription requires the [Recording](recording.md) feature to be fully set up and working first. Transcription uses the same LiveKit Egress, Object Store, and LiveKit webhook infrastructure.
@@ -23,7 +23,7 @@ See `src/summary/summary/core/user_assign.py` for the speaker assignment impleme
 - Transcription requires [WhisperX](https://github.com/m-bain/whisperX), which provides a custom API (not OpenAI-compatible). A Docker image is available at [github.com/suitenumerique/meet-whisperx](https://github.com/suitenumerique/meet-whisperx).
 
 **Optional: LaSuite Docs integration**
-Pushing the transcript to a LaSuite Docs instance (`POST /api/v1.0/documents/create-for-owner/`) is opt-in, controlled by `IS_LASUITE_DOCS_INTEGRATION_ENABLED` (`False` by default) plus `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY`, and by the tenant's `allowed_push_to_docs` flag in `AUTHORIZED_TENANTS`. With it disabled, transcription still completes normally - the transcript just isn't pushed anywhere else.
+Pushing the transcript to a LaSuite Docs instance (`POST /api/v1.0/documents/create-for-owner/`) is opt-in, controlled by `IS_LASUITE_DOCS_INTEGRATION_ENABLED` (`False` by default) plus `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY`, all set in the summary service's environment. With it disabled, transcription still completes normally - the transcript just isn't pushed anywhere else. Whether or not the push is enabled, each tenant needs `"allowed_push_to_docs": true` in `AUTHORIZED_TENANTS`: Meet always sends its Docs settings, and the summary service answers 400 to a tenant without the flag.
 
 ## How it works
 
@@ -31,22 +31,22 @@ Pushing the transcript to a LaSuite Docs instance (`POST /api/v1.0/documents/cre
 sequenceDiagram
   participant Backend as Backend API
   participant Summary as Summary Service
-  participant Celery as Celery Worker (transcribe_queue_v2)
+  participant Celery as Celery Worker (transcribe-queue-v2)
   participant MinIO as MinIO (Object Storage)
   participant STT as WhisperX API
   participant Docs as LaSuite Docs
 
-  Backend->>Summary: POST /api/v2/tasks/ (bearer token)
+  Backend->>Summary: POST /api/v2/async-jobs/transcribe (bearer token)
   Note right of Backend: Payload: user_sub, user_email, cloud_storage_url, language, metadata, push_to_docs_config
 
-  Summary->>Celery: Register task (transcribe_queue_v2)
+  Summary->>Celery: Register task (transcribe-queue-v2)
   Celery->>MinIO: Fetch audio file (pre-signed URL)
   Celery->>STT: Transcribe audio (WhisperX)
   STT-->>Celery: Segmented transcript
   Celery->>Celery: Format transcript & speaker diarization
-  Celery->>Backend: POST /api/v1.0/recordings/external-process-hook/ (call_webhook_queue_v2)
-  Backend->>Docs: POST /create-for-owner (title, content, email, sub, api token)
-  Docs-->>Backend: Acknowledgement
+  Celery->>Docs: POST /create-for-owner (title, content, email, sub, api token)
+  Docs-->>Celery: Acknowledgement
+  Celery->>Backend: POST /api/v1.0/recordings/external-process-hook/ (call-webhook-queue-v2)
 ```
 
 ---
@@ -73,7 +73,7 @@ AWS_S3_SECURE_ACCESS=False
 
 # Authorized tenants - authenticates the Meet backend and delivers results back to it.
 # Replace the api_key values with strong random secrets (openssl rand -hex 32).
-AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<generate-a-strong-secret>","webhook_url":"https://meet.example.com/api/v1.0/recordings/external-process-hook/","webhook_api_key":"<generate-a-strong-secret>"}]'
+AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<generate-a-strong-secret>","webhook_url":"https://meet.example.com/api/v1.0/recordings/external-process-hook/","webhook_api_key":"<generate-a-strong-secret>","allowed_push_to_docs":true}]'
 
 # WhisperX STT API
 WHISPERX_BASE_URL=https://your-whisperx-instance.example.com
@@ -91,7 +91,7 @@ LLM_MODEL=gpt-4o-mini
 
     `AUTHORIZED_TENANTS` is the only supported authentication mode.
 
-You need a running [WhisperX](https://github.com/suitenumerique/meet-whisperx) instance. An Open Source implementation combining WhisperX and FastAPI is available at [github.com/suitenumerique/meet-whisperx](https://github.com/suitenumerique/meet-whisperx).
+You need a running WhisperX API, such as [meet-whisperx](https://github.com/suitenumerique/meet-whisperx), which wraps WhisperX in FastAPI.
 
 ### Step 2: Add to compose.yml
 
@@ -115,7 +115,7 @@ app-summary:
 celery-summary-transcribe:
   image: lasuite/meet-summary:latest
   restart: unless-stopped
-  command: celery -A summary.core.celery_worker worker --pool=solo -Q transcribe_queue_v2
+  command: celery -A summary.core.celery_worker worker --pool=solo -Q transcribe-queue-v2
   env_file:
     - env.d/summary
   depends_on:
@@ -127,7 +127,7 @@ celery-summary-transcribe:
 celery-summary-webhook:
   image: lasuite/meet-summary:latest
   restart: unless-stopped
-  command: celery -A summary.core.celery_worker worker --pool=solo -Q call_webhook_queue_v2
+  command: celery -A summary.core.celery_worker worker --pool=solo -Q call-webhook-queue-v2
   env_file:
     - env.d/summary
   depends_on:
@@ -183,7 +183,7 @@ Add to your `values.yaml`:
 ```yaml
 summary:
   replicas: 1
-  envVars:
+  envVars: &summaryEnv
     CELERY_BROKER_URL: "redis://redis-master:6379/1"
     CELERY_RESULT_BACKEND: "redis://redis-master:6379/1"
     AWS_S3_ENDPOINT_URL: "http://minio:9000"
@@ -191,7 +191,7 @@ summary:
     AWS_S3_SECRET_ACCESS_KEY: "minioadmin123"
     AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
     AWS_S3_SECURE_ACCESS: "False"
-    AUTHORIZED_TENANTS: '[{"id":"meet","api_key":"<generate-a-strong-secret>","webhook_url":"https://meet.example.com/api/v1.0/recordings/external-process-hook/","webhook_api_key":"<generate-a-strong-secret>"}]'
+    AUTHORIZED_TENANTS: '[{"id":"meet","api_key":"<generate-a-strong-secret>","webhook_url":"https://meet.example.com/api/v1.0/recordings/external-process-hook/","webhook_api_key":"<generate-a-strong-secret>","allowed_push_to_docs":true}]'
     WHISPERX_BASE_URL: "https://your-whisperx-instance.example.com"
     WHISPERX_ASR_MODEL: "large-v3"
     WHISPERX_API_KEY: "your-api-key"
@@ -202,15 +202,19 @@ summary:
 
 You need a running [WhisperX](https://github.com/suitenumerique/meet-whisperx) instance reachable from within the cluster. For production, a GPU-enabled instance is strongly recommended.
 
-### Step 2: Enable the Celery transcribe worker
+### Step 2: Enable the Celery workers
+
+The transcribe worker and the webhook worker run the summary service's code, so they need the same environment, which the `*summaryEnv` alias repeats:
 
 ```yaml
 celeryTranscribe:
+  envVars: *summaryEnv
   instances:
     - name: transcribe-1
       replicas: 1
 
-celeryBackend:
+celerySummaryBackend:
+  envVars: *summaryEnv
   replicas: 1
 ```
 
@@ -236,40 +240,7 @@ helm upgrade meet meet/meet --namespace meet --values values.yaml
 
 ## Full configuration reference
 
-See [Environment Variables](../../reference/env-variables.md) for the complete, verified reference covering every setting below plus observability (Sentry/PostHog/Langfuse) and the LaSuite Docs integration. The table below only covers what's specific to transcription.
-
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `AUTHORIZED_TENANTS` | JSON array | -- (required) | Array of tenant configs, each with `id`, `api_key`, `webhook_url`, and `webhook_api_key`. |
-| `CELERY_BROKER_URL` | String | `"redis://redis/0"` | Celery broker URL |
-| `CELERY_RESULT_BACKEND` | String | `"redis://redis/0"` | Celery result backend URL |
-| `CELERY_MAX_RETRIES` | Integer | `1` | Maximum retries for a failed Celery task |
-| `TRANSCRIBE_QUEUE_V2` | String | `"transcribe-queue-v2"` | Name of the Celery queue for transcription tasks (v2) |
-| `CALL_WEBHOOK_QUEUE_V2` | String | `"call-webhook-queue-v2"` | Name of the Celery queue for webhook callbacks (v2) |
-| `SUMMARIZE_QUEUE_V2` | String | `"summarize-queue-v2"` | Name of the Celery queue for summarization tasks (v2, optional) |
-| `AWS_STORAGE_BUCKET_NAME` | String | -- (required) | S3/MinIO bucket name |
-| `AWS_S3_ENDPOINT_URL` | String | -- (required) | S3/MinIO endpoint URL |
-| `AWS_S3_ACCESS_KEY_ID` | String | -- (required) | S3/MinIO access key |
-| `AWS_S3_SECRET_ACCESS_KEY` | Secret | -- (required) | S3/MinIO secret key |
-| `AWS_S3_SECURE_ACCESS` | Boolean | `True` | Use HTTPS for S3/MinIO requests |
-| `AWS_S3_REGION_NAME` | String | -- | S3 region |
-| `AWS_TRANSCRIPT_PATH` | String | `"transcripts"` | Folder/prefix used in object storage for transcript files |
-| `WHISPERX_API_KEY` | Secret | -- (required) | API key for WhisperX |
-| `WHISPERX_BASE_URL` | String | `"https://api.openai.com/v1"` | Base URL for the WhisperX-compatible API. The default targets the OpenAI Whisper API. Override with your self-hosted WhisperX URL (e.g., `http://whisperx:8000/v1`). |
-| `WHISPERX_ASR_MODEL` | String | `"whisper-1"` | ASR model for transcription. Use `"whisper-1"` for the OpenAI API, or a WhisperX model like `"large-v3"` for a self-hosted instance. |
-| `WHISPERX_DEFAULT_LANGUAGE` | String | -- | ISO 639-1 language code (e.g., `"fr"`, `"en"`). When set, skips automatic language detection. |
-| `WHISPERX_ALLOWED_LANGUAGES` | Set | `{"en","fr","de","nl"}` | Set of accepted language codes. Requests for other languages are rejected. |
-| `HALLUCINATION_PATTERNS` | List\[String\] | `["Vap'n'Roll Thierry"]` | Transcript substrings treated as known WhisperX hallucinations and filtered out |
-| `IS_RESOLVE_SPEAKER_IDENTITIES_ENABLED` | Boolean | `True` | Match diarized `SPEAKER_00`-style labels to real participant names using VAD metadata |
-| `WEBHOOK_MAX_RETRIES` | Integer | `2` | Maximum retries for a failed webhook delivery |
-| `WEBHOOK_STATUS_FORCELIST` | List\[Int\] | `[502, 503, 504]` | HTTP status codes that trigger a retry |
-| `WEBHOOK_BACKOFF_FACTOR` | Float | `0.1` | Exponential backoff factor between webhook retries |
-| `RECORDING_MAX_DURATION` | Integer | `None` | Max audio duration in milliseconds; longer recordings are ignored |
-| `IS_SUMMARY_ENABLED` | Boolean | `True` | Enable AI summarization in addition to transcription. Set to `False` to produce transcripts only. |
-| `IS_LASUITE_DOCS_INTEGRATION_ENABLED` | Boolean | `False` | Push completed transcripts to a LaSuite Docs instance. Optional - transcription works without it. |
-| `LASUITE_DOCS_BASE_URL` | String | -- (required if enabled) | Base URL of the LaSuite Docs instance |
-| `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` | Secret | -- (required if enabled) | Server-to-server API key for authenticating with LaSuite Docs |
-
+Every variable, with its default: the backend side in [Environment Variables: Transcription](../../reference/env-variables.md#transcription), the summary service in [Environment Variables: Summary service](../../reference/env-variables.md#summary-service).
 
 ## Supported audio formats
 
@@ -278,4 +249,4 @@ The summary service accepts: `.mp4`, `.webm`, `.wav`, `.mp3`, `.ogg`.
 
 ## LLM summarization (optional, separate feature)
 
-Summarization (generating a written summary from the transcript using an LLM) is a separate optional feature, not part of basic transcription. It runs on the same `summarize_queue_v2` Celery worker. Set `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` - see the [LLM (summarization)](../../reference/env-variables.md#llm-summarization) section of the Environment Variables reference. Set `IS_SUMMARY_ENABLED=False` to produce transcripts only.
+Summarization (generating a written summary from the transcript using an LLM) is a separate optional feature, not part of basic transcription. It needs its own Celery worker: add a service like `celery-summary-transcribe` above, with `-Q summarize-queue-v2`. The summary service needs `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` to start, even with summaries off - see the [Summaries (LLM)](../../reference/env-variables.md#summaries-llm) section of the Environment Variables reference. Set `IS_SUMMARY_ENABLED=False` to produce transcripts only.

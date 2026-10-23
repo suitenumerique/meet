@@ -6,11 +6,11 @@ Real-time subtitles provide live captions during meetings for accessibility. Thi
 
 ```mermaid
 sequenceDiagram
-    participant Owner as Room Owner
+    participant Owner as Participant
     participant Backend as Meet Backend
     participant LK as LiveKit Server
     participant Agent as Multi-User Transcriber Agent
-    participant STT as STT Provider<br/>(Deepgram/Kyutai)
+    participant STT as STT Provider<br/>(Deepgram/Kyutai/Voxtral)
     participant Users as Participants
 
     Owner->>Backend: Start subtitles
@@ -28,7 +28,7 @@ sequenceDiagram
     end
 ```
 
-The multi-user transcriber agent (`src/agents/multi_user_transcriber.py`) handles transcription for all participants simultaneously.
+The multi-user transcriber agent (`src/agents/multi_user_transcriber.py`) handles transcription for all participants simultaneously. Any participant in the room can start subtitles, anonymous ones in a public room included, and each start runs the paid speech-to-text provider.
 
 ---
 
@@ -42,10 +42,7 @@ ROOM_SUBTITLE_ENABLED=True
 ROOM_SUBTITLE_AGENT_NAME=multi-user-transcriber
 ```
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ROOM_SUBTITLE_ENABLED` | Yes | `False` | Enable real-time subtitles feature |
-| `ROOM_SUBTITLE_AGENT_NAME` | No | `multi-user-transcriber` | Name of the LiveKit agent to dispatch |
+`ROOM_SUBTITLE_AGENT_NAME` must match the agent's `TRANSCRIBER_AGENT_NAME`, see [Environment Variables: Subtitles](../../reference/env-variables.md#subtitles).
 
 ---
 
@@ -58,7 +55,7 @@ Add the multi-user transcriber agent to your `compose.yml`:
 ```yaml
 multi-user-transcriber:
   image: lasuite/meet-agents:latest
-  command: python multi_user_transcriber.py dev
+  command: python multi_user_transcriber.py start
   env_file:
     - env.d/development/multi_user_transcriber.dist
   depends_on:
@@ -73,7 +70,7 @@ LIVEKIT_URL=ws://livekit:7880
 LIVEKIT_API_KEY=your-api-key
 LIVEKIT_API_SECRET=your-api-secret
 
-# Choose STT provider: kyutai or deepgram
+# Choose STT provider: deepgram, kyutai or voxtral-vllm
 STT_PROVIDER=deepgram
 
 # Deepgram configuration (if using Deepgram)
@@ -154,19 +151,17 @@ Deploy [Voxtral](https://mistral.ai/news/voxtral) behind a vLLM realtime endpoin
 Add the agent to your Helm values:
 
 ```yaml
-agents:
-  multiUserTranscriber:
-    enabled: true
-    replicas: 1
-    
-    env:
-      STT_PROVIDER: "deepgram"
-      DEEPGRAM_STT_MODEL: "nova-3"
-      DEEPGRAM_STT_LANGUAGE: "multi"
-      ENABLE_SILERO_VAD: "true"
-    
-    secrets:
-      DEEPGRAM_API_KEY: "your-api-key"
+agentSubtitles:
+  replicas: 1
+  envVars:
+    STT_PROVIDER: "deepgram"
+    DEEPGRAM_STT_MODEL: "nova-3"
+    DEEPGRAM_STT_LANGUAGE: "multi"
+    ENABLE_SILERO_VAD: "true"
+    DEEPGRAM_API_KEY:
+      secretKeyRef:
+        name: meet-secrets
+        key: deepgram-api-key
 ```
 
 The agent connects to the LiveKit server and waits for dispatch requests from the backend.
@@ -175,40 +170,7 @@ The agent connects to the LiveKit server and waits for dispatch requests from th
 
 ## Configuration reference
 
-### Agent environment variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `LIVEKIT_URL` | Yes | - | LiveKit server WebSocket URL |
-| `LIVEKIT_API_KEY` | Yes | - | LiveKit API key |
-| `LIVEKIT_API_SECRET` | Yes | - | LiveKit API secret |
-| `STT_PROVIDER` | Yes | `deepgram` | STT provider (`deepgram`, `kyutai`, or `voxtral-vllm`) |
-| `TRANSCRIBER_AGENT_NAME` | No | `multi-user-transcriber` | Agent name for dispatch - must match the backend's `ROOM_SUBTITLE_AGENT_NAME` |
-| `ENABLE_SILERO_VAD` | No | `true` | Enable Voice Activity Detection for better caption timing |
-
-### Deepgram-specific variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DEEPGRAM_API_KEY` | Yes (if using Deepgram) | - | Deepgram API key |
-| `DEEPGRAM_STT_MODEL` | No | `nova-3` | Deepgram model to use |
-| `DEEPGRAM_STT_LANGUAGE` | No | `multi` | Language code or `multi` for auto-detection |
-
-### Kyutai-specific variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `KYUTAI_STT_BASE_URL` | Yes (if using Kyutai) | - | Kyutai service base URL |
-| `KYUTAI_API_KEY` | Yes (if using Kyutai) | - | Kyutai API key |
-
-### Voxtral-vLLM-specific variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `VOXTRAL_VLLM_BASE_URL` | No | `ws://127.0.0.1:8000/v1/realtime` | vLLM realtime WebSocket endpoint |
-| `VOXTRAL_VLLM_MODEL` | No | `mistralai/Voxtral-Mini-4B-Realtime-2602` | Model served by vLLM |
-| `VOXTRAL_VLLM_API_KEY` | No | - | Bearer token, if the endpoint requires one |
-| `VOXTRAL_VLLM_TARGET_STREAMING_DELAY_MS` | No | Server default | Target streaming delay override |
+Every agent variable, with its default: [Environment Variables: Subtitles agent](../../reference/env-variables.md#subtitles-agent).
 
 ---
 

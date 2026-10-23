@@ -14,7 +14,7 @@ Each stack is independent: you manage, upgrade, and restart them separately. The
 - `proxy` - external, shared between all stacks, used by the reverse proxy for routing
 - `internal` - created per-stack, for service-to-service communication within each stack
 
-The Meet backend (Stack 3) needs both: `internal` for service-to-service communication, and `proxy` to resolve public hostnames (`auth.example.com`, `livekit.example.com`) for OIDC token exchange and LiveKit API calls. It never gets a `VIRTUAL_HOST` or proxy label itself - it's only reached via the frontend container's internal nginx.
+The Meet backend (Stack 3) sits on `internal` only. It reaches `auth.example.com` and `livekit.example.com` for OIDC token exchange and LiveKit API calls through their public DNS records, like any other client. It never gets a `VIRTUAL_HOST` or proxy label itself - it's only reached via the frontend container's internal nginx.
 
 **Prerequisites:** Complete the [Prerequisites](prerequisites.md) checklist first. DNS must resolve before you start - Let's Encrypt needs it.
 
@@ -54,10 +54,7 @@ All three domains must have DNS A records pointing to your server before you pro
 
 Skip this section if you already have a reverse proxy running and attached to the `proxy` network.
 
-Follow the setup guide for your chosen proxy - each covers the full setup, how Meet services integrate, DNS requirements, and troubleshooting:
-
-- [nginx-proxy + acme-companion](nginx.md) - recommended for new deployments
-- [Traefik](traefik.md)
+Follow [Reverse Proxy](reverse-proxy.md), with nginx-proxy + acme-companion (recommended for new deployments) or Traefik. It covers the full setup, how Meet services integrate, and troubleshooting.
 
 Once your proxy is running, continue to Stack 2.
 
@@ -65,12 +62,16 @@ Once your proxy is running, continue to Stack 2.
 
 ## Stack 2: Identity provider
 
-Skip this section if you already have an OIDC provider. If you do, note down your OIDC endpoints and client credentials - you will need them in Stack 3. See [SSO & Authentication](../configuration/sso.md) for configuration instructions for each provider.
+Meet logs users in through any OIDC provider. Whichever you use, register a confidential client for Meet with the redirect URI, the post-logout redirect URI and the web origin that [SSO: Client configuration](../configuration/sso.md#client-configuration) lists, then note the provider's endpoints and the client secret for Stack 3. [SSO & Authentication](../configuration/sso.md) gives the values for Authentik, Google and others.
 
-!!! warning 
-    **These instructions are provided as a quick-start example using Keycloak.** 
-    
-    For production environments, read the [official Keycloak documentation](https://www.keycloak.org/documentation)..
+If you already run a provider, skip to Stack 3.
+
+### Quick start: Keycloak
+
+This runs Keycloak on the same server, with a realm already holding Meet's client.
+
+!!! warning
+    Before production, harden this Keycloak per the [official Keycloak documentation](https://www.keycloak.org/documentation).
 
 ```bash
 mkdir -p ~/docker/keycloak/env.d && cd ~/docker/keycloak
@@ -126,21 +127,23 @@ sed -i "s|POSTGRES_PASSWORD=<generate postgres password>|POSTGRES_PASSWORD=${KC_
     Still generate `KC_CLIENT_SECRET` and `MEET_ADMIN_PASSWORD` yourself either way - both go into `keycloak-realm.json` below, which the script doesn't handle.
 
 !!! warning
-    The realm ships with a placeholder password for the `meet-admin` user. Since Keycloak is reachable
-    on a public URL, do not leave the placeholder in place: whoever reaches the login page first -
-    not necessarily you - would be free to claim the account (the "temporary" flag only forces a
-    password change at *first* login, it doesn't protect the account until then). Always randomize it
-    below.
+    The realm ships with a placeholder password for the `meet-admin` user. Keycloak is on a public
+    URL, so whoever reaches the login page first can claim the account with the placeholder: the
+    "temporary" flag only forces a password change at *first* login. Always randomize it below.
 
-Edit `keycloak-realm.json` - replace four placeholders:
+Edit `keycloak-realm.json` - replace four placeholders. The first line loads `MEET_HOST` from `.env` into your shell, and `ADMIN_EMAIL` is the email of the `meet-admin` account:
 
 ```bash
+set -a; . ./.env; set +a
+ADMIN_EMAIL=you@example.com
+
 sed -i "s|REPLACE_ME|${KC_CLIENT_SECRET}|"                        keycloak-realm.json
 sed -i "s|meet\.example\.com|${MEET_HOST}|g"                      keycloak-realm.json
+sed -i "s|admin@example\.com|${ADMIN_EMAIL}|"                     keycloak-realm.json
 sed -i "s|MEET_ADMIN_PASSWORD_PLACEHOLDER|${MEET_ADMIN_PASSWORD}|" keycloak-realm.json
 ```
 
-Note down `MEET_ADMIN_PASSWORD` and `KC_CLIENT_SECRET` now - neither is stored in any `env.d/` file, and you'll need `KC_CLIENT_SECRET` again in Stack 3. Also set your email in `keycloak-realm.json`.
+Note down `MEET_ADMIN_PASSWORD` and `KC_CLIENT_SECRET` now - neither is stored in any `env.d/` file, and you'll need `KC_CLIENT_SECRET` again in Stack 3.
 
 Start:
 
@@ -243,6 +246,15 @@ docker compose exec backend python manage.py migrate
 
 All migrations should complete with `OK`.
 
+### Create an admin account
+
+Accounts created by logging in through your identity provider cannot open the admin panel at `https://meet.example.com/admin/`. Create one that can:
+
+```bash
+docker compose exec backend python manage.py createsuperuser \
+  --email you@example.com --password '<a strong password>'
+```
+
 ### Verify
 
 ```bash
@@ -275,20 +287,7 @@ Open `https://meet.example.com`, log in, create a meeting, and confirm audio and
 
 **2. Configure email**
 
-Required for recording download notifications and room email invitations. Edit `env.d/common`:
-
-```dotenv
-DJANGO_EMAIL_HOST=smtp.example.com
-DJANGO_EMAIL_PORT=587
-DJANGO_EMAIL_HOST_USER=meet@example.com
-DJANGO_EMAIL_HOST_PASSWORD=<password>
-DJANGO_EMAIL_USE_TLS=True
-DJANGO_EMAIL_FROM=meet@example.com
-```
-
-Restart: `docker compose up -d --force-recreate backend celery`
-
-See [Email (SMTP)](../configuration/email.md) for branding options and the full variable reference.
+Required for recording download notifications. Follow the Docker Compose section of [Email (SMTP)](../configuration/email.md#docker-compose-setup).
 
 **3. Configure TURN**
 
@@ -296,8 +295,8 @@ Participants on corporate networks or VPNs may have no audio/video without TURN.
 
 **4. Review security**
 
-- Rotate all secrets if any placeholder values remain
-- `ALLOW_UNREGISTERED_ROOMS=False` in `env.d/common` requires login for all rooms - it's the shipped default, confirm it wasn't changed
+- Replace any placeholder value still left in `env.d/` or `keycloak-realm.json`
+- Decide who can join rooms without logging in, see [Unauthenticated access](../configuration/sso.md#unauthenticated-access)
 - Keep the LiveKit API secret 32+ characters - treat it like a database password
 - See [Security](../../reference/security.md)
 
@@ -306,7 +305,7 @@ Participants on corporate networks or VPNs may have no audio/video without TURN.
 `compose.yml` resolves image tags from `MEET_VERSION` and `LIVEKIT_VERSION`, both defaulting to `latest` if unset (`image: lasuite/meet-backend:${MEET_VERSION:-latest}`). Pin them in `.env` instead of editing `compose.yml`:
 
 ```dotenv
-MEET_VERSION=1.31.0
+MEET_VERSION=v1.31.0
 LIVEKIT_VERSION=v1.13.6
 ```
 
@@ -314,7 +313,7 @@ LIVEKIT_VERSION=v1.13.6
 docker compose up -d
 ```
 
-Check the [Changelog](../../overview/changelog.md) for the latest stable version.
+Check the [changelog](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) for the latest stable version.
 
 **6. Set up database backups**
 
@@ -335,30 +334,4 @@ Store backups off-server and test restoration before relying on them.
 
 ## Troubleshooting
 
-**App returns 404 on all routes**
-`DJANGO_SETTINGS_MODULE` is missing. Check `env.d/common` contains `DJANGO_SETTINGS_MODULE=meet.settings` and restart:
-```bash
-docker compose restart backend
-```
-
-**502 Bad Gateway**
-The frontend nginx is not reaching the backend. Check:
-```bash
-docker compose logs frontend
-docker compose logs backend
-```
-
-**Infinite redirect loop**
-`X-Forwarded-Proto https` is not hardcoded in `nginx-routing.conf`. Verify the file was downloaded correctly - it must not use `$scheme`.
-
-**"Invalid parameter: redirect_uri" from Keycloak**
-The redirect URI must be exactly `https://meet.example.com/api/v1.0/callback/` (note the versioned path and trailing slash). 
-
-If using Keycloak, fix it in  admin console: Clients → meet → Settings → Valid redirect URIs.
-
-**Disconnected from meeting immediately**
-`LIVEKIT_API_URL` in `env.d/common` is set to the Docker-internal address. It must be the public HTTPS URL: `https://livekit.example.com`.
-
-**No audio or video after joining**
-A media port is blocked. Verify `7881/TCP` and `7882/UDP` are open - see [Firewall & Ports](../configuration/firewall.md).
-
+Common problems and their fixes are in [Troubleshooting](../../reference/troubleshooting.md).

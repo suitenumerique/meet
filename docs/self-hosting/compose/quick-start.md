@@ -1,6 +1,6 @@
 # Quick Start
  
-Gets you a running Meet instance in minutes. Sets up three stacks automatically:
+The install script sets up three stacks:
 a reverse proxy, Keycloak (identity provider), and Meet itself.
  
 **Prerequisites:**

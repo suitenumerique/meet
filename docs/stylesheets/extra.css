@@ -1,0 +1,4 @@
+/* Mermaid renders in the browser after load; hide the source until it does. */
+pre.mermaid {
+  visibility: hidden;
+}

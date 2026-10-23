@@ -2,7 +2,7 @@
 
 You can customize the look and feel of LaSuite Meet to match your brand. Two approaches are available:
 
-- **Runtime theming** - load a custom CSS file to override design tokens (colors, fonts, spacing). Changes take effect instantly, no rebuild needed.
+- **Runtime theming** - load a custom CSS file to override design tokens (colors, fonts, spacing). Changes apply on the next page load, with no rebuild.
 - **Build-time theming** - change the application title via a build argument. Requires rebuilding the Docker image.
 
 ---
@@ -89,7 +89,7 @@ In practice, to fully rebrand the primary color you need to override both the se
 }
 ```
 
-Set `FRONTEND_CUSTOM_CSS_URL` to the URL of this file. The UI will render with Roboto immediately.
+Set `FRONTEND_CUSTOM_CSS_URL` to the URL of this file. The UI renders with Roboto on the next page load.
 
 ### Light and dark mode
 

@@ -16,6 +16,19 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Compose env files: `KEYCLOAK_HOST` renamed, internal hosts removed
+
+`env.d/production.dist/hosts` and the OIDC endpoints of
+`env.d/production.dist/common` now read `IDP_HOST`. If you refresh `common`
+from the new templates, rename `KEYCLOAK_HOST` to `IDP_HOST` in your `.env`
+too, or the OIDC endpoints get an empty host and login fails.
+
+`hosts` also no longer carries `BACKEND_INTERNAL_HOST`,
+`FRONTEND_INTERNAL_HOST` and `LIVEKIT_INTERNAL_HOST`. A deployment that still
+mounts `docker/files/production/default.conf.template` needs them in its
+`.env`, or the frontend nginx fails to start. The compose examples now use
+`docs/examples/meet/nginx-routing.conf` in its place.
+
 ## v1.30.0
 
 ### Removing S3 storage-event webhooks for recordings

@@ -51,7 +51,7 @@ make run
 | MinIO | http://localhost:9000 (console: :9001) |
 | Mailcatcher | http://localhost:1081 |
 
-Default credentials: Meet `meet`/`meet`, Keycloak admin `admin`/`admin`, MinIO `meet`/`password`.
+Default credentials: Meet `meet`/`meet`, Django admin `admin@example.com`/`admin` at http://localhost:8071/admin/, Keycloak admin `admin`/`admin`, MinIO `meet`/`password`.
 
 ### Stop
 
@@ -59,48 +59,17 @@ Default credentials: Meet `meet`/`meet`, Keycloak admin `admin`/`admin`, MinIO `
 make stop
 ```
 
-### Add demo data
+### Reset to demo data
+
+`make demo` empties the database, then loads demo data and recreates the Django admin.
 
 ```bash
 make demo
 ```
 
-## Frontend development (hot reload)
+## Developing the frontend and the backend
 
-Run the backend in the background and start the frontend with HMR:
-
-```bash
-make run-backend
-make frontend-development-install
-make run-frontend-development
-```
-
-Equivalent direct npm commands:
-```bash
-cd src/frontend
-npm install
-npm run dev
-```
-
-The frontend dev server runs at http://localhost:3000.
-
-## Backend development
-
-```bash
-# Django shell
-docker compose exec app-dev python manage.py shell
-
-# Create superuser
-make superuser 
-
-# Run backend tests
-make test-back
-
-# Lint Python
-make lint-back
-```
-
-Admin panel: http://localhost:8071/admin/
+Hot reload, tests and linting for each side are in [Frontend](frontend.md#running-in-dev-mode) and [Backend](backend.md#running-the-backend).
 
 ## Option 2: Kubernetes with Tilt
 

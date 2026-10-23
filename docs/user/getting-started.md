@@ -23,7 +23,7 @@ Open Meet in your browser. If your instance requires login, you'll be redirected
 
 On the home page, you'll see two options:
 
-- **Create a meeting for later** - schedules a room you can share in advance
+- **Create a meeting for a later date** - schedules a room you can share in advance
 - **Start an instant meeting** - creates a room immediately
 
 Click **Start an instant meeting**.
@@ -32,8 +32,8 @@ Meet creates a room with a unique URL, something like `https://meet.yourdomain.c
 
 !!! info
 
-    The room is now open and waiting. It will stay open as long as at least one participant 
-    is connected, and close automatically when everyone leaves.
+    The room exists now. Once people join, it stays open while at least one participant
+    is connected, and closes automatically when everyone leaves.
 
 ## Step 2: Configure your setup on the pre-join screen
 
@@ -101,17 +101,17 @@ The control bar at the bottom of the screen is your main interface during a meet
 
 ## Step 6: Send a chat message
 
-![Chat](../assets/getting-started-chat.gif.gif)
+![Chat](../assets/getting-started-chat.gif)
 
 Click the **Chat** icon in the control bar, or press `Ctrl+Shift+M`. A chat panel opens on the right side. Type a message and press **Enter**.
 
 !!! warning
 
-    Chat messages are **not saved** - when the last participant leaves, the chat history is cleared. This is by design for privacy.
+    Meet does **not keep chat** - when the last participant leaves, the chat history is cleared. The one exception is a transcription on an instance that runs the metadata collector: chat sent during it is saved with the transcription metadata, see [FAQ](../faq.md#is-chat-history-stored).
 
 ## Step 7: Raise your hand
 
-![Rais Hand](../assets/getting-started-raise-hand.gif)
+![Raise hand](../assets/getting-started-raise-hand.gif)
 
 Click the **Raise hand** button (✋) in the control bar to signal you want to speak without interrupting. Other participants see a raised hand indicator on your tile and a notification in the Participants panel. Click again to lower your hand.
 

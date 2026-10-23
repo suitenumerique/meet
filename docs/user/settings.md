@@ -1,19 +1,19 @@
 # Settings
 
-Configure your devices, preferences, and notifications via the settings modal. These settings are stored in your browser's local storage and persist across sessions.
+Configure your devices, preferences, and notifications via the settings modal. Device and preference settings are stored in your browser's local storage, so they stay on that browser; your profile and your default room settings are saved to your account.
 
 ![Settings page](../assets/settings-page.png)
 
-## Account
+## Profile
 
 Displays your current login status and username. You can update your display name here.
 
 - **Your name**: Set your display name shown in meetings. Cannot be empty.
 
-## Preferences
+## General
 
-- **Auto-leave when alone**: Automatically leave a call after a few minutes if no other participant is present.
-- **Automatically mute when joining a large meeting**: Mute your microphone automatically when entering a large room to reduce background noise.
+- **Leave calls with no participants**: Automatically leave a call after a few minutes if no other participant is present.
+- **Automatically mute my microphone**: Mute your microphone automatically when joining a large meeting, to reduce background noise.
 
 ## Audio
 
@@ -21,9 +21,9 @@ Displays your current login status and username. You can update your display nam
 
 Select your audio input device from the dropdown.
 
-### Noise reduction
+### Advanced voice optimization
 
-⚗️ Beta. Toggle **Noise reduction** to enable or disable noise suppression for your microphone.
+⚗️ Beta. Toggle **Advanced voice optimization** to enable or disable noise suppression for your microphone.
 
 ### Speakers
 
@@ -56,7 +56,11 @@ Configure video quality for sending and receiving:
 
 - **Meeting language**: Set the default language for AI transcription: French, English, Dutch, German, or Auto.
 
-## Sound notifications
+## Rooms
+
+**Default room settings** apply to the new rooms you create: who can join them, and what participants may publish. They are saved to your account, and each meeting can still change them from its host settings.
+
+## Notifications
 
 Toggle sound notifications on or off for each event:
 
@@ -65,10 +69,10 @@ Toggle sound notifications on or off for each event:
 - **Message received**: Sound when a chat message is received
 - **Participant waiting**: Sound when a participant is waiting in the lobby
 
-## Keyboard shortcuts
+## Shortcuts
 
 Press `Ctrl+Shift+/` to open the shortcuts panel and view all available keyboard shortcuts.
 
 ## Language
 
-Set the interface language. Supported languages: French, English, Dutch, German, and Spanish. The default depends on your instance's `LANGUAGE_CODE` setting (typically English for self-hosted deployments).
+Set the interface language. Supported languages: French, English, Dutch, German, and Spanish. The default depends on your instance's `DJANGO_LANGUAGE_CODE` setting (typically English for self-hosted deployments).

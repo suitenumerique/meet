@@ -146,7 +146,7 @@ Some networks block **all UDP traffic**, including port 443/UDP. For those, TURN
 
 **Port options**:
 - **5349/TCP** - IANA standard TURN/TLS port (recommended)
-- **443/TCP** - Alternative if running without an L4 load balancer (conflicts with HTTPS on the same IP)
+- **443/TCP** - only on a second IP, or behind an L4 load balancer that splits TURN from HTTPS; on the reverse proxy's IP it conflicts with HTTPS
 
 LiveKit performs TLS termination for TURN/TLS. It needs direct access to certificate files - it **cannot** use certificates held by your reverse proxy (nginx, Traefik). Certificate renewal requires restarting LiveKit to pick up new files.
 
@@ -238,7 +238,7 @@ Let's Encrypt certificates renew every 90 days. After renewal, LiveKit must be r
 Add a cron job or systemd timer to restart LiveKit after certificate renewal:
 
 ```bash
-# Example: weekly restart (safe; LiveKit restarts in seconds)
+# Example: weekly restart (drops every call in progress, so pick a quiet hour)
 0 3 * * 0 docker compose -f /path/to/your/compose.yml restart livekit
 ```
 
@@ -299,4 +299,4 @@ LiveKit logs `failed to load certificate` or similar. Check:
 
 **Participants still can't connect after TURN is enabled**
 
-Some very restrictive networks (full TLS inspection proxies, "application-aware" firewalls) can still block TURN/UDP even on port 443. In those cases, [TURN over TLS (Option 2)](#option-2-turn-over-tls) is the only solution, as it wraps media inside a genuine TLS handshake on port 5349.
+Some very restrictive networks (full TLS inspection proxies, "application-aware" firewalls) can still block TURN/UDP even on port 443. In those cases, [TURN over TLS (Option 2)](#option-2-turn-over-tls-for-udp-blocked-networks) is the only solution, as it wraps media inside a genuine TLS handshake on port 5349.

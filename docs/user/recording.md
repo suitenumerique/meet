@@ -6,11 +6,11 @@ Only room owners and administrators can start a recording. Members cannot record
 
 ![Recording option in More menu](../assets/recording.gif)
 
-Click **...** (More options) → **Screen recording**. A red indicator appears for all participants.
+Click **...** (More options) → **Screen recording** to open the recording panel, then click **Start recording the meeting**. A red indicator appears for all participants.
 
 ## Stop a recording
 
-Click **...** → **Screen recording** again to stop. The file is processed and uploaded automatically.
+In the same panel, click **Stop recording the meeting**. The file is processed and uploaded automatically.
 
 ## What gets recorded
 
@@ -37,7 +37,7 @@ The download page shows:
 
 - The meeting room name
 - The recording date and time
-- An expiration warning if the recording will be deleted after a set number of days
+- An expiration warning if the recording expires after a set number of days
 
 > If you do not receive an email, your instance may not have email (SMTP) configured. Ask your administrator to check the email settings or look up the recording in the admin panel at `/admin/ → Recordings`.
 
@@ -47,4 +47,4 @@ The download page shows:
 - Email (SMTP) must be configured for the download notification to be sent
 - Download links are authenticated; only the person who started the recording can access them
 - Your administrator may set a maximum recording duration; the recording stops and saves automatically if it's reached
-- Recordings are automatically deleted after the expiration period set by your administrator
+- After the expiration period set by your administrator, the recording's download page says it has expired and no longer offers the file

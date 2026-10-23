@@ -2,7 +2,7 @@
 
 LaSuite Meet provides an official Helm chart. This is the deployment method used by DINUM in production for Visio.
 
-> **Working examples:** For real production-tested configurations, see the [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm) directory in the repository:
+> **Working examples:** For working configurations, see the [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm) directory in the repository:
 > - [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) - DINUM's multi-environment setup
 > - [`env.d/dev-keycloak/`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d/dev-keycloak) - Complete values files for Meet, LiveKit, and Egress
 > - [`meet/README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) - Full parameter reference
@@ -174,38 +174,35 @@ agentSubtitles:
 
 ### Security context (recommended)
 
-Configure `podSecurityContext` and `securityContext` under each component: `backend`, `frontend`, `summary`, `celeryBackend`, `celeryTranscribe`, `celerySummarize`, `celerySummaryBackend`, `agentMetadata`, `agentSubtitles`.
+Configure `securityContext` under each component: `backend`, `frontend`, `summary`, `celeryBackend`, `celeryTranscribe`, `celerySummarize`, `celerySummaryBackend`, `agentMetadata`, `agentSubtitles`. Put the settings the `restricted` Pod Security Standard requires there, at container level: every template reads `securityContext`, while `podSecurityContext` is ignored by `celerySummaryBackend` and by the backend's cleanup CronJobs.
 
 Example for backend:
 
 ```yaml
 backend:
   podSecurityContext:
+    fsGroup: 1000
+  # A read-only root filesystem needs a writable /tmp for the gunicorn workers.
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+  securityContext:
     runAsNonRoot: true
     runAsUser: 1000
-    fsGroup: 1000
-  securityContext:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
+    seccompProfile:
+      type: RuntimeDefault
     capabilities:
       drop:
         - ALL
 
-# Repeat for other components:
-frontend:
-  podSecurityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    fsGroup: 1000
-  securityContext:
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    capabilities:
-      drop:
-        - ALL
-
-# And similarly for: summary, celeryBackend, celeryTranscribe, 
-# celerySummarize, celerySummaryBackend, agentMetadata, agentSubtitles
+# Repeat the securityContext block for: frontend, summary, celeryBackend,
+# celeryTranscribe, celerySummarize, celerySummaryBackend, agentMetadata,
+# agentSubtitles.
 ```
 
 ## Deploying
@@ -280,7 +277,7 @@ livekit:
       - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
 
 loadBalancer:
-  # Valid values: disable, alb, aws, gke, gke-managed-cert, gke-native-vpc, do.
+  # Valid values: disable, alb, aws, gke, gke-managed-cert, gke-vpc-native, gclb, do.
   # "disable" (the default) renders no Ingress at all. On AWS, "alb" is
   # recommended for TLS termination - it requires the AWS Load Balancer
   # Controller to be installed in the cluster.
@@ -295,16 +292,15 @@ loadBalancer:
 Deploy:
 
 ```bash
-helm install livekit livekit/livekit-server \
+helm install livekit-server livekit/livekit-server \
   --namespace meet \
   --values livekit-values.yaml
 ```
 
 ### LiveKit media ports
 
-LiveKit needs UDP port 7882 and TCP port 7881 accessible from the public internet. These bypass the Ingress/load balancer above entirely and are exposed directly by the Service the chart creates - no extra configuration needed beyond `livekit.rtc.udp_port` (or `port_range_start`/`port_range_end`) set above. Open them on your cloud security group / firewall - see [Firewall & Ports](../configuration/firewall.md).
+LiveKit needs UDP port 7882 and TCP port 7881 accessible from the public internet. The chart serves them from the node itself through host networking, bypassing the Ingress and any Service: each node that runs LiveKit needs a public IP, with both ports open in its security group or firewall, see [Firewall & Ports](../configuration/firewall.md).
 
-> **Do not name the LiveKit Helm release `livekit`.** Kubernetes injects environment variables for services by name (`LIVEKIT_PORT`, `LIVEKIT_SERVICE_HOST`) into every other pod in the namespace, which can collide with LiveKit-related env vars your own services read. The official Helm chart uses `livekit-server` by default, which is fine.
 
 ## Recording
 
@@ -440,5 +436,7 @@ Database migrations run automatically via a Kubernetes Job on upgrade. Monitor:
 
 ```bash
 kubectl -n meet get jobs
-kubectl -n meet logs job/meet-migrate
+kubectl -n meet logs job/meet-backend-migrate
 ```
+
+The chart deletes the Job 30 seconds after it finishes, per `backend.jobs.ttlSecondsAfterFinished`, so read its logs while it runs.

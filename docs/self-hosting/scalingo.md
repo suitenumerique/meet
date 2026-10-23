@@ -85,16 +85,7 @@ scalingo env-set LIVEKIT_API_SECRET="<your-livekit-api-secret>"
 
 ### Email Configuration (Optional)
 
-For email notifications see https://doc.scalingo.com/platform/app/sending-emails:
-
-```bash
-scalingo env-set DJANGO_EMAIL_HOST="smtp.example.org"
-scalingo env-set DJANGO_EMAIL_PORT="587"
-scalingo env-set DJANGO_EMAIL_HOST_USER="<smtp-user>"
-scalingo env-set DJANGO_EMAIL_HOST_PASSWORD="<smtp-password>"
-scalingo env-set DJANGO_EMAIL_USE_TLS="True"
-scalingo env-set DJANGO_EMAIL_FROM="meet@yourdomain.com"
-```
+Follow the Scalingo section of [Email (SMTP)](configuration/email.md#scalingo-setup).
 
 ## Step 4: Deploy
 
@@ -104,7 +95,7 @@ Deploy your application:
 git push scalingo main
 ```
 
-The Procfile will automatically:
+On deploy, the buildpack and the Procfile:
 1. Build the frontend (Vite)
 2. Build the backend (Django)
 3. Run the post-compile script (cleanup)
@@ -117,7 +108,7 @@ The Procfile will automatically:
 After the first deployment, create an admin user:
 
 ```bash
-scalingo run python manage.py createsuperuser
+scalingo run python manage.py createsuperuser --email <admin email> --password '<admin password>'
 ```
 
 ## Custom Domain (Optional)

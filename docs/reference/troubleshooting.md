@@ -21,11 +21,11 @@ docker compose logs --tail=50 keycloak
 
 ## Application issues
 
-### App returns 404 on all routes
+### Backend exits at start with `ImproperlyConfigured`
 
-**Cause**: `DJANGO_CONFIGURATION` is not set in `.env`.
+**Cause**: `DJANGO_SETTINGS_MODULE` or `DJANGO_CONFIGURATION` is not set; the error names which one. The proxy then answers 502.
 
-**Fix**: Add `DJANGO_CONFIGURATION=Production` (or the appropriate class) to `.env` and restart.
+**Fix**: Set `DJANGO_SETTINGS_MODULE=meet.settings` and `DJANGO_CONFIGURATION=Production` in `env.d/common` and restart the backend.
 
 
 ### 502 Bad Gateway on all routes
@@ -55,9 +55,12 @@ Then restart the frontend container.
 
 Meet's callback URL is `https://meet.example.com/api/v1.0/callback/`, **not** the standard `/oidc/callback/`. Update your OIDC provider's client configuration to use the correct URI (including the trailing slash).
 
-**Cause B**: Backend cannot reach Keycloak for token exchange (network connectivity, wrong `OIDC_OP_*` URLs, or Keycloak down).
+**Cause B**: Backend cannot reach Keycloak for token exchange (network connectivity, wrong `OIDC_OP_*` URLs, or Keycloak down). Test it from the backend container, which must print `200`:
+```bash
+docker compose -f ~/docker/meet/compose.yml exec backend python -c "import urllib.request; print(urllib.request.urlopen('https://auth.example.com/realms/meet').status)"
+```
 
-**Cause C**: Session cookie mismatch. `DJANGO_CSRF_TRUSTED_ORIGINS` does not include your full HTTPS domain.
+**Cause C**: CSRF origin mismatch. `DJANGO_CSRF_TRUSTED_ORIGINS` does not include your full HTTPS domain.
 
 
 ### "Invalid parameter: redirect_uri" from Keycloak
@@ -88,7 +91,7 @@ curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
 
 ### Can join the room but no audio/video
 
-**Cause**: UDP port 7882 is blocked.
+**Cause**: UDP 7882 and TCP 7881 are both blocked. If only UDP is blocked, LiveKit falls back to TCP and media works, with more latency.
 
 LiveKit falls back to TCP (port 7881) when UDP is unavailable, which increases latency significantly. Verify:
 1. Port 7882/UDP is open in your cloud provider's firewall (security group / network rules)
@@ -187,7 +190,7 @@ The download button on the recording page links to `https://meet.example.com/med
 **Fix**: Add a MinIO proxy to the template; see [Recording](../self-hosting/configuration/recording.md#step-5-update-nginx-routing-for-recording-downloads). Restart the frontend after updating: `docker compose restart frontend`
 
 
-## Traefik issues
+## Reverse proxy issues
 
 ### Traefik refuses to start
 
@@ -202,7 +205,7 @@ ls -la ~/docker/traefik/acme.json
 ```bash
 touch ~/docker/traefik/acme.json
 chmod 600 ~/docker/traefik/acme.json
-docker compose restart traefik
+docker restart traefik
 ```
 
 
@@ -232,15 +235,17 @@ docker compose up -d --force-recreate <service>
 ### TLS certificate not being issued
 
 1. Verify port 80 is publicly reachable (required for the HTTP-01 ACME challenge)
-2. Verify DNS resolves to this server before Traefik starts
-3. Check certificate logs: `docker logs traefik | grep -i "acme\|certificate\|error"`
+2. Verify DNS resolves to this server before the proxy starts
+3. Check the certificate logs:
+    - nginx-proxy: `docker compose -f ~/docker/nginx-proxy/compose.yml logs acme-companion`
+    - Traefik: `docker logs traefik | grep -i "acme\|certificate\|error"`
 
 
 ### Port conflict on 80 or 443
 
-Another process (nginx-proxy, Apache, etc.) is already bound to the port. Stop it before starting Traefik:
+Another process (another proxy, Apache, etc.) is already bound to the port. Find it, and stop it before starting your proxy:
 ```bash
-docker ps | grep -E "0.0.0.0:80|0.0.0.0:443"
+sudo ss -tlpn 'sport = :80 or sport = :443'
 ```
 
 

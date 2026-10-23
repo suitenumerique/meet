@@ -2,7 +2,7 @@
 
 Meet exposes an external API at `/external-api/v1.0/` for server-to-server room management. This page covers the **resource server** authentication mode, where the end user authenticates directly with the OIDC provider and receives a token that includes `lasuite_meet` scopes, which your application then presents to Meet.
 
-This follows the standard [OAuth 2.0 Resource Server](https://www.oauth.com/oauth2-servers/the-resource-server/) pattern.
+This follows the standard [OAuth 2.0 Resource Server](https://www.oauth.com/oauth2-servers/the-resource-server/) pattern. Enable it with `EXTERNAL_API_ENABLED=True`, which mounts `/external-api/v1.0/`, and the `OIDC_RS_*` variables.
 
 [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-Spec-brightgreen?logo=openapi-initiative)](resource_server.yaml)
 
@@ -88,7 +88,7 @@ Authorization: Bearer <oidc-access-token>
 
 ### Update a room
 ```
-PATCH /external-api/v1.0/rooms/{id}
+PATCH /external-api/v1.0/rooms/{id}/
 Authorization: Bearer <oidc-access-token>
 Content-Type: application/json
 ```
@@ -103,18 +103,7 @@ Content-Type: application/json
 
 ## Backend configuration
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `OIDC_RS_CLIENT_ID` | Yes | `meet` | Client ID registered with the OIDC provider as a resource server |
-| `OIDC_RS_CLIENT_SECRET` | Yes | - | Client secret for the resource server |
-| `OIDC_RS_SCOPES` | No | `["lasuite_meet"]` | List of scopes this resource server accepts |
-| `OIDC_RS_SCOPES_PREFIX` | No | - | Unset by default: integrators must request flat, independent scopes (e.g. `lasuite_meet rooms:list`). Set this (e.g. `lasuite_meet`) if your IdP issues namespaced scopes like `lasuite_meet:rooms:list` instead - the prefix is stripped from each scope before matching. Tell integrators which format to use. |
-| `OIDC_RS_SIGNING_ALGO` | No | `ES256` | Algorithm used to sign tokens from the OIDC provider |
-| `OIDC_RS_ENCRYPTION_ALGO` | No | `RSA-OAEP` | Encryption algorithm for token encryption |
-| `OIDC_RS_ENCRYPTION_ENCODING` | No | `A256GCM` | Encoding for token encryption |
-| `OIDC_RS_ENCRYPTION_KEY_TYPE` | No | - | Key type for token encryption |
-| `OIDC_RS_PRIVATE_KEY_STR` | No | - | Private key for token decryption (if tokens are encrypted) |
-| `OIDC_RS_AUDIENCE_CLAIM` | No | `client_id` | JWT claim used to identify the resource server audience |
+Every variable, with its default: [Environment Variables: External API (OIDC resource server)](env-variables.md#external-api-oidc-resource-server).
 
 ---
 

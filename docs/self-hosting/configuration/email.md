@@ -2,10 +2,10 @@
 
 Meet uses SMTP to send transactional emails. Without it configured, two features are affected:
 
-- **Room email invitations** - inviting participants by email from the room's participant panel.
-- **Recording download notifications** - recording itself is unaffected, but the room owner is not emailed a link when it finishes. The recording is still saved and its download link remains available in the Django admin panel. See [Recording](recording.md).
+- **Room email invitations** - sent through the API (`POST /api/v1.0/rooms/<id>/invite/`); the interface has no button for them.
+- **Recording download notifications** - recording itself is unaffected, but the person who started it is not emailed a link when it finishes. The recording is still saved and its download link remains available in the Django admin panel. See [Recording](recording.md).
 
-Meet does not use email for authentication (OIDC/SSO handles that) or for password resets, so a working SMTP setup is optional overall - just required for those two features.
+Meet does not use email for authentication (OIDC/SSO handles that) or for password resets, so SMTP is needed only for those two features.
 
 ---
 
@@ -20,6 +20,8 @@ DJANGO_EMAIL_HOST_USER=meet@example.com
 DJANGO_EMAIL_HOST_PASSWORD=<password>
 DJANGO_EMAIL_USE_TLS=True
 DJANGO_EMAIL_FROM=meet@example.com
+DJANGO_EMAIL_APP_BASE_URL=https://meet.example.com
+DJANGO_EMAIL_DOMAIN=meet.example.com
 ```
 
 !!!info
@@ -31,8 +33,6 @@ Optionally, brand the email templates:
 DJANGO_EMAIL_BRAND_NAME=My Organization
 DJANGO_EMAIL_LOGO_IMG=https://meet.example.com/assets/logo-suite-numerique.png
 DJANGO_EMAIL_SUPPORT_EMAIL=support@example.com
-DJANGO_EMAIL_DOMAIN=meet.example.com
-DJANGO_EMAIL_APP_BASE_URL=https://meet.example.com
 ```
 
 Restart the backend:
@@ -56,6 +56,8 @@ backend:
     DJANGO_EMAIL_HOST_PASSWORD: "smtp-password"
     DJANGO_EMAIL_USE_TLS: "True"
     DJANGO_EMAIL_FROM: "meet@example.com"
+    DJANGO_EMAIL_APP_BASE_URL: "https://meet.example.com"
+    DJANGO_EMAIL_DOMAIN: "meet.example.com"
 ```
 
 Apply the updated chart:
@@ -75,6 +77,8 @@ scalingo env-set DJANGO_EMAIL_HOST_USER="<smtp-user>"
 scalingo env-set DJANGO_EMAIL_HOST_PASSWORD="<smtp-password>"
 scalingo env-set DJANGO_EMAIL_USE_TLS="True"
 scalingo env-set DJANGO_EMAIL_FROM="meet@yourdomain.com"
+scalingo env-set DJANGO_EMAIL_APP_BASE_URL="https://meet.yourdomain.com"
+scalingo env-set DJANGO_EMAIL_DOMAIN="meet.yourdomain.com"
 ```
 
 See [Scalingo's email documentation](https://doc.scalingo.com/platform/app/sending-emails) for provider-specific setup.
@@ -83,7 +87,7 @@ See [Scalingo's email documentation](https://doc.scalingo.com/platform/app/sendi
 
 ## Verifying delivery
 
-Trigger a recording download notification or a room email invitation, then check backend logs for SMTP errors:
+Trigger a recording download notification, then check backend logs for SMTP errors:
 
 ```bash
 docker compose logs backend | grep -i smtp
@@ -95,19 +99,4 @@ If `DJANGO_EMAIL_HOST` is not configured, recording download links remain availa
 
 ## Full configuration reference
 
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `DJANGO_EMAIL_HOST` | String | `localhost` | SMTP server hostname |
-| `DJANGO_EMAIL_PORT` | Integer | `25` | SMTP port |
-| `DJANGO_EMAIL_HOST_USER` | String | -- | SMTP username |
-| `DJANGO_EMAIL_HOST_PASSWORD` | Secret | -- | SMTP password |
-| `DJANGO_EMAIL_USE_TLS` | Boolean | `False` | Enable STARTTLS |
-| `DJANGO_EMAIL_USE_SSL` | Boolean | `False` | Enable SSL (mutually exclusive with TLS) |
-| `DJANGO_EMAIL_FROM` | String | `from@example.com` | From address for outgoing emails. Override in production so recipients (and SPF/DKIM) see your real domain. |
-| `DJANGO_EMAIL_BRAND_NAME` | String | -- | Brand name in email templates |
-| `DJANGO_EMAIL_LOGO_IMG` | String | -- | Logo URL for email templates |
-| `DJANGO_EMAIL_SUPPORT_EMAIL` | String | -- | Support contact address shown in email templates |
-| `DJANGO_EMAIL_DOMAIN` | String | -- | Domain shown in email templates |
-| `DJANGO_EMAIL_APP_BASE_URL` | String | -- | Base URL of the Meet frontend (used in email links) |
-
-See [Environment Variables](../../reference/env-variables.md#email) for the complete, verified reference.
+Every email variable, with its default: [Environment Variables: Email](../../reference/env-variables.md#email).

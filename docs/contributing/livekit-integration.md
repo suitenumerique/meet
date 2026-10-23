@@ -76,6 +76,7 @@ sequenceDiagram
     participant LiveKit Server
     participant Agent Worker
     participant Room
+    participant Object Storage
 
     Backend->>LiveKit Server: create_dispatch(agent_name, room, metadata)
     LiveKit Server->>Agent Worker: dispatch job
@@ -83,7 +84,7 @@ sequenceDiagram
     Agent Worker->>Room: connect as participant
     Agent Worker->>Room: subscribe to audio tracks
     Agent Worker->>Agent Worker: VAD processing
-    Agent Worker->>Backend: POST metadata events
+    Agent Worker->>Object Storage: put_object(metadata JSON)
 ```
 
 ### Webhooks
@@ -98,8 +99,9 @@ The `LiveKitEventsService` class handles webhook events:
 - `receive()`: Verifies webhook signature and routes events
 - `_handle_egress_updated()`: Updates recording status
 - `_handle_egress_ended()`: Processes completed recordings, handles metadata collector cleanup
-- `_handle_room_started()`: Tracks room start events
-- `_handle_room_finished()`: Handles room cleanup
+- `_handle_room_started()`: ensures the room's SIP dispatch rule when telephony or Roomkit is enabled
+- `_handle_room_finished()`: deletes that rule and clears the room's presence and lobby caches
+- `_handle_participant_left()`: invalidates the participant's presence cache entry
 
 Supported events are defined in the `LiveKitWebhookEventType` enum in the same file.
 
@@ -120,10 +122,8 @@ sequenceDiagram
 
 ### Room Metadata and Notifications
 
-**Implementation**: `src/backend/core/utils.py`
-
-- `notify_participants()`: Sends data messages to all participants in a room
-- `update_room_metadata()`: Updates LiveKit room metadata (used for room state synchronization)
+- `notify_participants()` in `src/backend/core/utils.py`: sends data messages to all participants in a room
+- `RoomManagement.update_metadata()` in `src/backend/core/services/room_management.py`: merges and updates the LiveKit room metadata, used for room state synchronization
 
 ### SIP and Telephony
 

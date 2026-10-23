@@ -11,7 +11,8 @@
       "secret": "REPLACE_ME",
       "standardFlowEnabled": true,
       "redirectUris": ["https://meet.example.com/api/v1.0/callback/"],
-      "webOrigins": ["https://meet.example.com"]
+      "webOrigins": ["https://meet.example.com"],
+      "attributes": {"post.logout.redirect.uris": "https://meet.example.com/*"}
     }
   ],
   "users": [

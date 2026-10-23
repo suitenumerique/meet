@@ -54,11 +54,12 @@ Open on your firewall: `7881/TCP` and `50000–60000/UDP`.
 
 **Use this when:**
 
-- Running LiveKit on Kubernetes with a NodePort or LoadBalancer service that exposes a port range
 - Running multiple LiveKit processes on one host (each needs its own port space)
 - Your cloud environment or network equipment works better with ephemeral ports
 
-**Tradeoff:** Opening a large UDP range (`50000–60000`) is a wider firewall surface than a single port. For single-server Docker Compose deployments, Option A is simpler and equivalent in practice - LiveKit allocates one port per ICE session regardless; the only question is whether that port is fixed or from a range.
+On Kubernetes, the chart serves the media ports from the node itself, see [Helm: LiveKit media ports](../kubernetes/helm.md#livekit-media-ports).
+
+**Tradeoff:** Opening a large UDP range (`50000–60000`) is a wider firewall surface than a single port. For single-server Docker Compose deployments, Option A is simpler and works as well: with `udp_port` set, LiveKit multiplexes every session on that one port.
 
 !!!warning 
      **Do not set both `udp_port` and `port_range_start/end` at the same time.** If `udp_port` is set, it takes precedence and the range is ignored.
@@ -216,7 +217,7 @@ LIVEKIT_API_SECRET=your-livekit-api-secret
 LIVEKIT_API_URL=https://livekit.example.com
 ```
 
-`LIVEKIT_API_URL` serves two purposes: it is used for server-side API calls (start/stop recording, participant management) and is returned to browsers as the WebSocket address. It must be the **public HTTPS URL** - not the Docker-internal address (`http://livekit:7880`). The backend resolves public hostnames via the `proxy` Docker network; ensure the backend service is in both the `proxy` and `internal` networks.
+`LIVEKIT_API_URL` serves two purposes: it is used for server-side API calls (start/stop recording, participant management) and is returned to browsers as the WebSocket address. It must be the **public HTTPS URL** - not the Docker-internal address (`http://livekit:7880`). The backend reaches that URL through its public DNS record, like any other client, so it needs no `proxy` network.
 
 ---
 
@@ -235,12 +236,6 @@ curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
 
 # Check LiveKit logs for startup errors
 docker compose logs livekit --tail=30
-
-# Verify the WebSocket endpoint responds
-curl -s -o /dev/null -w "%{http_code}" \
-  -H "Upgrade: websocket" \
-  https://livekit.example.com/
-# Expected: 101 or 400 (both confirm LiveKit is reachable; 502 means the proxy can't reach it)
 ```
 
 If these pass, join a meeting and confirm audio and video flow. If participants connect but have no media, the issue is almost always the media UDP port being blocked. See [Troubleshooting](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).

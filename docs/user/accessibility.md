@@ -1,6 +1,6 @@
 # Accessibility
 
-LaSuite Meet is built with accessibility as a core requirement, not an afterthought. The team actively maintains WCAG compliance and regularly audits the interface with screen readers and keyboard-only navigation.
+LaSuite Meet supports keyboard-only navigation and screen readers, and targets WCAG.
 
 ## Keyboard navigation
 
@@ -24,7 +24,7 @@ Meet uses semantic HTML and ARIA attributes throughout:
 - The document title updates dynamically when connected to a meeting
 - The HTML `lang` attribute updates with the selected language
 
-Tested regularly with NVDA (Windows), JAWS (Windows), VoiceOver (macOS/iOS), and TalkBack (Android).
+Common screen readers: NVDA and JAWS on Windows, VoiceOver on macOS and iOS, TalkBack on Android.
 
 ## Caption customization
 
@@ -33,7 +33,7 @@ When real-time subtitles are active, captions can be customized:
 1. Go to **Settings → Accessibility**
 2. Adjust:
    - **Text size**: Small / Medium / Large
-   - **Text color**: Choose from a fixed palette of 9 colors (default/white, black, blue, green, red, yellow, cyan, magenta)
+   - **Text color**: Choose from a fixed palette of 9 colors (default, white, black, blue, green, red, yellow, cyan, magenta)
    - **Background color**: Choose from the same palette (default is transparent)
 
 ## Reduced motion
@@ -42,7 +42,7 @@ Meet respects the `prefers-reduced-motion` media query. When this is active in y
 
 ## High contrast
 
-Meet ensures all interactive elements meet WCAG AA contrast requirements. Selected states, focus rings, and disabled states are clearly distinguishable.
+Interactive elements target WCAG AA contrast, and selected states, focus rings and disabled states are visually distinct.
 
 ## Focus management
 

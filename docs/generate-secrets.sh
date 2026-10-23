@@ -88,11 +88,14 @@ set_secret "${ENV_DIR}/postgresql"   "DB_PASSWORD"                  "$DB_PASSWOR
 set_secret "${ENV_DIR}/kc_postgresql" "POSTGRES_PASSWORD"           "$KC_DB_PASSWORD"
 set_secret "${ENV_DIR}/keycloak"     "KC_BOOTSTRAP_ADMIN_PASSWORD"  "$KC_ADMIN_PASSWORD"
 
-# Keep livekit-server.yaml in sync with whatever secret common actually has.
-LIVEKIT_API_SECRET=$(grep -E "^LIVEKIT_API_SECRET=" "${ENV_DIR}/common" | cut -d= -f2-)
-
 echo ""
 echo "Done."
+
+# The LiveKit secret lives in common, which the Keycloak stack does not have.
+[[ -f "${ENV_DIR}/common" ]] || exit 0
+
+# Keep livekit-server.yaml in sync with whatever secret common actually has.
+LIVEKIT_API_SECRET=$(grep -E "^LIVEKIT_API_SECRET=" "${ENV_DIR}/common" | cut -d= -f2-)
 
 # ── patch livekit-server.yaml ─────────────────────────────────────────────────
 if [[ -n "$LIVEKIT_YAML" ]]; then

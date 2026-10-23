@@ -17,8 +17,8 @@ AI transcription converts recorded meeting audio to text. The meeting is recorde
 
 1. Click **...** (More options) → **Transcription**
 2. Choose the meeting language (French, English, Dutch, German, or Auto)
-3. Optionally check **Also start a recording** to generate both a video file and transcript
-4. Click **Start**
+3. Optionally check **Also start a video recording** to generate both a video file and transcript
+4. Click **Start transcribing the meeting**
 
 A recording session starts. The meeting audio is captured and will be transcribed after the session ends.
 
@@ -32,14 +32,14 @@ After the meeting ends and the recording is uploaded:
 
 1. The Summary service downloads the audio file from storage
 2. WhisperX processes the audio to generate a text transcript
-3. The transcript is formatted and delivered to your LaSuite Docs instance
+3. The transcript is formatted and, if your instance is connected to LaSuite Docs, sent there
 4. You receive a notification when the transcript is ready
 
-The transcript is editable in LaSuite Docs.
+When sent to LaSuite Docs, the transcript is editable there.
 
 ## Stopping transcription
 
-Click **...** → **Transcription** again to stop the recording.
+Click **...** → **Transcription** to open the transcription panel, then click **Stop transcribing the meeting**.
 
 ## Related feature: Real-time subtitles
 

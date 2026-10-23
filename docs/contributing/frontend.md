@@ -67,15 +67,15 @@ Meet builds on [React Aria Components](https://react-spectrum.adobe.com/react-ar
 
 ### Rules
 
-1. **Accessible names** : Every interactive element needs a name via `aria-label`, `aria-labelledby`, or visible text. Use i18n (`t(...)`) for all strings. Icon-only buttons must have `aria-label`; tooltips are supplementary, not a substitute.
+1. **Accessible names**: Every interactive element needs a name via `aria-label`, `aria-labelledby`, or visible text. Use i18n (`t(...)`) for all strings. Icon-only buttons must have `aria-label`; tooltips are supplementary, not a substitute.
 
-2. **State announcements** : Use `useScreenReaderAnnounce()` for programmatic screen reader feedback (e.g. recording state, effects). Use the toast system (`@react-aria/toast`) for room events. Do not add `aria-live` to visual-only UI :  announce separately to avoid duplication.
+2. **State announcements**: Use `useScreenReaderAnnounce()` for programmatic screen reader feedback (e.g. recording state, effects). Use the toast system (`ToastQueue` from `react-stately`, wired in `src/frontend/src/features/notifications/components/ToastProvider.tsx`) for room events. Do not add `aria-live` to visual-only UI :  announce separately to avoid duplication.
 
-3. **Focus management** :  RAC `Dialog` handles focus trap and return-to-trigger. Side panels and custom toolbars may need explicit focus (`autoFocus`, `ref.focus()`, or `FocusScope` from `@react-aria/focus`).
+3. **Focus management**: RAC `Dialog` handles focus trap and return-to-trigger. Side panels and custom toolbars may need explicit focus (`autoFocus`, `ref.focus()`, or `FocusScope` from `react-aria`).
 
-4. **Keyboard & screen reader testing** : Test Tab navigation, arrow keys in menus/toolbars, and verify with a screen reader before merging.
+4. **Keyboard & screen reader testing**: Test Tab navigation, arrow keys in menus/toolbars, and verify with a screen reader before merging.
 
-5. **PiP / cross-document contexts** : Use `VisualOnlyTooltip` instead of `TooltipWrapper` to prevent duplicate SR announcements.
+5. **PiP / cross-document contexts**: Use `VisualOnlyTooltip` instead of `TooltipWrapper` to prevent duplicate SR announcements.
 
 ```typescript
 import { Button } from 'react-aria-components';

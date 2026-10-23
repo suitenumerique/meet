@@ -2,6 +2,7 @@ services:
 
   traefik:
     image: traefik:v3
+    container_name: traefik
     restart: unless-stopped
     ports:
       - "80:80"

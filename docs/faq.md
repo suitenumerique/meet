@@ -81,7 +81,7 @@ Yes. Press `Ctrl+Shift+/` (or `Cmd+Shift+/` on Mac) to bring up the full list. C
 
 ### How do I react or raise my hand?
 
-Click the emoji button in the meeting controls to send a reaction. It appears briefly for everyone. To raise your hand, click the hand icon. Your hand stays up until you lower it or a host acknowledges you.
+Click the emoji button in the meeting controls to send a reaction. It appears briefly for everyone. To raise your hand, click the hand icon. Your hand stays up until you lower it, or until you start speaking unless you click **Keep hand raised**.
 
 ## Recording & Transcription
 
@@ -91,7 +91,7 @@ A red recording indicator is visible in the interface for all participants when 
 
 ### Where do recordings go?
 
-Recordings are stored on the server and a download link is sent to the room owner. The storage location depends on the instance configuration (S3-compatible storage such as Garage, MinIO, AWS S3, etc.).
+Recordings are stored on the server and a download link is sent to the person who started the recording. The storage location depends on the instance configuration (S3-compatible storage such as Garage, MinIO, AWS S3, etc.).
 
 ### Why don't I see the recording/transcription buttons?
 
@@ -99,7 +99,7 @@ These features require additional server-side configuration (LiveKit Egress for 
 
 ### How long are recordings kept?
 
-This depends on your instance's storage policy. The [`RECORDING_EXPIRATION_DAYS`](reference/env-variables.md#livekit) setting controls automatic deletion (default is no expiration). See also [recording configuration](self-hosting/configuration/recording.md). Contact your administrator for your instance's specific policy.
+This depends on your instance's storage policy. [`RECORDING_EXPIRATION_DAYS`](reference/env-variables.md#recording) only marks recordings as expired in the interface and emails; deleting the files takes a lifecycle rule on the storage bucket with the same delay. See also [recording configuration](self-hosting/configuration/recording.md). Contact your administrator for your instance's specific policy.
 
 ## Security & Privacy
 
@@ -109,19 +109,19 @@ All media is encrypted in transit using DTLS-SRTP (WebRTC standard). End-to-end 
 
 ### Is chat history stored?
 
-No. Chat messages are non-persistent and are cleared when the meeting ends.
+Meet itself does not keep chat: it is cleared when the meeting ends. When the instance runs the metadata collector, chat messages sent during a transcription are saved with the transcription metadata in the instance's storage.
 
 ### Who can access my recordings?
 
-The room owner. Instance administrators may also have access depending on the deployment. No third party has access to recordings on self-hosted instances.
+The person who started the recording, who is always an owner or administrator of the room. Instance administrators may also have access depending on the deployment. No third party has access to recordings on self-hosted instances.
 
 ### Can someone join without being invited?
 
-If the room is set to **Open**, anyone with the URL can join. Set access to **Restricted** to require admission for all participants, or **Open to trusted people** to require admission only for unauthenticated users.
+If the room is set to **Open**, anyone with the URL can join. Set access to **Restricted** to require admission from everyone without a role on the room, or **Open to trusted people** to require it only from unauthenticated users.
 
 ### What is the lobby and why am I stuck there?
 
-The lobby is a waiting area. If the room owner has enabled it, new participants wait there until admitted. If you are stuck, the room owner or a moderator needs to approve your entry. If you are the room owner, look for a notification about waiting participants at the top of the sidebar.
+The lobby is a waiting area. New participants wait there until admitted when the room's access level calls for it. If you are stuck, a room owner or administrator needs to approve your entry; in a room open to trusted people, any signed-in participant already in the meeting can too. If you are the room owner, look for a notification about waiting participants at the top of the sidebar.
 
 ## Self-hosting
 

@@ -19,7 +19,7 @@ meet/
 ├── docs/               # Documentation and installation guides
 │   ├── assets/         # Images
 │   ├── examples/       # Example compose files, nginx configs
-│   └── installation/   # Installation guides (compose, kubernetes)
+│   └── self-hosting/   # Installation guides (compose, kubernetes)
 │
 ├── env.d/              # Environment variable files
 │   ├── development/    # Development env templates
@@ -69,8 +69,8 @@ src/backend/
 
 Key models:
 - `Room` - virtual meeting space with slug, access level, configuration
-- `Recording` - recording metadata, state, and download URL
-- `User` - created from OIDC tokens; no local password
+- `Recording` - recording metadata, state, and storage key
+- `User` - normally created on first OIDC login; staff accounts log in to `/admin/` with `admin_email` and a password
 - `Application` - external app integration for token exchange
 - `ResourceAccess` - room membership and role assignments
 
@@ -100,16 +100,16 @@ See `src/frontend/src/features/` directly for the current feature list, as it ch
 LiveKit agents connect to rooms as participants to provide real-time services:
 
 - **`metadata_collector.py`** - Joins rooms silently to record participant activity (VAD events, connection events, chat) to object storage for use by the summary service
-- **`multi_user_transcriber.py`** - Real-time multi-user speech-to-text transcription with support for multiple STT providers (Deepgram, Kyutai)
+- **`multi_user_transcriber.py`** - Real-time multi-user speech-to-text transcription with support for multiple STT providers (Deepgram, Kyutai, Voxtral via vLLM)
 
 Agents are dispatched to rooms via LiveKit's agent dispatch API from the backend (`core/recording/services/` and `core/services/`).
 
 ## Summary service (`src/summary/`)
 
 FastAPI service with Celery task queues for asynchronous processing:
-- **`transcribe_queue_v2`** - Transcribes audio/video recordings using speech-to-text (STT)
-- **`summarize_queue_v2`** - Generates meeting summaries using LLM APIs from transcripts
-- **`call_webhook_queue_v2`** - Sends webhook notifications to the backend with results
+- **`transcribe-queue-v2`** - Transcribes audio/video recordings using speech-to-text (STT)
+- **`summarize-queue-v2`** - Generates meeting summaries using LLM APIs from transcripts
+- **`call-webhook-queue-v2`** - Sends webhook notifications to the backend with results
 
 The service also handles transcript formatting, user assignment (speaker diarization), and document generation.
 

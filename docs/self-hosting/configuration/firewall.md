@@ -21,7 +21,7 @@ Meet has two categories of traffic:
 
 ## Configuration A: Single UDP port (default)
 
-The standard Docker Compose setup. Open three ports total beyond 80/443:
+The standard Docker Compose setup. Open two ports beyond 80/443:
 
 | Port | Protocol | Purpose |
 |---|---|---|
@@ -29,7 +29,7 @@ The standard Docker Compose setup. Open three ports total beyond 80/443:
 | 7882 | UDP | WebRTC media - all audio and video streams multiplexed here |
 
 !!!info
-    `7882/UDP` is the critical port. ICE tries every candidate pair before giving up, so if it is blocked, participants fall back to the TCP candidate (7881) instead, at the cost of higher latency. If TCP is blocked too, ICE negotiation fails and the participant cannot connect at all.
+    `7882/UDP` is the critical port. If it is blocked, ICE falls back to the TCP candidate (7881), at the cost of higher latency. If TCP is blocked too, ICE negotiation fails and the participant cannot connect at all.
 
 ---
 
@@ -63,7 +63,7 @@ When [TURN](turn.md) is enabled, media is relayed through port 443/UDP. This rep
 
 ## Configuration D: TURN over TLS on 5349
 
-If you additionally enable [TURN over TLS](turn.md#option-2-turn-over-tls) for participants who block all UDP:
+If you additionally enable [TURN over TLS](turn.md#option-2-turn-over-tls-for-udp-blocked-networks) for participants who block all UDP:
 
 | Port | Protocol | Purpose |
 |---|---|---|
@@ -81,8 +81,10 @@ Add this on top of Configuration C.
 | 5432 | PostgreSQL | Database - internal only |
 | 6379 | Redis | Cache/broker - internal only |
 | 8000 | Django backend | API - proxied via frontend nginx |
+| 8080 | Frontend SPA / Keycloak | Proxied via your reverse proxy |
 | 8083 | Frontend nginx | Proxied via your reverse proxy |
 | 9000/9001 | MinIO | Object storage - internal only |
+| 3900/3901 | Garage | Object storage - internal only |
 
 ---
 
@@ -199,20 +201,14 @@ nc -zv your-server.example.com 7881
 nc -zuv your-server.example.com 7882
 ```
 
-From inside the server, confirm LiveKit is listening:
+From inside the server, confirm the media ports are published. With Docker Compose, `docker-proxy` owns them rather than LiveKit:
 
 ```bash
-# Show all listening ports for the livekit process
-ss -tulpn | grep livekit
+docker compose ps livekit
+ss -tulpn | grep -E ':788[12]'
 ```
 
-Expected output for Configuration A:
-
-```
-udp   UNCONN  livekit  *:7882   *:*
-tcp   LISTEN  livekit  *:7881   *:*
-tcp   LISTEN  livekit  *:7880   *:*
-```
+Expected for Configuration A: `7881/tcp` and `7882/udp`, owned by `docker-proxy`.
 
 ---
 

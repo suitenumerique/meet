@@ -14,7 +14,7 @@ Use application-delegated auth when:
 
 - Your backend needs to create or manage rooms on behalf of your users
 - The end user never directly authenticates with Meet's OIDC provider
-- You want tightly scoped, short-lived tokens per user action
+- You want short-lived tokens scoped to one user
 
 Compare with the [Resource Server mode](external-api-resource-server.md), where the user authenticates directly with the OIDC provider.
 
@@ -34,7 +34,7 @@ Compare with the [Resource Server mode](external-api-resource-server.md), where 
 4. When the token expires, repeat step 1.
 ```
 
-The application must be authorized for the user's email domain. Domain authorization is configured in the Meet Django admin under **External API applications**.
+An application with no domain registered may act for any email address. Adding domains to it in the Django admin, under **Core → Applications**, restricts it to those.
 
 ---
 
@@ -86,7 +86,7 @@ GET /external-api/v1.0/rooms/
 Authorization: Bearer <token>
 ```
 
-Returns rooms accessible to the delegated user. Supports `page` and `page_size` query parameters (default 20, max 100).
+Returns rooms accessible to the delegated user. Supports the `page` query parameter, with a fixed page size of 20.
 
 ### Create a room
 ```
@@ -101,7 +101,7 @@ All fields are optional - omit the body entirely to use instance defaults. Retur
 |---|---|---|
 | `access_level` | `"public"` \| `"trusted"` \| `"restricted"` | Who can join without going through the lobby. `public` is rejected with `400` unless the deployment explicitly sets `EXTERNAL_API_ALLOW_PUBLIC_ACCESS=True`. |
 | `configuration.can_publish_sources` | array of `"camera"` \| `"microphone"` \| `"screen_share"` \| `"screen_share_audio"` | Restricts which media tracks participants may publish. `null`/omitted allows all sources. |
-| `configuration.everyone_can_mute` | boolean | Whether any participant can mute others, or only the owner/moderator. `null`/omitted uses the server default. |
+| `configuration.everyone_can_mute` | boolean | Whether any participant can mute others, or only owners and administrators. `null`/omitted uses the server default. |
 
 `configuration` rejects unknown fields (`400`). Only the two fields above are currently supported.
 
@@ -122,7 +122,7 @@ Authorization: Bearer <token>
 
 ### Update a room
 ```
-PATCH /external-api/v1.0/rooms/{id}
+PATCH /external-api/v1.0/rooms/{id}/
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
@@ -139,15 +139,7 @@ Only the delegated user's rooms where they are administrator or owner can be upd
 
 ## Backend configuration
 
-| Variable | Required | Description |
-|---|---|---|
-| `EXTERNAL_API_ENABLED` | Yes | Mounts the `/external-api/v1.0/` router. Without it, every path under it 404s regardless of any other setting. |
-| `APPLICATION_ENABLED` | Yes | Gates the token endpoint itself. `False` by default - also 404s if unset, even with `EXTERNAL_API_ENABLED=True`. |
-| `APPLICATION_JWT_SECRET_KEY` | Yes | Secret used to sign issued JWTs |
-| `APPLICATION_JWT_EXPIRATION_SECONDS` | No | Token lifetime in seconds (default: 3600) |
-| `APPLICATION_ALLOW_USER_CREATION` | No | Auto-create Meet users on first token request |
-
-Applications (client IDs and secrets) are managed in the Django admin at `/admin/` → **External API → Applications**.
+Every variable, with its default: [Environment Variables: External API (applications)](env-variables.md#external-api-applications). Applications are registered in the Django admin at `/admin/` → **Core → Applications**.
 
 ---
 

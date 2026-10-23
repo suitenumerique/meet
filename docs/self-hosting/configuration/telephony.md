@@ -119,10 +119,10 @@ POST /twirp/livekit.SIP/CreateSIPOutboundTrunk
 
 When a room is created, Meet's backend receives a `room_started` webhook from LiveKit and automatically creates a PIN-based SIP dispatch rule for that room. When the room ends, the dispatch rule is automatically cleared.
 
-The PIN code is displayed to participants in the room info panel (left sidebar). Callers dial the configured phone number, enter the PIN, and are connected to the room.
+The PIN code is displayed to participants in the room info panel. Callers dial the configured phone number, enter the PIN, and are connected to the room.
 
 !!!info
-    **Requirement**: LiveKit webhooks must be configured to reach the Meet backend for dispatch rules to be created. See [Recording: Step 7](recording.md#step-7-configure-livekit-webhook) for webhook setup; the same configuration is required for telephony.
+    **Requirement**: LiveKit webhooks must be configured to reach the Meet backend for dispatch rules to be created. See [Recording: Step 6](recording.md#step-6-configure-livekit-webhook) for webhook setup; the same configuration is required for telephony.
 
     **Current limitation**: A phone participant cannot enter the room until at least one WebRTC participant has already connected.
 
@@ -151,7 +151,7 @@ By default, all LiveKit SIP audio instructions (PIN prompts, etc.) are in Englis
 
 ## Audio quality notes
 
-SIP telephone calls use narrowband audio (G.711, 8 kHz). This is noticeably lower quality than WebRTC participants (Opus, 48 kHz). LiveKit transcodes between the two transparently, but phone participants will always sound like a phone call.
+SIP telephone calls use narrowband audio (G.711, 8 kHz). This is noticeably lower quality than WebRTC participants (Opus, 48 kHz). LiveKit transcodes between the two transparently, but phone participants will always sound like a phone call. Recordings include phone participants' audio.
 
 ## Testing telephony
 
@@ -173,12 +173,11 @@ POST /twirp/livekit.SIP/CreateSIPParticipant
 - Only a single SIP trunk provider is supported per instance
 - SIP participants are audio-only (no video)
 - Reactions, chat, and screen sharing are not available to SIP participants
-- Recording will capture SIP audio alongside WebRTC participants
 - The RTP port range (10000-20000) is large; open it only if you actually use telephony
 
 ## Telephony in the UI
 
-When telephony is configured, the meeting room's info panel (left sidebar) shows the dial-in phone number and a PIN code for the room. Participants can call the number, enter the PIN, and join as audio-only attendees.
+When telephony is configured, the meeting room's info panel shows the dial-in phone number and a PIN code for the room. Participants can call the number, enter the PIN, and join as audio-only attendees.
 
 ## Troubleshooting
 
@@ -186,4 +185,4 @@ When telephony is configured, the meeting room's info panel (left sidebar) shows
 
 **SIP call fails to connect**: Check that the origination URI in your SIP provider's console points to your LiveKit SIP service's host on port 5060. Verify no firewall is blocking UDP 5060.
 
-**Wrong room or no dispatch rule matched**: Ensure a dispatch rule is configured for the inbound trunk. Without a rule, calls are rejected.
+**Wrong room or no dispatch rule matched**: Check that the `room_started` webhook reaches the backend: Meet creates the room's dispatch rule from it. Without a rule, calls are rejected.

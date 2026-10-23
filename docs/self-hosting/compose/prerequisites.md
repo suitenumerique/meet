@@ -113,4 +113,4 @@ Before proceeding to the [Deployment Guide](deployment-guide.md), ensure you hav
 - [ ] Docker and Docker Compose installed
 - [ ] Ports 80/TCP, 443/TCP, 7881/TCP, and 7882/UDP open (7880 is internal only) - see [Firewall & Ports](../configuration/firewall.md) for alternatives
 - [ ] Three subdomains pointing to your server (meet, auth, livekit)
-- [ ] An OIDC provider configured with client credentials
+- [ ] An OIDC provider with a client for Meet, or the plan to run the Deployment Guide's Keycloak stack

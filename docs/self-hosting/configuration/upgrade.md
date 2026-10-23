@@ -42,15 +42,11 @@ Docker Compose will recreate containers that have a new image and leave unchange
 docker compose exec backend python manage.py migrate
 ```
 
-Always run migrations after upgrading - even if the changelog doesn't mention schema changes, it is safe to run.
+Always run migrations after upgrading: they are safe to run even when the changelog mentions no schema change.
 
-### 5. Collect static files
+Static files ship inside the backend image, so there is no `collectstatic` step.
 
-```bash
-docker compose exec backend python manage.py collectstatic --no-input
-```
-
-### 6. Verify the upgrade
+### 5. Verify the upgrade
 
 ```bash
 # Check application logs for errors
@@ -65,39 +61,40 @@ If something goes wrong, restore the database from the backup created before upg
 # Stop the backend and workers
 docker compose stop backend celery
 
-# Restore the database
-docker compose exec -T postgresql psql -U meet meet < meet_backup_YYYYMMDD.sql
+# Move the migrated database aside, then restore into an empty one: a restore
+# over the migrated schema keeps the new tables and columns
+docker compose exec -T postgresql psql -U meet -d postgres \
+  -c "ALTER DATABASE meet RENAME TO meet_before_rollback"
+docker compose exec -T postgresql createdb -U meet meet
+docker compose exec -T postgresql psql -U meet -v ON_ERROR_STOP=1 meet < meet_backup_YYYYMMDD.sql
 
-# Pin image tags to the previous version in compose.yml, then:
+# Set MEET_VERSION in .env back to the previous version, then:
 docker compose pull
 docker compose up -d
 ```
 
-## Version pinning
+Once Meet works on the restored data, drop the copy set aside above. It holds everything written since the upgrade, and the next rollback fails at the rename while it exists:
 
-By default, `docker compose pull` fetches `:latest`. To pin to a specific version, edit your `compose.yml`:
-
-```yaml
-services:
-  backend:
-    image: lasuite/meet-backend:1.15.0  # pin to specific version
+```bash
+docker compose exec -T postgresql psql -U meet -d postgres \
+  -c "DROP DATABASE meet_before_rollback"
 ```
 
-This is recommended for production to avoid unexpected upgrades.
+## Version pinning
+
+By default, `docker compose pull` fetches `:latest`. Pin `MEET_VERSION` and `LIVEKIT_VERSION` in `.env`, as the Deployment Guide's [Pin image versions](../compose/deployment-guide.md#after-installation) step shows: every Meet service reads the same variable, so they stay on one release. LiveKit Egress, if you run recording, has its own tag: pin `EGRESS_VERSION` in `.env` too, which the [Recording](recording.md) compose snippet reads. This is recommended for production to avoid unexpected upgrades.
 
 ## Keeping LiveKit up to date
 
 LiveKit server and Egress should be upgraded separately. Check the [LiveKit changelog](https://github.com/livekit/livekit/releases) for compatibility notes with your Meet version.
 
 ```bash
-docker compose pull livekit livekit-egress
-docker compose up -d livekit livekit-egress
+docker compose pull livekit
+docker compose up -d livekit
 ```
+
+With recording enabled, upgrade Egress too: `docker compose pull livekit-egress && docker compose up -d livekit-egress`.
 
 ## Getting help with upgrades
 
-If you encounter issues during an upgrade:
-
-- Check [GitHub Issues](https://github.com/suitenumerique/meet/issues) for known upgrade problems
-- Ask in the [Matrix community](https://matrix.to/#/#meet-official:matrix.org)
-- Open a new issue with your current version, target version, and error logs
+Check [GitHub Issues](https://github.com/suitenumerique/meet/issues) for known upgrade problems, or ask the community, see [Community and support](../../index.md#community-and-support). A new issue needs your current version, the target version, and the error logs.

@@ -8,18 +8,21 @@
 # All backend tests
 make test-back
 
-# Directly with pytest
-docker compose exec app-dev pytest
-
 # Specific file
-docker compose exec app-dev pytest core/tests/rooms/test_api_rooms_list.py
+bin/pytest core/tests/rooms/test_api_rooms_list.py
 
 # Specific test
-docker compose exec app-dev pytest core/tests/rooms/test_api_rooms_list.py::test_api_rooms_list_authenticated
+bin/pytest core/tests/rooms/test_api_rooms_list.py::test_api_rooms_list_authenticated
 
 # With coverage report
-docker compose exec app-dev pytest --cov=meet --cov-report=html
+bin/pytest --cov=core --cov-report=html
 # Open htmlcov/index.html in your browser
+```
+
+`bin/pytest` runs pytest in the `app-dev` container with the `Test` configuration, which the tests need: a bare `docker compose exec app-dev pytest` runs under `Development` and fails tests that rely on `Test` settings. `bin/manage` runs `manage.py` the same way. Both work from any directory, so putting `bin/` on your `PATH` shortens them to `pytest` and `manage`:
+
+```bash
+export PATH="$PWD/bin:$PATH"   # from the repository root
 ```
 
 ### Test structure

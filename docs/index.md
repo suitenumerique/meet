@@ -2,7 +2,7 @@
 
 **Open Source video conferencing, self-hostable under MIT.**
 
-Built on [LiveKit](https://livekit.io/), LaSuite Meet delivers HD audio and video calls directly from your browser. Used in production by DINUM to power [Visio](https://visio.numerique.gouv.fr/), the official video platform for French public servants.
+Built on [LiveKit](https://livekit.io/), LaSuite Meet delivers HD audio and video calls directly from your browser, with no plugin or client to install. It is developed by [DINUM](https://www.numerique.gouv.fr/), the French government's digital agency, and powers [Visio](https://visio.numerique.gouv.fr/), the official video platform for French public servants.
 
 [![GitHub Stars](https://img.shields.io/github/stars/suitenumerique/meet)](https://github.com/suitenumerique/meet/stargazers/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md)
@@ -11,20 +11,31 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet delivers HD audio and vide
 
 ![LaSuite Meet in action](assets/demo.gif)
 
+## Why Meet
+
+Most video conferencing solutions are either proprietary (Zoom, Teams, Google Meet) or Open Source but difficult to self-host and scale (Jitsi, BigBlueButton). Meet is Open Source and built to self-host at scale:
+
+- **Production-grade quality**: used at national scale by millions of French public servants
+- **Fully open source**: MIT license, all features remain open
+- **Self-hostable**: Docker Compose for small deployments, Kubernetes for production scale
+- **No vendor lock-in**: you own your data, your infrastructure, your instance
+
 ## Features
 
 - **HD video and audio**: noise suppression, adaptive bitrate, Opus codec
-- **Large meetings**: tested at national scale with 150+ participants
+- **Large meetings**: tested in production with 150+ participants
 - **Multiple screen shares**: any number of participants can share simultaneously
-- **Non-persistent chat**: history is cleared when the meeting ends
+- **Non-persistent chat**: history is cleared when the meeting ends, with [one exception](faq.md#is-chat-history-stored)
 - **Emoji reactions & hand raise**: without unmuting
 - **Meeting recording**: stored to S3-compatible storage; download link sent by email
 - **Transcription & AI summary** *(beta)*: speech-to-text with optional LLM summarization
-- **Telephony / SIP**: dial-in and dial-out support
+- **Telephony / SIP**: dial in by phone with a PIN
 - **OIDC / SSO**: Keycloak, Authentik, Google, Microsoft, ProConnect
 - **Virtual backgrounds**: blur or custom image, uploadable
 - **Lobby / waiting room**: host controls who enters
 - **Full keyboard navigation and screen reader support** (WCAG)
+
+Where each one is, who can use it, and what the instance must enable: [Features & Controls](user/features-controls.md).
 
 ---
 
@@ -39,24 +50,7 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet delivers HD audio and vide
 
 ## Self-hosting
 
-### Docker Compose
-
-Single-server deployment, no Kubernetes required.
-
-- [Quick Start](self-hosting/compose/quick-start.md)
-- [Full deployment guide](self-hosting/compose/deployment-guide.md)
-- [Recording](self-hosting/configuration/recording.md)
-
-### Kubernetes / High-Availability
-
-For production and high-availability deployments.
-
-1. [Prerequisites](self-hosting/kubernetes/prerequisites.md)
-2. [Helm deployment](self-hosting/kubernetes/helm.md)
-3. [Recording](self-hosting/configuration/recording.md)
-
-### Scalingo
-1. [Deploy with Scalingo](self-hosting/scalingo.md)
+Docker Compose for a single server, Kubernetes for high availability, or Scalingo: [Self-Hosting](self-hosting/index.md) compares them and lists what each needs.
 
 ## Contributing
 
@@ -76,10 +70,13 @@ For production and high-availability deployments.
 | [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT | French territorial administration (ProConnect required) |
 | [visio.lasuite.coop](https://visio.lasuite.coop/) | lasuite.coop | Open demo, accounts reset monthly |
 | [mosa.cloud](https://mosa.cloud/) | mosa.cloud | Dutch commercial instance |
+| [Clever Cloud](https://www.clever.cloud/product/visio/) | Clever Cloud | Openvisio, a sovereign video conferencing offer based on LaSuite Meet |
+| [Email.eu](https://email.eu/) | Email.eu | Sovereign business workspace |
+| [visio.samourai.app](https://visio.samourai.app/) | Samouraï | French cooperative instance, guests join by link |
 
 ## Reference
 
-- [Architecture overview](overview/architecture.md)
+- [How Meet works](overview/how-meet-works.md)
 - [Environment variables](reference/env-variables.md)
 - [API reference](reference/api.md)
 - [Troubleshooting](reference/troubleshooting.md)
@@ -89,4 +86,9 @@ For production and high-availability deployments.
 - **Matrix**: [#meet-official:matrix.org](https://matrix.to/#/#meet-official:matrix.org)
 - **GitHub Issues**: [github.com/suitenumerique/meet/issues](https://github.com/suitenumerique/meet/issues)
 - **GitHub Discussions**: [github.com/suitenumerique/meet/discussions](https://github.com/suitenumerique/meet/discussions)
+- **Roadmap**: [GitHub Projects](https://github.com/orgs/suitenumerique/projects/3/views/2)
 - **Source code**: [github.com/suitenumerique/meet](https://github.com/suitenumerique/meet)
+
+## License
+
+Code is released under the **MIT License** by DINUM. Documentation in the `docs/` directory is released under the [Etalab-2.0 license](https://spdx.org/licenses/etalab-2.0.html).

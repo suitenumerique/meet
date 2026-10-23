@@ -2,7 +2,7 @@
 
 Meet exposes an external API at `/external-api/v1.0/` for server-to-server room management. This page covers the **calendar add-ons** authentication mode, used by calendar integrations (Outlook, etc.) running in embedded iframes.
 
-Enable this mode with `ADDONS_ENABLED=True` on the backend.
+Enable this mode with **both** `ADDONS_ENABLED=True` and `EXTERNAL_API_ENABLED=True` on the backend: the token is for the external API's room calls, which `EXTERNAL_API_ENABLED` mounts.
 
 ---
 
@@ -11,7 +11,7 @@ Enable this mode with `ADDONS_ENABLED=True` on the backend.
 Use add-ons authentication when:
 
 - You're building a calendar add-in that runs in an iframe
-- You need to obtain an access token without exposing it to client-side JavaScript
+- You need the user to sign in through a popup, outside the add-in's iframe
 - The user authenticates with Meet's OIDC provider
 
 Compare with [Application-Delegated](external-api-delegated.md) (your backend acts on behalf of users) and [Resource Server](external-api-resource-server.md) (user presents their OIDC token directly).
@@ -114,8 +114,8 @@ Cookie: addonsSid=...
   "state": "authenticated",
   "access_token": "eyJhbGci...",
   "token_type": "Bearer",
-  "expires_in": 3600,
-  "scope": "external_api"
+  "expires_in": 7200,
+  "scope": "rooms:create"
 }
 ```
 
@@ -133,8 +133,7 @@ Content-Type: application/json
 
 ```json
 {
-  "name": "Team Meeting",
-  "access_level": "public"
+  "access_level": "trusted"
 }
 ```
 
@@ -142,17 +141,7 @@ Content-Type: application/json
 
 ## Backend configuration
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ADDONS_ENABLED` | Yes | `False` | Enable add-ons authentication |
-| `ADDONS_TOKEN_SECRET_KEY` | Yes | - | Secret for signing JWT tokens |
-| `ADDONS_CSRF_SECRET` | Yes | - | Secret for CSRF token derivation |
-| `ADDONS_TOKEN_SCOPE` | No | `rooms:create` | Scope in issued tokens |
-| `ADDONS_SESSION_TTL` | No | `3600` | Session lifetime in seconds |
-| `ADDONS_TRANSIT_TOKEN_TTL` | No | `120` | Transit token lifetime in seconds |
-| `ADDONS_TOKEN_TTL` | No | `7200` | Access token lifetime in seconds |
-| `ADDONS_TOKEN_ISSUER` | No | `lasuite-meet` | JWT issuer claim |
-| `ADDONS_TOKEN_AUDIENCE` | No | `addons` | JWT audience claim |
+Every variable, with its default: [Environment Variables: Add-ons](env-variables.md#add-ons).
 
 ---
 

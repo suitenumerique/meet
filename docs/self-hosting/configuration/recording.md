@@ -1,6 +1,6 @@
 # Recording
 
-Room recording is available in beta. The feature lets users record their sessions; when a recording is complete, the room owner receives an email with a download link. Recordings are deleted automatically after `RECORDING_EXPIRATION_DAYS` if set.
+Room recording lets users record their meetings; when a recording is complete, the person who started it receives an email with a download link. `RECORDING_EXPIRATION_DAYS` only marks recordings as expired; deleting the files takes a lifecycle rule on the bucket.
 
 Meet uses [LiveKit Egress](https://github.com/livekit/egress) to capture room audio and video and upload the result to S3-compatible storage.
 
@@ -38,7 +38,7 @@ sequenceDiagram
     LiveKit->>Egress: Stop recording
     Egress->>Storage: Upload recorded file
     LiveKit-->>Backend: POST /api/v1.0/rooms/webhooks-livekit/ (egress_ended)
-    Backend->>Email: Send notification to room owner
+    Backend->>Email: Send notification to whoever started the recording
     Email->>User: Email with download link
     User->>Frontend: Navigate to /recording/{id}
 ```
@@ -47,7 +47,7 @@ sequenceDiagram
 
 - A running LiveKit Egress server
 - S3-compatible object storage (any provider - Meet only uses it to upload/download files)
-- SMTP service for email notifications to room owners
+- SMTP service for the email sent to whoever started the recording
 - LiveKit webhook configured to reach the Meet backend, this is what tells Meet a recording has finished
 
 !!!info
@@ -140,7 +140,7 @@ Add to your `compose.yml`:
 
 ```yaml
 livekit-egress:
-  image: livekit/egress:latest
+  image: livekit/egress:${EGRESS_VERSION:-latest}
   restart: unless-stopped
   environment:
     EGRESS_CONFIG_FILE: /livekit-egress.yaml
@@ -175,7 +175,7 @@ DJANGO_ALLOWED_HOSTS=meet.example.com,backend,localhost
 !!!info 
     **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path.** The frontend expects download links at `https://meet.example.com/recording/<uuid>`. Using the bare domain sends users to a page that treats the UUID as a room code.
 
-    **Email is required for recording downloads.** When a recording is ready, Meet sends the room owner an email with the download link. Without SMTP, users will never receive this notification. See [Email (SMTP)](email.md) for setup.
+    **Email is required for recording downloads.** When a recording is ready, Meet emails the download link to the person who started the recording. Without SMTP, users will never receive this notification. See [Email (SMTP)](email.md) for setup.
 
 If SMTP is not configured, administrators can find recording download links in the Django admin panel at `/admin/ → Core → Recordings`.
 
@@ -222,7 +222,7 @@ location /media/ {
     proxy_set_header X-Amz-Content-SHA256 $authContentSha256;
 
     proxy_pass http://minio:9000/meet-media-storage/;
-    proxy_set_header Host minio;
+    proxy_set_header Host minio:9000;
 }
 
 location = /media-auth {
@@ -507,22 +507,7 @@ This lets you verify which recordings are in progress, troubleshoot egress issue
 
 ## Full configuration reference
 
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `RECORDING_ENABLE` | Boolean | `False` | Enable the recording feature |
-| `RECORDING_OUTPUT_FOLDER` | String | `"recordings"` | Folder/prefix in object storage |
-| `RECORDING_WORKER_CLASSES` | Dict | -- | Maps recording mode to its worker class. Default: `screen_recording` → `VideoCompositeEgressService`, `transcript` → `AudioCompositeEgressService`. Only change for custom egress workers. |
-| `RECORDING_DOWNLOAD_BASE_URL` | String | - | Base URL for download links (must include `/recording`) |
-| `RECORDING_EXPIRATION_DAYS` | Integer | `None` | Days before recordings expire; should match bucket lifecycle policy |
-| `RECORDING_MAX_DURATION` | Integer | `None` | Max recording duration in milliseconds |
-| `RECORDING_ENCODING_ENABLED` | Boolean | `False` | Use custom encoding instead of built-in preset |
-| `RECORDING_ENCODING_WIDTH` | Integer | `1280` | Video width in pixels |
-| `RECORDING_ENCODING_HEIGHT` | Integer | `720` | Video height in pixels |
-| `RECORDING_ENCODING_FRAMERATE` | Integer | `30` | Video framerate (fps) |
-| `RECORDING_ENCODING_VIDEO_BITRATE_KBPS` | Integer | `3000` | H.264 video bitrate |
-| `RECORDING_ENCODING_AUDIO_BITRATE_KBPS` | Integer | `128` | AAC audio bitrate |
-| `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S` | Float | `4.0` | Keyframe interval in seconds |
-
+Every recording variable, with its default: [Environment Variables: Recording](../../reference/env-variables.md#recording).
 
 ## Testing the full recording flow
 
@@ -534,5 +519,5 @@ This lets you verify which recordings are in progress, troubleshoot egress issue
      "mc alias set myminio http://minio:9000 minioadmin <MINIO_PASSWORD> && \
       mc ls myminio/meet-media-storage/recordings/"
    ```
-4. Check backend logs for the LiveKit egress webhook that finalizes the recording: `docker compose logs backend | grep egress_ended`
-5. The room owner should receive an email with a download link
+4. Check the recording reached its final state: its status in the Django admin, under `/admin/` → **Core → Recordings**
+5. The person who started the recording should receive an email with a download link

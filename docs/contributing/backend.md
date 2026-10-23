@@ -22,7 +22,7 @@ The Meet backend is a Django 5.x application written in Python 3.13+.
 make run-backend
 
 # Django shell
-docker compose exec app-dev python manage.py shell
+make shell
 
 # Apply migrations
 make migrate
@@ -54,6 +54,7 @@ Refer to the source file for exact fields.
 After model changes, create and apply migrations:
 
 ```bash
+make makemigrations
 make migrate
 ```
 
@@ -69,25 +70,15 @@ The backend generates short-lived JWTs for clients in `generate_token()` ([`core
 
 Celery is used for async background operations. Tasks live under `core/tasks/` (e.g. file deletion cleanup, connection-test room teardown).
 
-> **Note on recording notifications**: email notifications for completed recordings are sent **synchronously** from the LiveKit `egress_ended` webhook handler (`core/recording/event/notification.py`), not via Celery. `CELERY_ENABLED` is only needed when `FILE_UPLOAD_ENABLED=True` to handle file deletion cleanup asynchronously.
+> **Note on recording notifications**: email notifications for completed recordings are sent **synchronously** from the LiveKit `egress_ended` webhook handler (`core/recording/event/notification.py`), not via Celery. With `CELERY_ENABLED` on, Celery hard-deletes connection-test rooms and deletes files asynchronously. With it off, connection-test rooms are never hard-deleted, and files are deleted inline.
 
 ## Running tests
 
 ```bash
-# All backend tests
 make test-back
-
-# Specific file
-docker compose exec app-dev pytest core/tests/rooms/test_api_rooms_list.py
-
-# With coverage
-docker compose exec app-dev pytest --cov=meet --cov-report=html
-
-# Single test
-docker compose exec app-dev pytest core/tests/rooms/test_api_rooms_list.py::test_api_rooms_list_authenticated
 ```
 
-See [`docs/contributing/testing.md`](testing.md) for more on backend test conventions.
+Running one file or one test, coverage, and the `bin/` helpers are in [Testing](testing.md#running-tests).
 
 ## Code style
 

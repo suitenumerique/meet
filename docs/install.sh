@@ -53,6 +53,14 @@ docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is not availabl
 check_dep openssl
 check_dep curl
 
+# A second run would write new passwords that the existing database volumes
+# no longer accept, so this script only sets up a fresh install.
+for dir in "${DOCKER_ROOT}/keycloak" "${DOCKER_ROOT}/meet"; do
+  if [[ -e "$dir" ]]; then
+    die "${dir} already exists. To start over, run 'docker compose down -v' in it, then delete it."
+  fi
+done
+
 # ── Prompts ───────────────────────────────────────────────────────────────────
 
 echo ""
@@ -122,8 +130,6 @@ curl -fsSL -o "${KC_DIR}/docker-compose.override.yml" \
 curl -fsSL -o "${KC_DIR}/env.d/keycloak"              "${RAW_ENVD_URL}/keycloak"
 curl -fsSL -o "${KC_DIR}/env.d/kc_postgresql"         "${RAW_ENVD_URL}/kc_postgresql"
 
-# Patch KC_HOSTNAME - replace the entire line to avoid leaving the comment in the value
-sed -i "s|^KC_HOSTNAME=.*|KC_HOSTNAME=https://${IDP_HOST}|" "${KC_DIR}/env.d/keycloak"
 
 # Generate Keycloak secrets
 KC_ADMIN_PASSWORD=$(openssl rand -hex 16)
@@ -148,8 +154,10 @@ replace_in "meet.example.com" "$MEET_HOST"            "${KC_DIR}/keycloak-realm.
 replace_in "admin@example.com" "$ADMIN_EMAIL"         "${KC_DIR}/keycloak-realm.json"
 replace_in "MEET_ADMIN_PASSWORD_PLACEHOLDER" "$MEET_ADMIN_PASSWORD" "${KC_DIR}/keycloak-realm.json"
 
-# These three files hold secrets in plaintex. Restrict to the owner.
-chmod 600 "${KC_DIR}/env.d/keycloak" "${KC_DIR}/env.d/kc_postgresql" "${KC_DIR}/keycloak-realm.json"
+# These two files hold secrets in plaintext. Restrict to the owner.
+chmod 600 "${KC_DIR}/env.d/keycloak" "${KC_DIR}/env.d/kc_postgresql"
+# Keycloak reads the realm as uid 1000 inside its container, whoever owns it here.
+chmod 644 "${KC_DIR}/keycloak-realm.json"
 
 # Write a .env file for Keycloak stack so compose override variables are available
 # as fallback even if the shell export is lost (e.g. when cd changes scope).
@@ -217,6 +225,11 @@ echo ""
 docker exec meet-backend-1 python manage.py migrate
 success "Migrations complete."
 
+# Accounts created at login cannot open /admin/, so create one that can.
+DJANGO_ADMIN_PASSWORD=$(openssl rand -base64 12)
+docker exec meet-backend-1 python manage.py createsuperuser \
+  --email "$ADMIN_EMAIL" --password "$DJANGO_ADMIN_PASSWORD"
+
 # ── Done ──────────────────────────────────────────────────────────────────────
 
 echo ""
@@ -230,6 +243,9 @@ echo ""
 echo "  Meet login:      meet-admin / ${MEET_ADMIN_PASSWORD}"
 echo "  This password is single-use - Keycloak will prompt for a new one on first login."
 echo "  It is not saved anywhere else, so log in now or note it down."
+echo ""
+echo "  Meet admin panel: https://${MEET_HOST}/admin/  ${ADMIN_EMAIL} / ${DJANGO_ADMIN_PASSWORD}"
+echo "  This password is not saved anywhere else either."
 echo ""
 echo "  Keycloak admin console login: admin / <see KC_BOOTSTRAP_ADMIN_PASSWORD in the file below>"
 echo "    ${KC_DIR}/env.d/keycloak"

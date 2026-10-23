@@ -22,7 +22,7 @@ Meet uses [Conventional Commits](https://www.conventionalcommits.org/) with gitm
 
 ```
 <emoji>(<scope>) <short description>
-[required body]
+[body]
 ```
 
 ### Scopes
@@ -73,10 +73,10 @@ Commit messages are validated by `gitlint` in CI. Rules are in `gitlint/`.
 ## PR checklist
 
 - [ ] Tests added for new functionality or the bug fix
-- [ ] All tests pass (`make test-back`)
-- [ ] Linters pass (`make lint-back frontend-lint`)
+- [ ] All tests pass (`make test`) at every commit, so the history stays bisectable and any commit can be reverted cleanly
+- [ ] Linters pass (`make lint frontend-lint`)
 - [ ] If UI changed: keyboard navigation and screen reader labels work
-- [ ] If new strings added: check translations in every languages
+- [ ] If new strings added: check translations in every language
 - [ ] No sensitive information (secrets, passwords) committed
 
 ## Code review
@@ -88,7 +88,7 @@ Commit messages are validated by `gitlint` in CI. Rules are in `gitlint/`.
 
 ## Translations
 
-New UI strings must be added to `src/frontend/src/i18n/`.
+New UI strings must be added to `src/frontend/src/locales/`.
 
 ## Security fixes
 
