@@ -5,7 +5,7 @@ RUN apk add --no-cache --upgrade 'ca-certificates>=20261020-r0'
 
 # Install ffmpeg for audio/video processing (format conversion, extraction, compression)
 # See summary/core/file_service.py for usage.
-RUN apk add --no-cache "ffmpeg=8.1.2-r0"
+RUN apk add --no-cache "ffmpeg=8.1.2-r0" 'brotli-libs>=1.2.1-r0'
 
 FROM base AS builder
 

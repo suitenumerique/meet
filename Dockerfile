@@ -87,7 +87,8 @@ RUN apk --no-cache add \
   libffi-dev \
   pango \
   libmagic \
-  shared-mime-info
+  shared-mime-info \
+  'brotli-libs>=1.2.1-r0'
 
 
 # Copy entrypoint

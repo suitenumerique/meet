@@ -25,7 +25,7 @@ license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "boto3==1.43.80",
-    "Brotli==1.2.0",
+    "Brotli==1.2.1",
     "brevo-python==1.2.0",
     "celery[redis]==5.6.3",
     "dj-database-url==3.1.2",
