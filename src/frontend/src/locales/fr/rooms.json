@@ -251,6 +251,7 @@
   },
   "controls": {
     "region": "Commandes pour les appels",
+    "toolbar": "Outils de la réunion",
     "microphone": "Microphone",
     "camera": "Camera",
     "chat": {
