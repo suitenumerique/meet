@@ -70,6 +70,7 @@
     "usernameHint": "Getoond aan andere deelnemers",
     "usernameLabel": "Uw naam",
     "errors": {
+      "joinFailed": "Deelnemen aan de vergadering is niet gelukt. Probeer het opnieuw.",
       "usernameEmpty": "Uw naam kan niet leeg zijn"
     },
     "cameraDisabled": "Camera is uitgeschakeld.",

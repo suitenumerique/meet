@@ -96,6 +96,7 @@ export const Lobby = ({
 
   const isRoomDeleted = isError && error?.statusCode == 410
   const lobbyStatus = isRoomDeleted ? ApiLobbyStatus.DELETED : status
+  const hasJoinFailed = isError && !isRoomDeleted && error?.statusCode != 404
 
   const handleSubmit = () => {
     join(
@@ -110,12 +111,6 @@ export const Lobby = ({
             openLoginHint()
           }
           startWaiting()
-        },
-        onError: ({ statusCode }) => {
-          // 404 enters the room and creates it
-          // 410 shows the deleted room screen
-          // Any other error falls back to the lobby
-          if (statusCode != 404 && statusCode != 410) startWaiting()
         },
       }
     )
@@ -175,6 +170,11 @@ export const Lobby = ({
                 autoComplete="name"
                 maxLength={50}
               />
+            )}
+            {hasJoinFailed && (
+              <Text variant="warning" role="alert" margin={false} centered>
+                {t('errors.joinFailed')}
+              </Text>
             )}
           </VStack>
         </Form>

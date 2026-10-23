@@ -70,6 +70,7 @@
     "usernameHint": "Wird anderen Teilnehmenden angezeigt",
     "usernameLabel": "Dein Name",
     "errors": {
+      "joinFailed": "Beitritt zum Meeting nicht möglich. Bitte versuche es erneut.",
       "usernameEmpty": "Dein Name darf nicht leer sein"
     },
     "cameraDisabled": "Kamera ist deaktiviert.",
