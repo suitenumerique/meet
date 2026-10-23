@@ -123,7 +123,6 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed(mock_token):
         "id": None,
         "slug": "unregistered-room",
         "access_level": "public",
-        "is_administrable": False,
     }
 
     mock_token.assert_not_called()
@@ -144,7 +143,6 @@ def test_api_rooms_retrieve_anonymous_unregistered_allowed_not_normalized(mock_t
         "id": None,
         "slug": "reunion",
         "access_level": "public",
-        "is_administrable": False,
     }
 
     mock_token.assert_not_called()
