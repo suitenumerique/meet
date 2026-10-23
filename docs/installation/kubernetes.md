@@ -156,18 +156,15 @@ You can find these values in **examples/helm/keycloak.values.yaml**
 
 LaSuite Meet use livekit for streaming part so if you have a livekit provider, obtain the necessary information to use it. If you do not have a provider, you can install a livekit testing environment as follows:
 
-Livekit need a redis (and meet too) so we will start by deploying a redis :
+Livekit need a [Valkey](https://valkey.io) (and meet too) so we will start by deploying a valkey :
 
 ```
-$ helm install redis oci://registry-1.docker.io/bitnamicharts/redis -f examples/helm/redis.values.yaml
-$ kubectl get po
-NAME                    READY   STATUS    RESTARTS   AGE
-keycloak-0              1/1     Running   0          26m
-keycloak-postgresql-0   1/1     Running   0          26m
-redis-master-0          1/1     Running   0          35s
+$ helm repo add valkey https://valkey.io/valkey-helm/
+$ helm repo update
+$ helm install valkey valkey/valkey -f examples/helm/valkey.values.yaml
 ```
 
-When the redis is ready we can deploy livekit-server.
+When the valkey pod is ready we can deploy livekit-server.
 
 ```
 $ helm repo add livekit https://helm.livekit.io
@@ -178,7 +175,6 @@ NAME                                      READY   STATUS    RESTARTS   AGE
 keycloak-0                                1/1     Running   0          30m
 keycloak-postgresql-0                     1/1     Running   0          30m
 livekit-livekit-server-5c5fb87f7f-ct6x5   1/1     Running   0          7s
-redis-master-0                            1/1     Running   0          4m30s
 $ curl https://livekit.127.0.0.1.nip.io
 OK
 ```
@@ -189,9 +185,9 @@ From here important information you will need are :
 LIVEKIT_API_SECRET: secret
 LIVEKIT_API_KEY: devkey
 LIVEKIT_API_URL: https://livekit.127.0.0.1.nip.io/
-REDIS_URL: redis://default:pass@redis-master:6379/1
-CELERY_BROKER_URL: redis://default:pass@redis-master:6379/1
-CELERY_RESULT_BACKEND: redis://default:pass@redis-master:6379/1
+REDIS_URL: redis://default:pass@valkey:6379/1
+CELERY_BROKER_URL: redis://default:pass@valkey:6379/1
+CELERY_RESULT_BACKEND: redis://default:pass@valkey:6379/1
 ```
 
 ### Find postgresql connexion values
@@ -206,7 +202,6 @@ keycloak-0                                1/1     Running   0          45m
 keycloak-postgresql-0                     1/1     Running   0          45m
 livekit-livekit-server-5c5fb87f7f-ct6x5   1/1     Running   0          15m
 postgresql-0                              1/1     Running   0          50s
-redis-master-0                            1/1     Running   0          19
 ```
 
 From here important information you will need are :
