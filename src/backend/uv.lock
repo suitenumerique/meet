@@ -1358,7 +1358,7 @@ wheels = [
 
 [[package]]
 name = "meet"
-version = "1.36.2"
+version = "1.36.3"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },

@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.36.3] - 2026-10-23
+
 ### Fixed
 
 - 🔒️(backend) upgrade brotli to 1.2.1 to fix CVE-2026-111497
