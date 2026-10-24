@@ -85,7 +85,7 @@ We're currently working on both technical and user documentation for La Suite Me
 
 ### La Suite Meet is easy to install on your own servers
 
-We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/) but also support Docker Compose. The community contributed a couple other methods (Nix, YunoHost etc.) check out the [docs](/docs/installation/README.md) to get detailed instructions and examples.
+We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/) but also support Docker Compose. The community contributed a couple other methods (Nix, YunoHost etc.) check out the [docs](/docs/self-hosting/index.md) to get detailed instructions and examples.
 
 **Questions?** Open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) or join our [Matrix community](https://matrix.to/#/#meet-official:matrix.org).
 
@@ -135,7 +135,7 @@ Open source is much more than code. Writing documentation, improving onboarding,
 When you’re ready, here are a few ways to get involved:
 
 * 👋 **Say hello** and share your ideas with the community and maintainers on our [Matrix channel](https://matrix.to/#/#meet-official:matrix.org)
-* 🛠️ **Open a PR** by following our guide to [develop La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md)
+* 🛠️ **Open a PR** by following our guide to [develop La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/contributing/develop.md)
 * 💡 **Suggest an idea** by opening a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md)
 * 🐛 **Report a bug** by opening a [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
 

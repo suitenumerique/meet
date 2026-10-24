@@ -1,0 +1,48 @@
+# nginx-proxy + acme-companion stack
+#
+# Reverse proxy with automatic TLS via Let's Encrypt.
+# Run this once on your server; it stays up permanently and serves
+# all other stacks that join the 'proxy' network.
+#
+# Usage:
+#   docker network create proxy
+#   cd ~/docker/nginx-proxy
+#   docker compose up -d
+
+services:
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - html:/usr/share/nginx/html
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - proxy
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    restart: unless-stopped
+    environment:
+      DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - acme:/etc/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+
+volumes:
+  html:
+  certs:
+  acme:
+
+networks:
+  proxy:
+    external: true

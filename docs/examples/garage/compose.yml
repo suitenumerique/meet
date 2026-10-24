@@ -1,0 +1,46 @@
+# Garage stack
+#
+# S3-compatible object storage for Meet recording, on a single node.
+# Only needed if you want meeting recording.
+# Skip this if you use an external S3-compatible service (AWS S3, Scaleway, OVH, etc.)
+#
+# Usage:
+#   cd ~/docker/garage
+#   cp .env.example .env && nano .env   # fill in your values
+#   docker compose up -d
+#
+# On its first start, Garage creates its layout, the access key and the bucket
+# named in .env. It leaves them untouched on later starts.
+#
+# External network expected:
+#   internal - must match the network name used by your Meet stack
+
+services:
+
+  garage:
+    image: dxflrs/garage:v2.4.1
+    restart: unless-stopped
+    command: /garage server --single-node --default-bucket
+    environment:
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET}
+      GARAGE_DEFAULT_ACCESS_KEY: ${GARAGE_ACCESS_KEY}
+      GARAGE_DEFAULT_SECRET_KEY: ${GARAGE_SECRET_KEY}
+      GARAGE_DEFAULT_BUCKET: meet-media-storage
+    healthcheck:
+      test: ["CMD", "/garage", "health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./garage.toml:/etc/garage.toml:ro
+      - garage_data:/var/lib/garage
+    networks:
+      - meet_internal  # must match the 'internal' network name of your Meet stack
+
+volumes:
+  garage_data:
+
+networks:
+  meet_internal:
+    external: true
+    name: ${MEET_INTERNAL_NETWORK:-meet_internal}

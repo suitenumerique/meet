@@ -1,0 +1,65 @@
+[project]
+site_name = "LaSuite Meet Documentation"
+site_url = "https://documentation-meet.beta.numerique.gouv.fr/"
+extra_css = ["stylesheets/extra.css"]
+
+nav = [
+  {"Home" = "index.md"},
+  {"Using Meet" = [
+    {"Getting Started" = "user/getting-started.md"},
+    {"Features & Controls" = "user/features-controls.md"},
+    {"Recording & Transcription" = "user/recording.md"},
+    {"Accessibility & Shortcuts" = "user/accessibility.md"},
+    {"FAQ" = "faq.md"}
+  ]},
+  {"How Meet works" = "overview/how-meet-works.md"},
+  {"Self-Hosting" = [
+    {"Overview" = "self-hosting/index.md"},
+    {"Quick Start" = "self-hosting/compose/quick-start.md"},
+    {"Docker Compose" = [
+      {"Prerequisites" = "self-hosting/compose/prerequisites.md"},
+      {"Reverse Proxy" = "self-hosting/compose/reverse-proxy.md"},
+      {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"}
+    ]},
+    {"Kubernetes / Helm" = [
+      {"Prerequisites" = "self-hosting/kubernetes/prerequisites.md"},
+      {"Helm Deployment" = "self-hosting/kubernetes/helm.md"}
+    ]},
+    {"Scalingo" = "self-hosting/scalingo.md"},
+    {"Configuration" = [
+      {"LiveKit & TURN" = "self-hosting/configuration/livekit.md"},
+      {"Firewall & Ports" = "self-hosting/configuration/firewall.md"},
+      {"SSO & Authentication" = "self-hosting/configuration/sso.md"},
+      {"Recording" = "self-hosting/configuration/recording.md"},
+      {"AI Transcription" = "self-hosting/configuration/transcription.md"},
+      {"Real-time Subtitles" = "self-hosting/configuration/subtitles.md"},
+      {"Telephony" = "self-hosting/configuration/telephony.md"},
+      {"Email (SMTP)" = "self-hosting/configuration/email.md"},
+      {"Theming" = "self-hosting/configuration/theming.md"},
+      {"Room purge" = "self-hosting/configuration/room-purge.md"},
+      {"Audit logging" = "self-hosting/configuration/audit-logging.md"},
+      {"Upgrading" = "self-hosting/configuration/upgrade.md"}
+    ]},
+    {"Troubleshooting" = "reference/troubleshooting.md"}
+  ]},
+  {"Integrating" = [
+    {"API" = "reference/api.md"},
+    {"External API" = "reference/external-api.md"},
+    {"Application-delegated" = "reference/external-api-delegated.md"},
+    {"Resource server (OAuth2)" = "reference/external-api-resource-server.md"},
+    {"Add-ons" = "reference/external-api-addons.md"}
+  ]},
+  {"Reference" = [
+    {"Environment Variables" = "reference/env-variables.md"},
+    {"Networking" = "reference/networking.md"},
+    {"Security" = "reference/security.md"},
+    {"Changelog" = "https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md"}
+  ]},
+  {"Contributing" = [
+    {"Develop locally" = "contributing/develop.md"},
+    {"Code tour" = "contributing/code-tour.md"},
+    {"Pull requests" = "contributing/pull-requests.md"}
+  ]}
+]
+
+[project.plugins.glightbox]
