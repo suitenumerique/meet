@@ -91,3 +91,4 @@ docker/livekit/rootCA.pem
 .devenv
 # Zensical build document site
 /site/
+.pre-commit-config.yaml

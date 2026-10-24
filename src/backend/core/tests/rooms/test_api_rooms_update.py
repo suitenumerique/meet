@@ -3,18 +3,23 @@ Test rooms API endpoints in the Meet core app: update.
 """
 
 import random
+from datetime import timedelta
 from unittest.mock import patch
+
+from django.utils import timezone
 
 import pytest
 from rest_framework.test import APIClient
 
+from ...api.serializers import RoomSerializer
 from ...factories import RoomFactory, UserFactory
-from ...models import RoomAccessLevel
+from ...models import Room, RoomAccessLevel
 from ...services.room_management import (
     RoomManagement,
     RoomManagementException,
     RoomNotFoundException,
 )
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -225,6 +230,39 @@ def test_api_rooms_update_administrators_name_only(mock_update_metadata):
     mock_update_metadata.assert_not_called()
 
 
+@pytest.mark.parametrize("method", ["put", "patch"])
+def test_api_rooms_update_last_started_at_ignored(method):
+    """Should ignore a "last_started_at" value sent by a client.
+
+    The field is only ever written by the LiveKit "room_started" webhook: it is not
+    declared on the serializer and is "editable=False" on the model. A client must
+    not be able to keep a room alive by postponing its last start date.
+    """
+    user = UserFactory()
+    last_started_at = timezone.now() - timedelta(days=30)
+    room = RoomFactory(
+        name="Old name",
+        last_started_at=last_started_at,
+        users=[(user, random.choice(["administrator", "owner"]))],
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = getattr(client, method)(
+        f"/api/v1.0/rooms/{room.id!s}/",
+        {"name": "New name", "last_started_at": timezone.now().isoformat()},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert "last_started_at" not in response.json()
+
+    room.refresh_from_db()
+    # The rest of the payload was applied, so the request was not simply rejected
+    assert room.name == "New name"
+    assert room.last_started_at == last_started_at
+
+
 @pytest.mark.parametrize(
     "configuration",
     [
@@ -410,3 +448,61 @@ def test_api_rooms_update_livekit_sync_failure(mock_update_metadata, exception):
             "configuration": {"can_publish_sources": ["camera"]},
         },
     )
+
+
+@pytest.mark.parametrize("privileged_role", ["administrator", "owner"])
+def test_api_rooms_update_authenticated_with_user_access_token(privileged_role):
+    """Role-based permissions apply unchanged with a user access token."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "member")])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+
+    # A simple member cannot update the room
+    response = client.patch(f"/api/v1.0/rooms/{room.id!s}/", {"name": "new name"})
+    assert response.status_code == 403
+
+    # An administrator or an owner can
+    room.accesses.filter(user=user).update(role=privileged_role)
+    response = client.patch(f"/api/v1.0/rooms/{room.id!s}/", {"name": "new name"})
+    assert response.status_code == 200
+    room.refresh_from_db()
+    assert room.name == "new name"
+
+
+@patch.object(RoomManagement, "sync_room_metadata")
+def test_api_rooms_update_soft_deleted_after_load(mock_sync_room_metadata):
+    """A room soft deleted while an update is in flight should not be restored."""
+    user = UserFactory()
+    room = RoomFactory(
+        name="Old name",
+        access_level=RoomAccessLevel.RESTRICTED,
+        users=[(user, "owner")],
+    )
+
+    original_is_valid = RoomSerializer.is_valid
+
+    def soft_delete_while_validating(self, **kwargs):
+        is_valid = original_is_valid(self, **kwargs)
+        Room.all_objects.get(pk=self.instance.pk).soft_delete()
+        return is_valid
+
+    client = APIClient()
+    client.force_login(user)
+
+    with patch.object(RoomSerializer, "is_valid", soft_delete_while_validating):
+        response = client.patch(
+            f"/api/v1.0/rooms/{room.id!s}/",
+            {"name": "New name", "access_level": RoomAccessLevel.PUBLIC},
+        )
+
+    assert response.status_code == 410
+    assert response.json() == {"detail": "This room has been deleted."}
+
+    refreshed_room = Room.all_objects.get(pk=room.pk)
+    assert refreshed_room.deleted_at is not None
+    assert refreshed_room.name == "Old name"
+    assert refreshed_room.access_level == RoomAccessLevel.RESTRICTED
+
+    mock_sync_room_metadata.assert_not_called()

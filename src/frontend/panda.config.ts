@@ -121,7 +121,7 @@ const config: Config = {
     },
     tokens: defineTokens({
       /* we take a few things from the panda preset but for now we clear out some stuff.
-       * This way we'll only add the things we need step by step and prevent using lots of differents things.
+       * This way we'll only add the things we need step by step and prevent using lots of different things.
        */
       ...pandaPreset.theme.tokens,
       colors: defineTokens.colors({

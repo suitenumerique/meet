@@ -12,10 +12,6 @@ from ..services.participants_management import (
     ParticipantsManagementException,
 )
 
-ACTION_FOR_METHOD_TO_PERMISSION = {
-    "versions_detail": {"DELETE": "versions_destroy", "GET": "versions_retrieve"}
-}
-
 
 class IsAuthenticated(permissions.BasePermission):
     """
@@ -25,15 +21,6 @@ class IsAuthenticated(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return bool(request.auth) or request.user.is_authenticated
-
-
-class IsAuthenticatedOrSafe(IsAuthenticated):
-    """Allows access to authenticated users (or anonymous users but only on safe methods)."""
-
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return super().has_permission(request, view)
 
 
 class IsSelf(IsAuthenticated):
@@ -200,29 +187,29 @@ class IsPresentInMeeting(permissions.BasePermission):
             return False
 
 
-class CanManageLobby(permissions.BasePermission):
-    """Grant lobby management (list/accept/deny waiting participants).
+class ParticipantCapability(permissions.BasePermission):
+    """Base permission for in-meeting capabilities opened up to participants.
 
-    - Room admins/owners can always manage the lobby.
-    - When the room access level is TRUSTED, any authenticated user who is
-      currently connected to the meeting can manage the lobby. Presence is
-      verified cache-first (Redis), falling back to the LiveKit API.
+    - Room admins/owners always hold the capability.
+    -  When the room access level is TRUSTED or PUBLIC, any
+      session-authenticated user who is currently connected to the meeting
+      holds it too.
 
     Access level is always read fresh from the DB; only presence is cached,
-    so changing the room to RESTRICTED takes effect immediately.
+    so changing the room access level takes effect immediately.
     """
 
-    message = "You are not allowed to manage this room's lobby."
+    message = "You are not allowed to perform this action."
+    enabled_setting = None
 
-    # pylint: disable=too-many-return-statements
-    def has_object_permission(self, request, view, obj):  # noqa: PLR0911
-        """Check privileges first, then the trusted-room presence path."""
+    def has_object_permission(self, request, view, obj):
+        """Check privileges first, then the participant presence path."""
         user = request.user
 
         if not user or not user.is_authenticated:
             return False
 
-        # Product choice: lobby management is reserved for session-authenticated
+        # Product choice: these capabilities are reserved for session-authenticated
         # users with a real account, not holders of a LiveKit room token.
         if request.auth and hasattr(request.auth, "video"):
             return False
@@ -230,16 +217,31 @@ class CanManageLobby(permissions.BasePermission):
         if obj.is_administrator_or_owner(user):
             return True
 
-        if obj.access_level != RoomAccessLevel.TRUSTED:
+        is_open_room = obj.access_level in (
+            RoomAccessLevel.TRUSTED,
+            RoomAccessLevel.PUBLIC,
+        )
+        is_enabled = not self.enabled_setting or getattr(settings, self.enabled_setting)
+        if not (is_open_room and is_enabled):
             return False
-
-        self.message = "You must be connected to the meeting to manage its lobby."
 
         try:
             return ParticipantsManagement().check_if_in_meeting_cached(
                 room_name=str(obj.pk), identity=str(user.sub)
             )
-        except ParticipantNotFoundException:
+        except (ParticipantNotFoundException, ParticipantsManagementException):
             return False
-        except ParticipantsManagementException:
-            return False
+
+
+class CanManageLobby(ParticipantCapability):
+    """Grant lobby management (list/accept/deny waiting participants).
+
+    Public rooms have no lobby: the endpoints short-circuit there, so opening
+    them to participants exposes nothing.
+    """
+
+
+class CanManageRecording(ParticipantCapability):
+    """Grant starting/stopping a room recording (screen recording or transcript)."""
+
+    enabled_setting = "RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED"

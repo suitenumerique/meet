@@ -1,0 +1,19 @@
+name: Changelog Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    uses: suitenumerique/ci/.github/workflows/_changelog.yml@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1

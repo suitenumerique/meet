@@ -34,7 +34,7 @@ const EMPTY_PROPS = {}
 export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
   const room = useRoomContext()
-  const { localParticipant, remoteParticipants } = room
+  const { localParticipant } = room
 
   const {
     videoDeviceId,
@@ -85,22 +85,6 @@ export const VideoTab = ({ id }: VideoTabProps) => {
       deviceId: { exact: videoDeviceId },
       processor:
         BackgroundProcessorFactory.fromProcessorConfig(processorConfig),
-    })
-  }
-
-  /**
-   * Updates video quality for all existing remote video tracks when user preference changes.
-   * LiveKit doesn't support setting video quality preferences at the room level for remote participants,
-   * so this function applies the selected quality to all existing remote video tracks.
-   * Hook useVideoResolutionSubscription updates quality preferences of new participants joining.
-   */
-  const updateExistingRemoteVideoQuality = (selectedQuality: VideoQuality) => {
-    remoteParticipants.forEach((participant) => {
-      participant.videoTrackPublications.forEach((publication) => {
-        if (publication.videoQuality !== selectedQuality) {
-          publication.setVideoQuality(selectedQuality)
-        }
-      })
     })
   }
 
@@ -231,9 +215,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           selectedKey={videoSubscribeQuality?.toString()}
           onSelectionChange={(key) => {
             if (key == undefined) return
-            const selectedQuality = Number(String(key))
-            saveVideoSubscribeQuality(selectedQuality)
-            updateExistingRemoteVideoQuality(selectedQuality)
+            saveVideoSubscribeQuality(Number(String(key)))
           }}
           style={{
             width: '100%',

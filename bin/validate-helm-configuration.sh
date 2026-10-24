@@ -8,6 +8,6 @@ environments=$(awk '/environments:/ {flag=1; next} flag && NF {print} !NF {flag=
 
 for env in $environments; do
 	echo "################### $env lint ###################"
-	helmfile -e $env -f src/helm/helmfile.yaml lint || exit 1
+	helmfile -e "$env" -f src/helm/helmfile.yaml lint || exit 1
 	echo -e "\n"
 done

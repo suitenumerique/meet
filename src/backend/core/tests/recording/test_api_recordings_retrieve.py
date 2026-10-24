@@ -47,7 +47,8 @@ def test_api_recording_retrieve_authenticated():
 
 def test_api_recording_retrieve_members():
     """
-    A user who is a member of a recording should not be able to retrieve it.
+    A user who is a member of a recording (e.g. its starter) should be able
+    to retrieve it.
     """
     user = UserFactory()
     recording = RecordingFactory()
@@ -58,10 +59,8 @@ def test_api_recording_retrieve_members():
     client.force_login(user)
 
     response = client.get(f"/api/v1.0/recordings/{recording.id!s}/")
-    assert response.status_code == 403
-    assert response.json() == {
-        "detail": "You do not have permission to perform this action."
-    }
+    assert response.status_code == 200
+    assert response.json()["id"] == str(recording.id)
 
 
 def test_api_recording_retrieve_administrators(settings):
@@ -224,6 +223,7 @@ def test_api_recording_retrieve_expired(settings):
         RecordingStatusChoices.INITIATED,
         RecordingStatusChoices.ACTIVE,
         RecordingStatusChoices.SAVED,
+        RecordingStatusChoices.FAILED,
         RecordingStatusChoices.FAILED_TO_START,
         RecordingStatusChoices.FAILED_TO_STOP,
         RecordingStatusChoices.ABORTED,

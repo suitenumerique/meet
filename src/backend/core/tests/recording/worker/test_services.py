@@ -4,6 +4,7 @@ Test worker service classes.
 
 # pylint: disable=protected-access,redefined-outer-name,unused-argument,no-member
 
+import logging
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -154,9 +155,9 @@ def test_base_egress_filepath_construction(service, filename, extension, expecte
     "response_status,expected_result",
     [
         (livekit_api.EgressStatus.EGRESS_ABORTED, "ABORTED"),
+        (livekit_api.EgressStatus.EGRESS_FAILED, "FAILED"),
         (livekit_api.EgressStatus.EGRESS_COMPLETE, "FAILED_TO_STOP"),
         (livekit_api.EgressStatus.EGRESS_ENDING, "STOPPED"),
-        (livekit_api.EgressStatus.EGRESS_FAILED, "FAILED_TO_STOP"),
     ],
 )
 def test_base_egress_stop_with_status(service, response_status, expected_result):
@@ -173,6 +174,32 @@ def test_base_egress_stop_with_status(service, response_status, expected_result)
         livekit_api.StopEgressRequest(egress_id="test_worker_id"), "stop_egress"
     )
     assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    "response_status,event",
+    [
+        (livekit_api.EgressStatus.EGRESS_ABORTED, "aborted"),
+        (livekit_api.EgressStatus.EGRESS_FAILED, "failed"),
+        (livekit_api.EgressStatus.EGRESS_COMPLETE, "failed to stop"),
+    ],
+)
+def test_base_egress_stop_logs_livekit_error(service, response_status, event, caplog):
+    """Should log the reason LiveKit reported for an unsuccessful stop."""
+    mock_response = Mock(
+        status=response_status,
+        egress_id="test_worker_id",
+        error="could not connect to the room",
+        error_code=500,
+    )
+    service._handle_request = Mock(return_value=mock_response)
+
+    with caplog.at_level(logging.ERROR):
+        service.stop("test_worker_id")
+
+    assert f"Egress {event} on stop (egress_id=test_worker_id" in caplog.text
+    assert "could not connect to the room" in caplog.text
+    assert "error_code=500" in caplog.text
 
 
 def test_base_egress_stop_missing_status(service):

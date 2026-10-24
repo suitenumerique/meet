@@ -7,6 +7,7 @@ export type ShortcutCategory = 'navigation' | 'media' | 'interaction'
 export type ShortcutId =
   | 'open-shortcuts'
   | 'focus-toolbar'
+  | 'focus-pagination'
   | 'toggle-microphone'
   | 'toggle-camera'
   | 'push-to-talk'
@@ -16,6 +17,10 @@ export type ShortcutId =
   | 'recording'
   | 'reaction'
   | 'fullscreen'
+  | 'zoom-in'
+  | 'zoom-out'
+  | 'zoom-reset'
+  | 'zoom-pan'
 
 export const getShortcutDescriptorById = (id: ShortcutId) =>
   shortcutCatalog.find((item) => item.id === id)
@@ -24,7 +29,7 @@ export type ShortcutDescriptor = {
   id: ShortcutId
   category: ShortcutCategory
   shortcut?: Shortcut
-  kind?: 'press' | 'longPress'
+  kind?: 'press' | 'longPress' | 'arrows'
   code?: string // used when kind === 'longPress' (KeyboardEvent.code)
   description?: string
 }
@@ -39,6 +44,11 @@ export const shortcutCatalog: ShortcutDescriptor[] = [
     id: 'focus-toolbar',
     category: 'navigation',
     shortcut: { key: 'F2' },
+  },
+  {
+    id: 'focus-pagination',
+    category: 'navigation',
+    shortcut: { key: 'G', ctrlKey: true, shiftKey: true },
   },
   {
     id: 'toggle-microphone',
@@ -85,5 +95,28 @@ export const shortcutCatalog: ShortcutDescriptor[] = [
     id: 'toggle-participants',
     category: 'interaction',
     shortcut: { key: 'P', ctrlKey: true, shiftKey: true },
+  },
+  // Screen share zoom keys are unmodified, so they are bound on the focused
+  // tile instead of being registered globally. They are listed here so the
+  // shortcuts panel stays exhaustive.
+  {
+    id: 'zoom-in',
+    category: 'interaction',
+    shortcut: { key: '+' },
+  },
+  {
+    id: 'zoom-out',
+    category: 'interaction',
+    shortcut: { key: '-' },
+  },
+  {
+    id: 'zoom-reset',
+    category: 'interaction',
+    shortcut: { key: '0' },
+  },
+  {
+    id: 'zoom-pan',
+    category: 'interaction',
+    kind: 'arrows',
   },
 ]

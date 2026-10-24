@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -eo pipefail
+#!/bin/sh
+set -e
 # Run html-to-text to convert all html files to text files
 DIR_MAILS="../backend/core/templates/mail/"
 

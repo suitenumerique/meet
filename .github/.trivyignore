@@ -1,0 +1,20 @@
+# Debian 13 base image (python:3.14-slim): no fixed version available yet.
+# Review regularly and remove entries once Debian ships a fix.
+
+# util-linux
+CVE-2026-76642
+CVE-2026-78408
+CVE-2026-78409
+CVE-2026-78410
+
+# acl
+CVE-2026-54369
+
+# ncurses
+CVE-2025-69720
+
+# systemd
+CVE-2026-16742
+
+# perl-base (fix deferred by Debian)
+CVE-2026-9538

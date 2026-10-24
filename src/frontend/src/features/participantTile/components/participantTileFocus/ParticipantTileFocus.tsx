@@ -7,38 +7,64 @@ import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { FocusButton } from './FocusButton'
 import { EffectsButton } from './EffectsButton'
 import { MuteButton } from './MuteButton'
-import { ZoomButton } from './ZoomButton'
 
 const MOUSE_IDLE_TIME = 3000
 
 type FadeOverlayProps = {
   children: ReactNode
   hasKeyboardFocus: boolean
+  tileRef: React.RefObject<HTMLDivElement | null>
 }
 
-const FadeOverlay = ({ children, hasKeyboardFocus }: FadeOverlayProps) => {
+// Pointer-events none so this overlay doesn't block the zoom surface below.
+// The tile node still gets the mouse events, so we listen on it directly
+// rather than lifting the state up: this keeps mouse moves from re-rendering
+// the tile and the video it contains.
+const FadeOverlay = ({
+  children,
+  hasKeyboardFocus,
+  tileRef,
+}: FadeOverlayProps) => {
   const [active, setActive] = useState(false)
   const idleTimerRef = useRef<number | null>(null)
 
-  const clearIdleTimer = () => {
-    if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current)
-  }
+  useEffect(() => {
+    const tile = tileRef.current
+    if (!tile) return
 
-  const armIdleTimer = () => {
-    clearIdleTimer()
-    idleTimerRef.current = window.setTimeout(() => {
+    const clearIdleTimer = () => {
+      if (idleTimerRef.current) window.clearTimeout(idleTimerRef.current)
+      idleTimerRef.current = null
+    }
+
+    const handleActivity = () => {
+      setActive(true)
+      clearIdleTimer()
+      idleTimerRef.current = window.setTimeout(
+        () => setActive(false),
+        MOUSE_IDLE_TIME
+      )
+    }
+
+    const handleLeave = () => {
+      clearIdleTimer()
       setActive(false)
-    }, MOUSE_IDLE_TIME)
-  }
+    }
 
-  const handleActivity = () => {
-    setActive(true)
-    armIdleTimer()
-  }
+    tile.addEventListener('mouseenter', handleActivity)
+    tile.addEventListener('mousemove', handleActivity)
+    tile.addEventListener('mouseleave', handleLeave)
 
-  useEffect(() => clearIdleTimer, [])
+    return () => {
+      clearIdleTimer()
+      tile.removeEventListener('mouseenter', handleActivity)
+      tile.removeEventListener('mousemove', handleActivity)
+      tile.removeEventListener('mouseleave', handleLeave)
+    }
+  }, [tileRef])
 
   const isVisible = hasKeyboardFocus || active
+
   return (
     <div
       className={css({
@@ -50,15 +76,10 @@ const FadeOverlay = ({ children, hasKeyboardFocus }: FadeOverlayProps) => {
         alignItems: 'center',
         width: '100%',
         height: '100%',
+        pointerEvents: 'none',
       })}
       data-visible={isVisible || undefined}
       aria-hidden={!isVisible}
-      onMouseEnter={handleActivity}
-      onMouseMove={handleActivity}
-      onMouseLeave={() => {
-        clearIdleTimer()
-        setActive(false)
-      }}
     >
       {isVisible && children}
     </div>
@@ -67,9 +88,11 @@ const FadeOverlay = ({ children, hasKeyboardFocus }: FadeOverlayProps) => {
 
 export const ParticipantTileFocus = ({
   trackRef,
+  tileRef,
   hasKeyboardFocus,
 }: {
   trackRef: TrackReferenceOrPlaceholder
+  tileRef: React.RefObject<HTMLDivElement | null>
   hasKeyboardFocus: boolean
 }) => {
   const participant = trackRef.participant
@@ -78,7 +101,7 @@ export const ParticipantTileFocus = ({
   const canMute = useCanMute(participant)
 
   return (
-    <FadeOverlay hasKeyboardFocus={hasKeyboardFocus}>
+    <FadeOverlay hasKeyboardFocus={hasKeyboardFocus} tileRef={tileRef}>
       <div
         className={css({
           backgroundColor: 'primaryDark.50',
@@ -87,6 +110,7 @@ export const ParticipantTileFocus = ({
           display: 'flex',
           opacity: 0.6,
           animation: 'overlayIn 200ms linear 300ms backwards',
+          pointerEvents: 'auto',
           _hover: {
             opacity: 0.95,
           },
@@ -94,7 +118,7 @@ export const ParticipantTileFocus = ({
       >
         <HStack gap={0.5} padding={0.5}>
           <FocusButton trackRef={trackRef} />
-          {!isScreenShare ? (
+          {!isScreenShare && (
             <>
               {isLocal ? (
                 <EffectsButton />
@@ -102,8 +126,6 @@ export const ParticipantTileFocus = ({
                 canMute && <MuteButton participant={participant} />
               )}
             </>
-          ) : (
-            !isLocal && <ZoomButton trackRef={trackRef} />
           )}
         </HStack>
       </div>

@@ -103,3 +103,8 @@ html:has(.lk-video-conference) {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* Same workaround as above, see adobe/react-spectrum#10680 */
+[role='tooltip'][data-rac]:not([data-placement]) {
+  visibility: hidden;
+}

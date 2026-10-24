@@ -29,11 +29,13 @@
     "pending": "Pending",
     "running": "Running…",
     "success": "Passed",
+    "warning": "Not optimal",
     "failed": "Failed",
     "skipped": "Skipped"
   },
   "counts": {
     "passed": "passed",
+    "warnings": "not optimal",
     "failed": "failed",
     "skipped": "skipped"
   },
@@ -46,6 +48,10 @@
     "passedHint": "Your browser, your devices and your network are ready for a meeting.",
     "partial": "Partially tested",
     "partialHint": "Some checks were skipped. Allow access to your camera and microphone to test them.",
+    "warning": "Suboptimal connection",
+    "warningHint": "You can join your meetings, but video and audio quality may be reduced because of your network settings. Your IT department can improve this.",
+    "warningDocLink": "Network requirements for your IT department",
+    "warningDocLinkAriaLabel": "Open the network requirements for your IT department - opens in new window",
     "failed_one": "{{count}} check failed",
     "failed_other": "{{count}} checks failed",
     "failedHint": "Open the failed checks below for details, then send the report to your IT department."

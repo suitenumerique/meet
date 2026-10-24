@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
+from django.db import connection
 from django.utils import timezone
 
 import pytest
@@ -117,14 +118,14 @@ def test_api_files_create_file_authenticated_success():
     policy_parsed = urlparse(policy)
 
     assert policy_parsed.scheme == "http"
-    assert policy_parsed.netloc in ["minio:9000", "localhost:9000"]
+    assert policy_parsed.netloc in ["garage:9000", "localhost:9000"]
     assert policy_parsed.path == f"/meet-media-storage/tmp/files/{file.id!s}.png"
 
     query_params = parse_qs(policy_parsed.query)
 
     assert query_params.pop("X-Amz-Algorithm") == ["AWS4-HMAC-SHA256"]
     assert query_params.pop("X-Amz-Credential") == [
-        f"meet/{now.strftime('%Y%m%d')}/us-east-1/s3/aws4_request"
+        f"meet-access-key/{now.strftime('%Y%m%d')}/local/s3/aws4_request"
     ]
     assert query_params.pop("X-Amz-Date") == [now.strftime("%Y%m%dT%H%M%SZ")]
     assert query_params.pop("X-Amz-Expires") == ["60"]
@@ -361,18 +362,21 @@ def test_api_files_create_file_race_condition():
     """
 
     def create_item(title):
-        user = factories.UserFactory()
-        client = APIClient()
-        client.force_login(user)
-        return client.post(
-            "/api/v1.0/files/",
-            {
-                "title": title,
-                "type": FileTypeChoices.BACKGROUND_IMAGE,
-                "filename": "my_file.png",
-            },
-            format="json",
-        )
+        try:
+            user = factories.UserFactory()
+            client = APIClient()
+            client.force_login(user)
+            return client.post(
+                "/api/v1.0/files/",
+                {
+                    "title": title,
+                    "type": FileTypeChoices.BACKGROUND_IMAGE,
+                    "filename": "my_file.png",
+                },
+                format="json",
+            )
+        finally:
+            connection.close()
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         future1 = executor.submit(create_item, "my item 1")

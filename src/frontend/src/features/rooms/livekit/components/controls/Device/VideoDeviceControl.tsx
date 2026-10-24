@@ -94,9 +94,9 @@ export const VideoDeviceControl = ({
     const toggle = trackProps.toggle as (
       forceState: boolean,
       captureOptions: VideoCaptureOptions
-    ) => Promise<void>
+    ) => Promise<boolean | undefined>
 
-    await toggle(!trackProps.enabled, {
+    return toggle(!trackProps.enabled, {
       processor: processor,
       ...(videoPublishResolution && {
         resolution: VideoPresets[videoPublishResolution].resolution,

@@ -5,46 +5,56 @@ services:
     env_file:
       - env.d/development/postgresql
     ports:
-      - "15432:5432"
+      - "127.0.0.1:15432:5432"
 
   redis:
     image: redis:5
+    ports:
+      - "127.0.0.1:6379:6379"
 
   mailcatcher:
     image: sj26/mailcatcher:latest
     ports:
-      - "1081:1080"
+      - "127.0.0.1:1081:1080"
 
-  minio:
+  garage:
     user: ${DOCKER_USER:-1000}
-    image: quay.io/minio/minio
+    image: dxflrs/garage:v2.4.1
+    command: /garage server --single-node --default-bucket
+    env_file:
+      - env.d/development/garage
     environment:
-      - MINIO_ROOT_USER=meet
-      - MINIO_ROOT_PASSWORD=password
+      - GARAGE_DEFAULT_ACCESS_KEY=meet-access-key
+      - GARAGE_DEFAULT_SECRET_KEY=meet-secret-access-key
+      - GARAGE_DEFAULT_BUCKET=meet-media-storage
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '127.0.0.1:9000:9000'
     healthcheck:
-      test: [ "CMD", "mc", "ready", "local" ]
+      test: [ "CMD", "/garage", "health" ]
       interval: 1s
       timeout: 20s
       retries: 300
-    entrypoint: ""
-    command: minio server --console-address :9001 /data
     volumes:
-      - ./data/media:/data
+      - ./docker/files/etc/garage/garage.toml:/etc/garage.toml:ro
+      - ./data/media:/var/lib/garage
 
-  createbuckets:
-    image: quay.io/minio/mc
+  # Garage denies cross-origin requests by default: allow the frontend to upload files
+  garage-cors:
+    image: amazon/aws-cli:2.37.1
+    environment:
+      - AWS_ACCESS_KEY_ID=meet-access-key
+      - AWS_SECRET_ACCESS_KEY=meet-secret-access-key
+      - AWS_DEFAULT_REGION=local
     depends_on:
-      minio:
+      garage:
         condition: service_healthy
         restart: true
-    entrypoint: >
-      sh -c "
-      /usr/bin/mc alias set meet http://minio:9000 meet password && \
-      /usr/bin/mc mb meet/meet-media-storage && \
-      exit 0;"
+    command:
+      - s3api
+      - put-bucket-cors
+      - --endpoint-url=http://garage:9000
+      - --bucket=meet-media-storage
+      - '--cors-configuration={"CORSRules": [{"AllowedOrigins": ["http://localhost:3000"], "AllowedMethods": ["GET", "HEAD", "PUT"], "AllowedHeaders": ["*"], "ExposeHeaders": ["ETag"]}]}'
 
   app-dev:
     build:
@@ -61,7 +71,7 @@ services:
       - env.d/development/common
       - env.d/development/postgresql
     ports:
-      - "8071:8000"
+      - "127.0.0.1:8071:8000"
     volumes:
       - ./src/backend:/app
       - ./data/static:/data/static
@@ -70,7 +80,7 @@ services:
         - postgresql
         - mailcatcher
         - redis
-        - createbuckets
+        - garage-cors
     extra_hosts:
       - "127.0.0.1.nip.io:host-gateway"
     networks:
@@ -110,7 +120,7 @@ services:
       - postgresql
       - redis
       - livekit
-      - minio
+      - garage
 
   celery:
     user: ${DOCKER_USER:-1000}
@@ -127,7 +137,7 @@ services:
   nginx:
     image: nginx:1.25
     ports:
-      - "8083:8083"
+      - "127.0.0.1:8083:8083"
     volumes:
       - ./docker/files/etc/nginx/conf.d:/etc/nginx/conf.d:ro
     depends_on:
@@ -145,10 +155,11 @@ services:
       target: frontend-production
       args:
         VITE_API_BASE_URL: "http://localhost:8071"
+        VITE_MEDIA_BASE_URL: "http://localhost:8083"
         VITE_APP_TITLE: "LaSuite Meet"
     image: meet:frontend-development
     ports:
-      - "3000:8080"
+      - "127.0.0.1:3000:8080"
 
   dockerize:
     image: jwilder/dockerize
@@ -164,7 +175,7 @@ services:
     working_dir: /app
 
   node:
-    image: node:22
+    image: node:22.23.4-alpine
     user: "${DOCKER_USER:-1000}"
     environment:
       HOME: /tmp
@@ -174,7 +185,7 @@ services:
   kc_postgresql:
     image: postgres:14.3
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     env_file:
       - env.d/development/kc_postgresql
 
@@ -202,7 +213,7 @@ services:
       KC_DB_SCHEMA: public
       PROXY_ADDRESS_FORWARDING: 'true'
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       - kc_postgresql
 
@@ -211,10 +222,10 @@ services:
     entrypoint: /livekit-server --dev --bind 0.0.0.0 --config ./config.yaml
     ports:
       - "7880:7880"
-      - "7881:7881"
-      - "7882:7882/udp"
-      - "3478:3478/udp"
-      - "30000-30100:30000-30100/udp"
+      - "127.0.0.1:7881:7881"
+      - "127.0.0.1:7882:7882/udp"
+      - "127.0.0.1:3478:3478/udp"
+      - "127.0.0.1:30000-30100:30000-30100/udp"
     volumes:
       - ./docker/livekit/config/livekit-server.yaml:/config.yaml
     depends_on:
@@ -244,7 +255,7 @@ services:
       - /app/.venv
     depends_on:
       - livekit
-      - minio
+      - garage
     develop:
       watch:
         - action: rebuild
@@ -262,11 +273,6 @@ services:
       - ./src/agents:/app
       - /app/.venv
 
-  redis-summary:
-    image: redis
-    ports:
-      - "6379:6379"
-
   app-summary-dev:
     build:
       context: src/summary
@@ -277,11 +283,11 @@ services:
     env_file:
       - env.d/development/summary
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
     volumes:
       - ./src/summary:/app
     depends_on:
-        - redis-summary
+        - redis
 
   celery-summary-transcribe:
     container_name: celery-summary-transcribe
@@ -295,9 +301,9 @@ services:
     volumes:
       - ./src/summary:/app
     depends_on:
-      - redis-summary
+      - redis
       - app-summary-dev
-      - minio
+      - garage
     develop:
       watch:
         - action: rebuild
@@ -315,9 +321,9 @@ services:
     volumes:
       - ./src/summary:/app
     depends_on:
-      - redis-summary
+      - redis
       - app-summary-dev
-      - minio
+      - garage
     develop:
       watch:
         - action: rebuild

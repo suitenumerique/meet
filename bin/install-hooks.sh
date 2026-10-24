@@ -3,7 +3,7 @@
 mkdir -p "$(dirname -- "${BASH_SOURCE[0]}")/../.git/hooks/"
 PRE_COMMIT_FILE="$(dirname -- "${BASH_SOURCE[0]}")/../.git/hooks/pre-commit"
 
-cat <<'EOF' >$PRE_COMMIT_FILE
+cat <<'EOF' >"$PRE_COMMIT_FILE"
 #!/bin/bash
 
 # directories containing potential secrets
@@ -27,4 +27,4 @@ for d in $DIRS; do
 done
 EOF
 
-chmod +x $PRE_COMMIT_FILE
+chmod +x "$PRE_COMMIT_FILE"

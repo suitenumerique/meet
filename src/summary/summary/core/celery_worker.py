@@ -9,7 +9,6 @@ from typing import Any
 from urllib.parse import urljoin
 
 import requests
-import sentry_sdk
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
 from openai.types.audio import Transcription
@@ -42,6 +41,7 @@ from summary.core.prompt import (
     PROMPT_SYSTEM_TLDR,
     PROMPT_USER_PART,
 )
+from summary.core.sentry import init_sentry
 from summary.core.shared_models import (
     SummarizeWebhookFailurePayload,
     SummarizeWebhookSuccessPayload,
@@ -75,12 +75,11 @@ celery = Celery(
 
 celery.config_from_object("summary.core.celery_config")
 
-if settings.sentry_dsn and settings.sentry_is_enabled:
 
-    @signals.celeryd_init.connect
-    def init_sentry(**_kwargs):
-        """Initialize sentry."""
-        sentry_sdk.init(dsn=settings.sentry_dsn, enable_tracing=True)
+@signals.celeryd_init.connect
+def init_celery_sentry(**_kwargs):
+    """Initialize Sentry in the Celery worker."""
+    init_sentry()
 
 
 file_service = FileService()

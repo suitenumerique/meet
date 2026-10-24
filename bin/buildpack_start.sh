@@ -7,7 +7,7 @@ gunicorn -b 0.0.0.0:8000 meet.wsgi:application --log-file - &
 bin/run &
 
 # if the current shell is killed, also terminate all its children     
-trap "pkill SIGTERM -P $$" SIGTERM
+trap 'pkill -TERM -P $$' SIGTERM
 
 # wait for a single child to finish,
 wait -n

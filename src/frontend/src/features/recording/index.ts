@@ -1,8 +1,18 @@
 // hooks
 export { useIsRecordingModeEnabled } from './hooks/useIsRecordingModeEnabled'
 export { useHasRecordingAccess } from './hooks/useHasRecordingAccess'
-export { useHasFeatureWithoutAdminRights } from './hooks/useHasFeatureWithoutAdminRights'
+export { useHasFeatureWithoutRecordingRights } from './hooks/useHasFeatureWithoutRecordingRights'
+export {
+  useCanRecord,
+  useIsRecordingOpenToParticipants,
+} from './hooks/useCanRecord'
 export { useRecordingStatuses } from './hooks/useRecordingStatuses'
+export {
+  useRecordingEncoding,
+  DEFAULT_ENCODING_OPTION,
+} from './hooks/useRecordingEncoding'
+export type { RecordingEncoding } from './hooks/useRecordingEncoding'
+export { useIsRecordingLocked } from './hooks/useIsRecordingLocked'
 
 // api
 export { useStartRecording } from './api/startRecording'

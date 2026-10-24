@@ -9,8 +9,13 @@ from django.core.cache import cache
 import pytest
 from rest_framework.test import APIClient
 
+from ...api.throttling import (
+    RoomCreationDailyUserRateThrottle,
+    RoomCreationUserRateThrottle,
+)
 from ...factories import RoomFactory, UserFactory
 from ...models import Room, RoomAccessLevel
+from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -110,6 +115,29 @@ def test_api_rooms_create_authenticated_existing_slug():
 
     assert response.status_code == 400
     assert response.json() == {"slug": ["Room with this Slug already exists."]}
+
+
+def test_api_rooms_create_authenticated_slug_held_by_soft_deleted_room():
+    """
+    A deleted room keeps its slug: creating a room with the same name should
+    fail validation rather than hit the database constraint.
+    """
+    RoomFactory(name="my room").soft_delete()
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {
+            "name": "My Room!",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"slug": ["Room with this Slug already exists."]}
+    assert Room.all_objects.count() == 1
 
 
 def test_api_rooms_create_authenticated_user_default_access_level():
@@ -312,3 +340,158 @@ def test_api_rooms_create_authenticated_blank_user_default_access_level():
     assert response.status_code == 201
     room = Room.objects.get()
     assert room.access_level == settings.RESOURCE_DEFAULT_ACCESS_LEVEL
+
+
+@pytest.fixture
+def room_creation_throttle(monkeypatch):
+    """Lower the room creation rate for the duration of a test."""
+    monkeypatch.setitem(
+        settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"], "room_creation", "2/minute"
+    )
+
+
+def test_api_rooms_create_throttled(room_creation_throttle):
+    """Excess requests are rejected and create no room."""
+
+    client = APIClient()
+    client.force_login(UserFactory())
+
+    for index in range(2):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+
+    response = client.post("/api/v1.0/rooms/", {"name": "Blocked room"})
+    assert response.status_code == 429
+    assert 0 < int(response["Retry-After"]) <= 60
+    assert Room.objects.count() == 2
+
+
+def test_api_rooms_create_throttle_per_user(room_creation_throttle):
+    """Users sharing an IP have independent creation limits."""
+
+    client = APIClient()
+    client.force_login(UserFactory())
+    for index in range(2):
+        response = client.post("/api/v1.0/rooms/", {"name": f"First user room {index}"})
+        assert response.status_code == 201
+
+    response = client.post("/api/v1.0/rooms/", {"name": "Blocked room"})
+    assert response.status_code == 429
+
+    client.force_login(UserFactory())
+    response = client.post("/api/v1.0/rooms/", {"name": "Second user room"})
+    assert response.status_code == 201
+
+
+def test_api_rooms_create_throttle_does_not_limit_other_actions(room_creation_throttle):
+    """Exhausting creation capacity leaves listing and updating available."""
+
+    client = APIClient()
+    client.force_login(UserFactory())
+    for index in range(2):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+    room_id = response.json()["id"]
+
+    assert client.post("/api/v1.0/rooms/", {"name": "Blocked room"}).status_code == 429
+    assert client.get("/api/v1.0/rooms/").status_code == 200
+    assert (
+        client.patch(
+            f"/api/v1.0/rooms/{room_id}/", {"name": "Renamed room"}
+        ).status_code
+        == 200
+    )
+
+
+@pytest.fixture
+def daily_room_creation_throttle(monkeypatch):
+    """Use a tiny daily cap, a loose burst limit and a controllable clock.
+
+    Rates are patched with monkeypatch.setitem so they are restored after the
+    test. Returns a one-item list holding the current fake timestamp.
+    """
+    rates = RoomCreationDailyUserRateThrottle.THROTTLE_RATES
+    monkeypatch.setitem(rates, "room_creation", "100/minute")
+    monkeypatch.setitem(rates, "room_creation_daily", "3/day")
+    now = [1_000_000.0]
+    monkeypatch.setattr(RoomCreationUserRateThrottle, "timer", lambda self: now[0])
+    return now
+
+
+def test_api_rooms_create_daily_throttled(daily_room_creation_throttle):
+    """The daily cap still applies once the short-term window has elapsed."""
+    now = daily_room_creation_throttle
+    client = APIClient()
+    client.force_login(UserFactory())
+
+    for index in range(3):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+        now[0] += 120  # Spread creations beyond the short-term window.
+
+    response = client.post("/api/v1.0/rooms/", {"name": "Blocked room"})
+    assert response.status_code == 429
+    assert int(response["Retry-After"]) > 60
+    assert Room.objects.count() == 3
+
+
+def test_api_rooms_create_daily_throttle_resets(daily_room_creation_throttle):
+    """Room creation is allowed again once a day has passed."""
+    now = daily_room_creation_throttle
+    client = APIClient()
+    client.force_login(UserFactory())
+
+    for index in range(3):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+
+    response = client.post("/api/v1.0/rooms/", {"name": "Blocked room"})
+    assert response.status_code == 429
+
+    now[0] += 24 * 60 * 60 + 1
+    response = client.post("/api/v1.0/rooms/", {"name": "Next day room"})
+    assert response.status_code == 201
+
+
+def test_api_rooms_create_daily_throttle_per_user(daily_room_creation_throttle):
+    """Each user has its own daily cap."""
+    client = APIClient()
+    client.force_login(UserFactory())
+    for index in range(3):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+    assert client.post("/api/v1.0/rooms/", {"name": "Blocked"}).status_code == 429
+
+    client.force_login(UserFactory())
+    response = client.post("/api/v1.0/rooms/", {"name": "Other user room"})
+    assert response.status_code == 201
+
+
+def test_api_rooms_create_daily_throttle_does_not_limit_other_actions(
+    daily_room_creation_throttle,
+):
+    """Reaching the daily cap leaves listing and updating available."""
+    client = APIClient()
+    client.force_login(UserFactory())
+    for index in range(3):
+        response = client.post("/api/v1.0/rooms/", {"name": f"Room {index}"})
+        assert response.status_code == 201
+    room_id = response.json()["id"]
+
+    assert client.post("/api/v1.0/rooms/", {"name": "Blocked"}).status_code == 429
+    assert client.get("/api/v1.0/rooms/").status_code == 200
+    response = client.patch(f"/api/v1.0/rooms/{room_id}/", {"name": "Renamed"})
+    assert response.status_code == 200
+
+
+def test_api_rooms_create_authenticated_with_user_access_token():
+    """A user access token should create a room exactly like a session would."""
+    user = UserFactory()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {generate_user_access_token(user)}")
+    response = client.post("/api/v1.0/rooms/", {"name": "my room"})
+
+    assert response.status_code == 201
+    room = Room.objects.get()
+    assert room.accesses.filter(role="owner", user=user).exists()

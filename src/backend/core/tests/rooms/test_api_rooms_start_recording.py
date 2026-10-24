@@ -2,15 +2,17 @@
 Test rooms API endpoints in the Meet core app: start recording.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,no-member,too-many-lines
 
 from unittest import mock
 
 import pytest
+from livekit import api as livekit_api
 from rest_framework.test import APIClient
 
+from ...audit.testing import capture_audit, find_events
 from ...factories import RoomFactory, UserFactory
-from ...models import Recording
+from ...models import Recording, RoomAccessLevel
 from ...recording.worker.exceptions import RecordingStartError
 
 pytestmark = pytest.mark.django_db
@@ -41,8 +43,13 @@ def mock_worker_manager(mock_worker_service):
         yield mock_mediator
 
 
-def test_start_recording_anonymous():
+@pytest.mark.parametrize(
+    "recording_enabled, expected_status",
+    [(True, 401), (False, 404)],
+)
+def test_start_recording_anonymous(settings, recording_enabled, expected_status):
     """Anonymous users should not be allowed to start room recordings."""
+    settings.RECORDING_ENABLE = recording_enabled
     room = RoomFactory()
     client = APIClient()
 
@@ -51,14 +58,24 @@ def test_start_recording_anonymous():
         {"mode": "screen_recording"},
     )
 
-    assert response.status_code == 401
+    assert response.status_code == expected_status
     assert Recording.objects.count() == 0
 
 
-def test_start_recording_non_owner_and_non_administrator(settings):
-    """Non-owner and Non-Administrator users should not be allowed to start room recordings."""
+@pytest.mark.parametrize("authenticated_participants_enabled", [True, False])
+def test_start_recording_restricted_room_non_owner_and_non_administrator(
+    settings, authenticated_participants_enabled
+):
+    """
+    On restricted rooms, non-owner and non-administrator users should not be
+    allowed to start recordings, whether or not authenticated participants
+    are allowed to record.
+    """
     settings.RECORDING_ENABLE = True
-    room = RoomFactory()
+    settings.RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED = (
+        authenticated_participants_enabled
+    )
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     user = UserFactory()
     client = APIClient()
     client.force_login(user)
@@ -470,6 +487,224 @@ def test_start_recording_options_unknown_field_rejected(settings):
     assert response.status_code == 400
 
 
+def test_start_recording_options_encoding_valid(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Should accept a valid encoding configuration."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"resolution": "720p", "profile": "talking_heads"}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+
+def test_start_recording_options_encoding_rejected_when_custom_encoding_disabled(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Per-recording encoding is rejected when RECORDING_CUSTOM_ENCODING_ENABLED is off."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = False
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"resolution": "720p", "profile": "talking_heads"}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert not Recording.objects.filter(room=room).exists()
+
+
+def test_start_recording_persists_resolved_encoding(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """The resolved encoding should be persisted in recording.options alongside
+    the requested resolution/profile for traceability."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"resolution": "720p", "profile": "talking_heads"}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options["encoding"] == {
+        "resolution": "720p",
+        "profile": "talking_heads",
+        "resolved": {
+            "audio_bitrate": settings.RECORDING_ENCODING_AUDIO_BITRATE_KBPS,
+            "key_frame_interval": settings.RECORDING_ENCODING_KEY_FRAME_INTERVAL_S,
+            "video_codec": livekit_api.VideoCodec.H264_MAIN,
+            "audio_codec": livekit_api.AudioCodec.AAC,
+            "audio_frequency": 48000,
+            "width": 1280,
+            "height": 720,
+            "framerate": 15,
+            "video_bitrate": 700,
+        },
+    }
+
+
+def test_start_recording_resolution_only_uses_default_profile(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """An encoding without a profile should resolve the default profile."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
+    settings.RECORDING_ENCODING_DEFAULT_PROFILE = "talking_heads"
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"encoding": {"resolution": "540p"}}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    resolved = recording.options["encoding"]["resolved"]
+    assert resolved["width"] == 960
+    assert resolved["height"] == 540
+    assert resolved["framerate"] == 15
+    assert resolved["video_bitrate"] == 400
+    # The requested payload is persisted as sent: no profile was asked for.
+    assert "profile" not in recording.options["encoding"]
+
+
+def test_start_recording_forwards_resolved_encoding_to_worker(
+    settings, mock_worker_service, mock_worker_service_factory
+):
+    """The resolved encoding should passed on to the worker."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    mock_worker_service.start.return_value = "egress-123"
+
+    with mock.patch("core.services.room_management.RoomManagement.update_metadata"):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/start-recording/",
+            {
+                "mode": "screen_recording",
+                "options": {
+                    "encoding": {"resolution": "720p", "profile": "talking_heads"}
+                },
+            },
+            format="json",
+        )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    mock_worker_service.start.assert_called_once_with(
+        str(room.id),
+        recording.id,
+        encoding_options=recording.options["encoding"]["resolved"],
+    )
+
+
+def test_start_recording_options_encoding_invalid_resolution(settings):
+    """Should reject invalid encoding resolution values."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"encoding": {"resolution": "4K"}}},
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_start_recording_options_encoding_unknown_key_rejected(settings):
+    """Should reject unknown keys in encoding configuration."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_CUSTOM_ENCODING_ENABLED = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"encoding": {"bitrate": 9000}},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_start_recording_options_without_encoding_unchanged(
+    settings, mock_worker_service_factory, mock_worker_manager
+):
+    """Requests without encoding should keep existing options behavior."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording", "options": {"language": "fr"}},
+        format="json",
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get(room=room)
+    assert recording.options == {"language": "fr"}
+
+
 @pytest.mark.parametrize("value", ["foo", 12])
 def test_start_recording_options_invalid_transcribe_type(settings, value):
     """Should reject non-boolean transcribe values."""
@@ -660,3 +895,145 @@ def test_start_recording_options_original_mode_invalid(settings, value):
     )
 
     assert response.status_code == 400
+
+
+def test_start_recording_is_audited(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A started screen recording names the recording and its mode."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "screen_recording"},
+    )
+
+    assert response.status_code == 201
+
+    recording = Recording.objects.get(room=room)
+    [event] = find_events(audit_events, "recording.start")
+
+    assert event["event"]["type"] == ["start"]
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["user"]["id"] == str(user.pk)
+    assert event["entity"]["target"] == {
+        "id": str(recording.pk),
+        "sub_type": "recording",
+        "raw": {
+            "room_id": str(room.pk),
+            "status": "initiated",
+            "mode": "screen_recording",
+            "requested_mode": "screen_recording",
+            "is_transcribed": False,
+        },
+    }
+    assert event["lasuite"]["details"] == {"collect_metadata": False}
+
+
+def test_start_recording_transcript_with_screen_capture_is_audited(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A transcript recorded with the screen is told apart from a screen recording."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"transcribe": True, "original_mode": "transcript"},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+    [event] = find_events(audit_events, "recording.start")
+    target = event["entity"]["target"]["raw"]
+
+    assert target["mode"] == "screen_recording"
+    assert target["requested_mode"] == "transcript"
+    assert target["is_transcribed"] is True
+
+
+def test_start_recording_conflict_is_audited_on_the_room(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A conflicting start is a failure aimed at the room, no recording existing."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    Recording.objects.create(room=room, mode="screen_recording", status="active")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "transcript"},
+    )
+
+    assert response.status_code == 409
+
+    [event] = find_events(audit_events, "recording.start")
+
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["event"]["reason"] == "conflict"
+    assert event["entity"]["target"]["sub_type"] == "room"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+
+
+def test_start_recording_worker_error_is_audited(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A recording the worker could not start is a failure on that recording."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    mock_worker_manager.start = mock.Mock(side_effect=RecordingStartError("boom"))
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {"mode": "transcript"},
+    )
+
+    assert response.status_code == 502
+
+    [event] = find_events(audit_events, "recording.start")
+
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["http"]["response"]["status_code"] == 502
+    assert event["entity"]["target"]["id"] == str(Recording.objects.get().pk)
+    assert event["entity"]["target"]["raw"]["mode"] == "transcript"
+    assert event["entity"]["target"]["raw"]["is_transcribed"] is True
+
+
+def test_start_recording_anonymous_is_audited(settings):
+    """An anonymous attempt is denied."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+
+    with capture_audit() as events:
+        response = APIClient().post(
+            f"/api/v1.0/rooms/{room.id}/start-recording/",
+            {"mode": "screen_recording"},
+        )
+
+    assert response.status_code == 401
+
+    [event] = find_events(events, "recording.start")
+
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"]["type"] == "anonymous"

@@ -7,12 +7,16 @@ export type useRegisterKeyboardShortcutProps = {
   id?: ShortcutId
   handler: () => Promise<void | boolean | undefined> | void
   isDisabled?: boolean
+  // Opt-in: controls rendered inside menus unmount when the menu closes, and
+  // their shortcuts must keep working.
+  unregisterOnUnmount?: boolean
 }
 
 export const useRegisterKeyboardShortcut = ({
   id,
   handler,
   isDisabled = false,
+  unregisterOnUnmount = false,
 }: useRegisterKeyboardShortcutProps) => {
   useEffect(() => {
     if (!id) return
@@ -21,8 +25,14 @@ export const useRegisterKeyboardShortcut = ({
     const formattedKey = formatShortcutKey(descriptor.shortcut)
     if (isDisabled) {
       keyboardShortcutsStore.shortcuts.delete(formattedKey)
-    } else {
-      keyboardShortcutsStore.shortcuts.set(formattedKey, handler)
+      return
     }
-  }, [handler, id, isDisabled])
+    keyboardShortcutsStore.shortcuts.set(formattedKey, handler)
+    if (!unregisterOnUnmount) return
+    return () => {
+      if (keyboardShortcutsStore.shortcuts.get(formattedKey) === handler) {
+        keyboardShortcutsStore.shortcuts.delete(formattedKey)
+      }
+    }
+  }, [handler, id, isDisabled, unregisterOnUnmount])
 }

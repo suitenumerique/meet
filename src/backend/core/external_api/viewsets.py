@@ -1,10 +1,8 @@
 """External API endpoints"""
 
 import copy
-from logging import getLogger
 
 from django.conf import settings
-from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 
@@ -22,11 +20,15 @@ from rest_framework import (
 from rest_framework import (
     status as drf_status,
 )
+from rest_framework.generics import get_object_or_404
 
-from core import analytics, api, models
+from core import analytics, api, audit, auditing, models
+from core.api.exceptions import ensure_room_not_deleted
 from core.api.feature_flag import FeatureFlag
+from core.api.locks import room_locked_for_update
 from core.services.jwt_token import JwtTokenService
-from core.services.room_management import RoomManagement
+from core.services.room_management import RoomManagement, RoomManagementException
+from core.services.transit_code import TransitCodeService
 
 from ..services.provisional_user_service import (
     ProvisionalUserCreationDisabledError,
@@ -35,11 +37,12 @@ from ..services.provisional_user_service import (
 )
 from . import authentication, permissions, serializers
 
-logger = getLogger(__name__)
 
-
-class ApplicationViewSet(viewsets.ViewSet):
+class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
     """API endpoints for application authentication and token generation."""
+
+    audit_actor = None
+    audit_claimed_client_id = None
 
     @decorators.action(
         detail=False,
@@ -47,6 +50,7 @@ class ApplicationViewSet(viewsets.ViewSet):
         url_path="token",
         url_name="token",
         parser_classes=[drf_parsers.FormParser, drf_parsers.JSONParser],
+        audit_action=auditing.APPLICATION_TOKEN_ISSUE,
     )
     @FeatureFlag.require("application")
     def generate_jwt_access_token(self, request, *args, **kwargs):
@@ -68,19 +72,24 @@ class ApplicationViewSet(viewsets.ViewSet):
 
         client_id = serializer.validated_data["client_id"]
         client_secret = serializer.validated_data["client_secret"]
+        email = serializer.validated_data["scope"]
+
+        self.audit_claimed_client_id = client_id
+        self.audit_details = {"requested_domain": audit.email_domain(email)}
 
         try:
             application = models.Application.objects.get(client_id=client_id)
         except models.Application.DoesNotExist as e:
             raise drf_exceptions.AuthenticationFailed("Invalid credentials") from e
 
-        if not check_password(client_secret, application.client_secret):
+        if not application.check_client_secret(client_secret):
             raise drf_exceptions.AuthenticationFailed("Invalid credentials")
 
         if not application.is_active:
             raise drf_exceptions.AuthenticationFailed("Application is inactive")
 
-        email = serializer.validated_data["scope"]
+        self.audit_target = application
+
         try:
             validate_email(email)
         except ValidationError:
@@ -92,11 +101,6 @@ class ApplicationViewSet(viewsets.ViewSet):
             )
 
         if not application.can_delegate_email(email):
-            logger.warning(
-                "Application %s denied delegation for %s",
-                application.client_id,
-                email,
-            )
             return drf_response.Response(
                 {
                     "error": "This application is not authorized for this email domain.",
@@ -105,7 +109,7 @@ class ApplicationViewSet(viewsets.ViewSet):
             )
 
         try:
-            user, _ = ProvisionalUserService().get_or_create(email, client_id)
+            user, created = ProvisionalUserService().get_or_create(email, client_id)
         except ProvisionalUserCreationDisabledError as not_found_error:
             raise drf_exceptions.NotFound("User not found.") from not_found_error
         except ProvisionalUserIntegrityError:
@@ -134,14 +138,45 @@ class ApplicationViewSet(viewsets.ViewSet):
             },
         )
 
+        self.audit_actor = user
+        self.audit_details = {
+            "scopes": list(application.scopes or []),
+            "user_provisioned": created,
+            "expires_in": settings.APPLICATION_JWT_EXPIRATION_SECONDS,
+        }
+
         return drf_response.Response(
             data,
             status=drf_status.HTTP_200_OK,
         )
 
+    def get_audit_fields(self, status_code, error=None):
+        """Report the application as the actor once its credentials are verified.
 
-class RoomViewSet(
+        Until then the submitted client id is only a claim: it is kept apart so
+        that it never names the application or the tenant of the event. Either
+        way, a session the request carries never makes its account the actor.
+        """
+        application = self.audit_target
+        fields = {
+            **super().get_audit_fields(status_code, error),
+            "auth_method": "client_credentials",
+            "actor_type": audit.ActorType.ANONYMOUS,
+        }
+        if application:
+            fields |= {
+                "actor_type": audit.ActorType.APPLICATION,
+                "client_id": application.client_id,
+            }
+        else:
+            fields["claimed_client_id"] = self.audit_claimed_client_id
+        return fields
+
+
+class RoomViewSet(  # pylint: disable=too-many-ancestors
+    audit.AuditViewMixin,
     mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
@@ -159,13 +194,26 @@ class RoomViewSet(
     - create: Create a new room owned by the user (requires 'rooms:create' scope)
     - partial_update: Update a room's access level and configuration, for
       administrators and owners only (requires 'rooms:update' scope)
+    - destroy: Soft delete a room and close its LiveKit room, for owners only
+      (requires 'rooms:delete' scope)
+
+    Detail operations on a soft-deleted room answer 410 Gone.
     """
 
-    http_method_names = ["get", "post", "patch", "head", "options"]
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    audit_actions = {
+        "list": auditing.ROOM_LIST,
+        "retrieve": auditing.ROOM_RETRIEVE,
+        "create": auditing.ROOM_CREATE,
+        "partial_update": auditing.ROOM_UPDATE,
+        "destroy": auditing.ROOM_DELETE,
+    }
 
     authentication_classes = [
         authentication.ApplicationJWTAuthentication,
         authentication.AddonsJWTAuthentication,
+        authentication.MenshenAuthentication,
         ResourceServerAuthentication,
     ]
     permission_classes = [
@@ -175,6 +223,17 @@ class RoomViewSet(
     ]
     queryset = models.Room.objects.all()
     serializer_class = serializers.RoomSerializer
+
+    def get_object(self):
+        """Get the room, answer 410 if it has been deleted.
+
+        Permissions are checked first so a deleted room is only revealed to
+        users who would have been granted access to it.
+        """
+        room = get_object_or_404(models.Room.all_objects, pk=self.kwargs["pk"])
+        self.check_object_permissions(self.request, room)
+        ensure_room_not_deleted(room)
+        return room
 
     def list(self, request, *args, **kwargs):
         """Limit listed rooms to the ones related to the authenticated user."""
@@ -191,28 +250,21 @@ class RoomViewSet(
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
+            self.audit_details = {"total": self.paginator.page.paginator.count}
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+        self.audit_details = {"total": len(serializer.data)}
         return drf_response.Response(serializer.data)
 
     def _track_room_event(self, room, event, **extra_properties):
-        """Log a room operation for auditing and forward it to analytics."""
+        """Add a room operation to the audit event and forward it to analytics."""
+
+        self.audit_target = room
+        self.audit_details = extra_properties
 
         auth_method = type(self.request.successful_authenticator).__name__
         client_id = (self.request.auth or {}).get("client_id", "unknown")
-
-        # Log for auditing
-        details = "".join(f", {key}={value}" for key, value in extra_properties.items())
-        logger.info(
-            "Room %s via application: room_id=%s, user_id=%s, client_id=%s, auth_method=%s%s",
-            event.removeprefix("room_"),
-            room.id,
-            self.request.user.id,
-            client_id,
-            auth_method,
-            details,
-        )
 
         analytics.capture(
             self.request.user,
@@ -231,6 +283,7 @@ class RoomViewSet(
     def perform_create(self, serializer: serializers.RoomSerializer):
         """Set the current user as owner of the newly created room."""
         room = serializer.save()
+        self.audit_target = room
         models.ResourceAccess.objects.create(
             resource=room,
             user=self.request.user,
@@ -239,17 +292,31 @@ class RoomViewSet(
 
         self._track_room_event(room, analytics.AnalyticsEvent.ROOM_CREATED)
 
+    def perform_destroy(self, instance):
+        """Soft delete the room, close its LiveKit room, then log and track it."""
+        try:
+            RoomManagement.soft_delete(instance)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not delete the room, please try again."
+            ) from e
+        self._track_room_event(instance, analytics.AnalyticsEvent.ROOM_DELETED)
+
     def perform_update(self, serializer: serializers.RoomSerializer):
-        """Persist the room update, sync it to LiveKit, then log and track it."""
+        """Persist the room update under a row lock, sync it to LiveKit, then track it."""
 
-        previous_values = {
-            "access_level": serializer.instance.access_level,
-            "configuration": copy.deepcopy(serializer.instance.configuration),
-        }
+        with room_locked_for_update(serializer.instance) as locked_room:
+            serializer.instance = locked_room
 
-        room = serializer.save()
+            previous_values = {
+                "access_level": locked_room.access_level,
+                "configuration": copy.deepcopy(locked_room.configuration),
+            }
 
-        # Report the fields that actually changed, not the ones that were submitted.
+            room = serializer.save()
+
+        self.audit_target = room
+
         updated_fields = sorted(
             field
             for field, previous_value in previous_values.items()
@@ -264,4 +331,62 @@ class RoomViewSet(
             analytics.AnalyticsEvent.ROOM_UPDATED,
             updated_fields=updated_fields,
             previous_access_level=previous_values["access_level"],
+        )
+
+
+class UserViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
+    """Application-delegated API for user operations.
+
+    Provides JWT-authenticated access to user operations for external
+    applications acting on behalf of users. All operations are
+    scope-based. Meant to grow with the other user actions exposed to
+    third parties.
+
+    Supported operations:
+    - transit-code: Mint a single-use transit code for the delegated user
+      (requires 'users:session' scope)
+    """
+
+    authentication_classes = [
+        authentication.ApplicationJWTAuthentication,
+    ]
+    permission_classes = [
+        api.permissions.IsAuthenticated & permissions.HasRequiredUserScope
+    ]
+
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="transit-code",
+        url_name="transit-code",
+        audit_action=auditing.TRANSIT_CODE_ISSUE,
+    )
+    @FeatureFlag.require("user_access_token")
+    def generate_transit_code(self, request):
+        """Mint a transit code for the delegated user.
+
+        Returns a short-lived, single-use opaque code to pass to an embedded
+        frontend (e.g. via a URL fragment when cookies are unavailable). The
+        frontend exchanges it once on
+        POST /api/v1.0/users/exchange-access-token/ for a JWT access token,
+        equivalent to session-cookie authentication and never exposed in a URL.
+        """
+
+        if not request.auth or not request.auth.get("client_id"):
+            raise drf_exceptions.AuthenticationFailed("Invalid application token.")
+
+        client_id = request.auth["client_id"]
+
+        code = TransitCodeService().create_code(request.user, client_id=client_id)
+
+        self.audit_target = auditing.transit_code_target(code)
+        self.audit_user_target = request.user
+        self.audit_details = {"expires_in": settings.TRANSIT_CODE_TTL}
+
+        return drf_response.Response(
+            {
+                "transit_code": code,
+                "expires_in": settings.TRANSIT_CODE_TTL,
+            },
+            status=drf_status.HTTP_200_OK,
         )

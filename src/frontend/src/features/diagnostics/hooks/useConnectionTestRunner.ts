@@ -8,7 +8,10 @@ import {
   type CheckInfo,
 } from 'livekit-client'
 import { fetchConnectionTestDetails } from '../api/fetchConnectionTestDetails'
-import { SelectedCandidateCheck } from '../checks/selectedCandidate'
+import {
+  isRelayedOverTcp,
+  SelectedCandidateCheck,
+} from '../checks/selectedCandidate'
 import {
   createInitialSteps,
   type ConnectionTestLog,
@@ -49,10 +52,23 @@ const getErrorMessage = (error: unknown, fallback = 'Unknown error') =>
 const isPermissionError = (error: unknown) =>
   error instanceof Error && PERMISSION_ERROR_NAMES.has(error.name)
 
+const toStepStatus = (info: CheckInfo): ConnectionTestStepStatus => {
+  const status = CHECK_STATUS_TO_STEP[info.status] ?? 'failed'
+  return status === 'success' && isRelayedOverTcp(info.data)
+    ? 'warning'
+    : status
+}
+
 const fromCheckInfo = (info: CheckInfo): Partial<ConnectionTestStepResult> => ({
-  status: CHECK_STATUS_TO_STEP[info.status] ?? 'failed',
+  status: toStepStatus(info),
   summary: info.description,
   logs: info.logs,
+  // Only SelectedCandidateCheck sets `data` (the ICE candidate report).
+  // Consumers narrow it with a type guard (see isIceCandidateReport).
+  data:
+    typeof info.data === 'object' && info.data !== null
+      ? (info.data as Record<string, unknown>)
+      : undefined,
 })
 
 const groupDevicesByKind = (devices: MediaDeviceInfo[]) => {

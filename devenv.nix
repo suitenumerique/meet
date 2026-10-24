@@ -101,6 +101,8 @@ in
     languages.typescript.enable = false;
     languages.nix.enable = true;
 
+    git-hooks.hooks.gitlint.enable = true;
+
     packages =
       with pkgs;
       [
@@ -163,7 +165,7 @@ in
       REDIS_URL = "redis://127.0.0.1:6379/1";
       CELERY_BROKER_URL = "redis://127.0.0.1:6379/0";
 
-      # S3 / MinIO
+      # S3 / Garage
       AWS_S3_ENDPOINT_URL = "http://127.0.0.1:9000";
 
       # OIDC

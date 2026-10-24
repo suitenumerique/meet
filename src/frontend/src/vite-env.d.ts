@@ -6,6 +6,7 @@ declare const __MEDIAPIPE_VERSION__: string
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string
   readonly VITE_APP_TITLE: string
+  readonly VITE_MEDIA_BASE_URL?: string
 }
 
 interface ImportMeta {

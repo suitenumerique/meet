@@ -279,9 +279,23 @@ class RoomAdmin(admin.ModelAdmin):
 
     inlines = (ResourceAccessInline,)
     search_fields = ["name", "slug", "=id"]
-    list_display = ["name", "slug", "access_level", "get_owner", "created_at"]
-    list_filter = ["access_level", "created_at"]
-    readonly_fields = ["id", "created_at", "updated_at"]
+    list_display = [
+        "name",
+        "slug",
+        "access_level",
+        "get_owner",
+        "created_at",
+        "last_started_at",
+        "deleted_at",
+    ]
+    list_filter = ["access_level", "created_at", "last_started_at", "deleted_at"]
+    readonly_fields = [
+        "id",
+        "created_at",
+        "updated_at",
+        "last_started_at",
+        "deleted_at",
+    ]
 
     def get_queryset(self, request):
         """Optimize queries by prefetching related access and user data to avoid N+1 queries."""
@@ -475,6 +489,11 @@ class ApplicationAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk and self.instance.scopes:
             self.fields["scopes"].initial = self.instance.scopes
+
+        # On creation: display generated credentials without allowing edits
+        for name in ("client_id", "client_secret"):
+            if name in self.fields:
+                self.fields[name].widget.attrs["readonly"] = True
 
 
 @admin.register(models.Application)

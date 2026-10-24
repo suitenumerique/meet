@@ -29,11 +29,13 @@
     "pending": "En attente",
     "running": "En cours…",
     "success": "Réussi",
+    "warning": "Non optimal",
     "failed": "Échec",
     "skipped": "Ignoré"
   },
   "counts": {
     "passed": "réussis",
+    "warnings": "non optimaux",
     "failed": "en échec",
     "skipped": "ignorés"
   },
@@ -46,6 +48,10 @@
     "passedHint": "Votre navigateur, vos périphériques et votre réseau sont prêts pour une réunion.",
     "partial": "Test partiel",
     "partialHint": "Certaines vérifications ont été ignorées. Autorisez l'accès à votre caméra et à votre microphone pour les tester.",
+    "warning": "Connexion non optimale",
+    "warningHint": "Vous pouvez participer à vos réunions, mais la qualité de l'image et du son risque d'être réduite à cause des réglages de votre réseau. Votre service informatique peut améliorer la situation.",
+    "warningDocLink": "Prérequis réseau à transmettre à votre service informatique",
+    "warningDocLinkAriaLabel": "Ouvrir les prérequis réseau à transmettre à votre service informatique - ouvre dans une nouvelle fenêtre",
     "failed_one": "{{count}} vérification en échec",
     "failed_other": "{{count}} vérifications en échec",
     "failedHint": "Ouvrez les vérifications en échec pour voir le détail, puis transmettez le rapport à votre service informatique."

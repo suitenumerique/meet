@@ -1,17 +1,16 @@
 import { useEffect } from 'react'
 import { useRoomContext } from '@livekit/components-react'
 import {
-  type RemoteParticipant,
+  type RemoteTrack,
   type RemoteTrackPublication,
   RoomEvent,
   Track,
-  VideoQuality,
 } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { userChoicesStore } from '@/stores/userChoices'
 
 /**
- * Sets initial video quality for new participants as they join.
+ * Applies the saved reception quality to every remote camera.
  * LiveKit doesn't allow handling video quality preferences at the room level.
  */
 export const VideoResolutionSubscription = () => {
@@ -19,30 +18,40 @@ export const VideoResolutionSubscription = () => {
   const room = useRoomContext()
 
   useEffect(() => {
-    if (!room) return
+    if (!room || videoSubscribeQuality === undefined) return
 
-    const handleTrackPublished = (
-      publication: RemoteTrackPublication,
-      _participant: RemoteParticipant
-    ) => {
-      // By default, the maximum quality is set to high
+    const applyQuality = (publication: RemoteTrackPublication) => {
       if (
-        videoSubscribeQuality === undefined ||
-        videoSubscribeQuality === VideoQuality.HIGH
-      )
-        return
-
-      if (
-        publication.kind === Track.Kind.Video &&
-        publication.source !== Track.Source.ScreenShare
+        publication.kind !== Track.Kind.Video ||
+        publication.source === Track.Source.ScreenShare ||
+        publication.videoQuality === videoSubscribeQuality
       ) {
-        publication.setVideoQuality(videoSubscribeQuality)
+        return
       }
+      publication.setVideoQuality(videoSubscribeQuality)
     }
 
+    // Cameras we are already receiving: those published before this effect ran,
+    // and all of them again whenever the preference changes mid-call.
+    room.remoteParticipants.forEach((participant) =>
+      participant.videoTrackPublications.forEach(applyQuality)
+    )
+
+    const handleTrackPublished = (publication: RemoteTrackPublication) =>
+      applyQuality(publication)
+
+    // TrackPublished is not raised for cameras that were already sending when we
+    // joined, but it is the earliest point for the ones that start after us.
+    const handleTrackSubscribed = (
+      _track: RemoteTrack,
+      publication: RemoteTrackPublication
+    ) => applyQuality(publication)
+
     room.on(RoomEvent.TrackPublished, handleTrackPublished)
+    room.on(RoomEvent.TrackSubscribed, handleTrackSubscribed)
     return () => {
       room.off(RoomEvent.TrackPublished, handleTrackPublished)
+      room.off(RoomEvent.TrackSubscribed, handleTrackSubscribed)
     }
   }, [room, videoSubscribeQuality])
 

@@ -92,6 +92,12 @@ def test_models_rooms_access_level_default():
     assert room.access_level == RoomAccessLevel.PUBLIC
 
 
+def test_models_rooms_last_started_at_default():
+    """Should have no last access date until the room is started."""
+    room = Room.objects.create(name="room")
+    assert room.last_started_at is None
+
+
 # Access rights methods
 
 
@@ -181,6 +187,21 @@ def test_models_rooms_is_public_property():
     # Test non-public room
     private_room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     assert private_room.is_public is False
+
+
+def test_models_rooms_soft_delete_concurrent():
+    """A deletion racing another one on a stale instance matches no row and fails,
+    so the winner's timestamp is never overwritten."""
+    room = RoomFactory()
+    stale_room = Room.all_objects.get(pk=room.pk)
+
+    room.soft_delete()
+
+    assert stale_room.deleted_at is None
+    with pytest.raises(RuntimeError, match="This room is already deleted."):
+        stale_room.soft_delete()
+
+    assert Room.all_objects.get(pk=room.pk).deleted_at == room.deleted_at
 
 
 @mock.patch.object(Room, "generate_unique_pin_code")

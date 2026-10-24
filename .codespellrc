@@ -1,0 +1,9 @@
+[codespell]
+# Files that are not English, or generated
+skip = ./.git,*.pdf,*.po,*.pot,*.json,*.lock,package-lock.json,
+  ./LICENSES,
+  ./src/summary/summary/core/locales,
+  ./src/summary/summary/core/prompt.py
+# Valid words in French (connexion) or in the code (statics)
+ignore-words-list = connexion,statics
+check-filenames = true

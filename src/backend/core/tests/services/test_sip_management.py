@@ -1,5 +1,5 @@
 """
-Test SIP mamagement service.
+Test SIP management service.
 """
 
 # pylint: disable=W0212
@@ -254,6 +254,31 @@ def test_delete_dispatch_rule_multiple_rules(mock_client_factory, mock_list_rule
     assert all(
         rule_id in deleted_rule_ids for rule_id in ["rule-1", "rule-2", "rule-3"]
     )
+    mock_api.aclose.assert_called_once()
+
+
+@mock.patch("core.services.sip_management.SIPManagement._list_dispatch_rules_ids")
+@mock.patch("core.utils.create_livekit_client")
+def test_delete_dispatch_rule_already_deleted(mock_client_factory, mock_list_rules):
+    """A rule deleted between listing and deletion (e.g. by both a room deletion and
+    its room_finished webhook) should not fail, nor stop the other deletions."""
+    sip_management = SIPManagement()
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED, pin_code="1234")
+
+    mock_list_rules.return_value = ["rule-1", "rule-2"]
+    mock_api = create_mock_livekit_client()
+    mock_api.sip.delete_sip_dispatch_rule = mock.AsyncMock(
+        side_effect=[
+            TwirpError(msg="sip dispatch rule not found", code="not_found", status=404),
+            None,
+        ]
+    )
+    mock_client_factory.return_value = mock_api
+
+    result = sip_management.delete_dispatch_rule(room.id)
+
+    assert result is True
+    assert mock_api.sip.delete_sip_dispatch_rule.call_count == 2
     mock_api.aclose.assert_called_once()
 
 

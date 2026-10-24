@@ -1,0 +1,14 @@
+name: Project quality Workflow
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    uses: suitenumerique/ci/.github/workflows/_project-quality.yml@ca6401ac83e981e5b0a94f06f68baaa6e6d0a436 # v0.0.1
+    with:
+      print_check_paths: src/backend src/summary src/agents
+      codespell_ignore_words: "unsecure"

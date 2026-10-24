@@ -22,6 +22,12 @@ export type IceCandidateInfo = {
   port?: number
   /** Local candidates only, and not reported by every browser. */
   networkType?: string
+  /**
+   * For a local relay candidate, the TURN URL it was gathered from
+   * (e.g. `turns:turn.example.com:443?transport=tcp`). Used as a fallback
+   * when the browser does not report `relayProtocol`.
+   */
+  url?: string
 }
 
 export type IceCandidatePair = {
@@ -42,6 +48,57 @@ export type IceCandidateReport = {
   working: IceCandidatePair[]
 }
 
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+/** Narrows the loosely typed `data` stored on a step result. */
+export const isIceCandidateReport = (
+  data: unknown
+): data is IceCandidateReport =>
+  isObject(data) &&
+  Array.isArray(data.working) &&
+  (data.selected === null ||
+    (isObject(data.selected) && isObject(data.selected.local)))
+
+/**
+ * Transport between the browser and the TURN server for a local relay
+ * candidate: udp, tcp or tls, or undefined when it cannot be determined.
+ *
+ * `protocol` is deliberately not used here: on a relay candidate it describes
+ * the TURN allocation (server to peer), which is UDP even when the client
+ * reaches the TURN server over TLS.
+ */
+export const getRelayTransport = (
+  candidate: IceCandidateInfo
+): string | undefined => {
+  if (candidate.relayProtocol) return candidate.relayProtocol.toLowerCase()
+  if (!candidate.url) return undefined
+
+  const url = candidate.url.toLowerCase()
+  if (url.startsWith('turns:')) return 'tls'
+  if (!url.startsWith('turn:')) return undefined
+  const transport = /[?&]transport=(udp|tcp)\b/.exec(url)?.[1]
+  // RFC 7065: a turn: URI without a transport parameter defaults to UDP.
+  return transport ?? 'udp'
+}
+
+/**
+ * True when the selected pair goes through a TURN relay reached over TCP or
+ * TLS. Media still flows, but TCP head-of-line blocking usually degrades
+ * audio and video under packet loss.
+ *
+ * Direct routes (host, srflx, prflx), including ICE-TCP to the SFU, are out of
+ * scope: the warning and its documentation are about TURN fallbacks.
+ * An undetermined transport is not evidence of a bad route.
+ */
+export const isRelayedOverTcp = (data: unknown): boolean => {
+  if (!isIceCandidateReport(data) || !data.selected) return false
+  const { local } = data.selected
+  if (local.type !== 'relay') return false
+  const transport = getRelayTransport(local)
+  return transport === 'tcp' || transport === 'tls'
+}
+
 const PROBE_WIDTH = 320
 const PROBE_HEIGHT = 180
 const PROBE_FPS = 15
@@ -57,6 +114,7 @@ const readCandidate = (stats?: Stats): IceCandidateInfo => {
     protocol: stats.protocol as string | undefined,
     relayProtocol: stats.relayProtocol as string | undefined,
     networkType: stats.networkType as string | undefined,
+    url: stats.url as string | undefined,
     ...(INCLUDE_CANDIDATE_ADDRESSES
       ? {
           address: stats.address as string | undefined,
@@ -67,7 +125,10 @@ const readCandidate = (stats?: Stats): IceCandidateInfo => {
 }
 
 const describeCandidate = (candidate: IceCandidateInfo) => {
-  const transport = candidate.relayProtocol ?? candidate.protocol ?? 'unknown'
+  const transport =
+    (candidate.type === 'relay' ? getRelayTransport(candidate) : undefined) ??
+    candidate.protocol ??
+    'unknown'
   const endpoint =
     candidate.address === undefined
       ? ''

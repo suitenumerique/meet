@@ -40,7 +40,7 @@ if [ -n "$CUSTOM_LOGO_URL" ]; then
     [[ "$IS_SVG" == false ]] && echo "[custom-logo] ERROR: not a valid SVG file" >&2 && exit 1
 
     mv -f "$TMP_FILE" "$LOGO_FILE"
-    echo "[custom-logo] INFO: Custom logo downloaded successfuly"
+    echo "[custom-logo] INFO: Custom logo downloaded successfully"
 fi
 
 mv src/backend/* ./

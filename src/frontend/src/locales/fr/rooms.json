@@ -3,7 +3,8 @@
     "heading": {
       "normal": "Vous avez quitté la réunion",
       "duplicateIdentity": "Vous avez rejoint la réunion depuis un autre appareil",
-      "participantRemoved": "Vous avez été exclu de l'appel par un administrateur"
+      "participantRemoved": "Vous avez été exclu de l'appel par un administrateur",
+      "roomDeleted": "Cette réunion a été supprimée"
     },
     "home": "Retourner à l'accueil",
     "back": "Réintégrer la réunion"
@@ -94,6 +95,10 @@
     "timeoutInvite": {
       "title": "Vous ne pouvez pas participer à cet appel",
       "body": "Personne n'a répondu à votre demande de participation à l'appel"
+    },
+    "deleted": {
+      "title": "Vous ne pouvez pas participer à cet appel",
+      "body": "Cette réunion a été supprimée."
     }
   },
   "leaveRoomPrompt": "Revenir à l'accueil vous fera quitter la réunion.",
@@ -214,6 +219,10 @@
     "createRoom": {
       "heading": "Authentification requise",
       "body": "Cette réunion n'a pas encore été créée. Veuillez vous authentifier pour la créer ou attendre qu'un utilisateur authentifié le fasse."
+    },
+    "deletedRoom": {
+      "heading": "Réunion supprimée",
+      "body": "Cette réunion a été supprimée et n'est plus accessible."
     },
     "screenShare": {
       "title": "Impossible de partager votre écran",
@@ -507,6 +516,22 @@
         "buttonLabel": "Demander"
       }
     },
+    "notLoggedIn": {
+      "heading": "Connectez-vous pour transcrire",
+      "body": "Dans cette réunion, tout participant connecté peut lancer une transcription (beta).",
+      "linkMore": "Ouvrir la documentation",
+      "linkAriaLabel": "Ouvrir la documentation sur l'accès à la transcription - ouvre dans une nouvelle fenêtre",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Connexion requise",
+        "body": "Connectez-vous, puis revenez sur ce panneau pour lancer la transcription."
+      },
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer la transcription pour vous.",
+        "buttonLabel": "Demander"
+      }
+    },
     "premium": {
       "heading": "Fonctionnalité avancée",
       "body": "Cette fonctionnalité ne vous est pas ouverte. Contactez le support pour obtenir plus d'informations.",
@@ -535,7 +560,9 @@
       "destination": "Cet enregistrement sera conservé temporairement sur nos serveurs",
       "loading": "Démarrage de l'enregistrement",
       "linkMore": "En savoir plus",
-      "transcription": "Transcrire cet enregistrement"
+      "transcription": "Transcrire cet enregistrement",
+      "quality": "Qualité vidéo ajustable.",
+      "qualityEdit": "Modifier"
     },
     "button": {
       "start": "Commencer à enregistrer la réunion",
@@ -553,6 +580,22 @@
       "login": {
         "heading": "Connexion requise",
         "body": "Seul le créateur de la réunion ou un administrateur peut démarrer l'enregistrement. Connectez-vous pour vérifier vos autorisations."
+      },
+      "request": {
+        "heading": "Demander à l'organisateur",
+        "body": "L'hôte recevra une notification et pourra démarrer l'enregistrement pour vous.",
+        "buttonLabel": "Demander"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Connectez-vous pour enregistrer",
+      "body": "Dans cette réunion, tout participant connecté peut lancer un enregistrement (beta).",
+      "linkMore": "Ouvrir la documentation",
+      "linkAriaLabel": "Ouvrir la documentation sur l'accès à l'enregistrement - ouvre dans une nouvelle fenêtre",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Connexion requise",
+        "body": "Connectez-vous, puis revenez sur ce panneau pour lancer l'enregistrement."
       },
       "request": {
         "heading": "Demander à l'organisateur",
@@ -756,6 +799,24 @@
     "muteParticipant": "Couper le micro de {{name}}",
     "fullScreen": "Plein écran"
   },
+  "screenShareZoom": {
+    "toolbarLabel": "Contrôles de zoom du partage d'écran",
+    "zoomIn": "Zoomer",
+    "zoomInWithShortcut": "Zoomer ({{shortcut}})",
+    "zoomOut": "Dézoomer",
+    "zoomOutWithShortcut": "Dézoomer ({{shortcut}})",
+    "wheelShortcut": "Contrôle plus molette",
+    "wheelShortcutMac": "⌘+molette",
+    "wheelShortcutHint": "Raccourci : Contrôle plus molette pour zoomer ou dézoomer.",
+    "wheelShortcutHintMac": "Raccourci : Commande plus molette pour zoomer ou dézoomer.",
+    "fitToWindow": "Ajuster à la fenêtre",
+    "fullScreen": "Plein écran",
+    "exitFullScreen": "Quitter le plein écran",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Glissez avec la souris, ou revenez sur le partage d'écran et utilisez les touches fléchées pour naviguer dans l'image.",
+    "fullScreenEntered": "Plein écran activé",
+    "fullScreenExited": "Plein écran désactivé"
+  },
   "shortcutsPanel": {
     "title": "Raccourcis clavier",
     "categories": {
@@ -766,6 +827,7 @@
     "actions": {
       "open-shortcuts": "Ouvrir l’aide des raccourcis",
       "focus-toolbar": "Mettre le focus sur la barre d’outils du bas",
+      "focus-pagination": "Mettre le focus sur la pagination des participants",
       "toggle-microphone": "Activer ou désactiver le micro",
       "toggle-camera": "Activer ou désactiver la caméra",
       "push-to-talk": "Appuyer pour parler (maintenir pour réactiver)",
@@ -775,7 +837,11 @@
       "raise-hand": "Lever ou baisser la main",
       "toggle-chat": "Afficher/Masquer le chat",
       "toggle-participants": "Afficher/Masquer les participants",
-      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis"
+      "open-shortcuts-settings": "Ouvrir les réglages des raccourcis",
+      "zoom-in": "Zoomer sur un écran partagé",
+      "zoom-out": "Dézoomer sur un écran partagé",
+      "zoom-reset": "Réinitialiser le zoom de l’écran partagé",
+      "zoom-pan": "Se déplacer dans un écran partagé zoomé"
     },
     "sr": {
       "control": "Contrôle",
@@ -785,10 +851,14 @@
       "shift": "Majuscule",
       "plus": "plus",
       "hold": "Maintenir {{key}}",
+      "arrows": "Touches fléchées",
+      "plusKey": "Touche plus",
+      "minusKey": "Touche moins",
       "noShortcut": "Aucun raccourci"
     },
     "visual": {
-      "hold": "Maintenir {{key}}"
+      "hold": "Maintenir {{key}}",
+      "arrows": "↑ ↓ ← →"
     }
   },
   "fullScreenWarning": {

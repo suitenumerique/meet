@@ -69,6 +69,22 @@ LINT_SUMMARY        = echo 'lint:ruff-format started…' && $(LINT_RUFF_FORMAT) 
 # -- Frontend
 PATH_FRONT          = ./src/frontend
 
+# -- Storage
+GARAGE_BUCKET       = meet-media-storage
+STORAGE_FOLDERS     = recordings transcripts summaries
+STORAGE_DIRS        = $(addprefix data/,$(STORAGE_FOLDERS))
+COMPOSE_RUN_AWS     = $(COMPOSE_RUN) --user $(DOCKER_USER)
+AWS_CLI             = garage-cors --endpoint-url=http://garage:9000
+# Extensions listed in each folder (skips the Egress manifests in recordings/)
+recordings_EXTENSIONS  = mp4 ogg
+transcripts_EXTENSIONS = json
+summaries_EXTENSIONS   = txt
+# $(1): folder. Lists its objects with a known extension, most recent first
+storage_list        = s3api list-objects-v2 --bucket $(GARAGE_BUCKET) \
+  --prefix $(1)/
+storage_query       = reverse(sort_by(Contents[?$(foreach ext,$($(1)_EXTENSIONS), \
+  ends_with(Key, `".$(ext)"`) ||) `false`] || `[]`, &LastModified))
+
 # ==============================================================================
 # RULES
 
@@ -76,6 +92,9 @@ default: help
 
 data/media:
 	@mkdir -p data/media
+
+$(STORAGE_DIRS):
+	@mkdir -p $@
 
 data/static:
 	@mkdir -p data/static
@@ -85,6 +104,7 @@ data/static:
 create-env-files: ## Copy the dist env files to env files
 create-env-files: \
 	env.d/development/common \
+	env.d/development/garage \
 	env.d/development/crowdin \
 	env.d/development/postgresql \
 	env.d/development/kc_postgresql \
@@ -149,7 +169,7 @@ run-summary: ## start only the summary application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-summary-summarize
 .PHONY: run-summary
 
-run-agents: ## start the multi-user-transcriber agent
+run-agents: ## start the LiveKit agents (opt-in, see docs/developping_locally.md)
 	@$(MAKE) run-agent-multi-user-transcriber
 	@$(MAKE) run-agent-metadata-collector
 .PHONY: run-agents
@@ -166,7 +186,6 @@ run:
 run: ## start the wsgi (production) and development server
 	@$(MAKE) run-backend
 	@$(MAKE) run-summary
-	@$(MAKE) run-agents
 	@$(COMPOSE) up --force-recreate -d frontend
 .PHONY: run
 
@@ -240,7 +259,8 @@ lint-pylint: ## lint back-end python sources with pylint only on changed files f
 test: ## run project tests; pass extra pytest args via ARGS, e.g. `make test ARGS="-vv"`
 	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
 	$(MAKE) test-back-parallel ARGS="$${args}" && \
-	$(MAKE) test-summary ARGS="$${args}"
+	$(MAKE) test-summary ARGS="$${args}" && \
+	$(MAKE) test-frontend
 .PHONY: test
 
 test-back: ## run back-end tests (pass extra pytest args via ARGS)
@@ -257,6 +277,10 @@ test-summary: ## run summary tests (pass extra pytest args via ARGS)
 	@args="$(ARGS) $(filter-out $@,$(MAKECMDGOALS))" && \
 	bin/pytest-summary $${args}
 .PHONY: test-summary
+
+test-frontend: ## run the frontend unit tests
+	cd $(PATH_FRONT) && npm test
+.PHONY: test-frontend
 
 makemigrations:  ## run django makemigrations for the Meet project.
 	@echo "$(BOLD)Running makemigrations$(RESET)"
@@ -317,11 +341,37 @@ env.d/development/summary:
 env.d/development/kube-secret:
 	cp -n env.d/development/kube-secret.dist env.d/development/kube-secret
 
+env.d/development/garage:
+	sed "s/^GARAGE_RPC_SECRET=.*/GARAGE_RPC_SECRET=$$(openssl rand -hex 32)/" \
+		env.d/development/garage.dist > env.d/development/garage
+
 env.d/development/multi_user_transcriber:
 	cp -n env.d/development/multi_user_transcriber.dist env.d/development/multi_user_transcriber
 
 env.d/development/metadata_collector:
 	cp -n env.d/development/metadata_collector.dist env.d/development/metadata_collector
+
+# -- Storage
+
+recordings-download-latest: ## download the latest recording from Garage into data/recordings
+transcripts-download-latest: ## download the latest transcript from Garage into data/transcripts
+summaries-download-latest: ## download the latest summary from Garage into data/summaries
+$(STORAGE_FOLDERS:%=%-download-latest): %-download-latest: data/%
+	@key=$$($(COMPOSE_RUN_AWS) -T $(AWS_CLI) $(call storage_list,$*) \
+		--query '$(call storage_query,$*)[0].Key' --output text) && \
+	if [ "$$key" = "None" ]; then echo "No $* found"; exit 1; fi && \
+	$(COMPOSE_RUN_AWS) --volume $(CURDIR)/data/$*:/aws/data/$* \
+		$(AWS_CLI) s3 cp "s3://$(GARAGE_BUCKET)/$$key" data/$*/
+.PHONY: $(STORAGE_FOLDERS:%=%-download-latest)
+
+recordings-list: ## list recordings stored in Garage, most recent first
+transcripts-list: ## list transcripts stored in Garage, most recent first
+summaries-list: ## list summaries stored in Garage, most recent first
+$(STORAGE_FOLDERS:%=%-list): %-list:
+	@$(COMPOSE_RUN_AWS) $(AWS_CLI) $(call storage_list,$*) \
+		--query '$(call storage_query,$*)[].{Date: LastModified, Key: Key, "Size (bytes)": Size}' \
+		--output table
+.PHONY: $(STORAGE_FOLDERS:%=%-list)
 
 # -- Internationalization
 

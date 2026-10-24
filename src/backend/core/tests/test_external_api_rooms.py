@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 from django.conf import settings
+from django.db import DatabaseError
 
 import jwt
 import pytest
@@ -17,16 +18,24 @@ from lasuite.oidc_resource_server.authentication import ResourceServerAuthentica
 from rest_framework.test import APIClient
 
 from core.analytics import AnalyticsEvent
+from core.audit.testing import find_events
+from core.external_api.serializers import RoomSerializer
 from core.factories import ApplicationFactory, RoomFactory, UserFactory
 from core.models import (
     Application,
     ApplicationScope,
+    ResourceAccess,
     RoleChoices,
     Room,
     RoomAccessLevel,
     User,
 )
-from core.services.room_management import RoomManagement
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
+from core.services.sip_management import SIPManagement
 
 pytestmark = pytest.mark.django_db
 
@@ -561,6 +570,53 @@ def test_api_rooms_retrieve_not_found():
 
     assert response.status_code == 404
     assert "no room matches the given query." in str(response.data).lower()
+
+
+def test_api_rooms_retrieve_invalid_id():
+    """Retrieving a room with a malformed id should return a 404."""
+
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/not-a-uuid/")
+
+    assert response.status_code == 404
+
+
+def test_api_rooms_retrieve_soft_deleted():
+    """Retrieving a soft-deleted room should return a 410."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 410
+    assert response.json() == {"detail": "This room has been deleted."}
+
+
+def test_api_rooms_retrieve_soft_deleted_not_member():
+    """Retrieving a soft-deleted room without any role on it should return a 403,
+    not revealing that the room has been deleted."""
+
+    user = UserFactory()
+    room = RoomFactory()
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
 
 
 def test_api_rooms_create_requires_authentication():
@@ -1390,6 +1446,253 @@ def test_api_rooms_update_tracks_analytics(mock_update_metadata, mock_capture):
     }
 
     mock_update_metadata.assert_called_once()
+
+
+@mock.patch("core.external_api.viewsets.analytics.capture")
+@mock.patch.object(RoomManagement, "sync_room_metadata")
+def test_api_rooms_update_soft_deleted_after_load(
+    mock_sync_room_metadata, mock_capture
+):
+    """A room soft deleted while an update is in flight should not be restored."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)], access_level=RoomAccessLevel.TRUSTED
+    )
+
+    original_is_valid = RoomSerializer.is_valid
+
+    def soft_delete_while_validating(self, **kwargs):
+        is_valid = original_is_valid(self, **kwargs)
+        Room.all_objects.get(pk=self.instance.pk).soft_delete()
+        return is_valid
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+
+    with mock.patch.object(RoomSerializer, "is_valid", soft_delete_while_validating):
+        response = client.patch(
+            f"/external-api/v1.0/rooms/{room.id}/",
+            {"access_level": RoomAccessLevel.RESTRICTED},
+            format="json",
+        )
+
+    assert response.status_code == 410
+
+    refreshed_room = Room.all_objects.get(pk=room.pk)
+    assert refreshed_room.deleted_at is not None
+    assert refreshed_room.access_level == RoomAccessLevel.TRUSTED
+
+    mock_sync_room_metadata.assert_not_called()
+    mock_capture.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_requires_authentication(mock_delete_room):
+    """Deleting a room without authentication should return 401."""
+
+    room = RoomFactory(users=[(UserFactory(), RoleChoices.OWNER)])
+
+    client = APIClient()
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 401
+    assert Room.objects.filter(id=room.id).exists() is True
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_requires_scope(mock_delete_room):
+    """Deleting a room requires the ROOMS_DELETE scope."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    # Token without ROOMS_DELETE scope
+    token = generate_test_token(
+        user, [ApplicationScope.ROOMS_RETRIEVE, ApplicationScope.ROOMS_UPDATE]
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
+    assert (
+        "insufficient permissions. required scope: rooms:delete"
+        in str(response.data).lower()
+    )
+    assert Room.objects.filter(id=room.id).exists() is True
+    mock_delete_room.assert_not_called()
+
+
+@pytest.mark.parametrize("role", [RoleChoices.ADMIN, RoleChoices.MEMBER, None])
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_without_ownership(mock_delete_room, role):
+    """Only owners should be able to delete a room, administrators included."""
+
+    user = UserFactory()
+    users = [(user, role)] if role else []
+    room = RoomFactory(users=users)
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
+    assert Room.objects.filter(id=room.id).exists() is True
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_unknown_room(mock_delete_room):
+    """Deleting a room that does not exist should return 404."""
+
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{uuid.uuid4()}/")
+
+    assert response.status_code == 404
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch("core.external_api.viewsets.analytics.capture")
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_success(mock_delete_room, _, mock_capture):
+    """Owners should be able to delete a room: it is soft deleted, its LiveKit
+    room is closed and a ROOM_DELETED analytics event is emitted."""
+
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)], access_level=RoomAccessLevel.TRUSTED
+    )
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 204
+    mock_delete_room.assert_called_once_with(str(room.id))
+    assert Room.objects.filter(id=room.id).exists() is False
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
+
+    mock_capture.assert_called_once()
+    captured_user, event, properties = mock_capture.call_args[0]
+
+    assert captured_user == user
+    assert event == AnalyticsEvent.ROOM_DELETED
+    assert properties == {
+        "room_id": str(room.pk),
+        "access_level": RoomAccessLevel.TRUSTED,
+        "client_id": str(application.client_id),
+        "external_api": True,
+        "auth_method": "ApplicationJWTAuthentication",
+        "$set": {"email": user.email},
+    }
+
+
+@mock.patch("core.external_api.viewsets.analytics.capture")
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_api_rooms_delete_livekit_failure(mock_delete_room, _, mock_capture):
+    """When the LiveKit room can't be closed, the deletion should be rolled back
+    and no analytics event emitted."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Could not delete the room, please try again."}
+    mock_delete_room.assert_called_once_with(str(room.id))
+    assert Room.objects.get(id=room.id).deleted_at is None
+    mock_capture.assert_not_called()
+
+
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomNotFoundException("Room does not exist"),
+)
+def test_api_rooms_delete_room_not_live(
+    mock_delete_room, mock_delete_dispatch_rule, settings
+):
+    """Deleting a room that is not live in LiveKit should still soft delete it,
+    and delete its SIP dispatch rule, as no room_finished webhook will."""
+
+    settings.ROOMKIT_ENABLED = True
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 204
+    mock_delete_room.assert_called_once_with(str(room.id))
+    mock_delete_dispatch_rule.assert_called_once_with(room.id)
+    assert Room.objects.filter(id=room.id).exists() is False
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_soft_deleted(mock_delete_room):
+    """Deleting a room that is already soft deleted should return a 410."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 410
+    mock_delete_room.assert_not_called()
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_soft_deleted_not_owner(mock_delete_room):
+    """Deleting a soft-deleted room as a non-owner should return a 403,
+    not revealing that the room has been deleted."""
+
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.ADMIN)])
+    room.soft_delete()
+
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
+    mock_delete_room.assert_not_called()
 
 
 def test_api_rooms_response_no_url(settings):
@@ -2375,3 +2678,429 @@ def test_api_rooms_addons_disabled_does_not_break_application_auth(settings):
     assert response.status_code == 200
     assert response.data["count"] == 1
     assert response.data["results"][0]["id"] == str(room.id)
+
+
+def test_api_rooms_create_is_audited(audit_events):
+    """Creating a room records the application, the delegated user and the room."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    token = generate_test_token(user, [ApplicationScope.ROOMS_CREATE])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post(
+        "/external-api/v1.0/rooms/", {}, format="json", REMOTE_ADDR="1.2.3.4"
+    )
+
+    assert response.status_code == 201
+
+    room = Room.objects.get(id=response.data["id"])
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["type"] == ["creation"]
+    assert event["event"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "application_jwt"}
+    assert event["lasuite"]["application"] == {"client_id": str(application.client_id)}
+    assert event["user"] == {"id": str(user.pk), "domain": "winterfell.com"}
+    assert event["organization"] == {"id": str(application.client_id)}
+    assert event["entity"]["target"] == {
+        "id": str(room.pk),
+        "sub_type": "room",
+        "name": room.name,
+        "raw": {"slug": room.slug, "access_level": "trusted"},
+    }
+    assert event["client"]["ip"] == "1.2.3.4"
+    assert event["http"]["request"]["method"] == "POST"
+    assert event["http"]["response"] == {"status_code": 201}
+    assert event["url"]["path"] == "/external-api/v1.0/rooms/"
+    assert event["http"]["request"]["id"] == response["X-Request-ID"]
+    assert "jean-neige@winterfell.com" not in str(event)
+
+
+@mock.patch.object(ResourceAccess.objects, "create", side_effect=DatabaseError("boom"))
+def test_api_rooms_create_crashing_is_audited(mock_create_access, audit_events):
+    """A room saved without its owner's access is recorded as a failure on it."""
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_CREATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    with pytest.raises(DatabaseError):
+        client.post("/external-api/v1.0/rooms/", {}, format="json")
+
+    mock_create_access.assert_called_once()
+    room = Room.objects.get()
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["reason"] == "internal_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["http"]["response"] == {"status_code": 500}
+    assert event["error"] == {"type": "django.db.utils.DatabaseError"}
+
+
+@mock.patch.object(RoomManagement, "update_metadata")
+def test_api_rooms_update_is_audited(mock_update_metadata, audit_events):
+    """Updating a room records what changed and the previous access level."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)],
+        access_level=RoomAccessLevel.TRUSTED,
+        configuration={},
+    )
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 200
+
+    mock_update_metadata.assert_called_once()
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["type"] == ["change"]
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["entity"]["target"]["raw"]["access_level"] == "restricted"
+    assert event["lasuite"]["details"] == {
+        "updated_fields": ["access_level"],
+        "previous_access_level": "trusted",
+    }
+
+
+def test_api_rooms_update_refused_is_audited_with_its_target(audit_events):
+    """A refused update names the room it was aimed at."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.MEMBER)])
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.patch(
+        f"/external-api/v1.0/rooms/{room.id}/",
+        {"access_level": RoomAccessLevel.RESTRICTED},
+        format="json",
+    )
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+
+
+@mock.patch.object(
+    RoomManagement, "sync_room_metadata", side_effect=RuntimeError("LiveKit down")
+)
+def test_api_rooms_update_crashing_is_audited(mock_sync_room_metadata, audit_events):
+    """An update saved but not synced to LiveKit is recorded as a failure."""
+    user = UserFactory()
+    room = RoomFactory(
+        users=[(user, RoleChoices.OWNER)], access_level=RoomAccessLevel.TRUSTED
+    )
+    token = generate_test_token(user, [ApplicationScope.ROOMS_UPDATE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    with pytest.raises(RuntimeError):
+        client.patch(
+            f"/external-api/v1.0/rooms/{room.id}/",
+            {"access_level": RoomAccessLevel.RESTRICTED},
+            format="json",
+        )
+
+    mock_sync_room_metadata.assert_called_once()
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["reason"] == "internal_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    # The values stored, not the ones the room had before the update
+    assert event["entity"]["target"]["raw"]["access_level"] == "restricted"
+    assert event["http"]["response"] == {"status_code": 500}
+    assert event["error"] == {"type": "builtins.RuntimeError"}
+
+
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_is_audited(mock_delete_room, _, audit_events):
+    """Deleting a room records the application, the delegating user and the room."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 204
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+    [event] = find_events(audit_events, "room.delete")
+
+    assert event["event"]["type"] == ["deletion"]
+    assert event["event"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["application"] == {"client_id": str(application.client_id)}
+    assert event["user"]["id"] == str(user.pk)
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["entity"]["target"]["sub_type"] == "room"
+    assert event["entity"]["target"]["raw"]["slug"] == room.slug
+    assert event["http"]["response"] == {"status_code": 204}
+
+
+@mock.patch.object(RoomManagement, "delete_room")
+def test_api_rooms_delete_refused_is_audited_with_its_target(
+    mock_delete_room, audit_events
+):
+    """A refused deletion names the room it was aimed at."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.MEMBER)])
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 403
+
+    mock_delete_room.assert_not_called()
+    [event] = find_events(audit_events, "room.delete")
+
+    assert event["event"]["type"] == ["deletion", "denied"]
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+
+
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_api_rooms_delete_crashing_is_audited(mock_delete_room, audit_events, settings):
+    """A deletion rolled back because LiveKit failed is recorded as a failure."""
+    # No dispatch rule to restore on rollback, which would call LiveKit
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    token = generate_test_token(user, [ApplicationScope.ROOMS_DELETE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.delete(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 500
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+    [event] = find_events(audit_events, "room.delete")
+
+    assert event["event"]["reason"] == "internal_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["http"]["response"] == {"status_code": 500}
+    assert event["error"] == {"message": "Could not delete the room, please try again."}
+
+
+def test_api_rooms_list_is_audited(audit_events):
+    """Listing records how many rooms were visible to the user."""
+    user = UserFactory()
+    RoomFactory(users=[(user, RoleChoices.OWNER)])
+    RoomFactory(users=[(user, RoleChoices.OWNER)])
+    RoomFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["event"]["type"] == ["access"]
+    assert event["lasuite"]["details"] == {"total": 2}
+    assert "entity" not in event
+    assert event["user"]["id"] == str(user.pk)
+
+
+def test_api_rooms_retrieve_is_audited(audit_events):
+    """Reading a room is recorded as an access to that room."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, RoleChoices.OWNER)])
+    token = generate_test_token(user, [ApplicationScope.ROOMS_RETRIEVE])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 200
+
+    [event] = find_events(audit_events, "room.retrieve")
+
+    assert event["event"]["type"] == ["access"]
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["entity"]["target"]["raw"]["slug"] == room.slug
+
+
+def test_api_rooms_missing_token_is_audited_as_denial(audit_events):
+    """An unauthenticated call is recorded under the action it attempted."""
+    response = APIClient().get("/external-api/v1.0/rooms/", REMOTE_ADDR="1.2.3.4")
+
+    assert response.status_code == 401
+    [event] = find_events(audit_events, "room.list")
+
+    # Still an API call, also filed as a failed authentication
+    assert event["event"]["category"] == ["api", "authentication"]
+    assert event["event"]["type"] == ["access", "denied"]
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert "details" not in event["lasuite"]
+    assert event["http"]["response"] == {"status_code": 401}
+    assert event["client"]["ip"] == "1.2.3.4"
+    assert event["url"]["path"] == "/external-api/v1.0/rooms/"
+
+
+def test_api_rooms_missing_scope_is_audited_as_denial(audit_events):
+    """A token without the required scope is a permission denial by the application."""
+    user = UserFactory()
+    token = generate_test_token(user, [ApplicationScope.ROOMS_LIST])
+    application = Application.objects.get()
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.post("/external-api/v1.0/rooms/", {}, format="json")
+
+    assert response.status_code == 403
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["type"] == ["creation", "denied"]
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "application_jwt"}
+    assert event["lasuite"]["application"] == {"client_id": str(application.client_id)}
+    assert event["user"]["id"] == str(user.pk)
+    assert event["http"]["response"] == {"status_code": 403}
+    assert "Required scope" in event["error"]["message"]
+    assert "entity" not in event
+
+
+def test_api_rooms_addons_token_is_audited_as_user(audit_events):
+    """An add-on token has no application: the actor is the user."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    RoomFactory(users=[(user, RoleChoices.OWNER)])
+    token = generate_addons_test_token(user, [ApplicationScope.ROOMS_LIST])
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["lasuite"]["actor"] == {"type": "user", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "addons_jwt"}
+    assert "application" not in event["lasuite"]
+    assert event["organization"] == {"id": "winterfell.com"}
+
+
+@responses.activate
+def test_api_rooms_resource_server_is_audited_as_application(audit_events, settings):
+    """A La Suite application calling through the resource server acts for the user.
+
+    The application is the client the introspected token was issued to.
+    """
+    user = UserFactory(sub="very-specific-sub")
+
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",  # settings.OIDC_RS_CLIENT_ID
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:list",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "resource_server"}
+    assert event["lasuite"]["application"] == {"client_id": "some_service_provider"}
+    assert event["user"]["id"] == str(user.pk)
+
+
+@responses.activate
+def test_api_rooms_resource_server_user_creation_is_audited(audit_events, settings):
+    """A user created on first authentication is provisioned by the client the
+    introspected token was issued to."""
+    settings.OIDC_CREATE_USER = True
+    settings.OIDC_RS_CLIENT_ID = "some_client_id"
+    settings.OIDC_RS_CLIENT_SECRET = "some_client_secret"
+    settings.OIDC_RS_SCOPES_PREFIX = "lasuite_meet"
+
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+    settings.OIDC_VERIFY_SSL = False
+    settings.OIDC_TIMEOUT = 5
+    settings.OIDC_PROXY = None
+    settings.OIDC_OP_JWKS_ENDPOINT = "https://oidc.example.com/jwks"
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={
+            "iss": "https://oidc.example.com",
+            "aud": "some_client_id",
+            "sub": "very-specific-sub",
+            "client_id": "some_service_provider",
+            "scope": "openid lasuite_meet lasuite_meet:rooms:list",
+            "active": True,
+        },
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer some_token")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 200
+    user = User.objects.get(sub="very-specific-sub")
+
+    [event] = find_events(audit_events, "user.provision")
+
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["auth"] == {"method": "resource_server"}
+    assert event["lasuite"]["application"] == {"client_id": "some_service_provider"}
+    assert event["user"] == {"target": {"id": str(user.pk)}}
+    assert event["entity"]["target"]["id"] == str(user.pk)
+    assert event["entity"]["target"]["raw"] == {"sub": "very-specific-sub"}

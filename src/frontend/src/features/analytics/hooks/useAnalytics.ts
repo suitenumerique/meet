@@ -41,6 +41,7 @@ export const useAnalytics = ({
         api_host: host,
         flags_api_host: flags_api_host,
         person_profiles: 'always',
+        remote_config_refresh_interval_ms: 0,
         capture_pageview: 'history_change',
         capture_pageleave: true,
         capture_exceptions: {

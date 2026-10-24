@@ -15,15 +15,20 @@ export const statusSquareClass: Record<ConnectionTestStepStatus, string> = {
     animation: 'pulse_background 1.2s ease-in-out infinite',
   }),
   success: css({ backgroundColor: 'success.600' }),
+  warning: css({ backgroundColor: 'warning' }),
   failed: css({ backgroundColor: 'danger.600' }),
   skipped: css({ backgroundColor: 'greyscale.300' }),
 }
 
-/** Colour is carried by the square; the label stays near-black except on failure. */
+/**
+ * Colour is carried by the square; the label stays near-black except on
+ * failure and warning.
+ */
 export const statusTextClass: Record<ConnectionTestStepStatus, string> = {
   pending: css({ color: 'greyscale.500' }),
   running: css({ color: 'greyscale.700' }),
   success: css({ color: 'greyscale.1000' }),
+  warning: css({ color: 'warning', fontWeight: 'medium' }),
   failed: css({ color: 'danger.600', fontWeight: 'medium' }),
   skipped: css({ color: 'greyscale.500' }),
 }

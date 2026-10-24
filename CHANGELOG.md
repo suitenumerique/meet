@@ -8,13 +8,162 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.36.3] - 2026-10-23
+
+### Fixed
+
+- 🔒️(backend) upgrade brotli to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) upgrade nginx to 1.30.6 to fix CVE-2026-15176
+- 🔒️(docker) upgrade brotli-libs to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) build the Outlook add-in on Node 22.23.4
+- 🔒️(backend) upgrade djangorestframework to 3.18.2 to fix CVE-2026-114136,
+  CVE-2026-114137 and CVE-2026-114138
+
+## [1.36.2] - 2026-10-21
+
+### Fixed
+
+- 🔒️(frontend) upgrade Node to 22.23.4 and 24.22.1 security releases
+
+## [1.36.1] - 2026-10-21
+
+### Changed
+
+- 🔖(helm) release chart 0.0.28
+
+### Fixed
+
+- 🔒️(docker) distrust compromised eMudhra emSign G3 CA roots
+- 🔒️(backend) upgrade pillow to 13.0.0 to fix CVE-2026-112403
+
+## [1.36.0] - 2026-10-20
+
+### Added
+
+- ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
+- ✨(backend) add room soft-deletion to the external API
+- ✨(all) allow any authenticated user to start a recording
+- ✨(backend) authenticate external API calls with Menshen exchanged tokens
+- ✨(backend) audit Menshen calls and users created from introspected tokens
+
+### Fixed
+
+- 🔒️(frontend) upgrade libx11 to fix CVE-2026-88806
+- 🔒️(backend) throttle the start recording endpoint
+- 🐛(backend) put a timeout on every LiveKit API call
+- 🔒️(backend) upgrade aiohttp to 3.14.5 to fix CVE-2026-111064
+- ♿️(frontend) announce the microphone turning off on shortcut #1816
+- 🐛(release) use env bash in prepare-release script for NixOS
+
+## [1.35.0] - 2026-10-13
+
+### Added
+
+- ✨(frontend) let users pick the recording encoding
+- ✨(backend) introduce a token exchange endpoint for iframe embeds
+- ⚡️(backend) send recording notification emails from a Celery task
+- ✨(backend) allow static feature flags without an analytics backend #1809
+- ⚡️(backend) add an opt-in psycopg connection pool
+
+### Changed
+
+- ⚡️(backend) hash application secrets with SHA-256
+- ⚡️(backend) reduce domain queries on the application token endpoint
+- ♻️️️(backend) use a dedicated auth scheme for LiveKit token auth
+- ♻️(all) stop relying on cookies for the lobby flow
+- ♿️(frontend) show a visible focus outline on menu items #1797
+- ⬆️(backend) upgrade pylint to 4.1.3
+
+### Fixed
+
+- 🔒️(backend) prevent editing client id and secret in Django admin
+- 🔒️(frontend) upgrade tiff to fix CVE-2026-4775
+- 🔒️(backend) bind accepted lobby entries to the current username
+- 🔒️(backend) sign lobby participant id
+- 🐛(frontend) omit the default speaker id sent to LiveKit
+- 🐛(frontend) play the speaker test when no output is picked
+- 🐛(frontend) keep the admin panel in place when changing a setting #1804
+
+## [1.34.0] - 2026-10-07
+
+### Added
+
+- ✨(helm) import environment variables from Secrets and ConfigMaps
+- 🔒(backend) throttle meeting link generation
+- 🔒️(backend) add a daily cap on room creation
+- 🔧(summary) add setting to control Sentry traces sampling rate
+- ✨(frontend) let signed-out visitors start a meeting
+- ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
+- ✅(frontend) add vitest so the frontend can carry unit tests
+- ♿️(frontend) make participant pagination readable and keyboard reachable #1775
+- ✨(backend) add structured audit logging facility
+- ✨(backend) audit external API token and room operations
+- 🔒️(backend) audit writes and bulk actions made in the Django admin
+- ✨(backend) audit recordings, transcripts and summaries
+- ✨(backend) audit transit code issuance and exchange
+
+### Changed
+
+- ✨(frontend) warn users when the connection falls back to TURN
+- 🔧(backend) configure the technical documentation url
+
+### Fixed
+
+- 🐛(frontend) enforce recording-mode permissions on the checkboxes
+- 🔒️(agents) fix util-linux CVEs reported by Cyberwatch
+- 🔒️(backend) fix HIGH CVEs in Django and urllib3
+- 🔒️(agents) upgrade libpcre2-8-0 to fix CVE-2026-103111
+- 🔒️(frontend) upgrade pcre2 to fix CVE-2026-103111
+- 🐛(summary) disable default S3 checksums for GCS-compatible storage
+- 🔒️(summary) redact meeting content from Sentry events
+- 🐛(frontend) hide tooltips until they have a computed placement
+- 🐛(brevo) use django-lasuite for marketing management
+- ♿️(frontend) expose loading state to assistive technology
+- 🐛(frontend) honour Keep hand raised when picture-in-picture is open
+
+## [1.33.0] - 2026-09-30
+
+### Added
+
+- ✨(backend) purge rooms inactive for a configurable period
+- 🔨(makefile) add targets to list and download files stored in Garage
+
+### Changed
+
+- ⬆️(backend) update python dependencies
+- ⬆️(summary) update python dependencies
+- ⬆️(agents) update python dependencies
+- ♻️(agents) replace the minio client by boto3
+- 🔧(compose) replace MinIO by Garage for local development
+- 🔧(helm) point media services to Garage by default
+- 💥(backend) replace recording encoding options with a profile model
+
+### Fixed
+
+- 🔒️(backend) fix critical and high CVEs in PyJWT
+- ⚡️(frontend) disable posthog-js periodic feature flag reloads
+
+## [1.32.1] - 2026-09-25
+
+### Fixed
+
+- 🔒️(backend) fix CVE-2026-73228 and CVE-2026-73229 in drf
+- 🔒️(agent) fix CRITICAL CVE-2026-63072 / CVE-2026-63073 in libssl3t64
+
+## [1.32.0] - 2026-09-25
+
 ### Added
 
 - ✨(backend) make the LiveKit default video codec configurable
 - 🔧(dev) add support for Bureautix workstations
+- ✨(frontend) add screen share zoom controls #1498
 
 ### Changed
 
+- 🔥(backend) remove unused API viewset and permission helpers
+- 🔊(backend) pin the dockerflow logger level to WARNING
+- 🚑️(summary) serve health endpoints with the dockerflow router
+- ♻️(backend) serve the dockerflow views early in the middleware stack
 - 📈(frontend) include LiveKit SIDs in the connection analytics event
 - 🔇(backend) silence expected 401 warnings on /me
 - 🔇(backend) silence noisy request summary info logs
@@ -23,15 +172,26 @@ and this project adheres to
 - ⬆️(frontend) upgrade posthog-js from 1.414.0 to 1.418.10
 - ⬆️(addons) upgrade i18next from 26.3.6 to 26.4.0
 - ⬆️(frontend) upgrade humanize-duration from 3.33.2 to 3.34.1
+- ⬆️(addons) upgrade i18next from 26.4.0 to 26.4.2
+- 🔖(helm) release chart 0.0.28
+- ♻️(backend) decouple recording event handling from LiveKit egress statuses
 
 ### Fixed
 
+- 🐛(helm) probe liveness on __lbheartbeat__ and readiness on __heartbeat__
+- 🐛(helm) render periodSeconds and failureThreshold on probes
 - 🐛(backend) report the app release to Sentry instead of "NA"
 - 🐛(frontend) play the waiting room notification sound on every arrival
+- 🐛(frontend) apply saved reception resolution when joining a meeting #1714
 - 🐛(backend) acknowledge unknown LiveKit webhook events instead of 422
 - 🔒️(backend) enforce display name setting on rename API
 - 🔒️(backend) reject inactive users in resource server backend
 - 🐛(frontend) fix file permissions in the Docker image
+- 🚸(frontend) inform user that recording waits until a track is published
+- 🔒(backend) upgrade base image to python:3.13.5-alpine3.24
+- 🐛(backend) handle failed and aborted egresses
+- 🩹(frontend) notify participants when a recording fails or is aborted
+- 🔒️(frontend) fix HIGH CVE-2026-93990 in libexpat
 
 ## [1.31.0] - 2026-09-08
 
@@ -349,7 +509,7 @@ and this project adheres to
 
 ### Fixed
 
-- ♿️(frontend) improve accessibilty of the Effects panel #1401
+- ♿️(frontend) improve accessibility of the Effects panel #1401
 
 ## [1.20.0] - 2026-06-12
 

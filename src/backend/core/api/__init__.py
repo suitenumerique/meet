@@ -44,6 +44,20 @@ def get_frontend_configuration(request):
             "available_modes": settings.RECORDING_WORKER_CLASSES.keys(),
             "expiration_days": settings.RECORDING_EXPIRATION_DAYS,
             "max_duration": settings.RECORDING_MAX_DURATION,
+            "encoding": {
+                "is_custom_enabled": settings.RECORDING_CUSTOM_ENCODING_ENABLED,
+                "available_resolutions": list(
+                    settings.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS.keys()
+                ),
+                "available_profiles": list(
+                    settings.RECORDING_ENCODING_AVAILABLE_PROFILES.keys()
+                ),
+                "default_resolution": settings.RECORDING_ENCODING_DEFAULT_RESOLUTION,
+                "default_profile": settings.RECORDING_ENCODING_DEFAULT_PROFILE,
+            },
+            "authenticated_participants_enabled": (
+                settings.RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED
+            ),
         },
         "background_image": {
             "upload_is_enabled": settings.FILE_UPLOAD_ENABLED,
@@ -73,6 +87,7 @@ def get_frontend_configuration(request):
             "default_sources": settings.LIVEKIT_DEFAULT_SOURCES,
             "default_video_codec": settings.LIVEKIT_DEFAULT_VIDEO_CODEC,
         },
+        "allow_unregistered_rooms": settings.ALLOW_UNREGISTERED_ROOMS,
         "authenticated_users_can_edit_display_name": (
             settings.AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME
         ),

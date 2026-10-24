@@ -9,6 +9,7 @@ import { JoinMeetingDialog } from '../components/JoinMeetingDialog'
 import { IntroSlider } from '../components/IntroSlider'
 import { MoreLink } from '../components/MoreLink'
 import { CreateMeetingMenu } from '../components/CreateMeetingMenu'
+import { CreateUnregisteredMeetingButton } from '../components/CreateUnregisteredMeetingButton'
 import { ReactNode, useEffect, useState } from 'react'
 
 import { css } from '@/styled-system/css'
@@ -189,13 +190,19 @@ const Home = () => {
                 display: 'flex',
                 gap: 0.5,
                 flexDirection: { base: 'column', xsm: 'row' },
+                flexWrap: 'wrap',
                 alignItems: { base: 'center', xsm: 'items-start' },
               })}
             >
               {isLoggedIn ? (
                 <CreateMeetingMenu />
               ) : (
-                <LoginButton proConnectHint={false} />
+                <>
+                  {data?.allow_unregistered_rooms && (
+                    <CreateUnregisteredMeetingButton />
+                  )}
+                  <LoginButton proConnectHint={false} />
+                </>
               )}
               <DialogTrigger>
                 <Button

@@ -21,7 +21,7 @@ const { initI18n, translateUI } = require("../common/i18n");
         document.querySelector("#close-msg").style.display = "block";
       })
       .catch((e) => {
-        console.error(`Error occured: ${e}`);
+        console.error(`Error occurred: ${e}`);
       })
       .finally(() => {
         // NOTE: doesn't work with the desktop client — the browser considers

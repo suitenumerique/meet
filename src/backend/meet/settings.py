@@ -17,12 +17,15 @@ import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 
 import dj_database_url
 import sentry_sdk
 from configurations import Configuration, values
 from lasuite.configuration.values import SecretFileValue
+from pydantic import BaseModel, PositiveInt, TypeAdapter
+from pydantic import ValidationError as PydanticValidationError
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
@@ -63,6 +66,27 @@ class VideoCodecValue(values.Value):
                 f"expected one of: {', '.join(sorted(self.codecs))}."
             )
         return codec
+
+
+class ResolutionSpec(BaseModel):
+    """An value of RECORDING_ENCODING_AVAILABLE_RESOLUTIONS."""
+
+    width: PositiveInt
+    height: PositiveInt
+
+
+class ProfileSpec(BaseModel):
+    """An value of RECORDING_ENCODING_AVAILABLE_PROFILES.
+
+    `kbps` maps each resolution key to its video bitrate.
+    """
+
+    fps: PositiveInt
+    kbps: dict[str, PositiveInt]
+
+
+RESOLUTION_MAP_ADAPTER = TypeAdapter(dict[str, ResolutionSpec])
+PROFILE_MAP_ADAPTER = TypeAdapter(dict[str, ProfileSpec])
 
 
 class Base(Configuration):
@@ -116,7 +140,7 @@ class Base(Configuration):
         )
         else {
             "ENGINE": values.Value(
-                "django.db.backends.postgresql_psycopg2",
+                "django.db.backends.postgresql",
                 environ_name="DB_ENGINE",
                 environ_prefix=None,
             ),
@@ -131,6 +155,21 @@ class Base(Configuration):
             "PORT": values.Value(5432, environ_name="DB_PORT", environ_prefix=None),
         }
     }
+    DB_PSYCOPG_POOL_ENABLED = values.BooleanValue(
+        False, environ_name="DB_PSYCOPG_POOL_ENABLED", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MIN_SIZE = values.PositiveIntegerValue(
+        1, environ_name="DB_PSYCOPG_POOL_MIN_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_SIZE = values.PositiveIntegerValue(
+        3, environ_name="DB_PSYCOPG_POOL_MAX_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_TIMEOUT = values.FloatValue(
+        30.0, environ_name="DB_PSYCOPG_POOL_TIMEOUT", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_IDLE = values.FloatValue(
+        600.0, environ_name="DB_PSYCOPG_POOL_MAX_IDLE", environ_prefix=None
+    )
     DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
     # Static files (CSS, JavaScript, Images)
@@ -287,6 +326,8 @@ class Base(Configuration):
 
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
+        "dockerflow.django.middleware.DockerflowMiddleware",
+        "core.audit.request.AuditLogMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",
@@ -296,7 +337,6 @@ class Base(Configuration):
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
         "django.contrib.messages.middleware.MessageMiddleware",
-        "dockerflow.django.middleware.DockerflowMiddleware",
     ]
 
     AUTHENTICATION_BACKENDS = [
@@ -308,8 +348,10 @@ class Base(Configuration):
     INSTALLED_APPS = [
         # Meet
         "core",
+        "core.audit.apps.AuditConfig",
         "demo",
         "drf_spectacular",
+        "core.audit.apps.AuditedAdminConfig",
         # Third party apps
         "corsheaders",
         "dockerflow.django",
@@ -317,7 +359,6 @@ class Base(Configuration):
         "parler",
         "easy_thumbnails",
         # Django
-        "django.contrib.admin",
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.postgres",
@@ -347,6 +388,7 @@ class Base(Configuration):
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
             "core.authentication.backends.SessionAuthenticationWith401",
+            "core.authentication.user_token.UserAccessJWTAuthentication",
         ),
         "DEFAULT_PARSER_CLASSES": [
             "rest_framework.parsers.JSONParser",
@@ -360,10 +402,42 @@ class Base(Configuration):
         "PAGE_SIZE": 20,
         "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        # Trusted proxies appending to X-Forwarded-For in front of the backend.
+        # Throttles and audit events identify the client as the entry that many
+        # positions from the right; unset, DRF would use the raw header, which a
+        # client can vary to escape its throttle.
+        "NUM_PROXIES": values.IntegerValue(
+            1, environ_name="NUM_PROXIES", environ_prefix=None
+        ),
         "DEFAULT_THROTTLE_RATES": {
+            "room_creation": values.Value(
+                default="50/minute",
+                environ_name="ROOM_CREATION_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "room_creation_daily": values.Value(
+                default="1000/day",
+                environ_name="ROOM_CREATION_DAILY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "start_recording": values.Value(
+                default="10/minute",
+                environ_name="START_RECORDING_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "start_recording_daily": values.Value(
+                default="100/day",
+                environ_name="START_RECORDING_DAILY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
             "request_entry": values.Value(
                 default="150/minute",
                 environ_name="REQUEST_ENTRY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "exchange_access_token": values.Value(
+                default="30/minute",
+                environ_name="EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES",
                 environ_prefix=None,
             ),
             "creation_callback": values.Value(
@@ -433,6 +507,11 @@ class Base(Configuration):
         "documentation_url": values.Value(
             None, environ_name="FRONTEND_DOCUMENTATION_URL", environ_prefix=None
         ),
+        "technical_documentation_url": values.Value(
+            None,
+            environ_name="FRONTEND_TECHNICAL_DOCUMENTATION_URL",
+            environ_prefix=None,
+        ),
         "external_home_url": values.Value(
             None, environ_name="FRONTEND_EXTERNAL_HOME_URL", environ_prefix=None
         ),
@@ -464,6 +543,7 @@ class Base(Configuration):
     EMAIL_PORT = values.PositiveIntegerValue(None)
     EMAIL_USE_TLS = values.BooleanValue(False)
     EMAIL_USE_SSL = values.BooleanValue(False)
+    EMAIL_TIMEOUT = values.PositiveIntegerValue(30)
     EMAIL_FROM = values.Value("from@example.com")
     EMAIL_BRAND_NAME = values.Value(None)
     EMAIL_SUPPORT_EMAIL = values.Value(None)
@@ -664,6 +744,20 @@ class Base(Configuration):
         default=None, environ_name="OIDC_RS_SCOPES_PREFIX", environ_prefix=None
     )
 
+    # Menshen, La Suite's OAuth 2.0 token exchange server
+    MENSHEN_ENABLED = values.BooleanValue(
+        False, environ_name="MENSHEN_ENABLED", environ_prefix=None
+    )
+    MENSHEN_SERVER_URL = values.Value(
+        None, environ_name="MENSHEN_SERVER_URL", environ_prefix=None
+    )
+    MENSHEN_CLIENT_ID = values.Value(
+        None, environ_name="MENSHEN_CLIENT_ID", environ_prefix=None
+    )
+    MENSHEN_CLIENT_SECRET = SecretFileValue(
+        None, environ_name="MENSHEN_CLIENT_SECRET", environ_prefix=None
+    )
+
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {
         "api_key": SecretFileValue(environ_name="LIVEKIT_API_KEY", environ_prefix=None),
@@ -720,6 +814,9 @@ class Base(Configuration):
     LIVEKIT_VERIFY_SSL = values.BooleanValue(
         True, environ_name="LIVEKIT_VERIFY_SSL", environ_prefix=None
     )
+    LIVEKIT_API_TIMEOUT_SECONDS = values.PositiveIntegerValue(
+        10, environ_name="LIVEKIT_API_TIMEOUT_SECONDS", environ_prefix=None
+    )
     # Regex to filter webhook events by room name. Only matching events are processed.
     LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = values.Value(
         None, environ_name="LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX", environ_prefix=None
@@ -729,6 +826,12 @@ class Base(Configuration):
     )
     ALLOW_UNREGISTERED_ROOMS = values.BooleanValue(
         True, environ_name="ALLOW_UNREGISTERED_ROOMS", environ_prefix=None
+    )
+    ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
+    )
+    ROOM_DELETED_RETENTION_DAYS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_DELETED_RETENTION_DAYS", environ_prefix=None
     )
     # if provided, treat as suspicious (possible privilege escalation attempt).
     PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
@@ -745,6 +848,14 @@ class Base(Configuration):
     # Recording settings
     RECORDING_ENABLE = values.BooleanValue(
         False, environ_name="RECORDING_ENABLE", environ_prefix=None
+    )
+    # Let any authenticated participant connected to a trusted or public room
+    # start/stop recordings. Disable to keep recording reserved to room
+    # admins/owners.
+    RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED = values.BooleanValue(
+        True,
+        environ_name="RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED",
+        environ_prefix=None,
     )
     RECORDING_OUTPUT_FOLDER = values.Value(
         "recordings", environ_name="RECORDING_OUTPUT_FOLDER", environ_prefix=None
@@ -772,35 +883,81 @@ class Base(Configuration):
     # These settings affect screen recordings handled by VideoCompositeEgressService;
     # they are silently ignored by AudioCompositeEgressService (audio-only transcript
     # recordings), whose request never carries advanced EncodingOptions.
-    # When disabled, LiveKit falls back to its built-in H264_720P_30 preset
-    # (1280x720, 30 fps, 3000 kbps H.264 MAIN video, 128 kbps AAC audio).
-    # When enabled, the values below are passed to LiveKit as EncodingOptions
-    # (advanced) and replace the preset. Lowering framerate and bitrate reduces
-    # output file size and CPU load on the egress worker.
-    RECORDING_ENCODING_ENABLED = values.BooleanValue(
-        False, environ_name="RECORDING_ENCODING_ENABLED", environ_prefix=None
+    #
+    # A default encoding is applied to every recording: it is resolved from the default
+    # profile and resolution below and passed to LiveKit as EncodingOptions (advanced),
+    # replacing LiveKit's built-in H264_720P_30 preset. Lowering framerate and bitrate
+    # reduces output file size and CPU load on the egress worker. If either
+    # RECORDING_ENCODING_DEFAULT_RESOLUTION or RECORDING_ENCODING_DEFAULT_PROFILE is
+    # unset, no default encoding is built (a startup warning is emitted) and LiveKit's
+    # built-in preset is used instead.
+    #
+    # RECORDING_CUSTOM_ENCODING_ENABLED gates whether the start-recording API lets a
+    # client override that default per recording (via an `encoding` object selecting a
+    # resolution/profile). When False, the API rejects per-recording `encoding` and
+    # every recording uses the default; when True, clients may pick from the
+    # available resolutions/profiles below.
+    RECORDING_CUSTOM_ENCODING_ENABLED = values.BooleanValue(
+        False, environ_name="RECORDING_CUSTOM_ENCODING_ENABLED", environ_prefix=None
     )
-    RECORDING_ENCODING_WIDTH = values.PositiveIntegerValue(
-        1280, environ_name="RECORDING_ENCODING_WIDTH", environ_prefix=None
-    )
-    RECORDING_ENCODING_HEIGHT = values.PositiveIntegerValue(
-        720, environ_name="RECORDING_ENCODING_HEIGHT", environ_prefix=None
-    )
-    RECORDING_ENCODING_FRAMERATE = values.PositiveIntegerValue(
-        30, environ_name="RECORDING_ENCODING_FRAMERATE", environ_prefix=None
-    )
-    RECORDING_ENCODING_VIDEO_BITRATE_KBPS = values.PositiveIntegerValue(
-        3000,
-        environ_name="RECORDING_ENCODING_VIDEO_BITRATE_KBPS",
+
+    # Map resolution string -> {"width", "height"} in pixels.
+    RECORDING_ENCODING_AVAILABLE_RESOLUTIONS = values.DictValue(
+        {
+            "540p": {"width": 960, "height": 540},
+            "720p": {"width": 1280, "height": 720},
+            "1080p": {"width": 1920, "height": 1080},
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_RESOLUTIONS",
         environ_prefix=None,
     )
+
+    # Map profile string -> {"fps", "kbps": {resolution: video_bitrate_kbps}}.
+    # Bitrate scales with resolution so quality stays consistent across sizes.
+    RECORDING_ENCODING_AVAILABLE_PROFILES = values.DictValue(
+        {
+            "talking_heads": {
+                "fps": 15,
+                "kbps": {"540p": 400, "720p": 700, "1080p": 1200},
+            },
+            "text": {
+                "fps": 15,
+                "kbps": {"540p": 600, "720p": 1000, "1080p": 1800},
+            },
+            "mixed": {
+                "fps": 20,
+                "kbps": {"540p": 900, "720p": 1500, "1080p": 2500},
+            },
+            "full": {
+                "fps": 30,
+                "kbps": {"540p": 2000, "720p": 3000, "1080p": 4500},
+            },
+        },
+        environ_name="RECORDING_ENCODING_AVAILABLE_PROFILES",
+        environ_prefix=None,
+    )
+
+    # Defaults used when no profile/resolution is specified per recording.
+    # Must be keys of the two dicts above (validated at startup).
+    RECORDING_ENCODING_DEFAULT_PROFILE = values.Value(
+        "full",
+        environ_name="RECORDING_ENCODING_DEFAULT_PROFILE",
+        environ_prefix=None,
+    )
+    RECORDING_ENCODING_DEFAULT_RESOLUTION = values.Value(
+        "720p",
+        environ_name="RECORDING_ENCODING_DEFAULT_RESOLUTION",
+        environ_prefix=None,
+    )
+
+    # Settings independent of profile/resolution.
     RECORDING_ENCODING_AUDIO_BITRATE_KBPS = values.PositiveIntegerValue(
         128,
         environ_name="RECORDING_ENCODING_AUDIO_BITRATE_KBPS",
         environ_prefix=None,
     )
     RECORDING_ENCODING_KEY_FRAME_INTERVAL_S = values.FloatValue(
-        4.0,
+        0.0,
         environ_name="RECORDING_ENCODING_KEY_FRAME_INTERVAL_S",
         environ_prefix=None,
     )
@@ -808,6 +965,7 @@ class Base(Configuration):
     SUMMARY_SERVICE_VERSION = values.PositiveIntegerValue(
         1, environ_name="SUMMARY_SERVICE_VERSION", environ_prefix=None
     )
+
     SUMMARY_SERVICE_ENDPOINT = values.Value(
         None, environ_name="SUMMARY_SERVICE_ENDPOINT", environ_prefix=None
     )
@@ -850,24 +1008,18 @@ class Base(Configuration):
         environ_name="SIGNUP_NEW_USER_TO_MARKETING_EMAIL",
         environ_prefix=None,
     )
-    MARKETING_SERVICE_CLASS = values.Value(
-        "core.services.marketing.BrevoMarketingService",
-        environ_name="MARKETING_SERVICE_CLASS",
-        environ_prefix=None,
-    )
-    BREVO_API_KEY = SecretFileValue(
-        None, environ_name="BREVO_API_KEY", environ_prefix=None
-    )
-    BREVO_API_CONTACT_LIST_IDS = values.ListValue(
-        [],
-        environ_name="BREVO_API_CONTACT_LIST_IDS",
-        environ_prefix=None,
-        converter=int,
-    )
-    BREVO_API_CONTACT_ATTRIBUTES = values.DictValue({"VISIO_USER": True})
-    BREVO_API_TIMEOUT = values.PositiveIntegerValue(
-        1, environ_name="BREVO_API_TIMEOUT", environ_prefix=None
-    )
+    LASUITE_MARKETING = {
+        "BACKEND": values.Value(
+            "lasuite.marketing.backends.dummy.DummyBackend",
+            environ_name="LASUITE_MARKETING_BACKEND",
+            environ_prefix=None,
+        ),
+        "PARAMETERS": values.DictValue(
+            default={},
+            environ_name="LASUITE_MARKETING_PARAMETERS",
+            environ_prefix=None,
+        ),
+    }
 
     # Lobby configurations
     PRESENCE_KEY_PREFIX = values.Value(
@@ -896,11 +1048,6 @@ class Base(Configuration):
     LOBBY_NOTIFICATION_TYPE = values.Value(
         "participantWaiting",
         environ_name="LOBBY_NOTIFICATION_TYPE",
-        environ_prefix=None,
-    )
-    LOBBY_COOKIE_NAME = values.Value(
-        "lobbyParticipantId",
-        environ_name="LOBBY_COOKIE_NAME",
         environ_prefix=None,
     )
 
@@ -988,7 +1135,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     APPLICATION_CLIENT_SECRET_LENGTH = values.PositiveIntegerValue(
-        128,
+        50,
         environ_name="APPLICATION_CLIENT_SECRET_LENGTH",
         environ_prefix=None,
     )
@@ -1023,6 +1170,66 @@ class Base(Configuration):
     APPLICATION_BASE_URL = values.Value(
         None,
         environ_name="APPLICATION_BASE_URL",
+        environ_prefix=None,
+    )
+
+    # User access tokens (embedded frontend / iframe support)
+    USER_ACCESS_TOKEN_ENABLED = values.BooleanValue(
+        False, environ_name="USER_ACCESS_TOKEN_ENABLED", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_SECRET_KEY = SecretFileValue(
+        None, environ_name="USER_ACCESS_TOKEN_SECRET_KEY", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_ALG = values.Value(
+        "HS256",
+        environ_name="USER_ACCESS_TOKEN_ALG",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_ISSUER = values.Value(
+        "lasuite-meet",
+        environ_name="USER_ACCESS_TOKEN_ISSUER",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_AUDIENCE = values.Value(
+        None,
+        environ_name="USER_ACCESS_TOKEN_AUDIENCE",
+        environ_prefix=None,
+    )
+    # Lifetime of the user access token obtained through the exchange
+    # endpoint. It never transits through a URL, so it can cover a full
+    # meeting (default: 2 hours).
+    USER_ACCESS_TOKEN_TTL = values.PositiveIntegerValue(
+        7200,
+        environ_name="USER_ACCESS_TOKEN_TTL",
+        environ_prefix=None,
+    )
+    # Lifetime of the single-use transit code handed to the frontend
+    # through a URL fragment. Kept very short by design: it must only
+    # survive the redirect and the exchange call.
+    TRANSIT_CODE_TTL = values.PositiveIntegerValue(
+        60,
+        environ_name="TRANSIT_CODE_TTL",
+        environ_prefix=None,
+    )
+    TRANSIT_CODE_CACHE_PREFIX = values.Value(
+        "transit-code",
+        environ_name="TRANSIT_CODE_CACHE_PREFIX",
+        environ_prefix=None,
+    )
+    # Number of random bytes per code (48 bytes -> 64 url-safe characters)
+    TRANSIT_CODE_NBYTES = values.PositiveIntegerValue(
+        48,
+        environ_name="TRANSIT_CODE_NBYTES",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_TYPE = values.Value(
+        "Bearer",
+        environ_name="USER_ACCESS_TOKEN_TYPE",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_TYPE_CLAIM = values.Value(
+        "user_token",
+        environ_name="USER_ACCESS_TOKEN_TYPE_CLAIM",
         environ_prefix=None,
     )
     # Warning: EXTERNAL_API_ALLOW_PUBLIC_ACCESS is ignored when
@@ -1128,6 +1335,31 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    AUDIT_LOG_LEVEL = values.Value(
+        "INFO", environ_name="AUDIT_LOG_LEVEL", environ_prefix=None
+    )
+    AUDIT_LOG_STREAM = values.Value(
+        "ext://sys.stdout", environ_name="AUDIT_LOG_STREAM", environ_prefix=None
+    )
+    AUDIT_LOG_SERVICE_NAME = values.Value(
+        "meet", environ_name="AUDIT_LOG_SERVICE_NAME", environ_prefix=None
+    )
+    AUDIT_LOG_DATA_STREAM_NAMESPACE = values.Value(
+        "default", environ_name="AUDIT_LOG_DATA_STREAM_NAMESPACE", environ_prefix=None
+    )
+    # Reuse the inbound request id as the trace id
+    # Only enable it when the ingress overwrites the header
+    # When off, the backend generates the id.
+    REQUEST_ID_TRUST_HEADER = values.BooleanValue(
+        False, environ_name="REQUEST_ID_TRUST_HEADER", environ_prefix=None
+    )
+
+    DOCKERFLOW_REQUEST_ID_HEADER_NAME = values.Value(
+        "X-Request-ID",
+        environ_name="DOCKERFLOW_REQUEST_ID_HEADER_NAME",
+        environ_prefix=None,
+    )
+
     LOGGING_SILENCED_401_PATHS = values.ListValue(
         default=["/api/v1.0/users/me/"],
         environ_name="LOGGING_SILENCED_401_PATHS",
@@ -1145,6 +1377,9 @@ class Base(Configuration):
                 "format": "{asctime} {name} {levelname} {message}",
                 "style": "{",
             },
+            "audit_json": {
+                "()": "core.audit.formatter.AuditJsonFormatter",
+            },
         },
         "filters": {
             "silence_expected_401": {
@@ -1156,6 +1391,11 @@ class Base(Configuration):
                 "class": "logging.StreamHandler",
                 "formatter": "simple",
                 "filters": ["silence_expected_401"],
+            },
+            "audit_console": {
+                "class": "logging.StreamHandler",
+                "stream": AUDIT_LOG_STREAM,
+                "formatter": "audit_json",
             },
         },
         # Override root logger to send it to console
@@ -1173,6 +1413,13 @@ class Base(Configuration):
                     environ_prefix="",
                 )
             },
+            "dockerflow": {
+                "level": values.Value(
+                    "WARNING",
+                    environ_name="LOGGING_LEVEL_DOCKERFLOW",
+                    environ_prefix="",
+                )
+            },
             "core": {
                 "handlers": ["console"],
                 "level": values.Value(
@@ -1180,6 +1427,11 @@ class Base(Configuration):
                     environ_name="LOGGING_LEVEL_LOGGERS_APP",
                     environ_prefix=None,
                 ),
+                "propagate": False,
+            },
+            "audit": {
+                "handlers": ["audit_console"],
+                "level": AUDIT_LOG_LEVEL,
                 "propagate": False,
             },
         },
@@ -1216,6 +1468,142 @@ class Base(Configuration):
         }
 
     @classmethod
+    def _check_recording_encoding_maps(cls):
+        """Ensure the per-recording encoding maps are well-formed and consistent.
+
+        Each entry of RECORDING_ENCODING_AVAILABLE_RESOLUTIONS must declare a width and
+        a height, each entry of RECORDING_ENCODING_AVAILABLE_PROFILES an fps and a kbps
+        map, and every profile must define a bitrate for each declared resolution.
+
+        The default profile / resolution feed the default encoding. When either is
+        missing, no custom default encoding can be built: a warning is emitted and
+        recordings fall back to LiveKit's built-in preset. When both are set, they
+        must reference keys that actually exist in the maps above.
+        """
+        resolutions = set(cls.RECORDING_ENCODING_AVAILABLE_RESOLUTIONS)
+        profiles = set(cls.RECORDING_ENCODING_AVAILABLE_PROFILES)
+
+        for name, adapter in (
+            ("RECORDING_ENCODING_AVAILABLE_RESOLUTIONS", RESOLUTION_MAP_ADAPTER),
+            ("RECORDING_ENCODING_AVAILABLE_PROFILES", PROFILE_MAP_ADAPTER),
+        ):
+            try:
+                adapter.validate_python(getattr(cls, name), strict=True)
+            except PydanticValidationError as exc:
+                raise ValueError(f"{name} is malformed: {exc}") from exc
+
+        for (
+            profile,
+            profile_config,
+        ) in cls.RECORDING_ENCODING_AVAILABLE_PROFILES.items():  # pylint: disable=no-member
+            profile_resolutions = set(profile_config["kbps"])
+            if profile_resolutions != resolutions:
+                raise ValueError(
+                    f"Profile '{profile}' in RECORDING_ENCODING_AVAILABLE_PROFILES must "
+                    "define a bitrate for exactly the resolutions in "
+                    "RECORDING_ENCODING_AVAILABLE_RESOLUTIONS, mismatch on: "
+                    f"{resolutions ^ profile_resolutions}"
+                )
+
+        # Check that default resolutions and profiles are actually defined
+        if (
+            cls.RECORDING_ENCODING_DEFAULT_RESOLUTION
+            and cls.RECORDING_ENCODING_DEFAULT_RESOLUTION not in resolutions
+        ):
+            raise ValueError(
+                "RECORDING_ENCODING_DEFAULT_RESOLUTION "
+                f"'{cls.RECORDING_ENCODING_DEFAULT_RESOLUTION}' is not a key of "
+                f"RECORDING_ENCODING_AVAILABLE_RESOLUTIONS ({sorted(resolutions)})."
+            )
+        if (
+            cls.RECORDING_ENCODING_DEFAULT_PROFILE
+            and cls.RECORDING_ENCODING_DEFAULT_PROFILE not in profiles
+        ):
+            raise ValueError(
+                "RECORDING_ENCODING_DEFAULT_PROFILE "
+                f"'{cls.RECORDING_ENCODING_DEFAULT_PROFILE}' is not a key of "
+                f"RECORDING_ENCODING_AVAILABLE_PROFILES ({sorted(profiles)})."
+            )
+
+        missing = [
+            name
+            for name, value in (
+                (
+                    "RECORDING_ENCODING_DEFAULT_RESOLUTION",
+                    cls.RECORDING_ENCODING_DEFAULT_RESOLUTION,
+                ),
+                (
+                    "RECORDING_ENCODING_DEFAULT_PROFILE",
+                    cls.RECORDING_ENCODING_DEFAULT_PROFILE,
+                ),
+            )
+            if not value
+        ]
+        if missing:
+            warnings.warn(
+                f"{' and '.join(missing)} not set; recordings will use LiveKit's "
+                "built-in encoding preset instead of a custom default encoding.",
+                UserWarning,
+                stacklevel=2,
+            )
+
+    @classmethod
+    def _check_audit_log_data_stream_namespace(cls):
+        """Ensure the audit data stream namespace contains no ``-``.
+
+        ECS splits data stream names ``<type>-<dataset>-<namespace>`` on -
+        """
+        if "-" in cls.AUDIT_LOG_DATA_STREAM_NAMESPACE:
+            raise ValueError(
+                "AUDIT_LOG_DATA_STREAM_NAMESPACE "
+                f"'{cls.AUDIT_LOG_DATA_STREAM_NAMESPACE}' must not contain '-'."
+            )
+
+    @classmethod
+    def _configure_database_pool(cls):
+        """Inject the psycopg pool options into the default database when enabled."""
+        if not cls.DB_PSYCOPG_POOL_ENABLED:
+            return
+
+        database = cls.DATABASES["default"]
+        if database.get("ENGINE") not in (
+            "django.db.backends.postgresql",
+            "django.db.backends.postgresql_psycopg2",
+        ):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED requires the django.db.backends.postgresql "
+                f"engine, got {database.get('ENGINE')!r}."
+            )
+        if database.get("CONN_MAX_AGE"):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED cannot be combined with persistent "
+                "connections; set CONN_MAX_AGE to 0."
+            )
+        if cls.DB_PSYCOPG_POOL_MIN_SIZE > cls.DB_PSYCOPG_POOL_MAX_SIZE:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_MIN_SIZE cannot be greater than "
+                "DB_PSYCOPG_POOL_MAX_SIZE."
+            )
+        if cls.DB_PSYCOPG_POOL_TIMEOUT <= 0 or cls.DB_PSYCOPG_POOL_MAX_IDLE <= 0:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_TIMEOUT and DB_PSYCOPG_POOL_MAX_IDLE must be positive."
+            )
+
+        database["OPTIONS"] = {
+            "keepalives_idle": 60,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+            **database.get("OPTIONS", {}),
+            "pool": {
+                "min_size": cls.DB_PSYCOPG_POOL_MIN_SIZE,
+                "max_size": cls.DB_PSYCOPG_POOL_MAX_SIZE,
+                "timeout": cls.DB_PSYCOPG_POOL_TIMEOUT,
+                "max_idle": cls.DB_PSYCOPG_POOL_MAX_IDLE,
+            },
+        }
+        database["CONN_HEALTH_CHECKS"] = True
+
+    @classmethod
     def post_setup(cls):
         """Post setup configuration.
         This is the place where you can configure settings that require other
@@ -1228,6 +1616,13 @@ class Base(Configuration):
                 "FILE_UPLOAD_TMP_PATH cannot be the same as FILE_UPLOAD_PATH"
             )
 
+        cls._check_recording_encoding_maps()
+        cls._check_audit_log_data_stream_namespace()
+        cls._configure_database_pool()
+
+        if cls.LIVEKIT_API_TIMEOUT_SECONDS < 1:
+            raise ValueError("LIVEKIT_API_TIMEOUT_SECONDS must be at least 1")
+
         if (
             cls.SUMMARY_SERVICE_VERSION == 1
             and cls.SUMMARY_SERVICE_ENDPOINT is not None
@@ -1237,6 +1632,44 @@ class Base(Configuration):
                 "The legacy v1 API has been removed from the experimental "
                 "Summary service. Please update your Summary service deployment to "
                 "the v2 API and set SUMMARY_SERVICE_VERSION=2.",
+                # We use UserWarning to make sure it shows up in production deployment
+                UserWarning,
+                stacklevel=2,
+            )
+
+        for setting_name, rooms, period in (
+            ("ROOM_INACTIVITY_DELETION_DAYS", "Inactive rooms", "inactivity period"),
+            ("ROOM_DELETED_RETENTION_DAYS", "Deleted rooms", "retention period"),
+        ):
+            purge_days = getattr(cls, setting_name)
+            if not purge_days:
+                continue
+            if not cls.RECORDING_EXPIRATION_DAYS:
+                warnings.warn(
+                    f"{setting_name} is set but RECORDING_EXPIRATION_DAYS is not. "
+                    f"Recordings never expire, so {rooms.lower()} holding a saved "
+                    "recording will never be purged.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            elif cls.RECORDING_EXPIRATION_DAYS >= purge_days:
+                warnings.warn(
+                    "RECORDING_EXPIRATION_DAYS is greater than or equal to "
+                    f"{setting_name}. {rooms} holding a saved recording will be "
+                    f"kept past the {period}, until their recordings expire.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
+        # Secrets use a 62-character alphanumeric charset (~5.95 bits/char).
+        # 43 characters provide at least 256 bits of entropy; 42 provide ~250 bits.
+        if cls.APPLICATION_CLIENT_SECRET_LENGTH < 43:
+            warnings.warn(
+                f"APPLICATION_CLIENT_SECRET_LENGTH={cls.APPLICATION_CLIENT_SECRET_LENGTH} "
+                "is below the recommended 43 characters (256 bits of entropy). "
+                "Application secrets use a fast hash and rely on high entropy to "
+                "resist offline guessing if the database leaks. "
+                "Please set APPLICATION_CLIENT_SECRET_LENGTH to at least 43.",
                 # We use UserWarning to make sure it shows up in production deployment
                 UserWarning,
                 stacklevel=2,
@@ -1261,6 +1694,8 @@ class Base(Configuration):
 
             # Ignore the logs added by the DockerflowMiddleware
             ignore_logger("request.summary")
+            # Audit events are a data stream, not errors to report
+            ignore_logger("audit")
 
 
 class Build(Base):
@@ -1312,9 +1747,19 @@ class Test(Base):
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "formatters": {
+                "audit_json": {
+                    "()": "core.audit.formatter.AuditJsonFormatter",
+                },
+            },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
+                },
+                "audit_console": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                    "formatter": "audit_json",
                 },
             },
             "loggers": {
@@ -1322,11 +1767,17 @@ class Test(Base):
                     "handlers": ["console"],
                     "level": "DEBUG",
                 },
+                "audit": {
+                    "handlers": ["audit_console"],
+                    "level": "INFO",
+                    "propagate": False,
+                },
             },
         }
     )
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     ]
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True
@@ -1347,6 +1798,9 @@ class Test(Base):
     ADDONS_ENABLED = True
     ADDONS_CSRF_SECRET = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
     ADDONS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
+    USER_ACCESS_TOKEN_ENABLED = True
+    USER_ACCESS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-room"  # noqa:S105
+    USER_ACCESS_TOKEN_AUDIENCE = "Test inc."  # noqa:S105
 
     CONNECTION_TEST_ENABLED = True
 

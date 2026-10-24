@@ -2,13 +2,17 @@
 
 # pylint: disable=no-member
 
+import logging
+
 from asgiref.sync import async_to_sync
 from livekit import api as livekit_api
 
 from ... import utils
 from ..enums import FileExtension
-from .exceptions import WorkerConnectionError, WorkerResponseError
+from .exceptions import WorkerConnectionError, WorkerRequestError, WorkerResponseError
 from .factories import WorkerServiceConfig
+
+logger = logging.getLogger(__name__)
 
 
 class BaseEgressService:
@@ -20,7 +24,7 @@ class BaseEgressService:
 
     def _get_filepath(self, filename: str, extension: str) -> str:
         """Construct the file path for a given filename and extension.
-        Unsecure method, doesn't handle paths robustly and securely.
+        Insecure method, doesn't handle paths robustly and securely.
         """
         return f"{self._config.output_folder}/{filename}.{extension}"
 
@@ -49,6 +53,22 @@ class BaseEgressService:
         finally:
             await lkapi.aclose()
 
+    @staticmethod
+    def _log_egress_error(response, event: str):
+        """Log the reason LiveKit reported an unsuccessful egress on stop.
+
+        Mirrors the logging done in the 'egress_ended' webhook. The
+        StopEgress response carries the same error fields.
+        """
+        logger.error(
+            "Egress %s on stop (egress_id=%s, status=%s): %s (error_code=%s)",
+            event,
+            response.egress_id,
+            livekit_api.EgressStatus.Name(response.status),
+            response.error or "no error reported",
+            response.error_code or "no error_code reported",
+        )
+
     def stop(self, worker_id: str) -> str:
         """Stop an ongoing egress worker.
         The StopEgressRequest is shared among all types of egress,
@@ -66,38 +86,55 @@ class BaseEgressService:
                 "LiveKit response is missing the recording status."
             )
 
-        # To avoid exposing EgressStatus values and coupling with LiveKit outside of this class,
-        # the response status is mapped to simpler "ABORTED", "STOPPED" or "FAILED_TO_STOP" strings.
-        if response.status == livekit_api.EgressStatus.EGRESS_ABORTED:
-            return "ABORTED"
-
         if response.status == livekit_api.EgressStatus.EGRESS_ENDING:
             return "STOPPED"
 
+        if response.status == livekit_api.EgressStatus.EGRESS_LIMIT_REACHED:
+            return "STOPPED"
+
+        # Cases below should be very infrequent as status changes should be
+        # received and processed by `handle_ended`, thus `stop` would not
+        # be called (unless failure and stop are very close in time).
+        # We therefore accept not to notify the user in this code branch.
+        # This could be fixed in a future refactoring.
+        if response.status == livekit_api.EgressStatus.EGRESS_ABORTED:
+            self._log_egress_error(response, "aborted")
+            return "ABORTED"
+
+        if response.status == livekit_api.EgressStatus.EGRESS_FAILED:
+            self._log_egress_error(response, "failed")
+            return "FAILED"
+
+        self._log_egress_error(response, "failed to stop")
         return "FAILED_TO_STOP"
 
-    def start(self, room_name, recording_id):
+    def start(self, room_name, recording_id, encoding_options=None):
         """Start the egress process for a recording (not implemented in the base class).
         Each derived class must implement this method, providing the necessary parameters for
         its specific egress type (e.g. audio_only, streaming output).
         """
         raise NotImplementedError("Subclass must implement this method.")
 
-    def _build_encoding_options(self):
-        """Build a LiveKit EncodingOptions from the service config, or None.
+    def _resolve_encoding_options(self, encoding_options):
+        """Build a LiveKit EncodingOptions from a resolved kwargs dict, or None.
+
+        ``encoding_options`` is the per-recording dict persisted by the API in
+        ``recording.options["encoding"]["resolved"]``; it falls back to the
+        default encoding carried by the service config.
 
         When None is returned, the caller should omit the `advanced` field so
         LiveKit Egress falls back to its built-in preset (H264_720P_30).
-
-        The full EncodingOptions kwargs (operator-tunable values + pinned
-        codec / frequency constants) are assembled in `WorkerServiceConfig`,
-        so this method is a thin protobuf adapter.
         """
-        opts = self._config.encoding_options
-        if not opts:
+        encoding_options = encoding_options or self._config.encoding_options
+        if not encoding_options:
             return None
 
-        return livekit_api.EncodingOptions(**opts)
+        try:
+            return livekit_api.EncodingOptions(**encoding_options)
+        except (TypeError, ValueError) as e:
+            # Protobuf raises TypeError on a wrongly typed value (e.g. a float
+            # framerate) and ValueError on an unknown field or an out-of-range int.
+            raise WorkerRequestError(f"Invalid encoding options: {e}") from e
 
 
 class VideoCompositeEgressService(BaseEgressService):
@@ -105,7 +142,7 @@ class VideoCompositeEgressService(BaseEgressService):
 
     hrid = "video-recording-composite-livekit-egress"
 
-    def start(self, room_name, recording_id):
+    def start(self, room_name, recording_id, encoding_options=None):
         """Start the video composite egress process for a recording."""
 
         # Save room's recording as a mp4 video file.
@@ -126,7 +163,7 @@ class VideoCompositeEgressService(BaseEgressService):
             "layout": "speaker-light",
         }
 
-        advanced = self._build_encoding_options()
+        advanced = self._resolve_encoding_options(encoding_options)
         if advanced is not None:
             request_kwargs["advanced"] = advanced
 
@@ -145,8 +182,13 @@ class AudioCompositeEgressService(BaseEgressService):
 
     hrid = "audio-recording-composite-livekit-egress"
 
-    def start(self, room_name, recording_id):
-        """Start the audio composite egress process for a recording."""
+    def start(self, room_name, recording_id, encoding_options=None):
+        """Start the audio composite egress process for a recording.
+
+        ``encoding_options`` is accepted for signature compatibility with the
+        WorkerService protocol but ignored: audio-only egress has no
+        encoding to configure.
+        """
 
         # Save room's recording as an ogg audio file.
         file_type = livekit_api.EncodedFileType.OGG

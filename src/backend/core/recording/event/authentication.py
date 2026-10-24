@@ -40,6 +40,8 @@ class HeaderBasedAuthentication(BaseAuthentication):
     AUTH_HEADER = "Authorization"
     TOKEN_TYPE = "Bearer"  # noqa S105
     REALM = ""
+    # Names the service in the audit log
+    MACHINE_USER_NAME = "machine_user"
 
     EXPECTED_TOKEN_SETTINGS_KEY = None
 
@@ -74,7 +76,7 @@ class HeaderBasedAuthentication(BaseAuthentication):
             )
             raise AuthenticationFailed("Invalid token")
 
-        return MachineUser(), token
+        return MachineUser(self.MACHINE_USER_NAME), token
 
     def authenticate_header(self, request):
         """Return the WWW-Authenticate header value."""
@@ -88,4 +90,5 @@ class RecordingProcessWebhookAuthentication(HeaderBasedAuthentication):
     """
 
     REALM = "External process webhook API"
+    MACHINE_USER_NAME = "summary"
     EXPECTED_TOKEN_SETTINGS_KEY = "SUMMARY_SERVICE_WEBHOOK_API_TOKEN"  # noqa S105

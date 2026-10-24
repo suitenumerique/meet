@@ -27,7 +27,7 @@ def test_api_files_list_anonymous_not_allowed():
 
 def test_api_files_list_authentificated_user_allowed():
     """
-    Authentificated users should be allowed to list files
+    Authenticated users should be allowed to list files
     """
     user = factories.UserFactory()
     client = APIClient()
