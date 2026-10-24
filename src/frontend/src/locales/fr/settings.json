@@ -32,6 +32,15 @@
         "disable": "Désactiver la réduction du bruit"
       }
     },
+    "audioLevelEqualization": {
+      "label": "Équilibrer automatiquement les niveaux audio des participants",
+      "heading": "Égalisation du niveau audio",
+      "description": "Ajuste continuellement le volume de chaque participant pour que tout le monde soit entendu à égalité.",
+      "ariaLabel": {
+        "enable": "Activer l'égalisation du niveau audio",
+        "disable": "Désactiver l'égalisation du niveau audio"
+      }
+    },
     "speakers": {
       "heading": "Haut-parleurs",
       "label": "Sélectionner votre sortie audio",

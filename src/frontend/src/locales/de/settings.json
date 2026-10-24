@@ -32,6 +32,15 @@
         "disable": "Geräuschunterdrückung deaktivieren"
       }
     },
+    "audioLevelEqualization": {
+      "label": "Lautstärke der Teilnehmer automatisch angleichen",
+      "heading": "Audio-Pegelanpassung",
+      "description": "Passt die Lautstärke jedes Teilnehmers kontinuierlich an, damit alle gleich laut zu hören sind.",
+      "ariaLabel": {
+        "enable": "Audio-Pegelanpassung aktivieren",
+        "disable": "Audio-Pegelanpassung deaktivieren"
+      }
+    },
     "speakers": {
       "heading": "Lautsprecher",
       "label": "Audioausgabe wählen",
