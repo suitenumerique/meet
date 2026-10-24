@@ -2,34 +2,27 @@
 
 This guide explains how to deploy LaSuite Meet on [Scalingo](https://scalingo.com/) using the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack).
 
-## Overview
-
-Scalingo is a Platform-as-a-Service (PaaS) that simplifies application deployment. This setup uses a custom buildpack to handle both the frontend (Vite) and backend (Django) builds, serving them through Nginx.
-
 ## Prerequisites
 
 - A Scalingo account
-- Scalingo CLI installed (optional but recommended)
-- A PostgreSQL database addon
-- A Redis addon (for caching and sessions)
+- The Scalingo CLI, which the commands below use
 
 ## Step 1: Create Your App
 
-Create a new app on Scalingo using `scalingo` cli or using the [Scalingo dashboard](https://dashboard.scalingo.com/).
+Create an app with the `scalingo` CLI or the [Scalingo dashboard](https://dashboard.scalingo.com/).
 
 ## Step 2: Provision Addons
 
-Add the required PostgreSQL and Redis services.
+Add a PostgreSQL addon and a Redis addon, for caching and sessions. They set these environment variables automatically:
 
-This will set the following environment variables automatically:
 - `SCALINGO_POSTGRESQL_URL` - Database connection string
 - `SCALINGO_REDIS_URL` - Redis connection string
 
 ## Step 3: Configure Environment Variables
 
-Set the following environment variables in your Scalingo app:
-
 ### Buildpack Configuration
+
+Point the app at the buildpack, and tell it where Meet's backend, frontend, nginx config and build scripts are:
 
 ```bash
 scalingo env-set BUILDPACK_URL="https://github.com/suitenumerique/buildpack#main"
@@ -43,12 +36,16 @@ scalingo env-set LASUITE_SCRIPT_POSTFRONTEND="bin/buildpack_postfrontend.sh"
 
 ### Database and Cache
 
+Point Meet at the addons' URLs. The `\$` stops your shell from expanding the variable, so Scalingo receives the reference as written:
+
 ```bash
 scalingo env-set DATABASE_URL="\$SCALINGO_POSTGRESQL_URL"
 scalingo env-set REDIS_URL="\$SCALINGO_REDIS_URL"
 ```
 
 ### Django Settings
+
+Select the production configuration, and set a secret key and the app's hostname:
 
 ```bash
 scalingo env-set DJANGO_SETTINGS_MODULE="meet.settings"
@@ -59,10 +56,9 @@ scalingo env-set DJANGO_ALLOWED_HOSTS="my-meet-app.osc-fr1.scalingo.io"
 
 ### OIDC Authentication
 
-Configure your OIDC provider (e.g., Keycloak, Authentik):
+Point Meet at your OIDC provider, Keycloak or Authentik for example, and at its client for Meet:
 
 ```bash
-scalingo env-set OIDC_OP_BASE_URL="https://auth.yourdomain.com/realms/meet"
 scalingo env-set OIDC_OP_JWKS_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/certs"
 scalingo env-set OIDC_OP_AUTHORIZATION_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/auth"
 scalingo env-set OIDC_OP_TOKEN_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/token"
@@ -75,7 +71,7 @@ scalingo env-set OIDC_RP_SIGN_ALGO="RS256"
 
 ### LiveKit Configuration
 
-Meet requires a LiveKit server for video conferencing:
+Meet requires a LiveKit server for video conferencing, which this guide does not deploy. Run it elsewhere, with [LiveKit on Kubernetes](kubernetes/helm.md#livekit-on-kubernetes) or the `livekit` service of the [Docker Compose stack](compose/deployment-guide.md#stack-3-meet-core), then point Meet at it:
 
 ```bash
 scalingo env-set LIVEKIT_API_URL="https://livekit.yourdomain.com"
@@ -89,7 +85,7 @@ Follow the Scalingo section of [Email (SMTP)](configuration/email.md#scalingo-se
 
 ## Step 4: Deploy
 
-Deploy your application:
+Push the code to Scalingo, which builds and deploys it:
 
 ```bash
 git push scalingo main
@@ -103,6 +99,8 @@ On deploy, the buildpack and the Procfile:
 5. Run database migrations via the `postdeploy` process, before the app goes live
 6. Start Nginx and Gunicorn (`web` process)
 
+At runtime, `bin/buildpack_start.sh` runs both processes in the `web` container: Nginx serves the built frontend and proxies `/api/` and `/admin/` to Gunicorn, which runs Django.
+
 ## Step 5: Create superuser
 
 After the first deployment, create an admin user:
@@ -113,20 +111,18 @@ scalingo run python manage.py createsuperuser --email <admin email> --password '
 
 ## Custom Domain (Optional)
 
-To use a custom domain:
-
-1. Add the domain in Scalingo dashboard
-2. Update `DJANGO_ALLOWED_HOSTS` with your custom domain
-3. Configure your DNS to point to Scalingo
+Add the domain to the app, in the dashboard or with the first command, then list it in `DJANGO_ALLOWED_HOSTS` beside the Scalingo hostname:
 
 ```bash
 scalingo domains-add meet.yourdomain.com
 scalingo env-set DJANGO_ALLOWED_HOSTS="meet.yourdomain.com,my-meet-app.osc-fr1.scalingo.io"
 ```
 
+Then point your DNS to Scalingo.
+
 ## Custom Logo (Optional)
 
-To use a custom logo, set the `CUSTOM_LOGO_URL` environment variable with an HTTPS URL pointing to an SVG item (max 5MB):
+Set `CUSTOM_LOGO_URL` to the HTTPS URL of an SVG file, 5 MB at most:
 
 ```bash
 scalingo env-set CUSTOM_LOGO_URL="https://cdn.yourdomain.com/logo.svg"
@@ -134,44 +130,13 @@ scalingo env-set CUSTOM_LOGO_URL="https://cdn.yourdomain.com/logo.svg"
 
 ## Troubleshooting
 
-### Check Logs
+Follow the app's logs while you reproduce the problem:
 
 ```bash
 scalingo logs --tail
 ```
 
-### Common Issues
-
-1. **Build fails**: Check that all required environment variables are set
-2. **Database connection error**: Verify `DATABASE_URL` is correctly set to `$SCALINGO_POSTGRESQL_URL`
-3. **Static files not served**: Ensure the buildpack post-frontend script ran successfully
-4. **OIDC errors**: Verify your OIDC provider configuration and callback URLs
-
-### Useful Commands
-
-```bash
-# Open a console
-scalingo run bash
-
-# Restart the app
-scalingo restart
-
-# Scale containers
-scalingo scale web:2
-
-# One-off command
-scalingo run python manage.py shell
-```
-
-## Architecture
-
-On Scalingo, the application runs as follows:
-
-1. **Build Phase**: The buildpack compiles both frontend and backend
-2. **Runtime**:
-   - Nginx serves static files and proxies to the backend
-   - Gunicorn runs the Django WSGI application
-   - Both processes are managed by the `bin/buildpack_start.sh` script
+Common problems and their fixes are in [Troubleshooting](../reference/troubleshooting.md).
 
 ## Additional Resources
 

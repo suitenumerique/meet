@@ -31,7 +31,7 @@ mounts `docker/files/production/default.conf.template` needs them in its
 
 ### Purging deleted rooms
 
-Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/features/room-purge.md).
+Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/self-hosting/configuration/room-purge.md).
 
 - Inactive soft-deleted rooms are purged along with the other inactive rooms: if `ROOM_INACTIVITY_DELETION_DAYS` is already set, nothing else is needed.
 - The new `ROOM_DELETED_RETENTION_DAYS` setting purges soft-deleted rooms that many days after their deletion, whether they are inactive or not. It is unset by default.
@@ -211,14 +211,14 @@ Before enabling it:
 - `encoding` is accepted but ignored for `transcript` recordings, whose audio-only
   egress has no video encoding to configure.
 
-See [docs/features/recording.md](docs/features/recording.md#tuning-recording-encoding)
+See [docs/self-hosting/configuration/recording.md](docs/self-hosting/configuration/recording.md#configuring-recording-encoding)
 for the full setting reference, the shipped profile table and the tuning caveats.
 
 ## v1.33.0
 
 ### Purging inactive rooms
 
-Rooms now keep track of the last time they were started (`last_started_at`), fed by LiveKit's `room_started` webhook. A new `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for `ROOM_INACTIVITY_DELETION_DAYS` days. See [the room purge documentation](docs/features/room-purge.md).
+Rooms now keep track of the last time they were started (`last_started_at`), fed by LiveKit's `room_started` webhook. A new `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for `ROOM_INACTIVITY_DELETION_DAYS` days. See [the room purge documentation](docs/self-hosting/configuration/room-purge.md).
 
 - The feature is **disabled by default**: nothing is deleted unless you set `ROOM_INACTIVITY_DELETION_DAYS`.
 - The migration marks every existing room as started at the time of the upgrade, so no existing room can be purged before a full inactivity period has elapsed after upgrading.

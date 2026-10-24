@@ -1,64 +1,49 @@
-# Accessibility
+# Accessibility & Shortcuts
 
-LaSuite Meet supports keyboard-only navigation and screen readers, and targets WCAG.
+Meet works with a keyboard alone and with screen readers, and targets WCAG AA.
 
-## Keyboard navigation
+## Keyboard
 
-The entire interface is navigable by keyboard:
+`Tab` and `Shift+Tab` move between controls, `Enter` or `Space` activates one, the arrow keys move inside toolbars, menus and panels, and `Escape` closes a dialog or panel. A **skip link** at the top of the page jumps to the main content. A dialog takes focus when it opens and gives it back to the button that opened it.
 
-- **Tab** / **Shift+Tab**: Move between interactive elements
-- **Enter** / **Space**: Activate buttons and controls
-- **Arrow keys**: Navigate within toolbars and panels
-- **Escape**: Close dialogs and panels
+<figure markdown="span">
+  ![Keyboard shortcuts panel](../assets/keyboard-shortcuts.png)
+  <figcaption>Settings → Shortcuts</figcaption>
+</figure>
 
-A **skip link** appears at the top of the page on keyboard focus, allowing keyboard users to jump directly to the main content.
+| Action | Shortcut |
+|---|---|
+| Show every shortcut | `Ctrl+Shift+/` |
+| Focus the bottom toolbar | `F2` |
+| Focus the page buttons, when participants fill more than one page | `Ctrl+Shift+G` |
+| Microphone on or off | `Ctrl+D` |
+| Camera on or off | `Ctrl+E` |
+| Talk while muted | Hold `V` |
+| Reactions | `Ctrl+Shift+E` |
+| Fullscreen | `Ctrl+Shift+F` |
+| Recording panel | `Ctrl+Shift+L` |
+| Raise or lower your hand | `Ctrl+Shift+H` |
+| Chat | `Ctrl+Shift+M` |
+| Participants panel | `Ctrl+Shift+P` |
+| Zoom in or out on a shared screen, while it has focus | `+`, `-` |
+| Fit a zoomed shared screen to the window | `0` |
+| Move around a zoomed shared screen | Arrow keys |
 
-## Screen reader support
+On a Mac, `Ctrl` is `⌘`. The zoom controls are in [Zooming into a shared screen](features-controls.md#zooming-into-a-shared-screen).
 
-Meet uses semantic HTML and ARIA attributes throughout:
+## Screen readers
 
-- All buttons have accessible names
-- State changes (mute/unmute, recording start/stop) are announced via ARIA live regions
-- Reactions sent by others are announced ("Antoine reacted with 👍")
-- Participant join/leave events are announced
-- The document title updates dynamically when connected to a meeting
-- The HTML `lang` attribute updates with the selected language
+The screen reader announces mute and unmute, a recording starting or stopping, people joining, new chat messages while the chat is closed, and the zoom level of a shared screen as it changes. To hear others' reactions too ("Alice: thumbs up"), turn on **Announce reactions aloud** in **Settings → Accessibility**. The tab title shows the room code.
 
-Common screen readers: NVDA and JAWS on Windows, VoiceOver on macOS and iOS, TalkBack on Android.
+## Display
 
-## Caption customization
+In **Settings → Accessibility**:
 
-When real-time subtitles are active, captions can be customized:
+- **Display font**: Lexend for readability, Atkinson Hyperlegible for low vision, OpenDyslexic for dyslexia
+- **Captions**: text size (small, medium, large), and text and background colour from a palette of 9, for [real-time subtitles](recording.md#real-time-subtitles)
 
-1. Go to **Settings → Accessibility**
-2. Adjust:
-   - **Text size**: Small / Medium / Large
-   - **Text color**: Choose from a fixed palette of 9 colors (default, white, black, blue, green, red, yellow, cyan, magenta)
-   - **Background color**: Choose from the same palette (default is transparent)
+Meet turns off its animations when your system asks for reduced motion.
 
-## Reduced motion
+## Reporting a problem
 
-Meet respects the `prefers-reduced-motion` media query. When this is active in your OS settings, all animations and transitions are disabled via CSS (styles/index.css:68-73).
-
-## High contrast
-
-Interactive elements target WCAG AA contrast, and selected states, focus rings and disabled states are visually distinct.
-
-## Focus management
-
-- Opening a dialog moves focus inside it
-- Closing a dialog returns focus to the trigger element
-- The reactions toolbar can be focused with `Ctrl+Shift+E` and navigated with arrow keys
-- The side panel (chat, participants, transcript) has keyboard-accessible navigation
-
-## Keyboard shortcuts
-
-A dedicated shortcuts panel is available at `Ctrl+Shift+/`. For the full list, see [Keyboard Shortcuts](keyboard-shortcuts.md).
-
-## Reporting accessibility issues
-
-If you encounter an accessibility barrier, please open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) with the label `accessibility`. Include:
-
-- Browser and assistive technology version
-- Steps to reproduce
-- Expected vs. actual behavior
+Open an [issue on GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) with "accessibility" in its title. Give your browser, your assistive technology and its version, and the steps that lead to the problem.

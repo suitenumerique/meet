@@ -1,224 +1,77 @@
 # Firewall & Ports
 
-This page lists every port Meet needs and gives ready-to-use firewall rules for each configuration.
+Every port Meet needs is on this page. Open each one to any address (`0.0.0.0/0`) in your cloud provider's security group, or in [the host firewall](#the-host-firewall).
 
----
+## Ports to open
 
-## Which ports does Meet need?
-
-Meet has two categories of traffic:
-
-**Web traffic** - handled entirely by your reverse proxy. These ports are always required regardless of LiveKit configuration:
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 80 | TCP | HTTP: Let's Encrypt ACME challenge + redirect to HTTPS |
-| 443 | TCP | HTTPS: Meet frontend, backend API, LiveKit WebSocket, Keycloak |
-
-**LiveKit media** - WebRTC audio and video go directly between participants and the LiveKit server, bypassing the reverse proxy. The ports you need depend on your [LiveKit UDP strategy](livekit.md#udp-port-strategy) and whether you use [TURN](turn.md).
-
----
-
-## Configuration A: Single UDP port (default)
-
-The standard Docker Compose setup. Open two ports beyond 80/443:
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 7881 | TCP | WebRTC media TCP fallback (used when a participant's network blocks UDP) |
-| 7882 | UDP | WebRTC media - all audio and video streams multiplexed here |
-
-!!!info
-    `7882/UDP` is the critical port. If it is blocked, ICE falls back to the TCP candidate (7881), at the cost of higher latency. If TCP is blocked too, ICE negotiation fails and the participant cannot connect at all.
-
----
-
-## Configuration B: UDP port range
-
-If you use `port_range_start`/`port_range_end` in `livekit-server.yaml` instead of a fixed `udp_port`:
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 7881 | TCP | WebRTC media TCP fallback |
-| 50000–60000 | UDP | WebRTC media - LiveKit picks a port per ICE session from this range |
-
-Replace `50000–60000` with whatever range you configured.
-
----
-
-## Configuration C: TURN on 443/UDP
-
-When [TURN](turn.md) is enabled, media is relayed through port 443/UDP. This replaces the direct media ports for participants who would otherwise be blocked:
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 443 | UDP | TURN relay - all media for TURN clients routed here |
-| 7881 | TCP | WebRTC media TCP fallback (still needed for direct connections) |
-| 7882 | UDP | WebRTC media for direct connections (still used when available) |
-
-!!!info
-    Port 443/TCP and 443/UDP are independent sockets on Linux. Your reverse proxy holds 443/TCP; LiveKit holds 443/UDP. They do not conflict.
-
----
-
-## Configuration D: TURN over TLS on 5349
-
-If you additionally enable [TURN over TLS](turn.md#option-2-turn-over-tls-for-udp-blocked-networks) for participants who block all UDP:
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 5349 | TCP | TURN/TLS - media tunnelled over HTTPS for UDP-blocked clients |
-
-Add this on top of Configuration C.
-
----
-
-## Ports that must NOT be exposed publicly
-
-| Port | Service | Reason |
-|---|---|---|
-| 7880 | LiveKit | WebSocket entry point - proxied via your reverse proxy on 443 |
-| 5432 | PostgreSQL | Database - internal only |
-| 6379 | Redis | Cache/broker - internal only |
-| 8000 | Django backend | API - proxied via frontend nginx |
-| 8080 | Frontend SPA / Keycloak | Proxied via your reverse proxy |
-| 8083 | Frontend nginx | Proxied via your reverse proxy |
-| 9000/9001 | MinIO | Object storage - internal only |
-| 3900/3901 | Garage | Object storage - internal only |
-
----
-
-## Firewall rules
-
-### Cloud provider security groups (AWS, Hetzner, OVH, etc.)
-
-The exact UI varies by provider, but the rule pattern is the same. For **Configuration A** (single UDP port, no TURN):
-
-| Direction | Protocol | Port | Source |
+| Port | Protocol | Needed when | Carries |
 |---|---|---|---|
-| Inbound | TCP | 80 | 0.0.0.0/0 |
-| Inbound | TCP | 443 | 0.0.0.0/0 |
-| Inbound | TCP | 7881 | 0.0.0.0/0 |
-| Inbound | UDP | 7882 | 0.0.0.0/0 |
+| 80 | TCP | Always | Let's Encrypt challenges, and the redirect to HTTPS |
+| 443 | TCP | Always | HTTPS for Meet, its API, LiveKit's signalling WebSocket and Keycloak |
+| 7881 | TCP | Always | Media, for participants whose network blocks UDP |
+| 7882 | UDP | Always, with the default single media port | All audio and video |
+| 50000–60000 | UDP | Instead of 7882, if you chose a [port range](livekit.md#the-media-port) | All audio and video |
+| 443 | UDP | With [TURN over UDP](livekit.md#turn-over-udp-on-443) | Relayed media |
+| 5349 | TCP | With [TURN over TLS](livekit.md#turn-over-tls) | Relayed media, inside TLS |
+| 5060 | UDP | With [telephony](telephony.md) | SIP signalling from your phone provider |
+| 10000–20000 | UDP | With telephony | Phone call audio |
 
-For **Configuration C** (TURN on 443/UDP):
+How the browser picks between 7882, 7881 and TURN is in [LiveKit & TURN](livekit.md#how-media-connects), and LiveKit's own list is in its [ports and firewall](https://docs.livekit.io/home/self-hosting/ports-firewall/) guide.
 
-| Direction | Protocol | Port | Source |
-|---|---|---|---|
-| Inbound | TCP | 80 | 0.0.0.0/0 |
-| Inbound | TCP | 443 | 0.0.0.0/0 |
-| Inbound | UDP | 443 | 0.0.0.0/0 |
-| Inbound | TCP | 7881 | 0.0.0.0/0 |
-| Inbound | UDP | 7882 | 0.0.0.0/0 |
+## Never public
 
-For **Configuration D** (TURN over TLS, add to C):
+| Port | Service |
+|---|---|
+| 7880 | LiveKit's signalling, reached only through the reverse proxy |
+| 8083 | The frontend's nginx, reached only through the reverse proxy |
+| 8080 | Keycloak, reached only through the reverse proxy |
+| 8000 | The Django backend, reached only through the frontend's nginx |
+| 5432 | PostgreSQL |
+| 6379 | Redis |
+| 9000 | Garage's S3 API, when you run it for recording |
 
-| Direction | Protocol | Port | Source |
-|---|---|---|---|
-| Inbound | TCP | 5349 | 0.0.0.0/0 |
+The Docker Compose files publish none of these.
 
----
+## The host firewall
 
-### Linux - ufw
+Docker opens every port a container publishes with firewall rules of its own, which take precedence over ufw and firewalld. With Docker Compose, a container publishes every port of the first table, so:
 
-First check whether ufw is active:
+- ufw or firewalld rules cannot open or close those ports. Your cloud provider's security group is what filters them.
+- A port that must stay closed must not be published at all. This is why the second table's ports are not.
 
-```bash
-sudo ufw status
-```
+The host firewall matters for a port Docker does not publish. LiveKit on Kubernetes is one: it listens on the node's own network. Open its ports as for any service:
 
-If it is inactive, the OS firewall is not blocking anything and only your cloud provider's security group rules matter. If it is active, add rules to match your configuration.
+=== "ufw"
 
-**Configuration A** (single UDP port, no TURN):
+    ```bash
+    sudo ufw allow 7881/tcp
+    sudo ufw allow 7882/udp
+    sudo ufw allow 443/udp     # with TURN over UDP
+    sudo ufw allow 5349/tcp    # with TURN over TLS
+    sudo ufw reload
+    ```
 
-```bash
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw allow 7881/tcp
-sudo ufw allow 7882/udp
-sudo ufw reload
-```
+=== "firewalld"
 
-**Configuration B** (port range):
+    ```bash
+    sudo firewall-cmd --permanent --add-port=7881/tcp
+    sudo firewall-cmd --permanent --add-port=7882/udp
+    sudo firewall-cmd --permanent --add-port=443/udp     # with TURN over UDP
+    sudo firewall-cmd --permanent --add-port=5349/tcp    # with TURN over TLS
+    sudo firewall-cmd --reload
+    ```
 
-```bash
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw allow 7881/tcp
-sudo ufw allow 50000:60000/udp
-sudo ufw reload
-```
+Replace `7882/udp` with your range if you chose one.
 
-**Configuration C** (add TURN):
+## Check the ports
 
-```bash
-sudo ufw allow 443/udp
-sudo ufw reload
-```
-
-**Configuration D** (add TURN/TLS):
-
-```bash
-sudo ufw allow 5349/tcp
-sudo ufw reload
-```
-
----
-
-### Linux - firewalld
-
-For Fedora, RHEL, Rocky, AlmaLinux:
+From another machine, a TCP port answers when it is open:
 
 ```bash
-# Configuration A
-sudo firewall-cmd --zone=public --permanent --add-port=80/tcp
-sudo firewall-cmd --zone=public --permanent --add-port=443/tcp
-sudo firewall-cmd --zone=public --permanent --add-port=7881/tcp
-sudo firewall-cmd --zone=public --permanent --add-port=7882/udp
-sudo firewall-cmd --reload
-
-# Add for TURN (Configuration C)
-sudo firewall-cmd --zone=public --permanent --add-port=443/udp
-sudo firewall-cmd --reload
-
-# Add for TURN/TLS (Configuration D)
-sudo firewall-cmd --zone=public --permanent --add-port=5349/tcp
-sudo firewall-cmd --reload
+nc -zv meet.example.com 443
+nc -zv meet.example.com 7881
 ```
 
----
+`nc -zuv` cannot prove a UDP port is open: it reports success whenever nothing answers back. To test 7882/UDP, hold a real call between two devices on different networks.
 
-## Verifying ports are open
-
-From another machine, test that the ports are reachable:
-
-```bash
-# Test TCP ports (nc exits immediately on success)
-nc -zv your-server.example.com 443
-nc -zv your-server.example.com 7881
-
-# Test UDP reachability (sends one packet, listens briefly)
-nc -zuv your-server.example.com 7882
-```
-
-From inside the server, confirm the media ports are published. With Docker Compose, `docker-proxy` owns them rather than LiveKit:
-
-```bash
-docker compose ps livekit
-ss -tulpn | grep -E ':788[12]'
-```
-
-Expected for Configuration A: `7881/tcp` and `7882/udp`, owned by `docker-proxy`.
-
----
-
-## Telephony (SIP) - additional ports
-
-If you enable [telephony](telephony.md), two additional port ranges must be open:
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 5060 | UDP | SIP signaling |
-| 10000–20000 | UDP | RTP media for SIP audio |
-
-These are only needed if you run the `livekit-sip` service.
+On the server, `docker compose ps livekit` lists the published ports, and `ss -tulpn | grep -E ':788[12]'` shows `docker-proxy` holding them.

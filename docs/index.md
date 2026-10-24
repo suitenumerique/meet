@@ -6,61 +6,41 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet delivers HD audio and vide
 
 [![GitHub Stars](https://img.shields.io/github/stars/suitenumerique/meet)](https://github.com/suitenumerique/meet/stargazers/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md)
-[![License: MIT](https://img.shields.io/github/license/suitenumerique/meet)](https://github.com/suitenumerique/meet/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/github/license/suitenumerique/meet)](https://github.com/suitenumerique/meet/blob/main/LICENSE.md)
 [![Matrix](https://img.shields.io/badge/chat-matrix-blue)](https://matrix.to/#/#meet-official:matrix.org)
 
-![LaSuite Meet in action](assets/demo.gif)
-
-## Why Meet
-
-Most video conferencing solutions are either proprietary (Zoom, Teams, Google Meet) or Open Source but difficult to self-host and scale (Jitsi, BigBlueButton). Meet is Open Source and built to self-host at scale:
-
-- **Production-grade quality**: used at national scale by millions of French public servants
-- **Fully open source**: MIT license, all features remain open
-- **Self-hostable**: Docker Compose for small deployments, Kubernetes for production scale
-- **No vendor lock-in**: you own your data, your infrastructure, your instance
+<figure markdown="span">
+  ![LaSuite Meet in action](assets/demo.gif)
+  <figcaption>A meeting in LaSuite Meet</figcaption>
+</figure>
 
 ## Features
 
-- **HD video and audio**: noise suppression, adaptive bitrate, Opus codec
-- **Large meetings**: tested in production with 150+ participants
-- **Multiple screen shares**: any number of participants can share simultaneously
-- **Non-persistent chat**: history is cleared when the meeting ends, with [one exception](faq.md#is-chat-history-stored)
-- **Emoji reactions & hand raise**: without unmuting
-- **Meeting recording**: stored to S3-compatible storage; download link sent by email
-- **Transcription & AI summary** *(beta)*: speech-to-text with optional LLM summarization
-- **Telephony / SIP**: dial in by phone with a PIN
-- **OIDC / SSO**: Keycloak, Authentik, Google, Microsoft, ProConnect
-- **Virtual backgrounds**: blur or custom image, uploadable
-- **Lobby / waiting room**: host controls who enters
-- **Full keyboard navigation and screen reader support** (WCAG)
+- **HD audio and video** in the browser, with noise suppression and quality that adapts to each connection
+- **Large meetings**, built for more than 100 participants
+- **Several screen shares at once**, each one zoomable
+- **Chat, emoji reactions and raised hands**, with nothing kept after the meeting, see [What is stored where](overview/how-meet-works.md#what-is-stored-where)
+- **Waiting room** and three access levels, so the host decides who comes in
+- **Recording** to S3-compatible storage, with the download link sent by email
+- **Transcription and AI summary** *(beta)*, delivered to LaSuite Docs
+- **Real-time subtitles** *(beta)*
+- **Dial-in by phone** with a PIN
+- **Sign-in through any OpenID Connect provider**
+- **Virtual backgrounds**: blur or an image
+- **Keyboard navigation and screen reader support**
 
-Where each one is, who can use it, and what the instance must enable: [Features & Controls](user/features-controls.md).
+Every feature is in the open source code. Meet runs on Docker Compose for a single server or on Kubernetes at scale.
 
----
+## Where to start
 
-## Using Meet
-
-- [Getting started](user/getting-started.md)
-- [Features & Controls](user/features-controls.md)
-- [Settings](user/settings.md)
-- [Recording](user/recording.md)
-- [AI Transcription](user/transcription.md)
-- [FAQ](faq.md)
-
-## Self-hosting
-
-Docker Compose for a single server, Kubernetes for high availability, or Scalingo: [Self-Hosting](self-hosting/index.md) compares them and lists what each needs.
-
-## Contributing
-
-- [Repository structure](contributing/repo-structure.md)
-- [Local development setup](contributing/local-dev.md)
-- [Backend development](contributing/backend.md)
-- [Frontend development](contributing/frontend.md)
-- [Pull requests](contributing/pull-requests.md)
-
----
+| You want to | Read |
+|---|---|
+| Use Meet | [Getting Started](user/getting-started.md), then [Features & Controls](user/features-controls.md) |
+| Understand how it works | [How Meet works](overview/how-meet-works.md) |
+| Run your own instance | [Self-Hosting](self-hosting/index.md), which compares Docker Compose, Kubernetes and Scalingo |
+| Connect another application | [External API](reference/external-api.md) |
+| Change the code | [Develop locally](contributing/develop.md) |
+| Look up a setting or fix a problem | [Environment Variables](reference/env-variables.md), [Troubleshooting](reference/troubleshooting.md) |
 
 ## Known public instances
 
@@ -68,18 +48,11 @@ Docker Compose for a single server, Kubernetes for high availability, or Scaling
 |---|---|---|
 | [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/) | DINUM | French central administration (ProConnect required) |
 | [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT | French territorial administration (ProConnect required) |
-| [visio.lasuite.coop](https://visio.lasuite.coop/) | lasuite.coop | Open demo, accounts reset monthly |
+| [visio.lasuite.coop](https://visio.lasuite.coop/) | lasuite.coop | Demo: test accounts from [lasuite.coop](https://lasuite.coop/applications/demo/), deleted after a month |
 | [mosa.cloud](https://mosa.cloud/) | mosa.cloud | Dutch commercial instance |
 | [Clever Cloud](https://www.clever.cloud/product/visio/) | Clever Cloud | Openvisio, a sovereign video conferencing offer based on LaSuite Meet |
 | [Email.eu](https://email.eu/) | Email.eu | Sovereign business workspace |
 | [visio.samourai.app](https://visio.samourai.app/) | Samouraï | French cooperative instance, guests join by link |
-
-## Reference
-
-- [How Meet works](overview/how-meet-works.md)
-- [Environment variables](reference/env-variables.md)
-- [API reference](reference/api.md)
-- [Troubleshooting](reference/troubleshooting.md)
 
 ## Community and support
 
@@ -88,6 +61,10 @@ Docker Compose for a single server, Kubernetes for high availability, or Scaling
 - **GitHub Discussions**: [github.com/suitenumerique/meet/discussions](https://github.com/suitenumerique/meet/discussions)
 - **Roadmap**: [GitHub Projects](https://github.com/orgs/suitenumerique/projects/3/views/2)
 - **Source code**: [github.com/suitenumerique/meet](https://github.com/suitenumerique/meet)
+
+## Reporting a vulnerability
+
+Report a security problem privately, through the [vulnerability report form](https://vdp.numerique.gouv.fr/p/Send-a-report?lang=en) or by email to `visio@numerique.gouv.fr`, never in a public issue or pull request. The maintainers fix it first, then name it in the release notes with its GitHub advisory number and, where one exists, its CVE. The full policy is [SECURITY.md](https://github.com/suitenumerique/meet/blob/main/SECURITY.md).
 
 ## License
 

@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide sets up Meet across three separate Docker Compose stacks, each in its own directory. You can skip any stack you already have.
+This guide sets up Meet as three Docker Compose stacks, each in its own directory, managed, upgraded and restarted separately:
 
 ```
 ~/docker/
@@ -9,20 +9,20 @@ This guide sets up Meet across three separate Docker Compose stacks, each in its
   meet/          ← Meet core
 ```
 
-Each stack is independent: you manage, upgrade, and restart them separately. They communicate through two Docker networks:
+They communicate through two Docker networks:
 
 - `proxy` - external, shared between all stacks, used by the reverse proxy for routing
 - `internal` - created per-stack, for service-to-service communication within each stack
 
-The Meet backend (Stack 3) sits on `internal` only. It reaches `auth.example.com` and `livekit.example.com` for OIDC token exchange and LiveKit API calls through their public DNS records, like any other client. It never gets a `VIRTUAL_HOST` or proxy label itself - it's only reached via the frontend container's internal nginx.
+The Meet backend (Stack 3) joins `internal` only and reaches the identity provider and LiveKit at their public addresses, see [Networking](../../reference/networking.md).
 
-**Prerequisites:** Complete the [Prerequisites](prerequisites.md) checklist first. DNS must resolve before you start - Let's Encrypt needs it.
+**Prerequisites:** Complete the [Prerequisites](prerequisites.md) checklist first, including the [DNS records](prerequisites.md#domain-name).
 
 ---
 
 ## Before you start: configure your domains
 
-All three stacks share the same domain names and Let's Encrypt email. Download the hosts file once and edit it - each stack will copy it in later.
+All three stacks share the same domain names and Let's Encrypt email, kept in one hosts file that each stack copies in later. Create `~/docker` and download that file into it:
 
 ```bash
 RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
@@ -31,47 +31,44 @@ mkdir -p ~/docker && cd ~/docker
 curl -fsSL -o hosts ${RAW}/env.d/production.dist/hosts
 ```
 
-Edit `~/docker/hosts`:
+Edit the four host and email lines of `~/docker/hosts`, and keep `REALM_NAME=meet`: the OIDC endpoints in `env.d/common` are built from it.
 
 ```dotenv
 MEET_HOST=meet.example.com
 IDP_HOST=auth.example.com
 LIVEKIT_HOST=livekit.example.com
+REALM_NAME=meet
 LETSENCRYPT_EMAIL=you@example.com
 ```
 
-| Record | Purpose |
-|---|---|
-| `meet.example.com` | Meet frontend + API |
-| `auth.example.com` | Keycloak |
-| `livekit.example.com` | LiveKit WebSocket |
+Each stack's `compose.yml` declares the `proxy` network as external, so Compose expects it to exist. Create it once, before the first stack:
 
-All three domains must have DNS A records pointing to your server before you proceed. Let's Encrypt verifies DNS during certificate issuance.
+```bash
+docker network create proxy
+```
 
 ---
 
 ## Stack 1: Reverse proxy
 
-Skip this section if you already have a reverse proxy running and attached to the `proxy` network.
-
-Follow [Reverse Proxy](reverse-proxy.md), with nginx-proxy + acme-companion (recommended for new deployments) or Traefik. It covers the full setup, how Meet services integrate, and troubleshooting.
-
-Once your proxy is running, continue to Stack 2.
+Already have a reverse proxy? Check it routes what [Reverse Proxy](reverse-proxy.md) lists, and skip to Stack 2. Otherwise, set up [nginx-proxy or Traefik](reverse-proxy.md#nginx-proxy-or-traefik).
 
 ---
 
 ## Stack 2: Identity provider
 
-Meet logs users in through any OIDC provider. Whichever you use, register a confidential client for Meet with the redirect URI, the post-logout redirect URI and the web origin that [SSO: Client configuration](../configuration/sso.md#client-configuration) lists, then note the provider's endpoints and the client secret for Stack 3. [SSO & Authentication](../configuration/sso.md) gives the values for Authentik, Google and others.
+Meet logs users in through any OIDC provider. In it, register a confidential client for Meet with the three URIs in [SSO: Client configuration](../configuration/sso.md#client-configuration): redirect, post-logout redirect and web origin. Note the provider's endpoints and the client secret for Stack 3. [SSO & Authentication](../configuration/sso.md) gives the values for Authentik, Google and others.
 
-If you already run a provider, skip to Stack 3.
+Already run a provider? Register the client there and skip to Stack 3.
 
-### Quick start: Keycloak
+### Keycloak
 
 This runs Keycloak on the same server, with a realm already holding Meet's client.
 
 !!! warning
-    Before production, harden this Keycloak per the [official Keycloak documentation](https://www.keycloak.org/documentation).
+    This Keycloak serves its admin console on the public `https://${IDP_HOST}`. Before production, harden it per the [official Keycloak documentation](https://www.keycloak.org/documentation).
+
+Download the stack's compose file, its realm and its env templates, and copy the hosts file in as `.env`:
 
 ```bash
 mkdir -p ~/docker/keycloak/env.d && cd ~/docker/keycloak
@@ -118,13 +115,13 @@ sed -i "s|POSTGRES_PASSWORD=<generate postgres password>|POSTGRES_PASSWORD=${KC_
 `env.d/kc_postgresql` sets `KC_DB_PASSWORD=${POSTGRES_PASSWORD}` - Compose reads that from the value above, so `KC_DB_PASSWORD` needs no `sed` of its own.
 
 !!!tip "Shortcut"
-    [`generate-secrets.sh`](https://github.com/suitenumerique/meet/blob/main/docs/generate-secrets.sh) automates the `openssl`/`sed` pair above (and only that pair - it doesn't touch `keycloak-realm.json`):
+    [`generate-secrets.sh`](https://github.com/suitenumerique/meet/blob/main/docs/generate-secrets.sh) automates the two `sed` lines above:
     ```bash
     curl -fsSL -o generate-secrets.sh ${RAW}/docs/generate-secrets.sh
     chmod +x generate-secrets.sh
     ./generate-secrets.sh env.d/
     ```
-    Still generate `KC_CLIENT_SECRET` and `MEET_ADMIN_PASSWORD` yourself either way - both go into `keycloak-realm.json` below, which the script doesn't handle.
+    It doesn't touch `keycloak-realm.json`, so still generate `KC_CLIENT_SECRET` and `MEET_ADMIN_PASSWORD` yourself: both go into that file below.
 
 !!! warning
     The realm ships with a placeholder password for the `meet-admin` user. Keycloak is on a public
@@ -145,7 +142,7 @@ sed -i "s|MEET_ADMIN_PASSWORD_PLACEHOLDER|${MEET_ADMIN_PASSWORD}|" keycloak-real
 
 Note down `MEET_ADMIN_PASSWORD` and `KC_CLIENT_SECRET` now - neither is stored in any `env.d/` file, and you'll need `KC_CLIENT_SECRET` again in Stack 3.
 
-Start:
+Start the stack in the background:
 
 ```bash
 docker compose up -d
@@ -158,13 +155,15 @@ docker compose ps   # keycloak should show 'healthy'
 ```
 
 !!! info
-    The admin console is at `https://${IDP_HOST}`. Log in with `admin` / `${KC_ADMIN_PASSWORD}`.
+    The admin console is at `https://${IDP_HOST}`. Log in with `admin` and the `KC_BOOTSTRAP_ADMIN_PASSWORD` value in `env.d/keycloak`.
     The Meet user is `meet-admin` / `${MEET_ADMIN_PASSWORD}` (the value you generated above). Keycloak
     will prompt for a new password on first login.
 
 ---
 
 ## Stack 3: Meet core
+
+Download Meet's compose file, the LiveKit config, the frontend's routing config and the env templates, and copy the hosts file in as `.env`:
 
 ```bash
 mkdir -p ~/docker/meet/env.d && cd ~/docker/meet
@@ -178,6 +177,13 @@ curl -fsSL -o nginx-routing.conf  ${RAW}/docs/examples/meet/nginx-routing.conf
 curl -fsSL -o env.d/common     ${RAW}/env.d/production.dist/common
 curl -fsSL -o env.d/postgresql ${RAW}/env.d/production.dist/postgresql
 cp ~/docker/hosts .env
+```
+
+LiveKit sends room and participant events to the backend's webhook URL in `livekit-server.yaml`; the lobby, presence, telephony and recording rely on them. Write your host into that URL: the first line loads `MEET_HOST` from `.env` into your shell, the second replaces it in the file.
+
+```bash
+set -a; . ./.env; set +a
+sed -i "s|meet\.example\.com|${MEET_HOST}|" livekit-server.yaml
 ```
 
 Copy the proxy override:
@@ -196,13 +202,15 @@ Copy the proxy override:
       ${RAW}/docs/examples/meet/docker-compose.override.yml.traefik
     ```
 
-If using Keycloak from Stack 2, set the OIDC client secret in `env.d/common`, using the `KC_CLIENT_SECRET` value you noted down earlier:
+With Stack 2's Keycloak, write its client secret into `env.d/common`. In a new shell, first set it again with `KC_CLIENT_SECRET=<the value you noted>`:
 
 ```bash
-sed -i "s|OIDC_RP_CLIENT_SECRET=.*|OIDC_RP_CLIENT_SECRET=<KC_CLIENT_SECRET-you-noted-down>|" env.d/common
+sed -i "s|OIDC_RP_CLIENT_SECRET=.*|OIDC_RP_CLIENT_SECRET=${KC_CLIENT_SECRET}|" env.d/common
 ```
 
-If using an existing OIDC provider, set `OIDC_RP_CLIENT_SECRET` to that provider's client secret instead, along with the OIDC endpoints, in `env.d/common`. See [SSO & Authentication](../configuration/sso.md) for per-provider instructions. For documentation on every variable, see the [Environment Variables reference](../../reference/env-variables.md).
+With another provider, set `OIDC_RP_CLIENT_SECRET` to its client secret instead, and the OIDC endpoints, in `env.d/common`: [SSO & Authentication](../configuration/sso.md) has them per provider, and [Environment Variables](../../reference/env-variables.md) documents every variable.
+
+`env.d/common` sets `NUM_PROXIES=2`, for the reverse proxy and the frontend's nginx. A different proxy chain needs its own count, see [`NUM_PROXIES`](../../reference/env-variables.md#core).
 
 ### Generate secrets
 
@@ -226,8 +234,11 @@ sed -i "s|<your livekit secret key>|${LIVEKIT_API_SECRET}|" livekit-server.yaml
     chmod +x generate-secrets.sh
     ./generate-secrets.sh env.d/ livekit-server.yaml
     ```
+    Set the client secret above first: while `OIDC_RP_CLIENT_SECRET` still holds its placeholder, the script fills it with a random value that your identity provider does not know.
 
 ### Start
+
+Start the stack in the background:
 
 ```bash
 docker compose up -d
@@ -261,17 +272,17 @@ docker compose exec backend python manage.py createsuperuser \
 docker compose ps
 ```
 
-All services should show `running`:
+Every service shows `Up`; `backend` and `postgresql` also show `(healthy)`, since only those two have a health check.
 
+Then check each hostname answers over HTTPS with a valid certificate. Each command prints the HTTP status code, which should be `200`; the second applies only to the Keycloak stack:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://meet.example.com/
+curl -s -o /dev/null -w "%{http_code}\n" https://auth.example.com/realms/meet
+curl -s -o /dev/null -w "%{http_code}\n" https://livekit.example.com/
 ```
-NAME                    SERVICE      STATUS
-meet-backend-1          backend      running (healthy)
-meet-frontend-1         frontend     running
-meet-celery-1           celery       running
-meet-livekit-1          livekit      running
-meet-postgresql-1       postgresql   running (healthy)
-meet-redis-1            redis        running
-```
+
+A `000` means curl could not connect or rejected the certificate, often because it is not issued yet, see [TLS certificate not being issued](../../reference/troubleshooting.md#tls-certificate-not-being-issued).
 
 Open `https://meet.example.com`. You should be redirected to your identity provider and, after login, land on the Meet home page.
 
@@ -291,23 +302,24 @@ Required for recording download notifications. Follow the Docker Compose section
 
 **3. Configure TURN**
 
-Participants on corporate networks or VPNs may have no audio/video without TURN. See [TURN Server](../configuration/turn.md).
+Participants on corporate networks or VPNs may have no audio/video without TURN. See [TURN](../configuration/livekit.md#turn).
 
 **4. Review security**
 
 - Replace any placeholder value still left in `env.d/` or `keycloak-realm.json`
 - Decide who can join rooms without logging in, see [Unauthenticated access](../configuration/sso.md#unauthenticated-access)
-- Keep the LiveKit API secret 32+ characters - treat it like a database password
 - See [Security](../../reference/security.md)
 
 **5. Pin image versions**
 
-`compose.yml` resolves image tags from `MEET_VERSION` and `LIVEKIT_VERSION`, both defaulting to `latest` if unset (`image: lasuite/meet-backend:${MEET_VERSION:-latest}`). Pin them in `.env` instead of editing `compose.yml`:
+`compose.yml` resolves image tags from `MEET_VERSION` and `LIVEKIT_VERSION`, both defaulting to `latest` if unset (`image: lasuite/meet-backend:${MEET_VERSION:-latest}`). Pin them in `~/docker/meet/.env` instead of editing `compose.yml`:
 
 ```dotenv
-MEET_VERSION=v1.31.0
+MEET_VERSION=v1.36.3
 LIVEKIT_VERSION=v1.13.6
 ```
+
+Then apply the new tags from `~/docker/meet`:
 
 ```bash
 docker compose up -d
@@ -315,17 +327,15 @@ docker compose up -d
 
 Check the [changelog](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) for the latest stable version.
 
+The Keycloak stack reads `KEYCLOAK_VERSION` the same way: set it in `~/docker/keycloak/.env` to a tag from the [Keycloak releases](https://github.com/keycloak/keycloak/releases), then run `docker compose up -d` there. The proxy images have no such variable: pin them by adding a tag to each `image:` line in the proxy's `compose.yml`.
+
 **6. Set up database backups**
 
-```bash
-docker compose exec postgresql pg_dump -U meet meet > meet_backup_$(date +%Y%m%d).sql
-```
-
-Store backups off-server and test restoration before relying on them.
+Back up the database as in [Upgrading](../configuration/upgrade.md#before-upgrading); the restore is under [Rolling back](../configuration/upgrade.md#rolling-back). Store backups off-server and test restoration before relying on them.
 
 **7. Add features**
 
-- [Recording](../configuration/recording.md) - LiveKit Egress + MinIO
+- [Recording](../configuration/recording.md) - LiveKit Egress + Garage
 - [AI Transcription](../configuration/transcription.md)
 - [Upgrading](../configuration/upgrade.md)
 

@@ -1,13 +1,31 @@
 # Recording
 
-Room recording lets users record their meetings; when a recording is complete, the person who started it receives an email with a download link. `RECORDING_EXPIRATION_DAYS` only marks recordings as expired; deleting the files takes a lifecycle rule on the bucket.
+Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When the recording is complete, the person who started it and the room's owners and administrators (co-hosts in the meeting) each receive an email with a download link.
 
-Meet uses [LiveKit Egress](https://github.com/livekit/egress) to capture room audio and video and upload the result to S3-compatible storage.
+Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). `RECORDING_MAX_DURATION` is only the limit users see: Egress enforces it, so set the same limit in Egress. When Egress stops a recording at its limit, Meet saves the file as usual.
 
 **Known limitations:**
 
-- Recording layout is not configurable from the frontend. Egress captures the active speaker and any shared screens by default
-- Shareable links with an embedded video player are not yet supported
+- Layout is fixed to LiveKit's `speaker-light`.
+- Shareable links with an embedded video player are not yet supported.
+
+## Who can record
+
+| Room access level | Who can start and stop a recording |
+|---|---|
+| `public` or `trusted` | The room's owners and administrators, and any signed-in participant connected to the meeting |
+| `restricted` | The room's owners and administrators only |
+
+Set `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED=False` to reserve recording to the room's owners and administrators on every room. A participant who joined without signing in can never record.
+
+Meet copies the room's roles onto the recording when it starts, and later changes to the room do not affect it:
+
+| Person | Can watch and download | Can delete |
+|---|---|---|
+| The room's owners and administrators | Yes | Yes |
+| The person who started it, when not an owner or administrator | Yes | No |
+
+Starting a recording is rate-limited per user, by `START_RECORDING_THROTTLE_RATES` and the daily cap `START_RECORDING_DAILY_THROTTLE_RATES`. Stopping one is never limited.
 
 ## How it works
 
@@ -18,19 +36,19 @@ sequenceDiagram
     participant Backend as Django Backend
     participant LiveKit as LiveKit API
     participant Egress as LiveKit Egress
-    participant Storage as MinIO / S3
+    participant Storage as S3 storage
     participant Email as Email Service
 
     User->>Frontend: Click start recording
     Frontend->>Backend: POST /api/v1.0/rooms/{id}/start-recording/
     Backend->>LiveKit: Create egress request
     LiveKit->>Egress: Start room composite egress
-    Egress->>Storage: Join room and capture audio/video
+    Egress->>LiveKit: Join room, capture audio/video
     LiveKit-->>Backend: Return egress_id
     Backend-->>Frontend: HTTP 201: Recording started
     Frontend->>Frontend: Notify other participants
 
-    Note over Egress,Storage: Recording in progress…
+    Note over LiveKit,Egress: Recording in progress…
 
     User->>Frontend: Click stop recording
     Frontend->>Backend: POST /api/v1.0/rooms/{id}/stop-recording/
@@ -38,92 +56,177 @@ sequenceDiagram
     LiveKit->>Egress: Stop recording
     Egress->>Storage: Upload recorded file
     LiveKit-->>Backend: POST /api/v1.0/rooms/webhooks-livekit/ (egress_ended)
-    Backend->>Email: Send notification to whoever started the recording
+    Backend->>Email: Notify the starter and the room's owners and administrators
     Email->>User: Email with download link
     User->>Frontend: Navigate to /recording/{id}
 ```
 
 ## Requirements
 
-- A running LiveKit Egress server
-- S3-compatible object storage (any provider - Meet only uses it to upload/download files)
-- SMTP service for the email sent to whoever started the recording
-- LiveKit webhook configured to reach the Meet backend, this is what tells Meet a recording has finished
+- A running LiveKit Egress server.
+- S3-compatible object storage. This guide self-hosts [Garage](https://garagehq.deuxfleurs.fr/); any S3-compatible provider works: AWS S3, Scaleway Object Storage, OVHcloud Object Storage.
+- SMTP, since the download link reaches users by email. See [Email (SMTP)](email.md).
+- The LiveKit webhook to Meet, which tells it a recording has finished. The base setup already configures it: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
 
-!!!info
-    This guide uses MinIO as a convenient self-hosting example, but any S3-compatible provider works (AWS S3, Scaleway Object Storage, OVHcloud Object Storage, Garage, etc.).
+## Setup
 
----
+### Step 1: Object storage
 
-## Docker Compose setup
+To use an external S3-compatible provider instead of Garage, skip this step and use the provider's endpoint, keys and region wherever `AWS_S3_*` appears below. The bucket stays private: the backend authorizes each download, as Step 4 sets up.
 
-Steps 1 and 2 below self-host [MinIO](https://min.io/) for the recorded files. If you'd rather use an external S3-compatible provider (AWS S3, Scaleway Object Storage, OVHcloud Object Storage, etc.), skip to [Step 3](#step-3-set-up-livekit-egress) and use your provider's credentials and endpoint wherever `AWS_S3_*` variables appear.
+Garage runs here as a single node with no replication. On its first start it creates its access key and the `meet-media-storage` bucket, and it leaves both untouched on later starts. Garage refuses to start with an access key shorter than 8 characters or a secret key shorter than 16.
 
-### Step 1: Configure MinIO
+=== "Docker Compose"
 
-Add to your `compose.yml`:
+    Garage runs as its own stack, from [`docs/examples/garage/`](https://github.com/suitenumerique/meet/tree/main/docs/examples/garage). The commands below download its `compose.yml`, its `garage.toml` and the `.env` template:
 
-```yaml
-minio:
-  image: minio/minio:latest
-  restart: unless-stopped
-  command: server /data --console-address ":9001"
-  environment:
-    MINIO_ROOT_USER: minioadmin
-    MINIO_ROOT_PASSWORD: minioadmin123
-  volumes:
-    - minio_data:/data
-  networks:
-    - internal
+    ```bash
+    mkdir -p ~/docker/garage && cd ~/docker/garage
 
-volumes:
-  minio_data:
-```
+    RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-### Step 2: Initialize the bucket
+    curl -fsSL -o compose.yml  ${RAW}/docs/examples/garage/compose.yml
+    curl -fsSL -o garage.toml  ${RAW}/docs/examples/garage/garage.toml
+    curl -fsSL -o .env         ${RAW}/docs/examples/garage/.env.example
+    ```
 
-Create a one-time init container to set up the bucket:
+    Generate the three secrets and write them into `.env`. Meet uses the access key and the secret key as its S3 keys in Step 3, so note both down:
 
-```yaml
-minio-init:
-  image: minio/mc:latest
-  restart: "no"
-  depends_on:
-    - minio
-  entrypoint: ["/bin/sh", "-c"]
-  command:
-    - "sleep 5 && mc alias set myminio http://minio:9000 minioadmin minioadmin123 && mc mb myminio/meet-media-storage --ignore-existing"
-  networks:
-    - internal
-```
+    ```bash
+    sed -i "s|GARAGE_RPC_SECRET=.*|GARAGE_RPC_SECRET=$(openssl rand -hex 32)|" .env
+    sed -i "s|GARAGE_ACCESS_KEY=.*|GARAGE_ACCESS_KEY=$(openssl rand -hex 12)|" .env
+    sed -i "s|GARAGE_SECRET_KEY=.*|GARAGE_SECRET_KEY=$(openssl rand -hex 32)|" .env
+    grep -E "GARAGE_(ACCESS|SECRET)_KEY" .env
+    ```
 
-The bucket stays private - downloads are authorized per-request by the backend's `/api/v1.0/recordings/media-auth/` endpoint (see [Step 5](#step-5-update-nginx-routing-for-recording-downloads)), which signs each request with real S3 credentials before nginx proxies it to your object storage.
+    The stack joins the Meet stack's `internal` network, named `meet_internal` when the Meet stack is in `~/docker/meet`. If yours has another name, set it as `MEET_INTERNAL_NETWORK` in `.env`. Start Garage:
 
-Run the init container:
+    ```bash
+    docker compose up -d
+    ```
 
-```bash
-docker compose up -d minio-init
-```
+    Check that Garage created the bucket. The command prints its size and object count:
 
-### Step 3: Set up LiveKit Egress
+    ```bash
+    docker compose exec garage /garage bucket info meet-media-storage
+    ```
+
+=== "Kubernetes"
+
+    Store Garage's secrets in a Secret named `garage-secrets`. The backend reads the two keys from it in Step 3:
+
+    ```bash
+    kubectl -n meet create secret generic garage-secrets \
+      --from-literal=GARAGE_RPC_SECRET="$(openssl rand -hex 32)" \
+      --from-literal=GARAGE_DEFAULT_ACCESS_KEY="$(openssl rand -hex 12)" \
+      --from-literal=GARAGE_DEFAULT_SECRET_KEY="$(openssl rand -hex 32)"
+    ```
+
+    Save this manifest as `garage.yaml`. It runs Garage as a one-replica StatefulSet with a 50 GiB volume, behind a Service named `garage`:
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: garage-config
+      namespace: meet
+    data:
+      garage.toml: |
+        metadata_dir = "/var/lib/garage/meta"
+        data_dir = "/var/lib/garage/data"
+        db_engine = "lmdb"
+        replication_factor = 1
+        rpc_bind_addr = "127.0.0.1:3901"
+        rpc_public_addr = "127.0.0.1:3901"
+
+        [s3_api]
+        api_bind_addr = "[::]:9000"
+        s3_region = "garage"
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: garage
+      namespace: meet
+    spec:
+      selector:
+        app: garage
+      ports:
+        - name: s3
+          port: 9000
+          targetPort: s3
+    ---
+    apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      name: garage
+      namespace: meet
+    spec:
+      serviceName: garage
+      replicas: 1
+      selector:
+        matchLabels:
+          app: garage
+      template:
+        metadata:
+          labels:
+            app: garage
+        spec:
+          containers:
+            - name: garage
+              image: dxflrs/garage:v2.4.1
+              command: ["/garage", "server", "--single-node", "--default-bucket"]
+              env:
+                - name: GARAGE_DEFAULT_BUCKET
+                  value: meet-media-storage
+              envFrom:
+                - secretRef:
+                    name: garage-secrets
+              ports:
+                - name: s3
+                  containerPort: 9000
+              readinessProbe:
+                exec:
+                  command: ["/garage", "health"]
+                periodSeconds: 5
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/garage.toml
+                  subPath: garage.toml
+                - name: data
+                  mountPath: /var/lib/garage
+          volumes:
+            - name: config
+              configMap:
+                name: garage-config
+      volumeClaimTemplates:
+        - metadata:
+            name: data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
+    ```
+
+    Apply it, then check that Garage created the bucket:
+
+    ```bash
+    kubectl apply -f garage.yaml
+    kubectl -n meet exec garage-0 -- /garage bucket info meet-media-storage
+    ```
+
+### Step 2: LiveKit Egress
 
 Create `livekit-egress.yaml`:
 
 ```yaml
 api_key: meet
-api_secret: your-livekit-api-secret
+api_secret: <your LiveKit API secret>
 ws_url: ws://livekit:7880
 
 redis:
   address: redis:6379
-
-s3:
-  access_key: minioadmin
-  secret: minioadmin123
-  endpoint: http://minio:9000
-  bucket: meet-media-storage
-  region: us-east-1  # required for S3-compatible storage
-  force_path_style: true  # required for MinIO
 
 cpu_cost:
   room_composite_cpu_cost: 1.5
@@ -131,393 +234,299 @@ cpu_cost:
   track_cpu_cost: 0.5
 ```
 
-!!!info
-    **`cpu_cost` is required on servers with fewer than 4 CPU cores.** LiveKit Egress defaults to `room_composite_cpu_cost: 4.0`. If your server reports fewer available CPUs (common on VPS or shared hosting), Egress will refuse to start recordings with the error `no response from servers`. Lower `room_composite_cpu_cost` to match your available resources.
+- The `redis` section is mandatory. Egress talks to LiveKit server through Redis, and crashes at start without it.
+- `cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores. See [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers).
+- The file needs no `s3` section. Meet sends the storage settings with every recording request, built from the backend's `AWS_S3_*` variables of Step 3.
+- On Kubernetes, point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`.
 
-    **The `redis` section is mandatory.** Egress uses Redis for communication with LiveKit Server. Without it, Egress will crash with a nil pointer dereference on startup.
+=== "Docker Compose"
 
-Add to your `compose.yml`:
+    Add to the Meet stack's `compose.yml`, under `services:`:
 
-```yaml
-livekit-egress:
-  image: livekit/egress:${EGRESS_VERSION:-latest}
-  restart: unless-stopped
-  environment:
-    EGRESS_CONFIG_FILE: /livekit-egress.yaml
-  volumes:
-    - ./livekit-egress.yaml:/livekit-egress.yaml:ro
-  depends_on:
-    - redis
-    - minio
-    - livekit
-  networks:
-    - internal
-```
+    ```yaml
+      livekit-egress:
+        image: livekit/egress:${EGRESS_VERSION:-latest}
+        restart: unless-stopped
+        environment:
+          EGRESS_CONFIG_FILE: /livekit-egress.yaml
+        volumes:
+          - ./livekit-egress.yaml:/livekit-egress.yaml:ro
+        depends_on:
+          - redis
+          - livekit
+        networks:
+          - internal
+    ```
 
-### Step 4: Configure the Meet backend
+    ```bash
+    docker compose up -d livekit-egress
+    ```
 
-Add to your `.env`:
+=== "Kubernetes"
 
-```dotenv
-RECORDING_ENABLE=True
-AWS_S3_ENDPOINT_URL=http://minio:9000
-AWS_S3_ACCESS_KEY_ID=minioadmin
-AWS_S3_SECRET_ACCESS_KEY=minioadmin123
-AWS_STORAGE_BUCKET_NAME=meet-media-storage
-AWS_S3_SECURE_ACCESS=False
+    Egress is not part of the Meet Helm chart. Store the file in a ConfigMap:
 
-RECORDING_DOWNLOAD_BASE_URL=https://meet.example.com/recording
+    ```bash
+    kubectl -n meet create configmap livekit-egress-config --from-file=livekit-egress.yaml
+    ```
 
-# DJANGO_ALLOWED_HOSTS - ensure it includes the public domain and internal service names
-DJANGO_ALLOWED_HOSTS=meet.example.com,backend,localhost
-```
+    Then deploy Egress with this manifest, saved as `livekit-egress-deployment.yaml`:
 
-!!!info 
-    **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path.** The frontend expects download links at `https://meet.example.com/recording/<uuid>`. Using the bare domain sends users to a page that treats the UUID as a room code.
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: livekit-egress
+      namespace: meet
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: livekit-egress
+      template:
+        metadata:
+          labels:
+            app: livekit-egress
+        spec:
+          containers:
+          - name: livekit-egress
+            image: livekit/egress:latest
+            env:
+            - name: EGRESS_CONFIG_FILE
+              value: /config/livekit-egress.yaml
+            volumeMounts:
+            - name: config
+              mountPath: /config
+            resources:
+              requests:
+                cpu: 500m
+                memory: 512Mi
+              limits:
+                memory: 2Gi
+          volumes:
+          - name: config
+            configMap:
+              name: livekit-egress-config
+    ```
 
-    **Email is required for recording downloads.** When a recording is ready, Meet emails the download link to the person who started the recording. Without SMTP, users will never receive this notification. See [Email (SMTP)](email.md) for setup.
+    ```bash
+    kubectl apply -f livekit-egress-deployment.yaml
+    ```
 
-If SMTP is not configured, administrators can find recording download links in the Django admin panel at `/admin/ → Core → Recordings`.
+### Step 3: Meet backend
 
-Restart the backend:
+The backend and Egress both reach the storage at `AWS_S3_ENDPOINT_URL`, whose scheme sets HTTP or HTTPS. `AWS_S3_REGION_NAME` is the region requests are signed for: `garage` for the Garage of Step 1, your provider's region otherwise.
+
+=== "Docker Compose"
+
+    Add to `env.d/common`, with the two keys from Step 1:
+
+    ```dotenv
+    RECORDING_ENABLE=True
+    AWS_S3_ENDPOINT_URL=http://garage:9000
+    AWS_S3_ACCESS_KEY_ID=<GARAGE_ACCESS_KEY>
+    AWS_S3_SECRET_ACCESS_KEY=<GARAGE_SECRET_KEY>
+    AWS_S3_REGION_NAME=garage
+    AWS_STORAGE_BUCKET_NAME=meet-media-storage
+    RECORDING_DOWNLOAD_BASE_URL=https://meet.example.com/recording
+    ```
+
+    Recreate the backend and its worker:
+
+    ```bash
+    docker compose up -d --force-recreate backend celery
+    ```
+
+=== "Kubernetes"
+
+    Add to `backend.envVars` in your `values.yaml`. The two keys come from the Secret of Step 1:
+
+    ```yaml
+    backend:
+      envVars:
+        RECORDING_ENABLE: "True"
+        AWS_S3_ENDPOINT_URL: "http://garage.meet.svc.cluster.local:9000"
+        AWS_S3_ACCESS_KEY_ID:
+          secretKeyRef:
+            name: garage-secrets
+            key: GARAGE_DEFAULT_ACCESS_KEY
+        AWS_S3_SECRET_ACCESS_KEY:
+          secretKeyRef:
+            name: garage-secrets
+            key: GARAGE_DEFAULT_SECRET_KEY
+        AWS_S3_REGION_NAME: "garage"
+        AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
+        RECORDING_DOWNLOAD_BASE_URL: "https://meet.example.com/recording"
+    ```
+
+    The SMTP variables go in the same block, see [Email (SMTP)](email.md#kubernetes-setup). Apply the chart:
+
+    ```bash
+    helm upgrade meet meet/meet --namespace meet --values values.yaml
+    ```
+
+Check that recording is enabled. The command asks the backend for the configuration it sends the frontend, and `jq` keeps its `recording` part:
 
 ```bash
-docker compose up -d --force-recreate backend
+curl -s https://meet.example.com/api/v1.0/config/ | jq .recording
 ```
 
-Verify recording is enabled:
-
-```bash
-curl https://meet.example.com/api/v1.0/config/ | jq .recording
-```
-
-Expected output:
+Expected output, with the default settings:
 
 ```json
 {
   "is_enabled": true,
   "available_modes": ["screen_recording", "transcript"],
   "expiration_days": null,
-  "max_duration": null
+  "max_duration": null,
+  "encoding": {
+    "is_custom_enabled": false,
+    "available_resolutions": ["540p", "720p", "1080p"],
+    "available_profiles": ["talking_heads", "text", "mixed", "full"],
+    "default_resolution": "720p",
+    "default_profile": "full"
+  },
+  "authenticated_participants_enabled": true
 }
 ```
 
-### Step 5: Update nginx routing for recording downloads
+Without SMTP, find the recording's ID under `/admin/` → **Core → Recordings**. The people it was shared with can open `https://meet.example.com/recording/<id>`. Once SMTP works, the admin action **Resend notification to external service** sends the email again.
 
-`nginx-routing.conf` ships with a commented-out `/media/` block for this. Uncomment it and replace the placeholders:
+### Step 4: Route recording downloads
 
-- `<OBJECT_STORAGE_HOST>` - the same host as your backend's `AWS_S3_ENDPOINT_URL` (Step 4): `http://minio:9000` for self-hosted MinIO on this Docker network, or your provider's public endpoint if using AWS S3, Scaleway Object Storage, OVHcloud Object Storage, etc.
-- `<OBJECT_STORAGE_HOST_NO_SCHEME>` - the same host without the `http(s)://` prefix, used for the `Host` header
-- `<BUCKET_NAME>` - your `AWS_STORAGE_BUCKET_NAME` (Step 4)
+The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy checks each such request before passing it to the storage:
 
-```nginx
-location /media/ {
-    auth_request /media-auth;
-    auth_request_set $authHeader $upstream_http_authorization;
-    auth_request_set $authDate $upstream_http_x_amz_date;
-    auth_request_set $authContentSha256 $upstream_http_x_amz_content_sha256;
+1. It asks the backend's `/api/v1.0/recordings/media-auth/` endpoint.
+2. The backend checks that the user may retrieve the recording, and returns signed S3 headers.
+3. The proxy forwards the request to the storage with those headers.
 
-    proxy_set_header Authorization $authHeader;
-    proxy_set_header X-Amz-Date $authDate;
-    proxy_set_header X-Amz-Content-SHA256 $authContentSha256;
+The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header the proxy sends to the storage must equal that URL's `host:port`.
 
-    proxy_pass http://minio:9000/meet-media-storage/;
-    proxy_set_header Host minio:9000;
-}
+=== "Docker Compose"
 
-location = /media-auth {
-    internal;
-    proxy_pass http://meet_backend/api/v1.0/recordings/media-auth/;
-    proxy_set_header Host $host;
-    proxy_set_header X-Original-URL $request_uri;
+    `nginx-routing.conf` ships with a commented-out `/media/` block. Uncomment it and replace the placeholders:
 
-    proxy_pass_request_body off;
-    proxy_set_header Content-Length "";
-}
-```
+    | Placeholder | Value |
+    |---|---|
+    | `<OBJECT_STORAGE_HOST>` | `AWS_S3_ENDPOINT_URL`, for example `http://garage:9000` |
+    | `<OBJECT_STORAGE_HOST_NO_SCHEME>` | The same without `http://` or `https://`, for the `Host` header |
+    | `<BUCKET_NAME>` | `AWS_STORAGE_BUCKET_NAME` |
 
-This routes `https://meet.example.com/media/recordings/<uuid>.mp4` through the inner nginx to your object storage. Every request to `/media/` is gated by the `auth_request /media-auth` subrequest to the backend before nginx is allowed to proxy it upstream: the backend checks the requesting user's permissions on the recording (`get_abilities(user)["retrieve"]`) and, if authorized, returns S3 authorization headers that nginx forwards to the object storage.
+    With the Garage of Step 1, the block reads:
 
-Reload the frontend container:
+    ```nginx
+    location /media/ {
+        auth_request /media-auth;
+        auth_request_set $authHeader $upstream_http_authorization;
+        auth_request_set $authDate $upstream_http_x_amz_date;
+        auth_request_set $authContentSha256 $upstream_http_x_amz_content_sha256;
 
-```bash
-docker compose restart frontend
-```
+        proxy_set_header Authorization $authHeader;
+        proxy_set_header X-Amz-Date $authDate;
+        proxy_set_header X-Amz-Content-SHA256 $authContentSha256;
 
----
+        proxy_pass http://garage:9000/meet-media-storage/;
+        proxy_set_header Host garage:9000;
+    }
 
-### Step 6: Configure LiveKit webhook
+    location = /media-auth {
+        internal;
+        proxy_pass http://meet_backend/api/v1.0/recordings/media-auth/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Original-URL $request_uri;
 
-LiveKit notifies Meet when a recording starts, stops, or fails via a signed webhook. This is also the mechanism Meet uses to detect that a recording has finished uploading and is ready to save. The webhook URL must be the **public HTTPS URL**: Django's `SecurityMiddleware` redirects plain HTTP to HTTPS, causing internal requests to fail.
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+    }
+    ```
 
-Add to `livekit-server.yaml`:
+    Restart the frontend container, which runs this nginx:
 
-```yaml
-webhook:
-  api_key: meet
-  urls:
-    - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
-```
+    ```bash
+    docker compose restart frontend
+    ```
 
-Recreate affected containers:
+=== "Kubernetes"
 
-```bash
-docker compose up -d backend livekit
-```
+    The chart's `ingressMedia` does the same with nginx-ingress auth subrequests. Its annotations work with nginx-ingress only, not with other ingress controllers. `rewrite-target` sends `/media/<path>` to `/<bucket>/<path>` on the storage, `upstream-vhost` is the `Host` header above, and `serviceMedia` names the same storage.
 
-Verify webhooks arrive by watching backend logs after starting a recording:
+    The chart's defaults for `serviceMedia.host` and `upstream-vhost` already point at `garage.meet.svc.cluster.local`, the Service of Step 1. With another storage, set both to its address. Add to `values.yaml`:
 
-```bash
-docker compose logs -f backend | grep webhooks-livekit
-```
+    ```yaml
+    ingressMedia:
+      enabled: true
+      className: nginx
+      host: meet.example.com
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/auth-url: "https://meet.example.com/api/v1.0/recordings/media-auth/"
+        nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
+        nginx.ingress.kubernetes.io/upstream-vhost: "garage.meet.svc.cluster.local:9000"
+        nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/$1
+        nginx.ingress.kubernetes.io/configuration-snippet: |
+          add_header Content-Security-Policy "default-src 'none'" always;
+      tls:
+        enabled: true
+        secretName: meet-tls
 
-A successful webhook shows: `POST /api/v1.0/rooms/webhooks-livekit/ HTTP/1.1" 200`
+    serviceMedia:
+      host: garage.meet.svc.cluster.local
+      port: 9000
+    ```
 
----
-
-## Kubernetes setup
-
-Recording in Kubernetes uses the same components but wired differently: the `/media/` download proxy is handled by `ingressMedia` via nginx-ingress auth subrequests rather than an nginx-routing.conf block.
-
-### Step 1: Deploy MinIO
-
-Deploy MinIO in the `meet` namespace using the MinIO Helm chart, or use an external S3-compatible service:
-
-```bash
-helm repo add minio https://charts.min.io/
-helm install minio minio/minio \
-  --namespace meet \
-  --set rootUser=minioadmin \
-  --set rootPassword=minioadmin123 \
-  --set mode=standalone \
-  --set persistence.size=50Gi
-```
-
-### Step 2: Initialize the bucket
-
-Run the `minio/mc` commands from a temporary pod, identical to the Docker Compose setup. The bucket stays private - `ingressMedia` (configured in [Step 5](#step-5-enable-ingressmedia) below) authorizes each download via the same `/api/v1.0/recordings/media-auth/` backend endpoint.
-
-```bash
-kubectl -n meet run minio-init --image=minio/mc --restart=Never --rm -it -- /bin/sh -c "
-  mc alias set myminio http://minio:9000 minioadmin minioadmin123 && \
-  mc mb myminio/meet-media-storage --ignore-existing
-"
-```
-
-### Step 3: Deploy LiveKit Egress
-
-Egress is not part of the Meet Helm chart. Deploy it as a Kubernetes Deployment with a ConfigMap:
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: livekit-egress-config
-  namespace: meet
-data:
-  livekit-egress.yaml: |
-    api_key: meet
-    api_secret: your-livekit-secret
-    ws_url: ws://livekit-server:7880
-
-    redis:
-      address: redis-master:6379
-
-    s3:
-      access_key: minioadmin
-      secret: minioadmin123
-      endpoint: http://minio:9000
-      bucket: meet-media-storage
-      region: us-east-1
-      force_path_style: true
-
-    cpu_cost:
-      room_composite_cpu_cost: 2.0
-      track_composite_cpu_cost: 1.0
-      track_cpu_cost: 0.5
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: livekit-egress
-  namespace: meet
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: livekit-egress
-  template:
-    metadata:
-      labels:
-        app: livekit-egress
-    spec:
-      containers:
-      - name: livekit-egress
-        image: livekit/egress:latest
-        env:
-        - name: EGRESS_CONFIG_FILE
-          value: /config/livekit-egress.yaml
-        volumeMounts:
-        - name: config
-          mountPath: /config
-        resources:
-          requests:
-            cpu: 500m
-            memory: 512Mi
-          limits:
-            memory: 2Gi
-      volumes:
-      - name: config
-        configMap:
-          name: livekit-egress-config
-```
-
-```bash
-kubectl apply -f livekit-egress.yaml
-```
-
-### Step 4: Configure the backend
-
-Add to `backend.envVars` in your `values.yaml`:
-
-```yaml
-backend:
-  envVars:
-    RECORDING_ENABLE: "True"
-    AWS_S3_ENDPOINT_URL: "http://minio:9000"
-    AWS_S3_ACCESS_KEY_ID: "minioadmin"
-    AWS_S3_SECRET_ACCESS_KEY: "minioadmin123"
-    AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
-    AWS_S3_SECURE_ACCESS: "False"
-    RECORDING_DOWNLOAD_BASE_URL: "https://meet.example.com/recording"
-    DJANGO_ALLOWED_HOSTS: "meet.example.com"
-```
-
-!!!info
-     **`RECORDING_DOWNLOAD_BASE_URL` must include the `/recording` path**. See [Step 4 in the Docker Compose guide](#step-4-configure-the-meet-backend) for why.
-     
-     **Email is required.** Without SMTP, users never receive download links. See [Email (SMTP)](email.md#kubernetes-setup) for the `backend.envVars` to add.
-
-Apply the updated chart:
-
-```bash
-helm upgrade meet meet/meet --namespace meet --values values.yaml
-```
-
-### Step 5: Enable ingressMedia
-
-`ingressMedia` proxies `/media/(.*)` requests to MinIO via nginx-ingress auth subrequests. The backend authenticates each request before MinIO serves the file.
-
-!!!info 
-    **`ingressMedia` requires nginx-ingress.** These annotations are nginx-ingress specific and do not work with other ingress controllers.
-
-Add to `values.yaml`:
-
-```yaml
-ingressMedia:
-  enabled: true
-  className: nginx
-  host: meet.example.com
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/auth-url: "https://meet.example.com/api/v1.0/recordings/media-auth/"
-    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-    nginx.ingress.kubernetes.io/upstream-vhost: "minio.meet.svc.cluster.local:9000"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      add_header Content-Security-Policy "default-src 'none'" always;
-  tls:
-    enabled: true
-    secretName: meet-tls
-
-serviceMedia:
-  host: minio.meet.svc.cluster.local
-  port: 9000
-```
-
-Apply:
-
-```bash
-helm upgrade meet meet/meet --namespace meet --values values.yaml
-```
-
-Verify recording is enabled:
-
-```bash
-curl https://meet.example.com/api/v1.0/config/ | jq .recording
-```
-
+    ```bash
+    helm upgrade meet meet/meet --namespace meet --values values.yaml
+    ```
 
 ## Configuring recording encoding
 
-By default, LiveKit Egress records with the built-in `H264_720P_30` preset: 1280x720 at 30 fps, 3000 kbps H.264 video and 128 kbps AAC audio, roughly **1.4 GB per hour**. The `RECORDING_ENCODING_*` variables let you override this preset.
+These settings apply to screen recordings only: transcript recordings are audio-only `.ogg` files, and Meet ignores any encoding sent for them.
 
-Values are passed directly to LiveKit's `EncodingOptions.advanced` and map to GStreamer pipeline settings:
+Meet encodes every screen recording with a **resolution** and a **profile**, which sets the framerate and the video bitrate for each resolution. Meet passes the values to LiveKit Egress, whose H.264 Main video and AAC audio codecs stay fixed. The default, the `full` profile at `720p`, matches LiveKit's built-in `H264_720P_30` preset, and makes larger files than talking heads and screen sharing need.
 
-| Setting | GStreamer element | Property |
-|---|---|---|
-| `RECORDING_ENCODING_WIDTH/HEIGHT` | capsfilter | `video/x-raw,width=W,height=H` |
-| `RECORDING_ENCODING_FRAMERATE` | capsfilter | `framerate=F/1` |
-| `RECORDING_ENCODING_VIDEO_BITRATE_KBPS` | `x264enc` | `bitrate=kbps` |
-| `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S` | `x264enc` | `key-int-max = interval x fps` |
-| `RECORDING_ENCODING_AUDIO_BITRATE_KBPS` | `faac` | `bitrate = kbps x 1000` |
+**Built-in profiles.** File size and Egress CPU cost both grow roughly with framerate × bitrate. The size column adds the default 128 kbps audio to the 720p video bitrate:
 
-**Reference profiles** (30-minute size estimates; actual sizes vary with content):
+| Profile | FPS | 540p kbps | 720p kbps | 1080p kbps | ~size per hour at 720p | Best for |
+|---|---|---|---|---|---|---|
+| `talking_heads` | 15 | 400 | 700 | 1200 | ~370 MB | Talking-head meetings with occasional slides |
+| `text` | 15 | 600 | 1000 | 1800 | ~510 MB | Frequent screen sharing: slides, documents, code |
+| `mixed` | 20 | 900 | 1500 | 2500 | ~730 MB | Mixed content, moderate motion |
+| `full` | 30 | 2000 | 3000 | 4500 | ~1.4 GB | Highest fidelity, closest to LiveKit's preset |
 
-| Profile | Resolution | FPS | Video kbps | Audio kbps | ~size / 30 min | CPU vs default | Best for |
-|---|---|---|---|---|---|---|---|
-| Default (preset) | 1280x720 | 30 | 3000 | 128 | ~690 MB | 100% | Unchanged LiveKit behaviour |
-| Balanced | 1280x720 | 20 | 1000 | 96 | ~240 MB | ~67% | Mixed content, moderate motion |
-| **Low CPU / small file** * | 1280x720 | 15 | 600 | 64 | ~150 MB | ~50% | Talking-head meetings + occasional slides |
-| Slide-heavy | 1280x720 | 15 | 900 | 64 | ~210 MB | ~55% | Frequent screen sharing, dense slides |
-| Minimum CPU | 960x540 | 15 | 500 | 64 | ~125 MB | ~30% | Voice-first meetings, readable text not required |
-| Audio-heavy fallback | 1280x720 | 10 | 400 | 96 | ~110 MB | ~35% | Long webinars, low motion |
-
-* Recommended starting point for typical Meet usage.
-
-Example: Low CPU / small file profile:
+Change the default for every recording with `RECORDING_ENCODING_DEFAULT_RESOLUTION` and `RECORDING_ENCODING_DEFAULT_PROFILE`. For example, smaller files for talking-head meetings, with 64 kbps audio and a keyframe every 4 seconds:
 
 ```dotenv
-RECORDING_ENCODING_ENABLED=True
-RECORDING_ENCODING_WIDTH=1280
-RECORDING_ENCODING_HEIGHT=720
-RECORDING_ENCODING_FRAMERATE=15
-RECORDING_ENCODING_VIDEO_BITRATE_KBPS=600
+RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
+RECORDING_ENCODING_DEFAULT_PROFILE=talking_heads
 RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64
 RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
 ```
 
-**Caveats:**
+The keyframe interval sets how finely a player can seek in the file. Its default, `0.0`, leaves the choice to the encoder. To let LiveKit pick the whole encoding instead, set either default to an empty value: Meet logs a warning at startup and uses LiveKit's preset.
 
-- **Screen-share readability.** At 720p, text legibility breaks down below ~40 kbits/frame (`bitrate / framerate`). The Low CPU profile (600 kbps / 15 fps = 40 kbits/frame) sits at that threshold. The same 600 kbps at 30 fps gives only 20 kbits/frame and visibly blurs dense slides. Lowering framerate is a more screen-share-friendly lever than lowering bitrate. For deck-heavy meetings, use the Slide-heavy profile (900 / 15 = 60 kbits/frame).
-- **Motion.** The `veryfast` x264 preset is set by LiveKit and cannot be overridden. Low-bitrate settings show more artefacts on fast motion than an offline re-encode would.
-- **Audio.** AAC at 64 kbps stereo is transparent for voice but compresses music noticeably. Keep 128 kbps if meetings include music playback.
-- **Codec.** H.264 MAIN is hardcoded. Switching to HEVC or VP9 would increase egress CPU cost 2x-5x.
+**Letting users choose.** With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, room owners and administrators get a **Recording** tab in the settings dialog, where they pick a content type and a resolution among the available ones before starting a recording. Without it, the start-recording API refuses any per-recording encoding with a `400`.
 
+**Your own resolutions and profiles.** `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS` and `RECORDING_ENCODING_AVAILABLE_PROFILES` replace the built-in sets. Each is a dictionary on a single line, with double-quoted keys and no outer quotes in an env file:
 
-## Monitoring egress workers
-
-Install `livekit-cli` to inspect active recording sessions:
-
-```bash
-livekit-cli list-egress
+```dotenv
+RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={"540p": {"width": 960, "height": 540}, "720p": {"width": 1280, "height": 720}, "1080p": {"width": 1920, "height": 1080}}
+RECORDING_ENCODING_AVAILABLE_PROFILES={"small": {"fps": 15, "kbps": {"540p": 350, "720p": 600, "1080p": 1100}}}
+RECORDING_ENCODING_DEFAULT_PROFILE=small
 ```
 
-This lets you verify which recordings are in progress, troubleshoot egress issues, and confirm recordings are being processed correctly.
+The backend refuses to start when a profile lacks a bitrate for one of the resolutions, or has one for a resolution that does not exist, so replacing one set usually means replacing both. The two defaults must name entries of these sets. The **Recording** tab has labels for the four built-in profiles only.
 
+**Caveats:**
 
-## Full configuration reference
-
-Every recording variable, with its default: [Environment Variables: Recording](../../reference/env-variables.md#recording).
+- **Screen-share readability.** At 720p, text legibility breaks down below ~40 kbits per frame, the bitrate divided by the framerate. `talking_heads` gives 700 / 15 ≈ 47, just above. The same bitrate at 30 fps gives ~23 and visibly blurs dense slides, so lowering the framerate keeps shared screens readable better than lowering the bitrate. For deck-heavy meetings, use `text`: 1000 / 15 ≈ 67.
+- **Audio.** AAC at 64 kbps stereo is transparent for voice but compresses music noticeably. Keep 128 kbps if meetings include music playback.
 
 ## Testing the full recording flow
 
-1. Start a meeting and click **Record**
-2. Speak for 30 seconds, then click **Stop recording**
-3. Check MinIO for the file:
-   ```bash
-   docker run --rm --network <project>_internal --entrypoint /bin/sh minio/mc:latest -c \
-     "mc alias set myminio http://minio:9000 minioadmin <MINIO_PASSWORD> && \
-      mc ls myminio/meet-media-storage/recordings/"
-   ```
-4. Check the recording reached its final state: its status in the Django admin, under `/admin/` → **Core → Recordings**
-5. The person who started the recording should receive an email with a download link
+1. Start a meeting and click **Record**.
+2. Speak for 30 seconds, then click **Stop recording**.
+3. Check that the file reached the bucket: run the bucket check of Step 1 again, and the object count goes up by one.
+4. Check the recording's status under `/admin/` → **Core → Recordings**.
+5. Check that the email with the download link arrived.
+
+While a recording runs, the [LiveKit CLI](https://github.com/livekit/livekit-cli) lists the active Egress jobs and their state: `lk egress list --url https://livekit.example.com --api-key meet --api-secret <your LiveKit API secret>`.

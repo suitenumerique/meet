@@ -12,13 +12,13 @@ Which ports to open, and which never to expose, are in [Firewall & Ports](../sel
 Browser :443
   → reverse proxy (TLS termination)
   → frontend container :8083 (routing nginx)
-    → /api/* → backend :8000 (Django)
-    → /*     → frontend :8080 (React SPA)
+    → /api, /admin, /static, /external-api → backend :8000 (Django)
+    → /*                                   → frontend :8080 (React SPA)
 ```
 
-Add-ons (calendar integrations) are served under `/api/v1.0/addons/*` - no separate route needed, they're already covered by the `/api/*` rule above.
+Add-ons, the Outlook add-in for one, are served under `/api/v1.0/addons/*`, which the `/api` rule already covers.
 
-### External API (server-to-server)
+### External API
 
 ```
 Your application :443
@@ -27,7 +27,7 @@ Your application :443
     → /external-api/* → backend :8000 (Django)
 ```
 
-Only reachable when `EXTERNAL_API_ENABLED=True` on the backend - see [Application-Delegated](external-api-delegated.md) or [Resource Server](external-api-resource-server.md) for the authentication modes. Needs its own nginx location block (a separate top-level path from `/api/*`).
+It answers only when the backend sets `EXTERNAL_API_ENABLED=True`, see [External API](external-api.md). `/external-api` is a top-level path of its own, so the `/api` rule does not cover it: it needs its own nginx location block.
 
 ### OIDC login
 
@@ -48,24 +48,29 @@ Browser → https://livekit.example.com :443 /rtc
   → livekit container :7880 (plain WebSocket)
 ```
 
-`/rtc` is LiveKit's signaling endpoint path; the LiveKit client SDK appends it automatically when connecting.
+`/rtc` is LiveKit's signaling path. The LiveKit client library appends it on its own when it connects.
 
 ### LiveKit media (audio/video)
 
+Media goes straight between each browser and LiveKit, without the reverse proxy:
+
 ```
-Browser ←→ server :7882/UDP  (RTP/RTCP (direct, no proxy))
-Browser ←→ server :7881/TCP  (fallback when UDP blocked)
+Participant A browser
+  │ WebSocket (TCP 443) → reverse proxy → livekit:7880
+  │ RTP/RTCP  (UDP 7882) ────────────────► livekit:7882  (direct, no proxy)
+  │
+  ▼
+LiveKit server (SFU: forwards each stream, does not transcode)
+  │ RTP/RTCP  (UDP 7882) ────────────────► Participant B browser
 ```
 
-The ports above cover this Docker Compose example's fixed-port setup. For the full, exhaustive port/firewall reference across all LiveKit deployment modes (port ranges, TURN, SIP), see [LiveKit's own ports and firewall documentation](https://docs.livekit.io/home/self-hosting/ports-firewall/).
+When a participant's network blocks that UDP port, the browser falls back to TCP, then to a [TURN relay](../self-hosting/configuration/livekit.md#turn) if one is enabled. How it picks is in [LiveKit & TURN](../self-hosting/configuration/livekit.md#how-media-connects), and every port is in [Firewall & Ports](../self-hosting/configuration/firewall.md). On a cloud server, whose public IP is not on its network interface, LiveKit needs [`use_external_ip`](../self-hosting/configuration/livekit.md#use_external_ip) to announce that IP.
 
 ### LiveKit webhook (room, egress, and recording events)
 
 ```
 LiveKit Server → POST https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
 ```
-
-This is also how the backend detects that a recording has finished uploading (`egress_ended` event).
 
 ## Docker networks
 
@@ -74,11 +79,13 @@ Meet uses two Docker networks:
 | Network | Type | Members | Purpose |
 |---|---|---|---|
 | `proxy` | Bridge (external) | reverse proxy, frontend, livekit, keycloak | reverse proxy routing and TLS |
-| `internal` | Bridge, one per stack | Meet stack: backend, frontend, celery, postgresql, redis, livekit, minio; Keycloak stack: keycloak, kc-postgresql | Service-to-service communication |
+| `internal` | Bridge, one per stack | Meet stack: backend, frontend, celery, postgresql, redis, livekit; Keycloak stack: keycloak, kc-postgresql | Service-to-service communication |
+
+Object storage is not part of the Meet stack. The Garage example's own compose file, [`docs/examples/garage/compose.yml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/garage/compose.yml), joins the Meet stack's `internal` network, which it names `meet_internal` unless `MEET_INTERNAL_NETWORK` says otherwise.
 
 ## Internal DNS resolution
 
-Docker resolves container names within a network. Services reference each other by service name:
+Docker resolves names within a network, so services reach each other by service name. The backend is the exception for LiveKit: it calls LiveKit's public URL.
 
 | From | To | Address |
 |---|---|---|
@@ -88,42 +95,3 @@ Docker resolves container names within a network. Services reference each other 
 | frontend nginx | backend | `backend:8000` |
 | frontend nginx | frontend SPA | `frontend:8080` |
 | livekit | redis | `redis:6379` |
-
-## LiveKit media ports
-
-LiveKit media (audio and video) goes directly between browsers and the LiveKit server, bypassing the reverse proxy. The ports required depend on your LiveKit configuration.
-
-!!!info 
-    Per LiveKit's client protocol, each participant uses up to two WebRTC PeerConnections - one for publishing, one for subscribing - not separated by port; each multiplexes its tracks via SSRC identifiers. The subscriber connection opens as soon as the participant joins; the publisher connection only opens once they actually publish a track (e.g. unmute camera/mic). Port 7881 is a TCP fallback used only when a participant's network blocks UDP.
-
-LiveKit uses one UDP port, 7882, or a range; [LiveKit Configuration](../self-hosting/configuration/livekit.md#udp-port-strategy) explains which to choose.
-
-### Media path: direct
-
-```
-Participant A browser
-  │ WebSocket (TCP 443) → reverse proxy → livekit:7880
-  │ RTP/RTCP  (UDP 7882) ────────────────► livekit:7882  (direct, no proxy)
-  │
-  ▼
-LiveKit server (SFU - forwards, does not transcode)
-  │ RTP/RTCP  (UDP 7882) ────────────────► Participant B browser
-```
-
-### Media path: TURN relay
-
-When [TURN](../self-hosting/configuration/turn.md) is enabled, participants on restrictive networks relay through 443/UDP:
-
-```
-Participant A browser
-  │ WebSocket  (TCP 443) → reverse proxy → livekit:7880
-  │ TURN media (UDP 443) ─────────────────► livekit:443  (relay)
-  │
-  ▼
-LiveKit TURN relay
-  │ TURN media (UDP 443) ─────────────────► Participant B browser
-```
-
-## ICE and NAT traversal
-
-How a participant's browser picks between direct UDP, TCP and a TURN relay is in [TURN Server](../self-hosting/configuration/turn.md#nat-traversal-and-ice-candidates). On a cloud server, set `use_external_ip: true` so LiveKit announces its public IP, see [LiveKit Configuration](../self-hosting/configuration/livekit.md#use_external_ip).

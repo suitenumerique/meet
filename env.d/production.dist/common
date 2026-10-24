@@ -1,5 +1,8 @@
 # Django
 DJANGO_ALLOWED_HOSTS=${MEET_HOST}
+# Proxies that append to X-Forwarded-For: the reverse proxy and the frontend's
+# nginx. Rate limits read the visitor's address this many entries from the right.
+NUM_PROXIES=2
 DJANGO_SECRET_KEY=<generate a secret key>
 DJANGO_SETTINGS_MODULE=meet.settings
 DJANGO_CONFIGURATION=Production

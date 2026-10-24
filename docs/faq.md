@@ -1,152 +1,85 @@
 # Frequently Asked Questions
 
-## General
+## Joining
 
 ### Do I need to install anything?
 
-No. LaSuite Meet works entirely in your browser. No plugin, extension, or app download is required. You need a modern browser (Chrome, Firefox, Safari, Edge) with camera and microphone access.
+No. Meet runs in a recent Chrome, Firefox, Safari or Edge, on a computer or a phone. A mobile app in beta, not officially supported, is at [github.com/mmaudet/visio-mobile](https://github.com/mmaudet/visio-mobile).
 
-### Do I need an account to join a meeting?
+### Do I need an account?
 
-It depends on how your instance is configured. Some instances allow anonymous access. Others require authentication (via OIDC/SSO). The meeting invitation link will redirect you to login if required.
+Not to join an **Open** room through its link. Other rooms can make you wait until someone admits you, see [Access levels](user/features-controls.md#access-levels). Where your instance allows it, **Create a meeting** also starts a meeting while you are signed out, one that no one owns, see [Start a meeting](user/getting-started.md#start-a-meeting).
 
-### How many people can join a meeting?
+### Why does the link say the meeting has been deleted?
 
-Meet is designed for large meetings and is tested in production with 150+ participants. There is no hard cap built into Meet itself. The practical limit depends on your LiveKit server's resources.
+Its owner deleted the room, and its link cannot open a meeting any more, see [Deleted rooms](user/features-controls.md#deleted-rooms). Ask them for a new link.
 
-### Is there a time limit on meetings?
+### Why am I stuck in the waiting room?
 
-No. Meetings run until all participants leave. The room closes automatically when the last participant exits.
+Someone has to admit you: the room's owner or a co-host, or, in a room open to trusted people, any signed-in participant already in the meeting. They see a pop-up, and you in the **Lobby** section of the participants panel (**See everyone**).
 
-### What happens when I close the browser tab?
+### How many people can join, and for how long?
 
-You leave the meeting. Other participants see your tile disappear. The meeting continues for everyone else.
+Meet runs meetings of 150 and more in production, with no cap of its own: the limit is the media server's capacity. There is no time limit; the meeting lasts until the last person leaves, see [When the meeting ends](overview/how-meet-works.md#when-the-meeting-ends).
 
-### Does Meet work on mobile?
+## Audio, video and screen
 
-Yes. Open the meeting link in your mobile browser. Use headphones for the best audio.
+### My microphone or camera does not work
 
-There is also a beta mobile app available at [github.com/mmaudet/visio-mobile](https://github.com/mmaudet/visio-mobile) (not officially supported). Another mobile app should be released soon.
-
-### Which browsers are supported?
-
-Chrome, Firefox, Safari, and Edge, all kept up to date. WebRTC is required and ships with every modern browser.
-
-### Which audio and video codecs does Meet use?
-
-Meet uses **Opus** for audio (48 kHz) and **VP9** for video by default. VP9 supports Scalable Video Coding (SVC), which provides better quality at lower bitrates compared to older codecs. Meet also supports VP8, AV1, and simulcast, where the browser sends multiple quality levels simultaneously and the server forwards only what each receiver needs. For recordings, LiveKit Egress uses H.264 MAIN for video and AAC for audio.
-
-## Audio & Video
-
-![Meeting room](assets/meeting-room.png)
-
-### My microphone/camera is not working
-
-1. Check that your browser has permission to access them - look for the camera icon in the address bar
-2. Go to **Settings → Audio** (for microphone) or **Settings → Video** (for camera) and verify the correct device is selected in the dropdown
-3. Try refreshing the page
-4. Check if another application is exclusively using the device
+1. Allow the browser to use them: click the camera icon in the address bar
+2. Pick the right device in **Settings → Audio** or **Settings → Video**
+3. Close any other application using the device, then reload the page
 
 ### My audio echoes
 
-This usually happens when your speakers are picked up by your microphone. Use headphones, or enable noise suppression in your audio settings.
+Someone's speakers are feeding back into their microphone, usually not yours: echo cancellation is always on for your own. Ask whoever echoes to use headphones or lower their volume.
 
-### Other participants sound choppy or are cutting out
+### Others sound choppy
 
-This is usually a network issue. Try:
+Usually a network problem on one side: close bandwidth-heavy tabs and apps, move closer to the Wi-Fi router, or ask the choppy participant to check their connection.
 
-- Moving closer to your Wi-Fi router
-- Closing other bandwidth-heavy tabs or apps
-- Asking the choppy participant to check their connection
+### How do I check my connection before a meeting?
 
-### I can see other participants but they can't see me
+Click **Test your configuration** in the page footer, where your instance offers it, then **Run test**. It checks your browser, camera, microphone and network in about a minute. **Suboptimal connection** means your network blocks the direct route, so the call goes through a relay over TCP or TLS. You can join, but quality may drop. Your IT department can open the ports that avoid it, see [Firewall & Ports](self-hosting/configuration/firewall.md).
 
-Your camera may be blocked by the browser. Click the camera icon in the address bar and allow access. Also verify your camera is not in use by another application.
+### I cannot share my screen
 
-## Screen sharing
+On macOS, allow your browser in **System Settings → Privacy & Security → Screen Recording**.
 
-### My screen share option is greyed out
+### Which codecs does Meet use?
 
-On some systems (especially macOS), you must grant screen recording permission to your browser in **System Settings → Privacy & Security → Screen Recording**.
+Opus for audio. Video uses the codec your instance sets, VP9 by default, or VP8, H.264 or AV1, see [`LIVEKIT_DEFAULT_VIDEO_CODEC`](reference/env-variables.md#livekit). Recordings use H.264 and AAC.
 
-### Can multiple people share their screen at the same time?
+## Recording and transcription
 
-Yes. Meet supports multiple simultaneous screen shares.
+### How do I know a meeting is being recorded?
 
-## Controls
+A red indicator shows for everyone while a recording runs.
 
-### Are there keyboard shortcuts?
+### Who gets the recording, and for how long?
 
-Yes. Press `Ctrl+Shift+/` (or `Cmd+Shift+/` on Mac) to bring up the full list. Common ones include `Ctrl+D` to toggle mute, hold `V` for push-to-talk, and `Ctrl+E` to toggle camera.
+Whoever started it, and the room's owner and co-hosts, see [Recording](user/recording.md#recording). Whoever runs your instance can also reach the file in its storage. How long the file is kept is your instance's choice, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
 
-### How do I react or raise my hand?
+### Why don't I see the recording or transcription buttons?
 
-Click the emoji button in the meeting controls to send a reaction. It appears briefly for everyone. To raise your hand, click the hand icon. Your hand stays up until you lower it, or until you start speaking unless you click **Keep hand raised**.
+If **More tools** has no **Record** or **Transcribe**, your instance has not set them up. If they show but you cannot start them, sign in: in an **Open** room or one open to trusted people, any signed-in participant can start them, unless your instance turns that off. In other rooms only the owner and co-hosts can; click **Request** and they are notified.
 
-## Recording & Transcription
-
-### How do I know if the meeting is being recorded?
-
-A red recording indicator is visible in the interface for all participants when recording is active.
-
-### Where do recordings go?
-
-Recordings are stored on the server and a download link is sent to the person who started the recording. The storage location depends on the instance configuration (S3-compatible storage such as Garage, MinIO, AWS S3, etc.).
-
-### Why don't I see the recording/transcription buttons?
-
-These features require additional server-side configuration (LiveKit Egress for recording, Summary service for transcription). Contact your instance administrator if you believe these should be available.
-
-### How long are recordings kept?
-
-This depends on your instance's storage policy. [`RECORDING_EXPIRATION_DAYS`](reference/env-variables.md#recording) only marks recordings as expired in the interface and emails; deleting the files takes a lifecycle rule on the storage bucket with the same delay. See also [recording configuration](self-hosting/configuration/recording.md). Contact your administrator for your instance's specific policy.
-
-## Security & Privacy
+## Security and privacy
 
 ### Are meetings encrypted?
 
-All media is encrypted in transit using DTLS-SRTP (WebRTC standard). End-to-end encryption (where even the server cannot decrypt) is in development.
+Every stream is encrypted between your browser and the media server (DTLS-SRTP, the WebRTC standard). Meet has no end-to-end encryption: the media server can read the streams it forwards.
 
 ### Is chat history stored?
 
-Meet itself does not keep chat: it is cleared when the meeting ends. When the instance runs the metadata collector, chat messages sent during a transcription are saved with the transcription metadata in the instance's storage.
+No. Messages sent while a transcription runs can be kept with it, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
 
-### Who can access my recordings?
-
-The person who started the recording, who is always an owner or administrator of the room. Instance administrators may also have access depending on the deployment. No third party has access to recordings on self-hosted instances.
-
-### Can someone join without being invited?
-
-If the room is set to **Open**, anyone with the URL can join. Set access to **Restricted** to require admission from everyone without a role on the room, or **Open to trusted people** to require it only from unauthenticated users.
-
-### What is the lobby and why am I stuck there?
-
-The lobby is a waiting area. New participants wait there until admitted when the room's access level calls for it. If you are stuck, a room owner or administrator needs to approve your entry; in a room open to trusted people, any signed-in participant already in the meeting can too. If you are the room owner, look for a notification about waiting participants at the top of the sidebar.
-
-## Self-hosting
+## Hosting and contributing
 
 ### Can I run my own instance?
 
-Yes. Meet is fully self-hostable. See the [Self-Hosting](self-hosting/index.md) section.
+Yes, with your own LiveKit media server beside it and any standard OpenID Connect provider for sign-in. See [Self-Hosting](self-hosting/index.md).
 
-### Is LiveKit required?
+### How do I contribute or report a bug?
 
-Yes. LiveKit is the media server that powers all real-time audio/video. You need to run your own LiveKit server alongside Meet.
-
-### Can I use an external OIDC provider?
-
-Yes. Any standards-compliant OIDC provider works: Keycloak, Authentik, Dex, Auth0, Okta, Google Workspace, Microsoft Entra, and others.
-
-## Contributing
-
-### How can I contribute?
-
-See the [Contributing section](contributing/local-dev.md). We welcome code contributions, translations, documentation improvements, and bug reports.
-
-### How do I report a bug?
-
-Open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md).
-
-### Where is the roadmap?
-
-[github.com/orgs/suitenumerique/projects/3/views/2](https://github.com/orgs/suitenumerique/projects/3/views/2)
+Start with [Develop locally](contributing/develop.md), [open an issue](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) for a bug, and see where Meet is heading on the [roadmap](https://github.com/orgs/suitenumerique/projects/3/views/2).

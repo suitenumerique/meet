@@ -1,9 +1,10 @@
-# Prerequisites (Simple Deployment)
-
+# Prerequisites (Docker Compose)
 
 ## Server requirements
 
-### Minimum hardware
+### Hardware
+
+These numbers are a starting point, not a measured minimum: size the server to your number of concurrent meetings and watch its load.
 
 | Resource | Minimum | Recommended |
 |---|---|---|
@@ -12,51 +13,15 @@
 | Disk | 20 GB | 50 GB+ (more if recording) |
 | Network | 100 Mbps | 1 Gbps |
 
-### Operating system
+### Operating system and network
 
-Any Linux distribution works. Tested with:
-
-- A Linux server (Ubuntu 22.04 / 24.04 LTS or equivalent)
-- Debian 12
-- Fedora / RHEL-based (Rocky, AlmaLinux)
-
-### Network requirements
-
-The following ports must be open on your firewall. The exact set depends on your LiveKit configuration - see [Firewall & Ports](../configuration/firewall.md) for the full breakdown.
-
-**Always required:**
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 80 | TCP | HTTP (ACME challenge / redirect to HTTPS) |
-| 443 | TCP | HTTPS (frontend, backend API, LiveKit WebSocket) |
-
-**LiveKit media - choose one UDP strategy:**
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 7881 | TCP | LiveKit TCP media fallback (always needed alongside UDP) |
-| 7882 | UDP | LiveKit media - single fixed port (default) |
-| *or* 50000–60000 | UDP | LiveKit media - port range (alternative, see [LiveKit config](../configuration/livekit.md#udp-port-strategy)) |
-
-**Optional - add if using TURN:**
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 443 | UDP | TURN relay for participants behind restrictive firewalls |
-| 5349 | TCP | TURN/TLS for participants blocking all UDP |
-
-!!! info
-
-    Port 7880 (LiveKit WebSocket) is **not** exposed publicly, it is proxied by your reverse proxy on port 443.
-
-    A UDP media port (7882 or a range) is critical for low-latency media. Without it, clients fall back to TCP (7881), which increases latency. If participants on enterprise networks have no audio/video, enable [TURN](../configuration/turn.md).
+Any Linux distribution that runs Docker Engine. The ports to open are in [Firewall & Ports](../configuration/firewall.md).
 
 ## Software requirements
 
 ### Docker
 
-Install Docker Engine (not Docker Desktop):
+Install Docker Engine, not Docker Desktop. The first line runs Docker's install script; the second lets your user run `docker` without `sudo`:
 
 ```bash
 curl -fsSL https://get.docker.com | sh
@@ -64,15 +29,9 @@ sudo usermod -aG docker $USER
 # Log out and back in for group change to take effect
 ```
 
-Verify:
-```bash
-docker --version
-# Docker version 25.x.x or later
-```
-
 ### Docker Compose
 
-Docker Compose v2 is included with Docker Engine. Verify:
+Docker Compose v2 is included with Docker Engine. Check it prints a v2 version:
 
 ```bash
 docker compose version
@@ -81,29 +40,19 @@ docker compose version
 
 ### Domain name
 
-You need a **domain name** with DNS pointing to your server. Meet requires HTTPS, a self-signed certificate will not work for WebRTC.
+Meet requires HTTPS: a self-signed certificate does not work for WebRTC. Point three subdomains at your server's public IP:
 
-You need **three subdomains** pointing to your server:
+| Subdomain | Serves |
+|---|---|
+| `meet.example.com` | Meet frontend and backend API |
+| `auth.example.com` | Keycloak, if you run the Deployment Guide's Keycloak stack |
+| `livekit.example.com` | LiveKit WebSocket, TLS-terminated by the reverse proxy |
 
-- `meet.example.com`: Meet frontend and backend API
-- `auth.example.com`: Keycloak OIDC provider
-- `livekit.example.com`: LiveKit WebSocket (TLS-terminated by the reverse proxy)
-
-All three must resolve to your server's public IP before you start the stack.
+Each must resolve before you start the stacks: Let's Encrypt checks it when it issues the certificate.
 
 ## OIDC provider
 
-Meet requires an OIDC provider for user authentication. Options:
-
-| Provider | Notes |
-|---|---|
-| **Keycloak** | Free, self-hostable, included in the dev stack |
-| **Authentik** | Free, self-hostable, modern UI |
-| **Dex** | Lightweight, self-hostable |
-| **Auth0** | Cloud-hosted, free tier available |
-| **Google Workspace** | If your org uses Google |
-| **Microsoft Entra** | If your org uses Microsoft 365 |
-| ... | ... |
+Meet works with any OIDC provider, see [SSO & Authentication](../configuration/sso.md). The [Deployment Guide](deployment-guide.md) can run Keycloak for you.
 
 ## Summary
 
@@ -111,6 +60,6 @@ Before proceeding to the [Deployment Guide](deployment-guide.md), ensure you hav
 
 - [ ] A Linux server with the hardware specs above
 - [ ] Docker and Docker Compose installed
-- [ ] Ports 80/TCP, 443/TCP, 7881/TCP, and 7882/UDP open (7880 is internal only) - see [Firewall & Ports](../configuration/firewall.md) for alternatives
+- [ ] The ports in [Firewall & Ports](../configuration/firewall.md) open
 - [ ] Three subdomains pointing to your server (meet, auth, livekit)
 - [ ] An OIDC provider with a client for Meet, or the plan to run the Deployment Guide's Keycloak stack

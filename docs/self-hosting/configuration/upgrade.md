@@ -1,61 +1,49 @@
 # Upgrading
 
+These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see [Helm: Upgrading](../kubernetes/helm.md#upgrading).
+
 ## Before upgrading
 
-1. **Read the changelog**: Check [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) and [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) for breaking changes between your current version and the target version.
+1. **Read what changed.** [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) lists every release, and [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) the manual steps some releases need. Read both for every version between yours and the target: releases are applied in order, and only patch releases can be skipped.
+2. **Back up the database**, from `~/docker/meet`:
 
-2. **Back up your database**:
-```bash
-docker compose exec postgresql pg_dump -U meet meet > meet_backup_$(date +%Y%m%d).sql
-```
+    ```bash
+    docker compose exec -T postgresql pg_dump -U meet meet > meet_backup_$(date +%Y%m%d).sql
+    ```
 
-3. **Note your current version**:
-```bash
-docker compose images | grep meet
-```
+    `-T` keeps a terminal out of the stream, so nothing but the dump reaches the file.
 
-## Standard upgrade procedure
+3. **Note the version you run now**, to roll back to: `docker compose images backend` shows its tag.
 
-### 1. Pull new images
+## Upgrade
 
-```bash
-docker compose pull
-```
+1. Set `MEET_VERSION` in `.env` to the target release, for example `MEET_VERSION=v1.36.3`. Every Meet service reads this one variable, so they all move together. With no `MEET_VERSION` set, Compose uses `latest`.
+2. Download the images, without stopping anything yet:
 
-This downloads the latest images without stopping your running containers.
+    ```bash
+    docker compose pull
+    ```
 
-### 2. Check for migration requirements
+3. Apply any manual step UPGRADE.md lists for the target version.
+4. Start the new images; Compose recreates only the containers whose image changed:
 
-Review [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) for the specific version you're upgrading to. Some releases require manual steps before restarting.
+    ```bash
+    docker compose up -d
+    ```
 
-### 3. Restart with new images
+5. Run the database migrations. They are safe to run even when the release changes no schema, so always run them:
 
-```bash
-docker compose up -d
-```
+    ```bash
+    docker compose exec backend python manage.py migrate
+    ```
 
-Docker Compose will recreate containers that have a new image and leave unchanged containers running.
+    Static files ship inside the backend image, so there is no `collectstatic` step.
 
-### 4. Run database migrations
-
-```bash
-docker compose exec backend python manage.py migrate
-```
-
-Always run migrations after upgrading: they are safe to run even when the changelog mentions no schema change.
-
-Static files ship inside the backend image, so there is no `collectstatic` step.
-
-### 5. Verify the upgrade
-
-```bash
-# Check application logs for errors
-docker compose logs --tail=50 backend
-```
+6. Check the backend started cleanly: `docker compose logs --tail=50 backend`.
 
 ## Rolling back
 
-If something goes wrong, restore the database from the backup created before upgrading:
+Restore the database from the backup taken before upgrading, then go back to the old version:
 
 ```bash
 # Stop the backend and workers
@@ -73,28 +61,24 @@ docker compose pull
 docker compose up -d
 ```
 
-Once Meet works on the restored data, drop the copy set aside above. It holds everything written since the upgrade, and the next rollback fails at the rename while it exists:
+Once Meet works on the restored data, drop `meet_before_rollback`. It holds everything written since the upgrade, and while it exists the next rollback fails at the rename:
 
 ```bash
 docker compose exec -T postgresql psql -U meet -d postgres \
   -c "DROP DATABASE meet_before_rollback"
 ```
 
-## Version pinning
+## LiveKit and Egress
 
-By default, `docker compose pull` fetches `:latest`. Pin `MEET_VERSION` and `LIVEKIT_VERSION` in `.env`, as the Deployment Guide's [Pin image versions](../compose/deployment-guide.md#after-installation) step shows: every Meet service reads the same variable, so they stay on one release. LiveKit Egress, if you run recording, has its own tag: pin `EGRESS_VERSION` in `.env` too, which the [Recording](recording.md) compose snippet reads. This is recommended for production to avoid unexpected upgrades.
-
-## Keeping LiveKit up to date
-
-LiveKit server and Egress should be upgraded separately. Check the [LiveKit changelog](https://github.com/livekit/livekit/releases) for compatibility notes with your Meet version.
+LiveKit is versioned independently of Meet: check the [LiveKit releases](https://github.com/livekit/livekit/releases) before moving it. In `.env`, set the new tag in `LIVEKIT_VERSION`, and in `EGRESS_VERSION` if you run recording. Then:
 
 ```bash
-docker compose pull livekit
-docker compose up -d livekit
+docker compose pull livekit livekit-egress
+docker compose up -d livekit livekit-egress
 ```
 
-With recording enabled, upgrade Egress too: `docker compose pull livekit-egress && docker compose up -d livekit-egress`.
+Leave out `livekit-egress` if you do not run recording. A restart of LiveKit drops the calls in progress, so pick a quiet hour.
 
-## Getting help with upgrades
+## Getting help
 
-Check [GitHub Issues](https://github.com/suitenumerique/meet/issues) for known upgrade problems, or ask the community, see [Community and support](../../index.md#community-and-support). A new issue needs your current version, the target version, and the error logs.
+Look for known upgrade problems in [GitHub Issues](https://github.com/suitenumerique/meet/issues), or ask the community, see [Community and support](../../index.md#community-and-support). A new issue needs your current version, the target version and the error logs.

@@ -2,3 +2,28 @@
 pre.mermaid {
   visibility: hidden;
 }
+
+/* Two captioned screenshots side by side, stacked on narrow screens. */
+.figure-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.figure-row figure {
+  margin: 0;
+}
+@media (max-width: 600px) {
+  .figure-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Keep each caption right under its image. */
+.md-typeset figure > br {
+  display: none;
+}
+.md-typeset figure > figcaption {
+  margin: 0.3rem auto 0;
+  max-width: none;
+}

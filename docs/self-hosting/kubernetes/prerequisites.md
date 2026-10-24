@@ -1,38 +1,21 @@
 # Prerequisites (Kubernetes)
 
-The Kubernetes deployment uses the official Meet Helm chart, the same method used by DINUM in production. This guide targets production Kubernetes clusters. If you are deploying a small instance without Kubernetes expertise, use the [Docker Compose guide](../compose/prerequisites.md) instead.
+The Kubernetes deployment uses the official Meet Helm chart and targets production clusters. For a small instance without Kubernetes expertise, use the [Docker Compose guide](../compose/prerequisites.md) instead.
 
 ## When to use Kubernetes
 
 - High availability: multiple replicas with automatic failover
 - Horizontal scaling: scale backend, frontend, and Celery workers independently
-- Production-grade recording and transcription
 - Multi-region or multi-zone deployments
 - GitOps workflows and declarative infrastructure
 
 ## Required tools
 
-### kubectl
+Install each from its upstream documentation:
 
-```bash
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-sudo install kubectl /usr/local/bin/kubectl
-kubectl version --client
-```
-
-### Helm 3
-
-```bash
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-helm version
-```
-
-### helmfile (recommended for multi-environment)
-
-```bash
-brew install helmfile   # macOS / Linux with Homebrew
-# or download binary: https://github.com/helmfile/helmfile/releases
-```
+- [kubectl](https://kubernetes.io/docs/tasks/tools/), configured for your cluster
+- [Helm 3](https://helm.sh/docs/intro/install/)
+- [helmfile](https://github.com/helmfile/helmfile/releases), optional, for several environments
 
 ## Cluster requirements
 
@@ -44,15 +27,13 @@ brew install helmfile   # macOS / Linux with Homebrew
 
 ### Required cluster components
 
-- **nginx-ingress controller**, if you enable recording: the Meet Helm chart's recording ingress (`ingressMedia`) uses nginx-ingress annotations for authenticated MinIO proxying
+- **An ingress controller**: any works for video conferencing alone. Recording and uploaded background images need nginx-ingress: their ingresses, `ingressMedia` and `ingressMediaFiles`, authenticate their proxying to the S3 storage with nginx-ingress annotations.
 - **cert-manager**: with a Let's Encrypt `ClusterIssuer` for automatic TLS
-- **Public IPs on the LiveKit nodes**: the chart serves LiveKit's media ports, 7882/UDP and 7881/TCP, from the node itself through host networking
-
-> nginx-ingress is required if you plan to enable recording. For basic video conferencing only, any ingress controller works.
+- **Public IPs on the LiveKit nodes**: the chart serves LiveKit's media ports from the node itself through host networking
 
 ## External services
 
-For production, use managed services rather than running stateful workloads inside Kubernetes:
+The chart does not deploy these. The example values in [Helm Deployment](helm.md) reach them at in-cluster hostnames such as `postgresql.meet.svc.cluster.local`; a managed service works the same way at its own address. For production, prefer managed services to running these stateful workloads in the cluster.
 
 | Service | Purpose | Options |
 |---|---|---|
@@ -64,34 +45,26 @@ For production, use managed services rather than running stateful workloads insi
 
 ## Network requirements
 
-LiveKit's media ports must be reachable from the public internet:
-
-| Port | Protocol | Use |
-|---|---|---|
-| 443 | TCP | HTTPS (ingress) |
-| 7881 | TCP | WebRTC ICE over TCP |
-| 7882 | UDP | WebRTC media (RTP/RTCP) |
-
-No LoadBalancer or NodePort carries the media ports: open 7881/TCP and 7882/UDP in the security group of each node that runs LiveKit.
+The ports to open, on the ingress and on each node that runs LiveKit, are listed in [Firewall & Ports](../configuration/firewall.md).
 
 ## DNS records
 
 | Record | Points to |
 |---|---|
 | `meet.example.com` | Ingress load balancer IP |
-| `livekit.example.com` | The LiveKit Ingress address (`kubectl get ingress -n meet`), a CNAME or alias when it is an AWS ALB. It differs from the Meet ingress unless `loadBalancer.type` is `do`. |
+| `livekit.example.com` | Ingress load balancer IP: the [LiveKit values](helm.md#livekit-on-kubernetes) expose it through the same nginx-ingress |
 | `auth.example.com` | Ingress load balancer IP (OIDC provider) |
 
 ## Checklist
 
 - [ ] kubectl configured for your cluster
 - [ ] Helm 3 installed
-- [ ] nginx-ingress controller deployed
+- [ ] An ingress controller deployed, nginx-ingress if you use recording or uploaded backgrounds
 - [ ] cert-manager deployed with a ClusterIssuer configured
 - [ ] PostgreSQL reachable
 - [ ] Redis reachable
 - [ ] OIDC provider configured
 - [ ] Domain names with DNS pointing to your ingress load balancer
-- [ ] LiveKit media ports (7881/TCP, 7882/UDP) publicly accessible
+- [ ] The ports in [Firewall & Ports](../configuration/firewall.md) open
 - [ ] S3-compatible storage available (if using recording)
 - [ ] SMTP relay configured (if using recording)

@@ -1,50 +1,37 @@
-# Recording
+# Recording & Transcription
 
-Only room owners and administrators can start a recording. Members cannot record directly.
+<figure markdown="span">
+  ![Recording option in More menu](../assets/recording.gif)
+  <figcaption>Starting a recording</figcaption>
+</figure>
 
-## Start a recording
+| | Recording | Transcription ⚗️ | Real-time subtitles ⚗️ |
+|---|---|---|---|
+| **What you get** | A video of the meeting, in LiveKit's speaker layout | A written transcript, and a summary where your instance writes one | Live captions while people speak |
+| **Start it from** | **More options** → **Screen recording**, or **More tools** → **Record** | **More options** → **Transcription**, or **More tools** → **Transcribe** | **Show subtitles** in the control bar |
+| **Who can start it** | The owner and co-hosts, and signed-in participants in an **Open** room or one open to trusted people, see [Permissions](features-controls.md#permissions). Anyone else can click **Request** to ask the host | The same as recording | Anyone in the meeting |
+| **Where the result goes** | An email with a download link, to whoever started it and the room's owner and co-hosts | A document in LaSuite Docs, owned by whoever started it | Nowhere: captions are not kept |
 
-![Recording option in More menu](../assets/recording.gif)
+Each appears only where your instance has set it up.
 
-Click **...** (More options) → **Screen recording** to open the recording panel, then click **Start recording the meeting**. A red indicator appears for all participants.
+## Recording
 
-## Stop a recording
+Click **Start recording the meeting** in the recording panel; **Stop recording the meeting**, in the same panel, ends it. Everyone sees a red indicator while it runs.
 
-In the same panel, click **Stop recording the meeting**. The file is processed and uploaded automatically.
+- **It waits for sound or picture.** It starts once someone has a microphone, camera or screen share on; until then it shows **Starting…**, and after 15 seconds everyone is told it is waiting.
+- **It can stop on its own**, at the length limit your instance sets. If it fails, everyone is told and nothing is saved.
+- **Quality:** where your instance allows it, the owner and co-hosts can set it before starting, through **Change** beside **Adjustable video quality**, see [Settings → Recording](features-controls.md#settings).
+- **The download page** opens only for the people the email went to, after signing in. It can expire after a number of days your instance sets, and then no longer offers the file.
+- **No email?** Your instance may not send email; your administrator can find the recording and send the email again once it does.
 
-## What gets recorded
+## Transcription
 
-LaSuite Meet uses LiveKit's room composite recording (Egress). The recording captures:
+In the transcription panel, check **Meeting language**, which the owner and co-hosts can change, then click **Start transcribing the meeting**. Tick **Also start a video recording** to get a recording as well.
 
-- All participants' video feeds
-- All audio streams
-- Active screen shares
+- **The language matters:** French, English, Dutch, German or **Automatic**. The right one gives a better transcript.
+- **It waits for a microphone**, like a recording, and runs until someone clicks **Stop transcribing the meeting**.
+- **No LaSuite Docs, no transcript:** an instance not connected to LaSuite Docs delivers it to no one.
 
-The result is a single video file matching the meeting layout.
+## Real-time subtitles
 
-## Download a recording
-
-When recording processing is complete, **the person who started the recording receives an email** with a download link. The email contains a unique URL to the recording page.
-
-To download your recording:
-
-1. Open the email sent to your account after the meeting
-2. Click the download link to open the recording page at `/recording/<recordingId>`
-3. Log in if prompted (only the person who started the recording can access it)
-4. Click **Download** to save the video file
-
-The download page shows:
-
-- The meeting room name
-- The recording date and time
-- An expiration warning if the recording expires after a set number of days
-
-> If you do not receive an email, your instance may not have email (SMTP) configured. Ask your administrator to check the email settings or look up the recording in the admin panel at `/admin/ → Recordings`.
-
-## Notes
-
-- Recording requires the LiveKit Egress service and S3-compatible storage to be configured by your administrator
-- Email (SMTP) must be configured for the download notification to be sent
-- Download links are authenticated; only the person who started the recording can access them
-- Your administrator may set a maximum recording duration; the recording stops and saves automatically if it's reached
-- After the expiration period set by your administrator, the recording's download page says it has expired and no longer offers the file
+The first **Show subtitles** starts captioning for the whole room; everyone else who wants to read the captions clicks it too, and **Hide subtitles** hides them again. Caption size and colours are in [Accessibility & Shortcuts](accessibility.md#display).

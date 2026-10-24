@@ -1,160 +1,63 @@
 # Getting Started
 
-**What we'll do:** Create a room, invite a participant, try the controls, and end the session. By the end, you'll know your way around Meet and feel confident hosting a real meeting.
+You need a recent Chrome, Firefox, Safari or Edge, and a microphone.
 
-**What you'll need:**
+!!! tip "No instance yet?"
 
-- Access to a Meet instance (provided by your organization, or a self-hosted instance)
-- A modern browser: Chrome, Firefox, Safari, or Edge (latest version)
-- A microphone (a webcam is optional but recommended)
+    Try Meet on the demo, [visio.lasuite.coop](https://visio.lasuite.coop/). Starting a meeting there takes a free test account, created from the [LaSuite.coop demo page](https://lasuite.coop/applications/demo/) and deleted after one month; joining someone's link needs none. Other public instances are listed on the [home page](../index.md#known-public-instances).
 
-This tutorial takes about 10 minutes.
+## Start a meeting
 
-!!! info "Optional"
+<figure markdown="span">
+  ![Starting a meeting](../assets/getting-started-step1.gif)
+  <figcaption>Starting an instant meeting from the home page</figcaption>
+</figure>
 
-    To experience Meet from both sides at once (host and participant), have a second browser tab 
-    or device ready. Steps 4 and 5 include instructions for this, but you can follow the rest of the guide solo.
+Open Meet and sign in. On the home page, **Create a meeting** offers two choices:
 
-## Step 1: Log in and create a room
+- **Start an instant meeting** creates a room now
+- **Create a meeting for a later date** creates a room whose link you can share in advance
 
-![Pre-join screen](../assets/getting-started-step1.gif)
+Either way you own the room and its host settings. Where your instance allows it, **Create a meeting** also shows when you are signed out, and starts a meeting straight away. That meeting has no owner, so no one can change its settings or record it.
 
-Open Meet in your browser. If your instance requires login, you'll be redirected to a login page; enter your credentials and return.
+The room's address is the instance's address followed by the room code: on the demo, [visio.lasuite.coop](https://visio.lasuite.coop/) then a code like `abc-defg-hij`.
 
-On the home page, you'll see two options:
+<figure markdown="span">
+  ![Pre-join screen](../assets/pre-join-screen.png){ width="700" }
+  <figcaption>The pre-join screen</figcaption>
+</figure>
 
-- **Create a meeting for a later date** - schedules a room you can share in advance
-- **Start an instant meeting** - creates a room immediately
+On the pre-join screen, enter the name others will see, check your camera and microphone, pick a background under **Backgrounds and effects** if you like, and click **Join**. Your browser asks for camera and microphone access the first time; you can join with audio only.
 
-Click **Start an instant meeting**.
+## Invite people
 
-Meet creates a room with a unique URL, something like `https://meet.yourdomain.com/abc-defg-hij`. You'll use this link to invite participants in a moment.
+<figure markdown="span">
+  ![Info button](../assets/info-button.png)
+  <figcaption>The info button (ⓘ)</figcaption>
+</figure>
 
-!!! info
+Click the info button (ⓘ), then **Copy information**, and send it any way you like.
 
-    The room exists now. Once people join, it stays open while at least one participant
-    is connected, and closes automatically when everyone leaves.
+## Join a meeting
 
-## Step 2: Configure your setup on the pre-join screen
+Open the link, or paste the code into the home page field and click **Join meeting**. Depending on the room's access level, you join directly or wait until someone admits you, see [Access levels](features-controls.md#access-levels).
 
-![Pre-join screen](../assets/pre-join-screen.png){ width="700" }
+!!! tip "See both sides"
 
-Before entering the room, you land on the **pre-join screen**. This is where you configure your audio and video before others can see you.
+    Join your own meeting from a second browser tab or device to see what participants see, the waiting room included.
 
-1. Enter your name in the **Your name** field (this is what participants will see)
-2. Check your camera preview; you should see yourself in the frame
-3. Toggle your microphone on or off using the microphone button
-4. Click **Backgrounds and effects** to configure a virtual background (optional)
-5. When you're ready, click **Join**
+## In the meeting
 
-You're now inside the meeting room.
+<figure markdown="span">
+  ![Meeting room](../assets/meeting-room.png)
+  <figcaption>The control bar: your own controls in the middle, the panels on the right</figcaption>
+</figure>
 
-!!! info
-
-    If your browser hasn't yet been granted camera or microphone access, it will prompt you 
-    to authorize it now. You can join with audio only if you prefer.
-
-## Step 3: Share the meeting link
-
-![Info button](../assets/info-button.png)
-
-Look at the right side of the meeting room for a small info button (ⓘ). Click it to open the room information panel.
-
-You'll see the meeting link. Click the **copy** button to copy it to your clipboard, then share it by email, chat, or any other way you prefer.
-
-## Step 4: Join as a participant
-
-### From a link
-
-Click the meeting link, allow camera and microphone access when prompted, enter your name on the pre-join screen, and click **Join**.
-
-### By meeting code
-
-If you received a meeting code instead of a full link:
-
-1. Go to the home page
-2. Paste the meeting code into the input field
-3. Click **Join meeting**
-
-A meeting code follows the format: `abc-defg-hij`
-
-### Restricted access (waiting room)
-
-If the room is set to **Restricted** access, you'll see a waiting screen after clicking Join. The host is notified by a pop-up and can admit you from there or from the **Lobby** section in the Participants panel.
-
-!!! info "Optional - try the participant side"
-
-    Open the meeting link in a second browser tab (or on another device) and join as "Participant". 
-    Switch back to your first tab to see the admit prompt appear.
-
-## Step 5: Try the microphone and camera
-
-![Meeting room](../assets/meeting-room.png)
-
-The control bar at the bottom of the screen is your main interface during a meeting.
-
-**Toggle your microphone:** Click the microphone button, or press `Ctrl+D`. The icon changes to show it's muted. Press again to unmute.
-
-**Toggle your camera:** Click the camera button, or press `Ctrl+E`. Your video feed appears and disappears.
-
-**Push-to-talk:** Hold `V` to temporarily unmute while the key is held.
-
-## Step 6: Send a chat message
-
-![Chat](../assets/getting-started-chat.gif)
-
-Click the **Chat** icon in the control bar, or press `Ctrl+Shift+M`. A chat panel opens on the right side. Type a message and press **Enter**.
-
-!!! warning
-
-    Meet does **not keep chat** - when the last participant leaves, the chat history is cleared. The one exception is a transcription on an instance that runs the metadata collector: chat sent during it is saved with the transcription metadata, see [FAQ](../faq.md#is-chat-history-stored).
-
-## Step 7: Raise your hand
-
-![Raise hand](../assets/getting-started-raise-hand.gif)
-
-Click the **Raise hand** button (✋) in the control bar to signal you want to speak without interrupting. Other participants see a raised hand indicator on your tile and a notification in the Participants panel. Click again to lower your hand.
-
-## Step 8: Share your screen
-
-Click the **Screen share** button in the control bar. Your browser opens a dialog asking what to share:
-
-- **Entire screen** - shares your full desktop
-- **Window** - shares a single application window
-- **Browser tab** - shares a specific tab (this also offers to share the tab's audio)
-
-Select an option and click **Share**. To stop sharing, click the **Stop sharing** button in your browser's notification bar, or click **Screen share** again.
-
-## Step 9: Leave the meeting
-
-![Leave](../assets/getting-started-leave.gif)
-
-Click the red **Leave** button in the control bar. You'll leave the meeting, but the room stays open for other participants. The room closes automatically when the last person leaves.
-
----
-
-## What you've learned
-
-- Created a meeting room and got the share link
-- Configured audio and video on the pre-join screen
-- Joined a meeting from a link and by meeting code
-- Used the core controls: microphone, camera, chat, hand raise, and screen share
-- Saw how the lobby (waiting room) works for Restricted-access rooms
-
----
-
-## What's next?
-
-- [Features & Controls](features-controls.md) - complete reference for every control, permission, and role
-- [Recording](recording.md) - how to record a meeting and download the video
-- [Settings](settings.md) - configure audio devices, noise reduction, and notifications
-- [Keyboard Shortcuts](keyboard-shortcuts.md) - speed up your workflow
-
-Common shortcuts:
-
-| Shortcut | Action |
+| Action | How |
 |---|---|
-| `Ctrl+D` | Toggle microphone |
-| `Ctrl+E` | Toggle camera |
-| `Hold V` | Push-to-talk (hold to unmute) |
-| `Ctrl+Shift+/` | Open shortcuts help |
+| Mute or unmute | Microphone button, or `Ctrl+D` |
+| Camera on or off | Camera button, or `Ctrl+E` |
+| Talk while muted | Hold `V` |
+| Leave | **Leave**. The meeting goes on without you, see [When the meeting ends](../overview/how-meet-works.md#when-the-meeting-ends) |
+
+Chat, reactions, raised hands, screen sharing and recording are in [Features & Controls](features-controls.md). Press `Ctrl+Shift+/` in a meeting for every shortcut, see [Accessibility & Shortcuts](accessibility.md#keyboard).

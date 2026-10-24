@@ -1,15 +1,9 @@
 # Telephony Integration
 
-LaSuite Meet supports telephony integration via LiveKit's SIP bridge, allowing participants to join meetings by phone or connecting Meet rooms to PSTN (public telephone network) systems.
+Participants can join a meeting by phone through LiveKit's SIP bridge. SIP is the protocol phone providers use to set up calls. The room's info panel shows the dial-in number and the room's PIN; a caller dials the number, enters the PIN and joins as an audio-only participant.
 
 !!!info
-    This guide applies to both Docker Compose and Kubernetes deployments. The `compose.yml` snippets below are ready to use with a Docker Compose setup.
-
-## Use cases
-
-- **Dial-in**: Phone users call a number to join a meeting
-- **Dial-out**: The system calls a phone number to bring a PSTN participant into a room
-- **PBX integration**: Connect Meet to your organization's PBX or UCaaS system
+    Only Docker Compose is covered; the Helm chart does not deploy LiveKit SIP.
 
 ## Architecture
 
@@ -17,172 +11,111 @@ LaSuite Meet supports telephony integration via LiveKit's SIP bridge, allowing p
 Phone ──► PSTN ──► SIP Trunk ──► LiveKit SIP Bridge ──► LiveKit Room
 ```
 
-LiveKit's SIP component handles SIP signaling and audio transcoding between the PSTN world (G.711/G.722 audio, SIP protocol) and the WebRTC world (Opus audio, WebRTC protocol).
+The PSTN is the public phone network. LiveKit's SIP component handles SIP signalling and converts audio between the phone network, usually G.711 (8 kHz), and WebRTC (Opus, 48 kHz). Phone participants therefore sound like a phone call. Recordings include their audio.
 
 ## Prerequisites
 
-- LiveKit server 1.5+ with SIP enabled
-- A SIP trunk from a VoIP provider (Twilio, Vonage, Infobip, or a self-hosted Asterisk/FreeSWITCH)
-- SIP credentials (username, password, server address)
-- A phone number (DID) from your VoIP provider
+- A SIP trunk from a VoIP provider (Twilio, Vonage, Infobip), or a self-hosted Asterisk or FreeSWITCH.
+- A phone number (DID) from that provider.
+- The ports of the [firewall table](firewall.md) marked for telephony.
+- The LiveKit webhook to Meet, which the base setup already configures: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
 
-## Enabling SIP in LiveKit
+## Meet backend
 
-First, enable telephony in your Meet backend by adding to `.env`:
+Add to `env.d/common`:
 
 ```dotenv
 ROOM_TELEPHONY_ENABLED=True
 ROOM_TELEPHONY_PHONE_NUMBER=+33123456789
 ROOM_TELEPHONY_DEFAULT_COUNTRY=FR
-ROOM_TELEPHONY_PIN_LENGTH=10
-ROOM_TELEPHONY_PIN_MAX_RETRIES=5
 ```
 
-`ROOM_TELEPHONY_PHONE_NUMBER` is required for the dial-in number to appear in the frontend config. Without it, telephony stays enabled server-side but the UI never shows a number to call.
+If `ROOM_TELEPHONY_PHONE_NUMBER` is missing or cannot be parsed with `ROOM_TELEPHONY_DEFAULT_COUNTRY`, `/api/v1.0/config/` reports telephony disabled and the backend logs a warning. The other variables and every default are in [Environment Variables: Telephony](../../reference/env-variables.md#telephony).
 
-Then add SIP configuration to your `livekit-server.yaml`:
-
-```yaml
-sip:
-  enabled: true
+```bash
+docker compose up -d --force-recreate backend
 ```
 
-LiveKit SIP also requires its own service. Add to `compose.yml`:
-
-```yaml
-livekit-sip:
-  image: livekit/sip:latest
-  environment:
-    SIP_CONFIG_FILE: /sip-config.yaml
-  volumes:
-    - ./livekit-sip.yaml:/sip-config.yaml
-  ports:
-    - "5060:5060/udp"   # SIP signaling
-    - "10000-20000:10000-20000/udp"  # RTP media
-  depends_on:
-    - redis
-    - livekit
-```
-
-## SIP service configuration
+## LiveKit SIP service
 
 Create `livekit-sip.yaml`:
 
 ```yaml
 api_key: meet
-api_secret: your-livekit-api-secret
+api_secret: <your LiveKit API secret>
 ws_url: ws://livekit:7880
 
 redis:
   address: redis:6379
-
-sip:
-  port: 5060
 ```
 
-## Configuring SIP trunks
+Add the service to `compose.yml`, under `services:`. Its `ports:` publish LiveKit SIP's [default](https://github.com/livekit/sip#config) `sip_port` and `rtp_port`, the telephony rows of the [firewall table](firewall.md):
 
-SIP trunks are configured via the LiveKit API. The examples below use `curl` directly , no extra tools required.
+```yaml
+  livekit-sip:
+    image: livekit/sip:latest
+    restart: unless-stopped
+    environment:
+      SIP_CONFIG_FILE: /sip-config.yaml
+    volumes:
+      - ./livekit-sip.yaml:/sip-config.yaml:ro
+    ports:
+      - "5060:5060/udp"
+      - "10000-20000:10000-20000/udp"
+    depends_on:
+      - redis
+      - livekit
+    networks:
+      - internal
+```
 
-### Inbound trunk (for dial-in)
+```bash
+docker compose up -d livekit-sip
+```
 
-Via the LiveKit API:
+## Inbound SIP trunk
+
+The trunk tells LiveKit SIP which calls to accept. Create it once with the [LiveKit CLI](https://github.com/livekit/livekit-cli), `lk`. Save this as `inbound-trunk.json`, with the number of `ROOM_TELEPHONY_PHONE_NUMBER`:
 
 ```json
-POST /twirp/livekit.SIP/CreateSIPInboundTrunk
 {
   "trunk": {
+    "name": "Main dial-in number",
     "numbers": ["+33123456789"],
-    "allowed_addresses": ["sip.twilio.com"],
-    "name": "Main dial-in number"
+    "allowed_addresses": ["<your provider's signalling IP or CIDR range>"]
   }
 }
 ```
 
-### Outbound trunk (for dial-out)
+`allowed_addresses` takes IP addresses or CIDR ranges, not hostnames; an empty list accepts calls from any address.
 
-```json
-POST /twirp/livekit.SIP/CreateSIPOutboundTrunk
-{
-  "trunk": {
-    "address": "sip.twilio.com",
-    "auth_username": "your-twilio-account-sid",
-    "auth_password": "your-twilio-auth-token",
-    "name": "Outbound via Twilio"
-  }
-}
+```bash
+lk sip inbound create \
+  --url https://livekit.example.com \
+  --api-key meet \
+  --api-secret <your LiveKit API secret> \
+  inbound-trunk.json
 ```
 
 ## Dispatch rules
 
-**Dispatch rules are managed automatically by Meet**: no manual configuration needed.
-
-When a room is created, Meet's backend receives a `room_started` webhook from LiveKit and automatically creates a PIN-based SIP dispatch rule for that room. When the room ends, the dispatch rule is automatically cleared.
-
-The PIN code is displayed to participants in the room info panel. Callers dial the configured phone number, enter the PIN, and are connected to the room.
-
-!!!info
-    **Requirement**: LiveKit webhooks must be configured to reach the Meet backend for dispatch rules to be created. See [Recording: Step 6](recording.md#step-6-configure-livekit-webhook) for webhook setup; the same configuration is required for telephony.
-
-    **Current limitation**: A phone participant cannot enter the room until at least one WebRTC participant has already connected.
+Meet manages dispatch rules itself. When the first participant joins, LiveKit sends `room_started` and Meet creates a dispatch rule routing the room's PIN to it. On `room_finished` the rule is deleted. A caller can therefore join only while someone is connected from a browser, except Roomkit devices (see [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) in the Environment Variables reference).
 
 ## SIP provider setup (Twilio example)
 
-1. Create a Twilio account and obtain a phone number
-2. In Twilio console, create a SIP Trunk
-3. Configure the origination URI to point to your LiveKit SIP service: `sip:your-server.example.com:5060`
-4. Use your Twilio account SID and auth token as the outbound trunk credentials
-
-## Firewall requirements
-
-SIP and RTP require additional open ports:
-
-| Port | Protocol | Purpose |
-|---|---|---|
-| 5060 | UDP | SIP signaling |
-| 10000-20000 | UDP | RTP media (SIP audio) |
-
-!!!info 
-    The RTP port range (10000-20000) must be open for telephony to work. This is in addition to LiveKit's standard WebRTC ports.
+1. Create a Twilio account and obtain a phone number.
+2. In the Twilio console, create a SIP Trunk.
+3. Point the origination URI at your LiveKit SIP service: `sip:your-server.example.com:5060`.
 
 ## Audio prompt language
 
-By default, all LiveKit SIP audio instructions (PIN prompts, etc.) are in English. To use a different locale, mount the appropriate audio files as a volume in your deployment. The audio resources are available at [github.com/livekit/sip/tree/main/res](https://github.com/livekit/sip/tree/main/res).
-
-## Audio quality notes
-
-SIP telephone calls use narrowband audio (G.711, 8 kHz). This is noticeably lower quality than WebRTC participants (Opus, 48 kHz). LiveKit transcodes between the two transparently, but phone participants will always sound like a phone call. Recordings include phone participants' audio.
+LiveKit SIP speaks its prompts, the PIN prompt among them, in English. For another language, mount that language's audio files as a volume on the `livekit-sip` service. The audio files are in [github.com/livekit/sip/tree/main/res](https://github.com/livekit/sip/tree/main/res).
 
 ## Testing telephony
 
-To dial out to a phone from a room, call the LiveKit SIP API:
-
-```json
-POST /twirp/livekit.SIP/CreateSIPParticipant
-{
-  "sip_trunk_id": "<outbound-trunk-id>",
-  "sip_call_to": "+33612345678",
-  "room_name": "my-room",
-  "participant_identity": "phone-participant"
-}
-```
+Join a room from a browser, call `ROOM_TELEPHONY_PHONE_NUMBER`, and enter the PIN shown in the room info panel. When the call fails, see [Telephony issues](../../reference/troubleshooting.md#telephony-issues).
 
 ## Limitations
 
-- A phone participant cannot enter the room until at least one WebRTC participant has connected
-- Only a single SIP trunk provider is supported per instance
-- SIP participants are audio-only (no video)
-- Reactions, chat, and screen sharing are not available to SIP participants
-- The RTP port range (10000-20000) is large; open it only if you actually use telephony
-
-## Telephony in the UI
-
-When telephony is configured, the meeting room's info panel shows the dial-in phone number and a PIN code for the room. Participants can call the number, enter the PIN, and join as audio-only attendees.
-
-## Troubleshooting
-
-**No audio from phone participant**: Verify the RTP port range (10000-20000 UDP) is open in your firewall. This is the most common cause.
-
-**SIP call fails to connect**: Check that the origination URI in your SIP provider's console points to your LiveKit SIP service's host on port 5060. Verify no firewall is blocking UDP 5060.
-
-**Wrong room or no dispatch rule matched**: Check that the `room_started` webhook reaches the backend: Meet creates the room's dispatch rule from it. Without a rule, calls are rejected.
+- Dial-in only: Meet does not implement calling out.
+- Meet displays a single dial-in number (`ROOM_TELEPHONY_PHONE_NUMBER`).

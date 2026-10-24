@@ -1,256 +1,161 @@
-# LiveKit Configuration
+# LiveKit & TURN
 
-LiveKit is the WebRTC media server powering all real-time audio, video, and screen sharing in Meet. The base configuration is created in the [Deployment Guide](../compose/deployment-guide.md). This page covers the LiveKit configuration options that matter most for self-hosting: UDP port strategy, TURN, and production tips.
+LiveKit is the media server: every participant sends it their audio and video, and it forwards each stream to the others. The [Deployment Guide](../compose/deployment-guide.md) sets it up from [`livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-server.yaml), which works as shipped. What follows covers the settings you may change in that file, and TURN for participants on locked-down networks. The ports each choice needs are in [Firewall & Ports](firewall.md).
 
-!!! info 
-    **TLS:** LiveKit's WebSocket must be served over WSS. Your reverse proxy handles this by terminating TLS on a dedicated subdomain (`livekit.example.com`) and forwarding to port 7880 inside Docker.
+## How media connects
 
----
+LiveKit talks to a browser on two channels:
 
-## How LiveKit uses ports
+- **Signalling**, the control messages of the call: a WebSocket on 443 through your reverse proxy, which forwards it to LiveKit's port 7880. Port 7880 is [never public](firewall.md#never-public).
+- **Media**, the audio and video themselves, straight between the browser and LiveKit, without the reverse proxy.
 
-LiveKit uses two separate channels:
+For media, the browser tries each path in turn and keeps the first one its network allows:
 
-- **Signaling** (WebSocket): handled by your reverse proxy on port 443, forwarded to LiveKit on port 7880. No extra firewall rule needed.
-- **Media** (WebRTC RTP/RTCP): goes directly between browsers and LiveKit, bypassing the reverse proxy. This requires at least one UDP port open on your firewall.
+| Path | Port | Used when |
+|---|---|---|
+| Direct UDP | 7882/UDP | Always tried first; the lowest latency |
+| TCP | 7881/TCP | The network blocks that UDP port. It works, with more latency |
+| TURN relay | 443/UDP, or TLS on 5349/TCP | The network blocks both. Off until you [enable TURN](#turn) |
 
-!!!info 
-    Per LiveKit's client protocol, each participant uses up to two WebRTC PeerConnections - one for publishing, one for subscribing - each multiplexing its tracks (including screen shares) via SSRC identifiers, not separated by port. The subscriber connection opens as soon as the participant joins; the publisher connection only opens once they actually publish a track (e.g. unmute camera/mic). Port 7881 is a TCP fallback for the same traffic when a participant's network blocks UDP.
+A participant whose network allows none of these still joins the room, since signalling works, but gets no audio or video. If media works as soon as they switch to a phone hotspot, their network is blocking the media ports.
 
----
+LiveKit also calls Meet back over HTTP, a webhook, for each room event: room started and finished, participant left, recording progress. Meet uses these calls for the waiting room, presence, telephony and recordings. The `webhook:` block of `livekit-server.yaml` points them at `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, and its `api_key` must equal `LIVEKIT_API_KEY`.
 
-## UDP port strategy
+## The media port
 
-You have two options for the media UDP port. Choose one when writing your `livekit-server.yaml`.
+`udp_port: 7882` in `livekit-server.yaml` sends every participant's media through that one UDP port. The other form is a wide port range. Set one form, never both: once a range is configured, `udp_port` has no effect.
 
-### Option A: Single fixed port (recommended for Docker Compose)
+=== "One port, or a few (default)"
 
-LiveKit listens on one specific UDP port. Simple firewall rule, easiest to reason about.
+    ```yaml
+    rtc:
+      tcp_port: 7881
+      udp_port: 7882        # or a small range, e.g. 7882-7885
+      use_external_ip: true
+    ```
 
-```yaml
-rtc:
-  tcp_port: 7881
-  udp_port: 7882
-  use_external_ip: true
-```
+    For performance, LiveKit's comment in the file recommends at least as many ports as the server has CPU cores. All media still shares those few ports. Publish and open the whole range.
 
-Open on your firewall: `7881/TCP` and `7882/UDP`.
+=== "A wide range"
 
-**Use this when:** you are running a single LiveKit instance on a single server (the standard Docker Compose setup). `7882` is the conventional port but any available port works.
+    ```yaml
+    rtc:
+      tcp_port: 7881
+      port_range_start: 50000
+      port_range_end: 60000
+      use_external_ip: true
+    ```
 
-### Option B: Port range
-
-LiveKit allocates a UDP port from a configured range for each ICE session. This is the LiveKit default when no `udp_port` is set.
-
-```yaml
-rtc:
-  tcp_port: 7881
-  port_range_start: 50000
-  port_range_end: 60000
-  use_external_ip: true
-```
-
-Open on your firewall: `7881/TCP` and `50000–60000/UDP`.
-
-**Use this when:**
-
-- Running multiple LiveKit processes on one host (each needs its own port space)
-- Your cloud environment or network equipment works better with ephemeral ports
+    LiveKit gives each connection its own port from the range. It opens far more ports to the internet, so use it only when several LiveKit processes share one host. In `compose.yml`, replace `"7882:7882/udp"` with `"50000-60000:50000-60000/udp"`.
 
 On Kubernetes, the chart serves the media ports from the node itself, see [Helm: LiveKit media ports](../kubernetes/helm.md#livekit-media-ports).
 
-**Tradeoff:** Opening a large UDP range (`50000–60000`) is a wider firewall surface than a single port. For single-server Docker Compose deployments, Option A is simpler and works as well: with `udp_port` set, LiveKit multiplexes every session on that one port.
-
-!!!warning 
-     **Do not set both `udp_port` and `port_range_start/end` at the same time.** If `udp_port` is set, it takes precedence and the range is ignored.
-
----
-
 ## `use_external_ip`
 
-Always set this on cloud servers:
-
-```yaml
-rtc:
-  use_external_ip: true
-```
-
-Cloud VPS instances are behind NAT: the server's network interface has a private IP, but participants need to reach the public IP. With `use_external_ip: true`, LiveKit queries a STUN server at startup to discover its public IP and announces that address in ICE candidates. Without it, LiveKit announces the private IP and participants cannot connect to the media port.
-
-!!!Exception
-    do not set this if your server has a public IP directly on the interface (bare-metal, some dedicated servers). In that case, LiveKit detects the correct IP automatically.
-
----
-
-## Full `livekit-server.yaml` reference
-
-A complete configuration for Docker Compose (Option A, no TURN):
-
-```yaml
-port: 7880
-
-rtc:
-  tcp_port: 7881
-  udp_port: 7882
-  use_external_ip: true
-
-keys:
-  meet: your-livekit-api-secret-here
-
-redis:
-  address: redis:6379
-
-logging:
-  level: info
-```
-
-With TURN enabled (Option A + built-in TURN):
-
-```yaml
-port: 7880
-
-rtc:
-  tcp_port: 7881
-  udp_port: 7882
-  use_external_ip: true
-
-turn:
-  enabled: true
-  udp_port: 443
-  domain: livekit.example.com
-
-keys:
-  meet: your-livekit-api-secret-here
-
-redis:
-  address: redis:6379
-
-logging:
-  level: info
-```
-
----
+`use_external_ip: true`, set in the example file, makes LiveKit learn its public IP at startup and announce that address to browsers. It asks a public STUN server, a service that tells a machine the address it is seen from. It is needed whenever the public IP is not on the server's network interface, as on AWS, GCP, Azure or any host behind NAT. Where the public IP is on the interface, it does no harm.
 
 ## TURN
 
-TURN (Traversal Using Relays around NAT) relays media through a port that corporate firewalls and hotel networks always allow. See the dedicated [TURN guide](turn.md) for full setup instructions, including built-in TURN, TURN over TLS, and external TURN servers.
+TURN relays media for participants whose network blocks both 7882/UDP and 7881/TCP, as some corporate networks and VPNs do. LiveKit has a TURN server built in. Only clients that already hold a signalling connection can use it.
 
-**Quick summary of when you need TURN:** if any participants connect from corporate networks or VPNs, enable TURN. Without it, those participants may connect but have no audio or video.
+| Your users | TURN |
+|---|---|
+| One organisation, on a network you control | Usually not needed |
+| The public, on any network | Recommended: TURN over UDP on 443 |
+| Networks that block all UDP | TURN over TLS as well |
 
----
+Enabling or changing TURN changes `ports:` in `compose.yml`. Apply it with `docker compose up -d livekit`, which recreates the container: `docker compose restart livekit` keeps the old ports and mounts.
 
-## Docker Compose service reference
+### TURN over UDP on 443
 
-The LiveKit service in your `compose.yml`. Verify it matches if you're troubleshooting.
+Most networks let UDP through on 443, because HTTP/3 uses it. LiveKit takes 443/UDP and the reverse proxy keeps 443/TCP: they are separate sockets and do not conflict.
+
+1. Add to `livekit-server.yaml`:
+
+    ```yaml
+    turn:
+      enabled: true
+      udp_port: 443
+      domain: livekit.example.com
+    ```
+
+    `domain` is the address LiveKit gives browsers for the relay.
+
+2. In the `livekit` service of `compose.yml`, add `- "443:443/udp"` under `ports:`.
+3. Open 443/UDP, see [Firewall & Ports](firewall.md).
+4. Apply: `docker compose up -d livekit`.
+
+To test it, block both 7882/UDP and 7881/TCP on a client machine, join a meeting, and check that audio and video still flow.
+
+### TURN over TLS
+
+A network that blocks all UDP needs TURN over TLS, which looks like ordinary HTTPS to a firewall. It runs on 5349/TCP. The reverse proxy already holds 443/TCP, so running TURN there needs a second IP address, or a layer-4 load balancer in front, one that forwards TCP connections without decrypting them. A firewall that decrypts and inspects TLS blocks every form of TURN.
+
+LiveKit terminates this TLS itself, so it needs the certificate and key for `livekit.example.com` as files:
 
 === "nginx-proxy"
 
+    acme-companion keeps the certificates in the proxy stack's `certs` volume, which Docker names `nginx-proxy_certs`. Mount it into LiveKit in `compose.yml`:
+
     ```yaml
-    livekit:
-      image: livekit/livekit-server:latest
-      restart: unless-stopped
-      command: --config /config.yaml
-      environment:
-        - VIRTUAL_HOST=livekit.example.com
-        - VIRTUAL_PORT=7880
-        - LETSENCRYPT_HOST=livekit.example.com
-        - LETSENCRYPT_EMAIL=you@example.com
-      ports:
-        - "443:443/udp"     # only if TURN is enabled
-        - "7881:7881/tcp"
-        - "7882:7882/udp"
-      volumes:
-        - ./livekit-server.yaml:/config.yaml:ro
-      depends_on:
-        - redis
-      networks:
-        - proxy
-        - internal
+    services:
+      livekit:
+        ports:
+          - "443:443/udp"
+          - "5349:5349/tcp"
+          - "7881:7881/tcp"
+          - "7882:7882/udp"
+        volumes:
+          - ./livekit-server.yaml:/config.yaml:ro
+          - nginx-proxy_certs:/certs:ro
+
+    volumes:
+      nginx-proxy_certs:
+        external: true
     ```
+
+    The files are then `/certs/livekit.example.com.crt` and `/certs/livekit.example.com.key`. Merge the `volumes:` entry into the file's existing top-level `volumes:`.
 
 === "Traefik"
 
-    ```yaml
-    livekit:
-      image: livekit/livekit-server:latest
-      restart: unless-stopped
-      command: --config /config.yaml
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.meet-livekit.rule=Host(`livekit.example.com`)"
-        - "traefik.http.routers.meet-livekit.entrypoints=websecure"
-        - "traefik.http.routers.meet-livekit.tls=true"
-        - "traefik.http.routers.meet-livekit.tls.certresolver=letsencrypt"
-        - "traefik.http.services.meet-livekit.loadbalancer.server.port=7880"
-      ports:
-        - "443:443/udp"     # only if TURN is enabled
-        - "7881:7881/tcp"
-        - "7882:7882/udp"
-      volumes:
-        - ./livekit-server.yaml:/config.yaml:ro
-      depends_on:
-        - redis
-      networks:
-        - proxy
-        - internal
-    ```
+    Traefik keeps its certificates inside `~/docker/traefik/acme.json`. Extract the certificate and key for `livekit.example.com` to files, for example with [traefik-certs-dumper](https://github.com/ldez/traefik-certs-dumper), on a schedule so the files follow each renewal, and mount their directory into LiveKit at `/certs`. Point `cert_file` and `key_file` below at the names the tool writes.
 
-Port 7880 is **not** exposed on the host - it is proxied by your reverse proxy. The `443:443/udp` mapping is only needed when TURN is enabled.
-
-If you use the port range option instead of `udp_port: 7882`, replace the single `7882:7882/udp` mapping with the range:
+Then add the TLS settings to the `turn:` block, open 5349/TCP, and apply with `docker compose up -d livekit`:
 
 ```yaml
-ports:
-  - "7881:7881/tcp"
-  - "50000-60000:50000-60000/udp"
+turn:
+  enabled: true
+  udp_port: 443
+  tls_port: 5349
+  domain: livekit.example.com
+  cert_file: /certs/livekit.example.com.crt
+  key_file: /certs/livekit.example.com.key
 ```
 
----
-
-## Backend environment variables
-
-The LiveKit-related variables in your `.env`:
-
-```dotenv
-LIVEKIT_API_KEY=meet
-LIVEKIT_API_SECRET=your-livekit-api-secret
-LIVEKIT_API_URL=https://livekit.example.com
-```
-
-`LIVEKIT_API_URL` serves two purposes: it is used for server-side API calls (start/stop recording, participant management) and is returned to browsers as the WebSocket address. It must be the **public HTTPS URL** - not the Docker-internal address (`http://livekit:7880`). The backend reaches that URL through its public DNS record, like any other client, so it needs no `proxy` network.
-
----
-
-## Firewall
-
-See [Firewall & Ports](firewall.md) for the complete port table, cloud security group rules, and ufw commands for each configuration.
-
----
-
-## Verifying the setup
+The paths are inside the container. LiveKit reads the files only when it starts. Let's Encrypt certificates last 90 days and are renewed about every 60, so restart LiveKit after each renewal. A restart drops the calls in progress, so run it at a quiet hour, for instance from a weekly cron job:
 
 ```bash
-# Check LiveKit is reachable via HTTPS (after cert is issued)
-curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
-# Expected: 200
-
-# Check LiveKit logs for startup errors
-docker compose logs livekit --tail=30
+0 3 * * 0 docker compose -f ~/docker/meet/compose.yml restart livekit
 ```
 
-If these pass, join a meeting and confirm audio and video flow. If participants connect but have no media, the issue is almost always the media UDP port being blocked. See [Troubleshooting](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).
+### An external TURN server
 
----
+LiveKit's built-in TURN has no plain TCP transport. For TURN over TCP on 3478, or to move relay traffic off the LiveKit server, run a separate [coturn](https://github.com/coturn/coturn) server and point LiveKit at it:
 
-## LiveKit Egress (for recording)
+```yaml
+rtc:
+  turn_servers:
+    - host: turn.example.com
+      port: 443
+      protocol: tls
+      secret: your-coturn-shared-secret
+      ttl: 14400
+```
 
-LiveKit Egress is a separate service required for recording. See [Recording](recording.md).
+Setting up coturn itself is outside this guide.
 
----
+## Check it works
 
-## Production tips
+After the stack is up, `curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/` answers `200`, and `docker compose logs livekit --tail=30` shows no error. Then join a meeting from two devices and check that both hear and see each other. Problems and their fixes are in [Troubleshooting](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).
 
-- Run LiveKit on a server with **sufficient bandwidth**: it forwards all participant media streams
-- Monitor LiveKit CPU and memory; each participant track consumes resources.
-- Keep the LiveKit API secret 32+ characters and treat it like a database password
-- Pin the LiveKit image version in production - check the [LiveKit releases](https://github.com/livekit/livekit/releases) for compatibility with your Meet version
+The variables that connect the backend to LiveKit are in [Environment Variables: LiveKit](../../reference/env-variables.md#livekit). Recording needs a further service, LiveKit Egress, see [Recording](recording.md).

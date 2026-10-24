@@ -1,62 +1,58 @@
 # Quick Start
- 
-The install script sets up three stacks:
-a reverse proxy, Keycloak (identity provider), and Meet itself.
- 
-**Prerequisites:**
- 
-- A Linux server with Docker and docker compose installed  - see [Prerequisites](prerequisites.md)
-- Ports 80/TCP, 443/TCP, 7881/TCP, 7882/UDP open - see [Firewall & Ports](../configuration/firewall.md)
-- Three DNS A records pointing to your server: `meet.example.com`, `auth.example.com`, `livekit.example.com`
-- DNS must resolve before you run the script
----
- 
-## One-liner
- 
-```bash
-RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
-curl -fsSL $RAW/docs/install.sh -o install.sh
-```
- 
-Review it, then run:
- 
-```bash
-bash install.sh
-```
- 
-The script prompts for your three domains and two email addresses, generates all secrets, and starts everything.
- 
----
- 
-## What it sets up
- 
+
+The install script sets up three stacks, each in its own directory and managed independently:
+
 ```
 ~/docker/
   nginx-proxy/   ← nginx-proxy + acme-companion (automatic TLS via Let's Encrypt)
   keycloak/      ← Keycloak with a pre-configured Meet realm
-  meet/          ← Meet core: backend, frontend, livekit, postgresql, redis
+  meet/          ← Meet core: backend, frontend, celery, livekit, postgresql, redis
 ```
- 
-Each stack lives in its own directory and is managed independently.
- 
+
+Already run a reverse proxy or an identity provider? Use the [Deployment Guide](deployment-guide.md) instead: it lets you skip each stack you have.
+
+**Prerequisites:**
+
+- A Linux server with Docker and docker compose installed - see [Prerequisites](prerequisites.md)
+- The ports in [Firewall & Ports](../configuration/firewall.md) open
+- The three DNS records in [Domain name](prerequisites.md#domain-name), resolving before you run the script
+
 ---
- 
-## Already have a reverse proxy or identity provider?
- 
-Use the [step-by-step Deployment Guide](deployment-guide.md) instead. Each stack section can be skipped independently - it's designed for exactly that case.
- 
+
+## Download and run
+
+Download the script:
+
+```bash
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
+curl -fsSL $RAW/docs/install.sh -o install.sh
+```
+
+Review it, then run:
+
+```bash
+bash install.sh
+```
+
+The script prompts for your three domains and two email addresses, generates all secrets, and starts everything.
+
+It only sets up a fresh install. It stops if `~/docker/keycloak` or `~/docker/meet` already exists, since new passwords would not match the existing databases. To start over, run `docker compose down -v` in each of those directories, which also deletes their data, then delete them.
+
 ---
- 
+
 ## After setup
- 
-- Open `https://meet.example.com`
-- Log in with `meet-admin` and the password printed at the end of the script's output. It's a
+
+The end of the script's output lists three logins. The two passwords it prints are saved nowhere else, so note them down.
+
+- Open `https://meet.example.com` and log in with `meet-admin` and the password printed for it. It's a
   single-use password - Keycloak will ask you to set a new one immediately.
-  
+- The Django admin panel is at `https://meet.example.com/admin/`: log in with the admin email you entered and the password printed for it.
+- The Keycloak admin console is at `https://auth.example.com`: log in with `admin` and the `KC_BOOTSTRAP_ADMIN_PASSWORD` value in `~/docker/keycloak/env.d/keycloak`.
+
 **Recommended next steps:**
- 
-- [Configure recording](../configuration/recording.md) - LiveKit Egress + MinIO
+
+- [Configure recording](../configuration/recording.md) - LiveKit Egress + Garage
 - [Configure AI transcription](../configuration/transcription.md) - WhisperX + summary service
-- [Configure TURN](../configuration/turn.md) - for participants on restricted corporate networks
+- [Configure TURN](../configuration/livekit.md#turn) - for participants on restricted corporate networks
 - [Configure SMTP](../configuration/email.md) - required for recording download and room email invitation notifications
 - [Configure theming](../configuration/theming.md) - custom CSS, logo, and branding

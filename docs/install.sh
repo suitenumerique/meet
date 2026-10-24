@@ -4,10 +4,10 @@
 # Sets up three Docker Compose stacks in ~/docker/:
 #   nginx-proxy/   - reverse proxy + automatic TLS (nginx-proxy + acme-companion)
 #   keycloak/      - identity provider
-#   meet/          - Meet core: backend, frontend, livekit, postgresql, redis
+#   meet/          - Meet core: backend, frontend, celery, livekit, postgresql, redis
 #
 # What this script does NOT set up (advanced features):
-#   - Recording (MinIO + LiveKit Egress) - see the Recording guide after setup
+#   - Recording (Garage + LiveKit Egress) - see the Recording guide after setup
 #   - AI transcription - see the AI Transcription guide
 #
 # Using Traefik or an existing IdP? Use the step-by-step Deployment Guide instead:
@@ -181,6 +181,9 @@ curl -fsSL -o "${MEET_DIR}/livekit-server.yaml" "${RAW_BASE_URL}/docs/examples/m
 curl -fsSL -o "${MEET_DIR}/nginx-routing.conf"  "${RAW_BASE_URL}/docs/examples/meet/nginx-routing.conf"
 curl -fsSL -o "${MEET_DIR}/docker-compose.override.yml" \
   "${RAW_BASE_URL}/docs/examples/meet/docker-compose.override.yml.nginx"
+
+# Point LiveKit's webhook at this Meet domain.
+replace_in "meet.example.com" "$MEET_HOST" "${MEET_DIR}/livekit-server.yaml"
 
 # Download Meet env.d files (Meet stack only - no KC files here)
 curl -fsSL -o "${MEET_DIR}/env.d/common"              "${RAW_ENVD_URL}/common"

@@ -1,34 +1,17 @@
 # Self-Hosting LaSuite Meet
 
-LaSuite Meet is fully self-hostable under the MIT license. The maintainers run only the Kubernetes deployment in production, so advanced support is available for that setup alone. They also maintain the Docker Compose setup; Scalingo is officially supported, and the remaining methods come from the community.
+LaSuite Meet is fully self-hostable under the MIT license. The maintainers run only Kubernetes in production, so advanced support covers that setup alone.
 
 ## Deployment options
 
-### Quick Start
-
-One script sets up everything - nginx-proxy, Keycloak, and Meet core - in under 10 minutes. Best for evaluating Meet or deploying from scratch.
-
-→ [Quick Start](compose/quick-start.md)
-
-### Docker Compose
-
-Step-by-step deployment, one stack at a time. Skip stacks you already have (reverse proxy, identity provider, object storage).
-
-→ [Deployment Guide](compose/deployment-guide.md)
-
-### Kubernetes / Helm
-
-The method used by DINUM in production for Visio. For large organisations, high-availability requirements, and teams comfortable with Kubernetes.
-
-→ [Kubernetes guide](kubernetes/prerequisites.md)
-
-### Other methods
-
-| Method | Status | Notes |
-|---|---|---|
-| Scalingo PaaS | Official | See [Scalingo guide](scalingo.md) |
-| Nix | Community | Unstable, see the [package](https://search.nixos.org/packages?channel=unstable&show=lasuite-meet&query=lasuite-meet) |
-| YunoHost | Community | Small instances only, under construction, see the [package](https://github.com/YunoHost-Apps/meet_ynh) |
+| Method | Status | Best for | Guide |
+|---|---|---|---|
+| Quick Start (Docker Compose) | Maintained | Evaluating Meet, or a fresh server: one script sets up nginx-proxy, Keycloak and Meet core | [Quick Start](compose/quick-start.md) |
+| Docker Compose, step by step | Maintained | One stack at a time, skipping the reverse proxy or identity provider you already run | [Deployment Guide](compose/deployment-guide.md) |
+| Kubernetes / Helm | Maintained, advanced support | Large organisations, high availability, teams comfortable with Kubernetes. DINUM runs Visio this way | [Kubernetes guide](kubernetes/prerequisites.md) |
+| Scalingo PaaS | Official | | [Scalingo guide](scalingo.md) |
+| Nix | Community | Unstable | [package](https://search.nixos.org/packages?channel=unstable&show=lasuite-meet&query=lasuite-meet) |
+| YunoHost | Community | Small instances only, under construction | [package](https://github.com/YunoHost-Apps/meet_ynh) |
 
 ---
 
@@ -43,6 +26,7 @@ The method used by DINUM in production for Visio. For large organisations, high-
 | LiveKit server | WebRTC media server |
 | PostgreSQL | Persistent data |
 | Redis | Cache and Celery broker |
+| Celery worker | Background tasks such as file deletion, when `CELERY_ENABLED` is `True`; otherwise the backend runs them itself |
 | OIDC provider | User authentication |
 
 **For recording and transcription:**
@@ -50,10 +34,10 @@ The method used by DINUM in production for Visio. For large organisations, high-
 | Component | Purpose |
 |---|---|
 | LiveKit Egress | Room recording |
-| ObjectStore / S3 storage | Recording file storage and custom background |
+| S3-compatible object storage | Recording files and uploaded backgrounds |
 | Summary service | AI transcription & summary |
 | WhisperX API | Speech-to-text for transcription |
-| Celery workers | Async task processing |
+| Summary service Celery workers | Transcription and summary jobs |
 
 **Optional features:**
 
@@ -67,18 +51,19 @@ The method used by DINUM in production for Visio. For large organisations, high-
 
 ## Configuration
 
-After deploying the core, use the Configuration section to enable and tune features:
+Once the core runs, these pages enable and tune each feature:
 
-- [LiveKit](configuration/livekit.md) - UDP port strategy, `use_external_ip`, production tips
+- [LiveKit & TURN](configuration/livekit.md) - media port, `use_external_ip`, TURN relay for participants on restrictive networks
 - [Firewall & Ports](configuration/firewall.md) - port tables, cloud security groups, ufw/firewalld rules
-- [TURN Server](configuration/turn.md) - relay for participants on restrictive networks
 - [SSO & Authentication](configuration/sso.md) - Keycloak, Authentik, Google, Microsoft, and others
-- [Recording](configuration/recording.md) - LiveKit Egress + MinIO
+- [Recording](configuration/recording.md) - LiveKit Egress + Garage
 - [AI Transcription](configuration/transcription.md) - WhisperX + summary service
 - [Real-time Subtitles](configuration/subtitles.md) - LiveKit agents with Deepgram, Kyutai or Voxtral
 - [Telephony](configuration/telephony.md) - SIP dial-in via LiveKit SIP bridge
 - [Email (SMTP)](configuration/email.md) - recording notifications, room email invitations
 - [Theming](configuration/theming.md) - custom CSS, logo, build-time options
+- [Room purge](configuration/room-purge.md) - deleting inactive and deleted rooms
+- [Audit logging](configuration/audit-logging.md) - who did what, as ECS JSON for a SIEM
 - [Upgrading](configuration/upgrade.md)
 
 ---
@@ -86,14 +71,14 @@ After deploying the core, use the Configuration section to enable and tune featu
 ## Docker images
 
 - `lasuite/meet-backend` - Django backend
-- `lasuite/meet-frontend` - nginx router + React SPA
+- `lasuite/meet-frontend` - nginx serving the React SPA
 - `lasuite/meet-summary` - Transcription & summary service
 - `lasuite/meet-agents` - LiveKit agents (metadata collector, subtitles)
 - `livekit/livekit-server` - LiveKit server
 - `livekit/egress` - LiveKit Egress
 - `livekit/sip` - LiveKit SIP bridge (optional)
 
-All LaSuite images are on [Docker Hub](https://hub.docker.com/u/lasuite). LiveKit images are on [Docker Hub](https://hub.docker.com/u/livekit).
+All are on Docker Hub, under [lasuite](https://hub.docker.com/u/lasuite) and [livekit](https://hub.docker.com/u/livekit).
 
 ## Getting help
 

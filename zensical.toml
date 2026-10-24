@@ -8,12 +8,8 @@ nav = [
   {"Using Meet" = [
     {"Getting Started" = "user/getting-started.md"},
     {"Features & Controls" = "user/features-controls.md"},
-    {"Settings" = "user/settings.md"},
-    {"Recording" = "user/recording.md"},
-    {"AI Transcription" = "user/transcription.md"},
-    {"Real-time Subtitles" = "user/subtitles.md"},
-    {"Accessibility" = "user/accessibility.md"},
-    {"Keyboard Shortcuts" = "user/keyboard-shortcuts.md"},
+    {"Recording & Transcription" = "user/recording.md"},
+    {"Accessibility & Shortcuts" = "user/accessibility.md"},
     {"FAQ" = "faq.md"}
   ]},
   {"How Meet works" = "overview/how-meet-works.md"},
@@ -31,9 +27,8 @@ nav = [
     ]},
     {"Scalingo" = "self-hosting/scalingo.md"},
     {"Configuration" = [
-      {"LiveKit" = "self-hosting/configuration/livekit.md"},
+      {"LiveKit & TURN" = "self-hosting/configuration/livekit.md"},
       {"Firewall & Ports" = "self-hosting/configuration/firewall.md"},
-      {"TURN Server" = "self-hosting/configuration/turn.md"},
       {"SSO & Authentication" = "self-hosting/configuration/sso.md"},
       {"Recording" = "self-hosting/configuration/recording.md"},
       {"AI Transcription" = "self-hosting/configuration/transcription.md"},
@@ -41,15 +36,18 @@ nav = [
       {"Telephony" = "self-hosting/configuration/telephony.md"},
       {"Email (SMTP)" = "self-hosting/configuration/email.md"},
       {"Theming" = "self-hosting/configuration/theming.md"},
+      {"Room purge" = "self-hosting/configuration/room-purge.md"},
+      {"Audit logging" = "self-hosting/configuration/audit-logging.md"},
       {"Upgrading" = "self-hosting/configuration/upgrade.md"}
     ]},
     {"Troubleshooting" = "reference/troubleshooting.md"}
   ]},
   {"Integrating" = [
     {"API" = "reference/api.md"},
-    {"Application-Delegated" = "reference/external-api-delegated.md"},
-    {"Resource Server (OAuth2)" = "reference/external-api-resource-server.md"},
-    {"Calendar Add-ons" = "reference/external-api-addons.md"}
+    {"External API" = "reference/external-api.md"},
+    {"Application-delegated" = "reference/external-api-delegated.md"},
+    {"Resource server (OAuth2)" = "reference/external-api-resource-server.md"},
+    {"Add-ons" = "reference/external-api-addons.md"}
   ]},
   {"Reference" = [
     {"Environment Variables" = "reference/env-variables.md"},
@@ -58,13 +56,10 @@ nav = [
     {"Changelog" = "https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md"}
   ]},
   {"Contributing" = [
-    {"Local Development" = "contributing/local-dev.md"},
-    {"Repository Structure" = "contributing/repo-structure.md"},
-    {"Backend" = "contributing/backend.md"},
-    {"Frontend" = "contributing/frontend.md"},
-    {"LiveKit Integration" = "contributing/livekit-integration.md"},
-    {"Testing" = "contributing/testing.md"},
-    {"Pull Requests" = "contributing/pull-requests.md"},
-    {"Documentation Site" = "contributing/docs-site.md"}
+    {"Develop locally" = "contributing/develop.md"},
+    {"Code tour" = "contributing/code-tour.md"},
+    {"Pull requests" = "contributing/pull-requests.md"}
   ]}
 ]
+
+[project.plugins.glightbox]

@@ -1,35 +1,71 @@
 # Theming
 
-You can customize the look and feel of LaSuite Meet to match your brand. Two approaches are available:
+Meet can carry your brand in two ways:
 
-- **Runtime theming** - load a custom CSS file to override design tokens (colors, fonts, spacing). Changes apply on the next page load, with no rebuild.
-- **Build-time theming** - change the application title via a build argument. Requires rebuilding the Docker image.
-
----
+- **Runtime theming**: a CSS file of your own overrides the design tokens, the CSS variables holding Meet's colors, fonts and spacing. Changes apply on the next page load, with no rebuild. Logos and images are replaced at runtime too, by [mounting files](#custom-assets-logo-images).
+- **Build-time theming**: the application title is a build argument, so changing it means rebuilding the Docker image.
 
 ## Runtime theming
 
 ### How it works
 
-Set the `FRONTEND_CUSTOM_CSS_URL` environment variable on the **backend** container:
+Set `FRONTEND_CUSTOM_CSS_URL` on the **backend** container to the URL of your CSS file. The backend exposes it in `/api/v1.0/config/` as `custom_css_url`, and the frontend adds a `<link>` element for it to `<head>` at runtime.
 
-```bash
-FRONTEND_CUSTOM_CSS_URL=https://visio.example.com/custom.css
-```
+The frontend container can serve the file itself: mount it into the frontend's web root, `/usr/share/nginx/html`, and point the variable at its path:
 
-!!!info 
-    If you serve your CSS file on the same domain as Meet, same-origin URLs work too. The backend exposes this URL via `/api/v1.0/config/` as `custom_css_url`, and the frontend injects a `<link>` element into `<head>` at runtime.
+=== "Docker Compose"
 
-The app loads your CSS at runtime by adding a `<link>` element to `<head>`. You can override any CSS variable without rebuilding the frontend.
+    Add to the `frontend` service's `volumes:` in `compose.yml`:
+
+    ```yaml
+          - ./custom.css:/usr/share/nginx/html/custom.css:ro
+    ```
+
+    Add to `env.d/common`:
+
+    ```dotenv
+    FRONTEND_CUSTOM_CSS_URL=/custom.css
+    ```
+
+    ```bash
+    docker compose up -d --force-recreate frontend backend
+    ```
+
+=== "Kubernetes"
+
+    Store the file in a ConfigMap:
+
+    ```bash
+    kubectl -n meet create configmap meet-custom-css --from-file=custom.css
+    ```
+
+    Then mount it and set the variable in your `values.yaml`:
+
+    ```yaml
+    frontend:
+      extraVolumes:
+        - name: custom-css
+          configMap:
+            name: meet-custom-css
+      extraVolumeMounts:
+        - name: custom-css
+          mountPath: /usr/share/nginx/html/custom.css
+          subPath: custom.css
+          readOnly: true
+
+    backend:
+      envVars:
+        FRONTEND_CUSTOM_CSS_URL: "/custom.css"
+    ```
+
+A file on another host works too, with its full URL, for example `https://cdn.example.com/custom.css`.
 
 ### Key semantic tokens
-
-These CSS variables control the main visual aspects of the interface:
 
 | Category | Purpose | Example token |
 |---|---|---|
 | Primary | Brand color, buttons, links | `--colors-primary` |
-| Dark mode | Primary color in room/dark mode | `--colors-primary-dark-500` |
+| Dark mode | Primary color inside a room | `--colors-primary-dark-500` |
 | Greyscale | Text, backgrounds, borders | `--colors-greyscale-500` |
 | Success | Success states | `--colors-success` |
 | Danger | Errors and destructive actions | `--colors-danger` |
@@ -39,17 +75,17 @@ These CSS variables control the main visual aspects of the interface:
 | Font serif | Alternate / reading font | `--fonts-serif` |
 | Font mono | Code or technical font | `--fonts-mono` |
 
-!!!info 
-    See `src/frontend/panda.config.ts` in the Meet repository for all defined semantic tokens.
+!!! info
+    Every semantic token is defined in [`src/frontend/panda.config.ts`](https://github.com/suitenumerique/meet/blob/main/src/frontend/panda.config.ts).
 
 ### What to override
 
 The compiled CSS uses two kinds of CSS variables:
 
-- **Semantic tokens** (e.g. `--colors-primary`) - referenced by some component styles. These are defined at build time inside `@layer tokens` and resolve to a palette token.
-- **Raw palette tokens** (e.g. `--colors-primary-800`) - referenced directly by many component styles. You must override these too, otherwise components that use them will keep the default color.
+- **Semantic tokens**, such as `--colors-primary`, used by some component styles. They are defined at build time inside `@layer tokens` and resolve to the preset blue palette: `--colors-primary` is `--colors-blue-700`.
+- **Raw palette tokens**, such as `--colors-primary-800`, used directly by many component styles.
 
-In practice, to fully rebrand the primary color you need to override both the semantic token **and** the full palette scale. Overriding only `--colors-primary` will change some elements but leave others untouched.
+To rebrand the primary color fully, override the semantic tokens **and** the whole palette scale. Overriding only `--colors-primary` leaves every component that uses the scale in the default color. Meet is light outside a meeting and dark inside a room, where it uses its own scale, `--colors-primary-dark-*`: override that scale too.
 
 ### Example: full primary color override
 
@@ -75,7 +111,7 @@ In practice, to fully rebrand the primary color you need to override both the se
   --colors-primary-700: #00796B;
   --colors-primary-800: #00695C;
   --colors-primary-900: #004D40;
-  --colors-primary-950: #1B1B35;
+  --colors-primary-950: #003D33;
 }
 ```
 
@@ -89,25 +125,11 @@ In practice, to fully rebrand the primary color you need to override both the se
 }
 ```
 
-Set `FRONTEND_CUSTOM_CSS_URL` to the URL of this file. The UI renders with Roboto on the next page load.
-
-### Light and dark mode
-
-Outside a meeting, Meet uses a light theme by default. Inside a room, it switches to dark. Your custom CSS should account for both modes.
-
----
+With `FRONTEND_CUSTOM_CSS_URL` pointing at this file, the interface uses Roboto from the next page load.
 
 ## Custom assets (logo, images)
 
-You can override built-in assets (logo, landing page images, etc.) by bind-mounting your own files into the frontend container.
-
-Mount your files to:
-
-```
-/usr/share/nginx/html/assets
-```
-
-Any file you place here overrides the default at runtime. For example, to replace the landing page carousel images:
+To replace a built-in asset, such as the logo or a landing page image, mount your own file over it in the frontend container, under `/usr/share/nginx/html/assets`. It overrides the default at runtime. The landing page carousel images, for example, are:
 
 ```
 /usr/share/nginx/html/
@@ -118,49 +140,52 @@ Any file you place here overrides the default at runtime. For example, to replac
         └── 4.png
 ```
 
-### Docker Compose example
+Mount each file individually. Mounting the whole `assets/` directory would hide the compiled JS and CSS bundles and break the app.
 
-Mount each file individually - do **not** mount the whole `assets/` directory, as that would hide the compiled JS/CSS bundles and break the app.
+=== "Docker Compose"
 
-```yaml
-frontend:
-  image: lasuite/meet-frontend:latest
-  volumes:
-    - ./custom-assets/logo.svg:/usr/share/nginx/html/assets/logo.svg:ro
-    - ./custom-assets/intro-slider/1.png:/usr/share/nginx/html/assets/intro-slider/1.png:ro
-    - ./custom-assets/intro-slider/2.png:/usr/share/nginx/html/assets/intro-slider/2.png:ro
-    - ./custom-assets/intro-slider/3.png:/usr/share/nginx/html/assets/intro-slider/3.png:ro
-    - ./custom-assets/intro-slider/4.png:/usr/share/nginx/html/assets/intro-slider/4.png:ro
-```
+    Add to the `frontend` service's `volumes:` in `compose.yml`:
 
-### Kubernetes example
+    ```yaml
+          - ./custom-assets/logo.svg:/usr/share/nginx/html/assets/logo.svg:ro
+          - ./custom-assets/intro-slider/1.png:/usr/share/nginx/html/assets/intro-slider/1.png:ro
+          - ./custom-assets/intro-slider/2.png:/usr/share/nginx/html/assets/intro-slider/2.png:ro
+          - ./custom-assets/intro-slider/3.png:/usr/share/nginx/html/assets/intro-slider/3.png:ro
+          - ./custom-assets/intro-slider/4.png:/usr/share/nginx/html/assets/intro-slider/4.png:ro
+    ```
 
-```yaml
-frontend:
-  extraVolumes:
-    - name: custom-assets
-      configMap:
-        name: meet-custom-assets
-  extraVolumeMounts:
-    - name: custom-assets
-      mountPath: /usr/share/nginx/html/assets/logo.svg
-      subPath: logo.svg
-      readOnly: true
-    - name: custom-assets
-      mountPath: /usr/share/nginx/html/assets/intro-slider/1.png
-      subPath: intro-slider-1.png
-      readOnly: true
-```
+=== "Kubernetes"
 
----
+    Store the files in a ConfigMap. Each `--from-file` names the key the mount's `subPath` refers to:
+
+    ```bash
+    kubectl -n meet create configmap meet-custom-assets \
+      --from-file=logo.svg=./custom-assets/logo.svg \
+      --from-file=intro-slider-1.png=./custom-assets/intro-slider/1.png
+    ```
+
+    Then mount each key in your `values.yaml`:
+
+    ```yaml
+    frontend:
+      extraVolumes:
+        - name: custom-assets
+          configMap:
+            name: meet-custom-assets
+      extraVolumeMounts:
+        - name: custom-assets
+          mountPath: /usr/share/nginx/html/assets/logo.svg
+          subPath: logo.svg
+          readOnly: true
+        - name: custom-assets
+          mountPath: /usr/share/nginx/html/assets/intro-slider/1.png
+          subPath: intro-slider-1.png
+          readOnly: true
+    ```
 
 ## Build-time theming
 
-Some settings require rebuilding the Docker image. The most common one is the application title shown in the browser tab, controlled by the `VITE_APP_TITLE` build argument.
-
-**Default:** `LaSuite Meet`
-
-**Override at build time:**
+The title in the browser tab comes from the `VITE_APP_TITLE` build argument, `LaSuite Meet` by default. To change it, build the frontend image from the repository root:
 
 ```bash
 docker build \
@@ -170,18 +195,8 @@ docker build \
   -t my-org/meet-frontend:latest .
 ```
 
-See also [`docker/dinum-frontend/Dockerfile`](https://github.com/suitenumerique/meet/blob/main/docker/dinum-frontend/Dockerfile) for a real-world example.
-
----
+[`docker/dinum-frontend/Dockerfile`](https://github.com/suitenumerique/meet/blob/main/docker/dinum-frontend/Dockerfile) is a real-world example.
 
 ## Footer
 
-The footer cannot be fully customized yet. This is a work in progress.
-
-You can enable the official French government footer by setting:
-
-```
-FRONTEND_USE_FRENCH_GOV_FOOTER=True
-```
-
-Disabled (`False`) by default.
+The footer cannot be fully customized. `FRONTEND_USE_FRENCH_GOV_FOOTER=True` shows the official French government footer, see [Environment Variables: Frontend](../../reference/env-variables.md#frontend).

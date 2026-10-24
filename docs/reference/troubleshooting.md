@@ -1,11 +1,8 @@
 # Troubleshooting
 
-!!!warning
-    The `docker system prune`/`docker volume prune` commands on this page act on the whole Docker host, not just Meet. If other projects share this host, their unused containers, images, volumes, and networks are removed too. The `-f` flag skips the confirmation prompt that would otherwise list everything about to be deleted - drop it to review first.
-
 ## Diagnostic checklist
 
-Before investigating specific symptoms, collect basic information:
+Collect this before looking up a symptom:
 
 ```bash
 # Are all containers running?
@@ -23,16 +20,18 @@ docker compose logs --tail=50 keycloak
 
 ### Backend exits at start with `ImproperlyConfigured`
 
-**Cause**: `DJANGO_SETTINGS_MODULE` or `DJANGO_CONFIGURATION` is not set; the error names which one. The proxy then answers 502.
+The proxy answers 502 while the backend is down.
 
-**Fix**: Set `DJANGO_SETTINGS_MODULE=meet.settings` and `DJANGO_CONFIGURATION=Production` in `env.d/common` and restart the backend.
+**Cause**: `DJANGO_SETTINGS_MODULE` or `DJANGO_CONFIGURATION` is not set; the error names which one. `manage.py` commands such as `migrate` do not fail this way: without the variables they silently run the `Development` configuration.
+
+**Fix**: Set `DJANGO_SETTINGS_MODULE=meet.settings` and `DJANGO_CONFIGURATION=Production` in `env.d/common` and recreate the backend.
 
 
 ### 502 Bad Gateway on all routes
 
 **Cause**: The `frontend` container nginx is not listening on port 8083, or the backend is unreachable.
 
-**Steps**:
+**Fix**:
 1. Check `docker compose logs frontend` for nginx errors
 2. Verify `nginx-routing.conf` is mounted to `/etc/nginx/conf.d/routing.conf:ro` in the frontend container
 3. Verify the backend is running: `docker compose ps backend`
@@ -40,49 +39,40 @@ docker compose logs --tail=50 keycloak
 
 ### API returns 301 in a loop / site keeps loading
 
-**Cause**: Django's `SECURE_SSL_REDIRECT` is active and the nginx routing config is forwarding HTTP instead of HTTPS to the backend.
+**Cause**: Django's `SECURE_SSL_REDIRECT` is on, and the routing nginx tells the backend the request came over HTTP, so Django redirects it to HTTPS again.
 
 **Fix**: In the nginx routing template, the backend proxy location must hardcode the proto header:
 ```nginx
 proxy_set_header X-Forwarded-Proto https;  # NOT $scheme
 ```
-Then restart the frontend container.
+Then restart the frontend container: `docker compose restart frontend`.
 
 
-### Login redirects but loops back to login page
+## Login issues
 
-**Cause A**: OIDC redirect URI mismatch.
+### Login redirects but loops back, or the provider says `Invalid parameter: redirect_uri`
 
-Meet's callback URL is `https://meet.example.com/api/v1.0/callback/`, **not** the standard `/oidc/callback/`. Update your OIDC provider's client configuration to use the correct URI (including the trailing slash).
+**Cause A**: The redirect URI registered at your OIDC provider is not exactly `https://meet.example.com/api/v1.0/callback/`, with the versioned path and the trailing slash. On Keycloak, fix it under Clients → meet → Settings → Valid redirect URIs.
 
-**Cause B**: Backend cannot reach Keycloak for token exchange (network connectivity, wrong `OIDC_OP_*` URLs, or Keycloak down). Test it from the backend container, which must print `200`:
+**Cause B**: The backend cannot reach the provider for the token exchange: wrong `OIDC_OP_*` URLs, or the provider is down. To check the backend reaches the provider, run this from `~/docker/meet`; it must print `200`:
 ```bash
-docker compose -f ~/docker/meet/compose.yml exec backend python -c "import urllib.request; print(urllib.request.urlopen('https://auth.example.com/realms/meet').status)"
+docker compose exec backend python -c "import urllib.request; print(urllib.request.urlopen('https://auth.example.com/realms/meet').status)"
 ```
 
-**Cause C**: CSRF origin mismatch. `DJANGO_CSRF_TRUSTED_ORIGINS` does not include your full HTTPS domain.
-
-
-### "Invalid parameter: redirect_uri" from Keycloak
-
-The redirect URI must be exactly `https://meet.example.com/api/v1.0/callback/` (note the versioned path and trailing slash). 
-
-If using Keycloak, fix it in  admin console: Clients → meet → Settings → Valid redirect URIs.
+**Cause C**: `OIDC_RP_CLIENT_SECRET` does not match the client's secret at the provider; the backend log then shows the token exchange refused.
 
 ## Audio/Video issues
 
 ### Disconnected from meeting immediately / "You left the meeting"
 
-**Most likely cause**: LiveKit WebSocket is unreachable from the browser.
-
-The browser connects to the URL returned by `GET /api/v1.0/rooms/{id}/`. If `LIVEKIT_API_URL` is set to the Docker-internal address (`http://livekit:7880`), browsers receive that address and can't connect.
+**Cause**, most often: the browser cannot reach LiveKit's WebSocket. The browser connects to the URL that `GET /api/v1.0/rooms/{id}/` returns. With `LIVEKIT_API_URL` set to the Docker-internal address, `http://livekit:7880`, browsers receive that address and cannot connect.
 
 **Fix**: `LIVEKIT_API_URL` must be the public HTTPS URL:
 ```dotenv
 LIVEKIT_API_URL=https://livekit.example.com
 ```
 
-Verify the LiveKit subdomain is accessible:
+Check the LiveKit subdomain answers:
 ```bash
 curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
 # Expected: 200
@@ -91,63 +81,49 @@ curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
 
 ### Can join the room but no audio/video
 
-**Cause**: UDP 7882 and TCP 7881 are both blocked. If only UDP is blocked, LiveKit falls back to TCP and media works, with more latency.
+**Cause**: The participant's network, or your server's firewall, blocks both 7882/UDP and 7881/TCP. With only UDP blocked, media still flows over TCP, with more latency.
 
-LiveKit falls back to TCP (port 7881) when UDP is unavailable, which increases latency significantly. Verify:
-1. Port 7882/UDP is open in your cloud provider's firewall (security group / network rules)
-2. Port 7881/TCP is also open for TCP fallback
+**Fix**: Open both in your cloud provider's security group, see [Firewall & Ports](../self-hosting/configuration/firewall.md). For participants on networks that block them, enable [TURN](../self-hosting/configuration/livekit.md#turn).
 
+### TURN is enabled but does not relay
+
+**Cause A**: The `domain` of the `turn:` block is not the LiveKit subdomain, `livekit.example.com`.
+
+**Cause B**: Another process holds 443/UDP, so LiveKit cannot listen there. On the server, `ss -ulpn | grep ':443 '` names it.
+
+**Cause C**, with TURN over TLS: the LiveKit log shows `failed to load certificate`. `cert_file` and `key_file` are paths inside the container; check the mount reaches them:
+
+```bash
+docker compose exec livekit ls -l /certs/
+```
 
 ### Audio works but video is very pixelated or choppy
 
-**Cause**: Network congestion or insufficient server bandwidth.
-
-LiveKit's simulcast should adapt automatically. If it doesn't:
-1. Check server bandwidth; LiveKit forwards all streams through the server
-2. Have participants check their own connection speed
-3. Review LiveKit metrics
+**Cause**: Network congestion or too little bandwidth. LiveKit lowers the quality it forwards to a receiver whose connection cannot hold more. Lasting pixelation means the server's bandwidth is short, since every stream passes through it, or the sender's upload is.
 
 ## Recording issues
 
 ### Recording button is missing
 
-Recording requires explicit activation and S3 storage to be configured. Ensure the following env vars are set:
-- `RECORDING_ENABLE=True`
-- `AWS_S3_ENDPOINT_URL`
-- `AWS_S3_ACCESS_KEY_ID`
-- `AWS_S3_SECRET_ACCESS_KEY`
-- `AWS_STORAGE_BUCKET_NAME`
+The button shows only when all of these hold:
 
-Verify via the API: `curl https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled` should return `true`.
+- `RECORDING_ENABLE=True` on the backend; `curl https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled` must answer `true`.
+- You are an owner or administrator of the room, or you are signed in and the room is `public` or `trusted`, while `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED` is on. Anyone else sees **Record** under **More tools** with a **Request** button.
+- Where frontend analytics is configured, the PostHog feature flag for recording is on for you.
+
+The storage variables do not affect the button; they decide whether the file is saved, see [Recording starts but file never appears](#recording-starts-but-file-never-appears).
 
 
 ### Recording button clicked but UI stays on "starting"
 
-**Cause**: The backend never receives the LiveKit webhook that signals recording has started or stopped. This is almost always a `DJANGO_ALLOWED_HOSTS` issue combined with Django's HTTP-to-HTTPS redirect.
+**Cause**: The backend never receives LiveKit's webhook, and the recording leaves "starting" only when an `egress_updated` event arrives.
 
-When LiveKit sends webhooks to `http://backend:8000/...` (internal Docker URL), Django's `SecurityMiddleware` redirects HTTP to HTTPS, and the request fails. When the Host header is not in `ALLOWED_HOSTS`, Django returns 400.
+**Fix**: Check the `webhook:` block of `livekit-server.yaml`, which the base install writes:
 
-**Fix**:
+- its URL is the **public HTTPS** address, `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, not an internal one such as `http://backend:8000/...`, which Django redirects to HTTPS and loses;
+- its `api_key` equals `LIVEKIT_API_KEY`.
 
-1. In your `.env`, ensure `DJANGO_ALLOWED_HOSTS` includes the internal service names:
-   ```dotenv
-   DJANGO_ALLOWED_HOSTS=meet.example.com,backend,localhost
-   ```
-
-2. In `livekit-server.yaml`, configure the webhook to use the **public HTTPS URL**, not the internal Docker address:
-   ```yaml
-   webhook:
-     api_key: meet
-     urls:
-       - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
-   ```
-
-3. Recreate the affected containers:
-   ```bash
-   docker compose up -d backend livekit
-   ```
-
-Check that webhooks are now arriving with `docker compose logs backend | grep webhooks-livekit`.
+Then recreate LiveKit, `docker compose up -d livekit`, and watch the requests arrive with `docker compose logs -f backend | grep webhooks-livekit`; each one should answer `200`.
 
 
 ### Recording fails immediately / "no response from servers"
@@ -168,26 +144,58 @@ Restart the egress container: `docker compose restart livekit-egress`
 
 1. Check Egress logs: `docker compose logs livekit-egress`
 2. Check your bucket
-3. Check that the LiveKit `egress_ended` webhook arrived - this is what finalizes the recording: `docker compose logs backend | grep egress_ended`
+3. Check that LiveKit's webhook reaches the backend, since its `egress_ended` event finalizes the recording: `docker compose logs backend | grep webhooks-livekit`
 
 
 ### Recording download link shows "Verify your meeting code"
 
-**Cause A**: `RECORDING_DOWNLOAD_BASE_URL` is set to the bare domain instead of including the `/recording` path.
-
-The email notification link is constructed as `{RECORDING_DOWNLOAD_BASE_URL}/{recording-id}`. The frontend route for recording pages is `/recording/<uuid>`, not `/<uuid>`. Using the bare domain sends users to a page that interprets the UUID as a room code.
+**Cause A**: `RECORDING_DOWNLOAD_BASE_URL` is the bare domain, without the `/recording` path. The email's link is `{RECORDING_DOWNLOAD_BASE_URL}/{recording-id}`, and recording pages live at `/recording/<uuid>`, so a bare domain sends users to `/<uuid>`, which the frontend reads as a room code.
 
 **Fix**: Set `RECORDING_DOWNLOAD_BASE_URL` with the `/recording` path:
 ```dotenv
 RECORDING_DOWNLOAD_BASE_URL=https://meet.example.com/recording
 ```
-Then recreate the backend: `docker compose up -d --force-recreate backend celery`
+Then recreate the backend and Celery: `docker compose up -d --force-recreate backend celery`
 
-**Cause B**: The `/media/` location is missing from the nginx routing template.
+**Cause B**: The `/media/` location is missing from the nginx routing template. The page's download button links to `https://meet.example.com/media/recordings/<uuid>.mp4`, and without a rule for it, the request falls through to the React frontend, which shows "Verify your meeting code".
 
-The download button on the recording page links to `https://meet.example.com/media/recordings/<uuid>.mp4`. Without a routing rule, this falls through to the React frontend which shows "Verify your meeting code".
+**Fix**: Add the object storage proxy to the template; see [Recording](../self-hosting/configuration/recording.md#step-4-route-recording-downloads). Restart the frontend after updating: `docker compose restart frontend`
 
-**Fix**: Add a MinIO proxy to the template; see [Recording](../self-hosting/configuration/recording.md#step-5-update-nginx-routing-for-recording-downloads). Restart the frontend after updating: `docker compose restart frontend`
+
+## Subtitles issues
+
+### No captions appear
+
+- Check that `ROOM_SUBTITLE_ENABLED=True` is set in the backend's environment.
+- Check that the agent is running: `docker compose ps multi-user-transcriber`.
+- Check the agent logs for connection errors: `docker compose logs multi-user-transcriber`.
+
+
+### Captions are delayed or choppy
+
+**Cause**: Network latency to a cloud STT provider such as Deepgram, or an agent short of CPU or memory.
+
+
+### Subtitles agent fails to start
+
+**Cause**: A required environment variable is missing, an API key is invalid, or the agent cannot connect to the LiveKit server at `LIVEKIT_URL`.
+
+
+## Telephony issues
+
+### No audio from a phone participant
+
+**Cause**: The RTP port range, 10000-20000/UDP, is blocked. Open it as the [firewall table](../self-hosting/configuration/firewall.md) lists.
+
+
+### SIP call fails to connect
+
+**Cause**: The origination URI in your SIP provider's console does not point to your LiveKit SIP service on port 5060, or a firewall blocks 5060/UDP.
+
+
+### Calls are rejected: no dispatch rule matched
+
+**Cause**: Meet creates a room's dispatch rule from the `room_started` webhook, sent when the first participant joins. Check that the webhook reaches the backend, and that someone is connected to the room from a browser.
 
 
 ## Reverse proxy issues
@@ -211,9 +219,9 @@ docker restart traefik
 
 ### Service returns 502 / Traefik can't reach a container
 
-**Cause**: The container is not on the `proxy` Docker network. Only services with Traefik labels (`frontend`, `livekit`, `keycloak`) need to be on it - `backend` does not, it has no labels and is only reached via `frontend`.
+**Cause**: The container is not on the `proxy` Docker network. Only the services with Traefik labels need it: `frontend`, `livekit` and `keycloak`. `backend` has no labels and is reached only through `frontend`.
 
-**Fix**: Ensure the service has `proxy` in its `networks:` list:
+**Fix**: Add `proxy` to the service's `networks:` list:
 ```yaml
 networks:
   - proxy
@@ -224,9 +232,9 @@ Then recreate: `docker compose up -d --force-recreate <service>`
 
 ### Route not appearing / service returns 404
 
-**Cause**: `traefik.enable=true` label is missing.
+**Cause**: The `traefik.enable=true` label is missing. Traefik runs with `--providers.docker.exposedByDefault=false`, so each container must opt in.
 
-Since `--providers.docker.exposedByDefault=false` is set, containers must explicitly opt in. Add the label and recreate the container:
+**Fix**: Add the label and recreate the container:
 ```bash
 docker compose up -d --force-recreate <service>
 ```
@@ -243,7 +251,9 @@ docker compose up -d --force-recreate <service>
 
 ### Port conflict on 80 or 443
 
-Another process (another proxy, Apache, etc.) is already bound to the port. Find it, and stop it before starting your proxy:
+**Cause**: Another process, another proxy or Apache for example, already holds the port.
+
+**Fix**: Find it, and stop it before starting your proxy:
 ```bash
 sudo ss -tlpn 'sport = :80 or sport = :443'
 ```
@@ -258,20 +268,20 @@ docker compose logs --tail=30 <service>
 ```
 
 Common causes:
-- Missing required environment variable (check for `ImproperlyConfigured` errors)
+- A required environment variable is missing; the log names it
 - Port already in use on the host
 - Permission error on a mounted volume
 
 
 ### Out of disk space
 
-```bash
-df -h
+!!!warning
+    `docker system prune` and `docker volume prune` act on the whole Docker host, not just Meet: the unused containers, images, volumes and networks of every other project on it go too. `-f` skips the confirmation that lists what is about to be deleted: drop it to review first.
 
-# Clean unused Docker resources - affects the whole host, not just Meet.
-# Drop -f to see what would be removed before it happens.
-docker system prune -f
-docker volume prune -f  # WARNING: removes unused volumes, including from other projects
+```bash
+df -h                    # how full each disk is
+docker system prune -f   # removes unused Docker data, host-wide
+docker volume prune -f   # removes unused volumes, other projects' included
 ```
 
 

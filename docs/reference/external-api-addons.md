@@ -1,22 +1,12 @@
-# External API - Calendar Add-ons Auth
+# External API - Add-ons
 
-Meet exposes an external API at `/external-api/v1.0/` for server-to-server room management. This page covers the **calendar add-ons** authentication mode, used by calendar integrations (Outlook, etc.) running in embedded iframes.
+In this mode, an add-in running in an iframe inside another application, the Outlook add-in for one, gets a token for the user by having them sign in to Meet in a popup. The endpoints, scopes and room object the token then reaches are in [External API](external-api.md).
 
-Enable this mode with **both** `ADDONS_ENABLED=True` and `EXTERNAL_API_ENABLED=True` on the backend: the token is for the external API's room calls, which `EXTERNAL_API_ENABLED` mounts.
-
----
+The session endpoints under `/api/v1.0/addons/sessions/` need `ADDONS_ENABLED=True`, and answer 404 without it. The room calls made with the token afterwards need `EXTERNAL_API_ENABLED=True` as well.
 
 ## When to use this mode
 
-Use add-ons authentication when:
-
-- You're building a calendar add-in that runs in an iframe
-- You need the user to sign in through a popup, outside the add-in's iframe
-- The user authenticates with Meet's OIDC provider
-
-Compare with [Application-Delegated](external-api-delegated.md) (your backend acts on behalf of users) and [Resource Server](external-api-resource-server.md) (user presents their OIDC token directly).
-
----
+You build an add-in that runs in an iframe inside another application, and its users sign in with Meet's OIDC provider. The other ways to get a token are compared in [External API: Getting a token](external-api.md#getting-a-token).
 
 ## Authentication flow
 
@@ -24,7 +14,7 @@ The add-ons flow uses a three-step token exchange:
 
 ```mermaid
 sequenceDiagram
-    participant Addon as Calendar Add-in<br/>(iframe)
+    participant Addon as Add-in<br/>(iframe)
     participant Backend as Meet Backend
     participant Dialog as Auth Dialog<br/>(popup)
     participant User
@@ -51,8 +41,6 @@ sequenceDiagram
     Backend-->>Addon: Room created
 ```
 
----
-
 ## Step 1: Initialize session
 
 ```http
@@ -69,11 +57,9 @@ POST /api/v1.0/addons/sessions/init/
 
 The backend sets an `HttpOnly`, `Secure`, `SameSite=None` cookie named `addonsSid`.
 
----
-
 ## Step 2: Exchange transit token
 
-After the user authenticates in a popup, the callback page calls:
+Once the user has signed in to Meet in the popup, the callback page calls the endpoint below. The call needs the user's Meet session, so the callback page must be a Meet page with the user signed in: without the session, it answers 401.
 
 ```http
 POST /api/v1.0/addons/sessions/exchange/
@@ -91,9 +77,7 @@ Content-Type: application/json
 {"status": "ok"}
 ```
 
-This binds the authenticated user's access token to the session. Transit tokens are single-use.
-
----
+This binds a token for the signed-in user to the session. A transit token works once: replaying it answers 400.
 
 ## Step 3: Poll for access token
 
@@ -121,9 +105,9 @@ Cookie: addonsSid=...
 
 The session is deleted and the cookie cleared after this final read.
 
----
-
 ## Using the access token
+
+With the default `ADDONS_TOKEN_SCOPE`, `rooms:create`, the token can only create rooms.
 
 ```http
 POST /external-api/v1.0/rooms/
@@ -137,13 +121,9 @@ Content-Type: application/json
 }
 ```
 
----
-
 ## Backend configuration
 
 Every variable, with its default: [Environment Variables: Add-ons](env-variables.md#add-ons).
-
----
 
 ## Implementation reference
 

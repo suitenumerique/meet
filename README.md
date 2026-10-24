@@ -135,7 +135,7 @@ Open source is much more than code. Writing documentation, improving onboarding,
 When you’re ready, here are a few ways to get involved:
 
 * 👋 **Say hello** and share your ideas with the community and maintainers on our [Matrix channel](https://matrix.to/#/#meet-official:matrix.org)
-* 🛠️ **Open a PR** by following our guide to [develop La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/contributing/local-dev.md)
+* 🛠️ **Open a PR** by following our guide to [develop La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/contributing/develop.md)
 * 💡 **Suggest an idea** by opening a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md)
 * 🐛 **Report a bug** by opening a [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
 

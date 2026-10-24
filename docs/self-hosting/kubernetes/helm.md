@@ -1,32 +1,28 @@
 # Helm Deployment
 
-LaSuite Meet provides an official Helm chart. This is the deployment method used by DINUM in production for Visio.
+Working configurations for the official chart are in the repository's [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm):
 
-> **Working examples:** For working configurations, see the [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm) directory in the repository:
-> - [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) - DINUM's multi-environment setup
-> - [`env.d/dev-keycloak/`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d/dev-keycloak) - Complete values files for Meet, LiveKit, and Egress
-> - [`meet/README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) - Full parameter reference
->
-> These examples are actively maintained and tested, while this documentation may lag behind chart updates.
+- [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) - DINUM's multi-environment setup
+- [`env.d/common.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/env.d/common.yaml.gotmpl) - Values shared by every environment, including the backend's environment variables and the media ingresses
+- [`env.d/dev-keycloak/`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d/dev-keycloak) - Complete values files for Meet, LiveKit, and Egress
+- [`meet/README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) - Full parameter reference
 
 ## Getting the chart
 
-The chart is published to GitHub Pages:
+Add the chart's repository, published on GitHub Pages, and refresh its index:
 
 ```bash
 helm repo add meet https://suitenumerique.github.io/meet/
 helm repo update
 ```
 
-Verify:
+Check the chart is listed:
 
 ```bash
 helm search repo meet
 ```
 
 ## Chart overview
-
-The Meet Helm chart deploys the following components:
 
 | Component | Helm key | Default replicas |
 |---|---|---|
@@ -40,9 +36,7 @@ The Meet Helm chart deploys the following components:
 | Agent metadata | `agentMetadata` | 1 |
 | Agent subtitles | `agentSubtitles` | 1 |
 
-External services (PostgreSQL, Redis, S3, LiveKit) are configured via environment variables and must be provisioned separately.
-
-> **Optional services have no `enabled` flag** - they are always deployed by default. Set `replicas: 0` (or `instances: []` for celeryTranscribe) to disable services you do not need.
+The chart deploys none of the [external services](prerequisites.md#external-services), nor [LiveKit](#livekit-on-kubernetes): provision them separately, and point the backend at them through its environment variables.
 
 ## Base values.yaml
 
@@ -81,6 +75,8 @@ backend:
     DB_PASSWORD: "db-password"
 
     REDIS_URL: "redis://redis-master:6379/0"
+    # Without it, the celeryBackend worker looks for a host named "redis".
+    CELERY_BROKER_URL: "redis://redis-master:6379/0"
 
     LIVEKIT_API_KEY: "myapikey"
     LIVEKIT_API_SECRET: "livekit-secret"
@@ -147,7 +143,11 @@ ingressAdmin:
     secretName: meet-tls
 ```
 
-### Disable optional services (if not using recording/transcription)
+### Disable optional services
+
+Optional services have no `enabled` flag: they deploy by default. Set `replicas: 0`, or `instances: []` for `celeryTranscribe`, to disable one.
+
+`celeryBackend` runs the backend's background tasks, such as file deletion, only when `CELERY_ENABLED` is `"True"` in `backend.envVars`. Otherwise the backend runs them itself, and `celeryBackend` can go to 0. The others serve transcription, summaries and agents: disable those you do not use.
 
 ```yaml
 celeryBackend:
@@ -174,9 +174,7 @@ agentSubtitles:
 
 ### Security context (recommended)
 
-Configure `securityContext` under each component: `backend`, `frontend`, `summary`, `celeryBackend`, `celeryTranscribe`, `celerySummarize`, `celerySummaryBackend`, `agentMetadata`, `agentSubtitles`. Put the settings the `restricted` Pod Security Standard requires there, at container level: every template reads `securityContext`, while `podSecurityContext` is ignored by `celerySummaryBackend` and by the backend's cleanup CronJobs.
-
-Example for backend:
+Put the settings the `restricted` Pod Security Standard requires in each component's container-level `securityContext`. Every template reads `securityContext`, while `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`. Example for `backend`, to repeat for every component:
 
 ```yaml
 backend:
@@ -209,6 +207,8 @@ backend:
 
 ### Install
 
+Install the chart with your values into a new `meet` namespace:
+
 ```bash
 helm install meet meet/meet \
   --namespace meet \
@@ -216,15 +216,9 @@ helm install meet meet/meet \
   --values values.yaml
 ```
 
-### Upgrade
-
-```bash
-helm upgrade meet meet/meet \
-  --namespace meet \
-  --values values.yaml
-```
-
 ### Check status
+
+List the pods and ingresses, then read the backend's logs:
 
 ```bash
 kubectl -n meet get pods
@@ -232,15 +226,9 @@ kubectl -n meet get ingress
 kubectl -n meet logs deployment/meet-backend
 ```
 
-### Run database migrations manually
-
-The chart runs migrations automatically via a Kubernetes Job on install and upgrade. To run them manually:
-
-```bash
-kubectl -n meet exec deployment/meet-backend -- python manage.py migrate
-```
-
 ### Create a superuser
+
+Create an account that can open the admin panel at `/admin/`:
 
 ```bash
 kubectl -n meet exec deployment/meet-backend -- \
@@ -251,14 +239,14 @@ kubectl -n meet exec deployment/meet-backend -- \
 
 ## LiveKit on Kubernetes
 
-LiveKit is not part of the Meet Helm chart and must be deployed separately. The official LiveKit Helm chart is the simplest way:
+LiveKit's official Helm chart is the simplest way to deploy it. Add its repository:
 
 ```bash
 helm repo add livekit https://helm.livekit.io
 helm repo update
 ```
 
-Create `livekit-values.yaml`. Unlike the Meet chart, LiveKit's own chart does not use a generic `ingress:`/`service:` block - public exposure is controlled entirely by `loadBalancer.type`, which is cloud-specific:
+Create `livekit-values.yaml`. LiveKit's own chart has no `ingress:` block: `loadBalancer` sets how it is exposed, here through the same nginx-ingress and cert-manager as the Meet ingress:
 
 ```yaml
 livekit:
@@ -277,19 +265,16 @@ livekit:
       - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
 
 loadBalancer:
-  # Valid values: disable, alb, aws, gke, gke-managed-cert, gke-vpc-native, gclb, do.
-  # "disable" (the default) renders no Ingress at all. On AWS, "alb" is
-  # recommended for TLS termination - it requires the AWS Load Balancer
-  # Controller to be installed in the cluster.
-  type: alb
+  type: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
   tls:
     - hosts:
         - livekit.example.com
-      # With ALB, the certificate must be in ACM and is discovered
-      # automatically by domain - secretName is not used.
+      secretName: livekit-tls
 ```
 
-Deploy:
+Install it into the `meet` namespace with those values:
 
 ```bash
 helm install livekit-server livekit/livekit-server \
@@ -299,24 +284,22 @@ helm install livekit-server livekit/livekit-server \
 
 ### LiveKit media ports
 
-LiveKit needs UDP port 7882 and TCP port 7881 accessible from the public internet. The chart serves them from the node itself through host networking, bypassing the Ingress and any Service: each node that runs LiveKit needs a public IP, with both ports open in its security group or firewall, see [Firewall & Ports](../configuration/firewall.md).
+The chart serves LiveKit's media ports from the node itself through host networking, bypassing the Ingress and any Service. Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Ports](../configuration/firewall.md) open in its security group or firewall.
 
+## Recording and transcription
 
-## Recording
+Both have a Kubernetes setup on their own page:
 
-For the full step-by-step guide to setting up recording on Kubernetes - including MinIO deployment, bucket initialisation, LiveKit Egress, backend configuration, and `ingressMedia` - see [Recording - Kubernetes setup](../configuration/recording.md#kubernetes-setup).
-
-## Transcription
-
-For the full step-by-step guide to setting up AI transcription on Kubernetes - including the summary service, Celery workers, and WhisperX configuration - see [AI Transcription - Kubernetes setup](../configuration/transcription.md#kubernetes-setup).
-
-> **Prerequisite:** the recording infrastructure (MinIO, Egress, `ingressMedia`) must be working before enabling transcription.
+| Feature | Covers | Guide |
+|---|---|---|
+| Recording | Garage storage and its bucket, LiveKit Egress, backend configuration, `ingressMedia` | [Recording - Kubernetes setup](../configuration/recording.md#setup) |
+| AI transcription | Summary service, Celery workers, WhisperX configuration. Needs recording (S3 storage, Egress, `ingressMedia`) working first | [AI Transcription - Kubernetes setup](../configuration/transcription.md#setup) |
 
 ## Rebranding the favicon
 
-The favicon is bundled into the frontend image and served as a set of static files from `/usr/share/nginx/html` (`favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`, `icon.png`). To rebrand without forking and rebuilding the image, overlay your own icons onto those paths with a volume - this serves the right icon from the first byte (no rebuild, no flash) and covers every variant, including the iOS home-screen and Android/PWA icons.
+The frontend image serves the favicon as six static files from `/usr/share/nginx/html`: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`. Mount your own icons over those paths instead of forking and rebuilding the image. The right icon then shows from the first byte, with no flash, the iOS home-screen icon included. Other assets, such as the logo, are in [Theming: Custom assets](../configuration/theming.md#custom-assets-logo-images).
 
-Put your icons in a `ConfigMap` (`binaryData` keeps the PNGs intact):
+Put your icons in a `ConfigMap`, either written as YAML (`binaryData` keeps the PNGs intact):
 
 ```yaml
 apiVersion: v1
@@ -333,12 +316,13 @@ binaryData:
   android-chrome-512x512.png: <base64…>
 ```
 
+or built straight from a directory of icons:
+
 ```bash
-# e.g. build the ConfigMap straight from a directory of icons
 kubectl create configmap meet-favicon --from-file=./my-icons/
 ```
 
-Then mount each file over the bundled one via the chart's `frontend.extraVolumes` / `frontend.extraVolumeMounts` (the `subPath` mounts the single file without hiding the rest of `html/`):
+Then mount each file over the bundled one with the chart's `frontend.extraVolumes` and `frontend.extraVolumeMounts`. `subPath` mounts the single file without hiding the rest of `html/`:
 
 ```yaml
 frontend:
@@ -369,7 +353,7 @@ frontend:
 
 ## Secrets management
 
-Avoid storing secrets in `values.yaml` in version control. Use Kubernetes Secrets instead:
+Keep secrets out of a `values.yaml` in version control: reference Kubernetes Secrets instead:
 
 ```yaml
 backend:
@@ -388,7 +372,7 @@ backend:
         key: livekit-secret
 ```
 
-Create the Secret:
+Create the Secret they reference:
 
 ```bash
 kubectl -n meet create secret generic meet-secrets \
@@ -396,6 +380,26 @@ kubectl -n meet create secret generic meet-secrets \
   --from-literal=db-password="your-db-password" \
   --from-literal=livekit-secret="your-livekit-secret"
 ```
+
+### Loading a whole Secret or ConfigMap
+
+Every component also takes `envFrom`, which turns each key of a Secret or a ConfigMap into an environment variable of the same name. Name the keys after the variables, then list the Secret:
+
+```bash
+kubectl -n meet create secret generic meet-backend-env \
+  --from-literal=DJANGO_SECRET_KEY="$(openssl rand -hex 32)" \
+  --from-literal=DB_PASSWORD="your-db-password" \
+  --from-literal=LIVEKIT_API_SECRET="your-livekit-secret"
+```
+
+```yaml
+backend:
+  envFrom:
+    - secretRef:
+        name: meet-backend-env
+```
+
+`backend.envFrom` also reaches the `celeryBackend` worker, the migration and superuser Jobs, and the CronJobs. The other components each read their own `envFrom`, and each `celeryTranscribe` instance can add `extraEnvFrom`. A variable set in `envVars` wins over the same name loaded through `envFrom`.
 
 ### SOPS (GitOps-friendly encrypted secrets)
 
@@ -414,16 +418,16 @@ sops --decrypt values/production-secrets.enc.yaml | helm upgrade meet meet/meet 
 
 ## Helmfile (multi-environment)
 
-For managing multiple environments, use [helmfile](https://helmfile.readthedocs.io/). See [`src/helm/helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) in the repository for a real working example (DINUM's own dev environments).
+For several environments, use [helmfile](https://helmfile.readthedocs.io/), as DINUM does for its own dev environments in [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl).
 
 ```bash
-helmfile -e <environment> sync
+helmfile -e <environment> sync   # apply the environment's releases
 helmfile -e <environment> diff   # preview changes before applying
 ```
 
 ## Upgrading
 
-Before upgrading, check the [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) for version-specific procedures.
+Before upgrading, check [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) for version-specific steps. Then refresh the chart index and upgrade the release:
 
 ```bash
 helm repo update
@@ -432,11 +436,15 @@ helm upgrade meet meet/meet \
   --values values.yaml
 ```
 
-Database migrations run automatically via a Kubernetes Job on upgrade. Monitor:
+The chart runs the database migrations in a Kubernetes Job on every install and upgrade. Watch it with:
 
 ```bash
 kubectl -n meet get jobs
 kubectl -n meet logs job/meet-backend-migrate
 ```
 
-The chart deletes the Job 30 seconds after it finishes, per `backend.jobs.ttlSecondsAfterFinished`, so read its logs while it runs.
+The chart deletes the Job 30 seconds after it finishes, per `backend.jobs.ttlSecondsAfterFinished`, so read its logs while it runs. To run the migrations by hand instead:
+
+```bash
+kubectl -n meet exec deployment/meet-backend -- python manage.py migrate
+```

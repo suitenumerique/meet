@@ -1,19 +1,18 @@
 # Reverse Proxy
 
-Meet needs a reverse proxy that terminates TLS for three public hostnames. Any proxy works: the first section lists what it must route, and the quick start sets up nginx-proxy or Traefik on a single server.
+Meet needs a reverse proxy that terminates TLS for three public hostnames. Any proxy works.
 
 ## What the proxy must route
 
 | Hostname | Forward to | Notes |
 |---|---|---|
-| `meet.example.com` | `frontend`, port 8083 | The frontend container's own nginx (`nginx-routing.conf`) splits the traffic by path: `/api`, `/admin`, `/oidc` and the like go to the backend, everything else to the web app |
+| `meet.example.com` | `frontend`, port 8083 | The frontend container's own nginx (`nginx-routing.conf`) splits the traffic by path: `/api`, `/admin`, `/static`, `/external-api` and the `/__heartbeat__` and `/__lbheartbeat__` health checks go to the backend, everything else to the web app |
 | `livekit.example.com` | `livekit`, port 7880 | LiveKit's signalling runs over a WebSocket, so the proxy must pass the `Upgrade` header |
 | `auth.example.com` | `keycloak`, port 8080 | Only if you run the Keycloak stack |
 
-Two things stay off the proxy:
+A proxy running outside Docker cannot reach the containers by name: publish each port on the loopback interface, for example `ports: ["127.0.0.1:8083:8083"]` on `frontend`, `"127.0.0.1:7880:7880"` on `livekit` and `"127.0.0.1:8080:8080"` on `keycloak`, and forward to `127.0.0.1`.
 
-- **LiveKit media**, 7881/TCP and 7882/UDP, is published straight on the host, see [Firewall & Ports](../configuration/firewall.md).
-- **The backend** needs no proxy network: it reaches the identity provider and LiveKit at their public addresses.
+LiveKit media stays off the proxy: it is published straight on the host, see [Firewall & Ports](../configuration/firewall.md).
 
 ```mermaid
 flowchart LR
@@ -29,7 +28,7 @@ flowchart LR
     RP -->|meet.example.com| FN
     RP -->|livekit.example.com| LK
     RP -->|auth.example.com| KC
-    FN -->|"/api /admin /oidc ..."| BE
+    FN -->|"/api /admin /static ..."| BE
     FN -->|"everything else"| SPA
 ```
 
@@ -37,24 +36,16 @@ The traffic flow in more detail is in [Networking: Web request](../../reference/
 
 ---
 
-## Quick start: nginx-proxy or Traefik
+## nginx-proxy or Traefik
 
-The [Deployment Guide](deployment-guide.md) uses one of these two, and the [Quick Start](quick-start.md) script sets up nginx-proxy. Each runs as its own Docker Compose stack on the `proxy` network. It routes every container that opts in and issues its Let's Encrypt certificate: nginx-proxy + acme-companion read a `VIRTUAL_HOST` variable, Traefik reads `traefik.enable=true` labels.
+The [Deployment Guide](deployment-guide.md) uses one of these two on a single server, and the [Quick Start](quick-start.md) script sets up nginx-proxy. Each runs as its own Docker Compose stack on the `proxy` network. It routes every container that opts in and issues its Let's Encrypt certificate. nginx-proxy + acme-companion find those containers by a `VIRTUAL_HOST` variable, Traefik by `traefik.enable=true` labels.
 
 !!! warning
-    This quick start runs one proxy on one server. Before production, harden it per the proxy's own documentation, [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy/tree/main/docs) and [acme-companion](https://github.com/nginx-proxy/acme-companion/tree/main/docs), or [Traefik](https://doc.traefik.io/traefik/), starting with the Docker socket both mount to discover containers.
+    Both mount the Docker socket read-only to discover containers. To restrict that access, see their own documentation: [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy/tree/main/docs) and [acme-companion](https://github.com/nginx-proxy/acme-companion/tree/main/docs), or [Traefik](https://doc.traefik.io/traefik/).
 
-### Step 1: Create the proxy network
+### Step 1: Set up the proxy
 
-This network is shared between the proxy and all other stacks. Create it once:
-
-```bash
-docker network create proxy
-```
-
----
-
-### Step 2: Set up the proxy
+The `proxy` network must exist first, see [Before you start](deployment-guide.md#before-you-start-configure-your-domains). Each tab copies `~/docker/hosts` as the stack's `.env`, which gives the proxy your `LETSENCRYPT_EMAIL` for Let's Encrypt expiry notifications.
 
 === "nginx-proxy"
 
@@ -64,13 +55,7 @@ docker network create proxy
     RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
     curl -fsSL -o compose.yml  ${RAW}/docs/examples/nginx-proxy/compose.yml
-    curl -fsSL -o .env         ${RAW}/docs/examples/nginx-proxy/.env.example
-    ```
-
-    Edit `.env` - set your email for Let's Encrypt expiry notifications:
-
-    ```dotenv
-    LETSENCRYPT_EMAIL=you@example.com
+    cp ~/docker/hosts .env
     ```
 
 === "Traefik"
@@ -82,17 +67,12 @@ docker network create proxy
     RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
     curl -fsSL -o compose.yml  ${RAW}/docs/examples/traefik/compose.yml
+    cp ~/docker/hosts .env
     ```
 
     `acme.json` stores Let's Encrypt certificates. It must exist with mode `600` before Traefik starts - Traefik refuses to start with any other permission.
 
-    Create `.env` and set your email for Let's Encrypt expiry notifications:
-
-    ```dotenv
-    LETSENCRYPT_EMAIL=you@example.com
-    ```
-
-Start:
+Start the stack in the background:
 
 ```bash
 docker compose up -d
@@ -102,9 +82,9 @@ The proxy is now listening on ports 80 and 443.
 
 ---
 
-### Step 3: How Meet services opt in
+### Step 2: How Meet services opt in
 
-Each Meet service opts in through the proxy override file (`docker-compose.override.yml`) of its stack, which the Deployment Guide downloads for your proxy. You don't need to edit it; this is what it sets for each row of the routing table.
+Each stack's proxy override file, `docker-compose.override.yml`, opts its services in. The Deployment Guide downloads it for your proxy; you don't edit it. The override sets `environment` or `labels`, and `compose.yml` sets `ports` and `networks`. Together, each row of the [routing table](#what-the-proxy-must-route) gets:
 
 #### Meet frontend
 
@@ -140,7 +120,7 @@ Each Meet service opts in through the proxy override file (`docker-compose.overr
 
 #### LiveKit
 
-Both proxies pass the WebSocket upgrade without extra configuration. The media ports are mapped on the host, outside the proxy:
+Both proxies pass the WebSocket upgrade without extra configuration. The `ports` are the media ports, published on the host:
 
 === "nginx-proxy"
 
@@ -210,43 +190,7 @@ Both proxies pass the WebSocket upgrade without extra configuration. The media p
         - internal
     ```
 
-#### Backend
-
-```yaml
-backend:
-  networks:
-    - internal
-```
-
-The DNS records each hostname needs are in [Configure your domains](deployment-guide.md#before-you-start-configure-your-domains).
-
----
-
-### Verification
-
-After all stacks are running, confirm TLS is working:
-
-```bash
-curl -s -o /dev/null -w "%{http_code}" https://meet.example.com/
-curl -s -o /dev/null -w "%{http_code}" https://auth.example.com/realms/meet
-curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
-# All should return 200
-```
-
-If a certificate hasn't been issued yet, check the proxy's logs:
-
-=== "nginx-proxy"
-
-    ```bash
-    cd ~/docker/nginx-proxy
-    docker compose logs acme-companion | grep -i "cert\|error\|challenge"
-    ```
-
-=== "Traefik"
-
-    ```bash
-    docker logs traefik 2>&1 | grep -i "router\|certificate\|acme" | tail -20
-    ```
+The DNS records each hostname needs are in [Domain name](prerequisites.md#domain-name). Once every stack runs, check the certificates as in the Deployment Guide's [Verify](deployment-guide.md#verify) step.
 
 ---
 

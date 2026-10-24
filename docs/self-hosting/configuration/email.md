@@ -1,51 +1,40 @@
 # Email (SMTP)
 
-Meet uses SMTP to send transactional emails. Without it configured, two features are affected:
+Meet sends email for two things only. Sign-in goes through your OIDC provider and sends none.
 
-- **Room email invitations** - sent through the API (`POST /api/v1.0/rooms/<id>/invite/`); the interface has no button for them.
-- **Recording download notifications** - recording itself is unaffected, but the person who started it is not emailed a link when it finishes. The recording is still saved and its download link remains available in the Django admin panel. See [Recording](recording.md).
+- **Room invitations**, sent through the API (`POST /api/v1.0/rooms/<id>/invite/`); the interface has no button for them. Without SMTP, the request fails.
+- **A recording's download link**, emailed to whoever started the recording and to the room's owners and administrators. Without SMTP, the recording is still saved.
 
-Meet does not use email for authentication (OIDC/SSO handles that) or for password resets, so SMTP is needed only for those two features.
+To reach a recording whose email never left, find its ID in the Django admin under `/admin/` → **Core → Recordings**. Those same people can open `https://meet.example.com/recording/<id>`. Once SMTP works, the admin action **Resend notification to external service** sends the email again.
 
----
+## What to set
+
+| Variable | Example |
+|---|---|
+| `DJANGO_EMAIL_HOST` | `smtp.example.com` |
+| `DJANGO_EMAIL_PORT` | `587` |
+| `DJANGO_EMAIL_HOST_USER` | `meet@example.com` |
+| `DJANGO_EMAIL_HOST_PASSWORD` | your SMTP password |
+| `DJANGO_EMAIL_USE_TLS` | `True` on port 587 (STARTTLS); use `DJANGO_EMAIL_USE_SSL=True` instead on port 465 |
+| `DJANGO_EMAIL_FROM` | `meet@example.com` |
+| `DJANGO_EMAIL_APP_BASE_URL` | `https://meet.example.com`, used in the links the emails carry |
+| `DJANGO_EMAIL_DOMAIN` | `meet.example.com` |
+
+The branding variables (`DJANGO_EMAIL_BRAND_NAME`, `DJANGO_EMAIL_LOGO_IMG`, `DJANGO_EMAIL_SUPPORT_EMAIL`), the SMTP timeout `DJANGO_EMAIL_TIMEOUT`, and every default are in [Environment Variables: Email](../../reference/env-variables.md#email).
+
+With `CELERY_ENABLED=True`, the Celery worker sends the recording emails and retries a failed delivery, so a slow SMTP server never holds up the backend. Otherwise the backend sends them itself.
 
 ## Docker Compose setup
 
-Add to your `.env`:
-
-```dotenv
-DJANGO_EMAIL_HOST=smtp.example.com
-DJANGO_EMAIL_PORT=587
-DJANGO_EMAIL_HOST_USER=meet@example.com
-DJANGO_EMAIL_HOST_PASSWORD=<password>
-DJANGO_EMAIL_USE_TLS=True
-DJANGO_EMAIL_FROM=meet@example.com
-DJANGO_EMAIL_APP_BASE_URL=https://meet.example.com
-DJANGO_EMAIL_DOMAIN=meet.example.com
-```
-
-!!!info
-    `DJANGO_EMAIL_USE_TLS` and `DJANGO_EMAIL_USE_SSL` are mutually exclusive - use `DJANGO_EMAIL_USE_TLS=True` for STARTTLS on port 587 (the common case), or `DJANGO_EMAIL_USE_SSL=True` for implicit TLS on port 465. Leave both `False` only for an unencrypted internal relay.
-
-Optionally, brand the email templates:
-
-```dotenv
-DJANGO_EMAIL_BRAND_NAME=My Organization
-DJANGO_EMAIL_LOGO_IMG=https://meet.example.com/assets/logo-suite-numerique.png
-DJANGO_EMAIL_SUPPORT_EMAIL=support@example.com
-```
-
-Restart the backend:
+Set the variables in `env.d/common`, which already holds a commented-out Mail block. Do not set them in `.env`: Compose reads `env.d/common` after it, so a value set in both comes from `env.d/common`. Then recreate the backend:
 
 ```bash
 docker compose up -d --force-recreate backend
 ```
 
----
-
 ## Kubernetes setup
 
-Add to `backend.envVars` in your `values.yaml`:
+Set them under `backend.envVars` in your `values.yaml`, the password from a Secret rather than in plain text:
 
 ```yaml
 backend:
@@ -53,50 +42,38 @@ backend:
     DJANGO_EMAIL_HOST: "smtp.example.com"
     DJANGO_EMAIL_PORT: "587"
     DJANGO_EMAIL_HOST_USER: "meet@example.com"
-    DJANGO_EMAIL_HOST_PASSWORD: "smtp-password"
+    DJANGO_EMAIL_HOST_PASSWORD:
+      secretKeyRef:
+        name: meet-secrets
+        key: smtp-password
     DJANGO_EMAIL_USE_TLS: "True"
     DJANGO_EMAIL_FROM: "meet@example.com"
     DJANGO_EMAIL_APP_BASE_URL: "https://meet.example.com"
     DJANGO_EMAIL_DOMAIN: "meet.example.com"
 ```
 
-Apply the updated chart:
-
-```bash
-helm upgrade meet meet/meet --namespace meet --values values.yaml
-```
-
----
+Then apply them with `helm upgrade meet meet/meet --namespace meet --values values.yaml`.
 
 ## Scalingo setup
 
-```bash
-scalingo env-set DJANGO_EMAIL_HOST="smtp.example.org"
-scalingo env-set DJANGO_EMAIL_PORT="587"
-scalingo env-set DJANGO_EMAIL_HOST_USER="<smtp-user>"
-scalingo env-set DJANGO_EMAIL_HOST_PASSWORD="<smtp-password>"
-scalingo env-set DJANGO_EMAIL_USE_TLS="True"
-scalingo env-set DJANGO_EMAIL_FROM="meet@yourdomain.com"
-scalingo env-set DJANGO_EMAIL_APP_BASE_URL="https://meet.yourdomain.com"
-scalingo env-set DJANGO_EMAIL_DOMAIN="meet.yourdomain.com"
-```
+Set each variable with `scalingo env-set NAME="value"`. [Scalingo's email documentation](https://doc.scalingo.com/platform/app/sending-emails) covers its SMTP providers.
 
-See [Scalingo's email documentation](https://doc.scalingo.com/platform/app/sending-emails) for provider-specific setup.
+## Check delivery
 
----
-
-## Verifying delivery
-
-Trigger a recording download notification, then check backend logs for SMTP errors:
+Send a test email from the backend, with your own address:
 
 ```bash
-docker compose logs backend | grep -i smtp
+docker compose exec backend python manage.py shell -c "from django.conf import settings; from django.core.mail import send_mail; send_mail('Meet test', 'It works.', settings.EMAIL_FROM, ['you@example.com'])"
 ```
 
-If `DJANGO_EMAIL_HOST` is not configured, recording download links remain available in the Django admin panel at `/admin/ → Core → Recordings` - see [Recording](recording.md). Room email invitations have no such fallback: without SMTP, sending an invitation fails outright.
+An SMTP error prints straight away. Meet's own failures appear in the backend log as `could not be sent` for recording links, or `were not sent` for invitations:
 
----
+```bash
+docker compose logs backend | grep -E "could not be sent|were not sent"
+```
 
-## Full configuration reference
+With `CELERY_ENABLED=True`, a recording email that fails in the worker appears in the worker's log instead, where Celery reports the retries:
 
-Every email variable, with its default: [Environment Variables: Email](../../reference/env-variables.md#email).
+```bash
+docker compose logs celery | grep -i -E "send_email|retry"
+```

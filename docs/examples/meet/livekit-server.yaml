@@ -20,3 +20,8 @@ rtc:
   # LiveKit will attempt to use STUN to discover the true IP, and advertise
   # that IP with its clients
   use_external_ip: true
+# Sends room and participant events to the backend: lobby, presence, telephony and recording rely on them.
+webhook:
+  api_key: meet
+  urls:
+    - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
