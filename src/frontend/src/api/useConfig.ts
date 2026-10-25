@@ -74,6 +74,7 @@ export interface ApiConfig {
     default_sources: Source[]
     default_video_codec: VideoCodec
   }
+  show_transcription_button?: boolean
   transcription_destination?: string
   max_participants_for_sound: number
   auto_mute_on_join_threshold: number
