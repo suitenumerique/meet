@@ -703,6 +703,7 @@
     "host": "Organisateur de la réunion",
     "cohost": "Co-organisateur",
     "member": "Membre",
+    "speaker": "Intervenant",
     "collapsable": {
       "open": "Ouvrir la liste {{name}}",
       "close": "Fermer la liste {{name}}"
@@ -757,6 +758,14 @@
     "demote": {
       "label": "Retirer le rôle de co-organisateur",
       "ariaLabel": "Retirer le rôle de co-organisateur à {{name}}"
+    },
+    "makeSpeaker": {
+      "label": "Désigner comme intervenant",
+      "ariaLabel": "Désigner {{name}} comme intervenant"
+    },
+    "removeSpeaker": {
+      "label": "Retirer le rôle d'intervenant",
+      "ariaLabel": "Retirer le rôle d'intervenant de {{name}}"
     }
   },
   "pinAnnouncements": {

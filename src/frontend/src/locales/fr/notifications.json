@@ -68,5 +68,9 @@
       "member": "Membre"
     }
   },
+  "speakerChanged": {
+    "granted": "Vous êtes maintenant intervenant. Vous pouvez utiliser votre micro, votre caméra et partager votre écran.",
+    "removed": "Vous n'êtes plus intervenant."
+  },
   "openMenu": "Ouvrir le menu"
 }

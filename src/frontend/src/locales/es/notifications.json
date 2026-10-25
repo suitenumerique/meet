@@ -68,5 +68,9 @@
       "member": "Miembro"
     }
   },
+  "speakerChanged": {
+    "granted": "Ahora eres ponente. Puedes usar tu micrófono, tu cámara y compartir pantalla.",
+    "removed": "Ya no eres ponente."
+  },
   "openMenu": "Abrir el menú"
 }
