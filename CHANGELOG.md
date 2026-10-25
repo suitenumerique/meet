@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) make the remote video pixel density ceiling configurable #1659
+
 ## [1.36.3] - 2026-10-23
 
 ### Fixed

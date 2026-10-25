@@ -68,6 +68,20 @@ class VideoCodecValue(values.Value):
         return codec
 
 
+class PixelDensityValue(values.FloatValue):
+    """
+    A ceiling on the pixel density remote video is requested at. Below 1 it would
+    ask for fewer pixels than the tile's CSS size, so it is rejected at startup.
+    """
+
+    def to_python(self, value):
+        """Parse the density and ensure it is at least 1."""
+        density = super().to_python(value)
+        if density < 1:
+            raise ValueError(f"Pixel density {value!r} must be at least 1.")
+        return density
+
+
 class ResolutionSpec(BaseModel):
     """An value of RECORDING_ENCODING_AVAILABLE_RESOLUTIONS."""
 
@@ -786,6 +800,9 @@ class Base(Configuration):
     )
     LIVEKIT_DEFAULT_VIDEO_CODEC = VideoCodecValue(
         "vp9", environ_name="LIVEKIT_DEFAULT_VIDEO_CODEC", environ_prefix=None
+    )
+    LIVEKIT_MAX_PIXEL_DENSITY = PixelDensityValue(
+        None, environ_name="LIVEKIT_MAX_PIXEL_DENSITY", environ_prefix=None
     )
     CONNECTION_TEST_ENABLED = values.BooleanValue(
         environ_name="CONNECTION_TEST_ENABLED",

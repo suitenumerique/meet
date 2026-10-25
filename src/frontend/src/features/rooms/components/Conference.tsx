@@ -107,8 +107,19 @@ export const Conference = ({
   })
 
   const roomOptions = useMemo((): RoomOptions => {
+    const maxPixelDensity = apiConfig?.livekit.max_pixel_density
     return {
-      adaptiveStream: true,
+      // Unset keeps the livekit-client default. A ceiling requests remote video
+      // at the screen's density up to that value, trading bandwidth for
+      // sharpness, and never below the tile's CSS size when zoomed out.
+      adaptiveStream: maxPixelDensity
+        ? {
+            pixelDensity: Math.min(
+              Math.max(window.devicePixelRatio || 1, 1),
+              maxPixelDensity
+            ),
+          }
+        : true,
       dynacast: true,
       publishDefaults: {
         videoCodec: apiConfig?.livekit.default_video_codec ?? 'vp9',
@@ -134,6 +145,7 @@ export const Conference = ({
     userConfig.audioDeviceId,
     userConfig.audioOutputDeviceId,
     apiConfig?.livekit.default_video_codec,
+    apiConfig?.livekit.max_pixel_density,
   ])
 
   const room = useMemo(() => new Room(roomOptions), [roomOptions])
