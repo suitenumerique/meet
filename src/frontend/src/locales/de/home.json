@@ -59,5 +59,14 @@
     },
     "carouselLabel": "Einführungs-Diashow",
     "slidePosition": "Folie {{current}} von {{total}}"
+  },
+  "quickAccessRooms": {
+    "heading": "Deine Meeting-Links",
+    "empty": "Du hast noch keine Meetings erstellt.",
+    "access": {
+      "open": "Offen",
+      "trusted": "Vertraulich",
+      "restricted": "Eingeschränkt"
+    }
   }
 }
