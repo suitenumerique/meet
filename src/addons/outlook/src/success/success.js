@@ -1,9 +1,12 @@
+/* global Office */
 const { applyAppName } = require("../common/helpers");
 const { exchangeSession } = require("../common/api");
 const { consume } = require("../common/transitToken");
 const { initI18n, translateUI } = require("../common/i18n");
+const { DIALOG_SIGNALS } = require("../common/transitDialog");
 
 (async () => {
+  await Office.onReady();
   await initI18n();
 
   applyAppName();
@@ -17,6 +20,7 @@ const { initI18n, translateUI } = require("../common/i18n");
   } else {
     exchangeSession(transitToken)
       .then(() => {
+        Office.context.ui.messageParent(DIALOG_SIGNALS.authenticated);
         document.querySelector(".spinner-container").style.display = "none";
         document.querySelector("#close-msg").style.display = "block";
       })

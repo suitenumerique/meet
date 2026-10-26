@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- 🐛(outlook) release the event when authentication is canceled
+
 ## [1.36.3] - 2026-10-23
 
 ### Fixed
