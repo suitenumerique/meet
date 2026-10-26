@@ -1,9 +1,10 @@
 
 [project]
 name = "summary"
-version = "1.35.0"
+version = "1.36.3"
 requires-python = ">=3.13"
 dependencies = [
+    "certifi>=2026.10.19",
     "fastapi[standard]>=0.105.0",
     "uvicorn>=0.24.0",
     "pydantic>=2.5.0",

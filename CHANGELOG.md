@@ -8,7 +8,28 @@ and this project adheres to
 
 ## [Unreleased]
 
-### Added
+### Fixed
+
+- 🐛(outlook) release the event when authentication is canceled
+
+## [1.36.3] - 2026-10-23
+
+### Fixed
+
+- 🔒️(backend) upgrade brotli to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) upgrade nginx to 1.30.6 to fix CVE-2026-15176
+- 🔒️(docker) upgrade brotli-libs to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) build the Outlook add-in on Node 22.23.4
+- 🔒️(backend) upgrade djangorestframework to 3.18.2 to fix CVE-2026-114136,
+  CVE-2026-114137 and CVE-2026-114138
+
+## [1.36.2] - 2026-10-21
+
+### Fixed
+
+- 🔒️(frontend) upgrade Node to 22.23.4 and 24.22.1 security releases
+
+## [1.36.1] - 2026-10-21
 
 ### Changed
 
@@ -16,7 +37,8 @@ and this project adheres to
 
 ### Fixed
 
-- 🐛(outlook) release the event when authentication is canceled
+- 🔒️(docker) distrust compromised eMudhra emSign G3 CA roots
+- 🔒️(backend) upgrade pillow to 13.0.0 to fix CVE-2026-112403
 
 ## [1.36.0] - 2026-10-20
 
