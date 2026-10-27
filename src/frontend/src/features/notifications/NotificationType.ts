@@ -24,4 +24,6 @@ export enum NotificationType {
   RecordingSaving = 'recordingSaving',
   PermissionsRemoved = 'permissionsRemoved',
   RoleChanged = 'roleChanged',
+  WhiteboardStarted = 'whiteboardStarted',
+  WhiteboardStopped = 'whiteboardStopped',
 }

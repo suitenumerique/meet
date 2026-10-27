@@ -15,6 +15,7 @@ import { ToastPermissionsRemoved } from './ToastPermissionsRemoved'
 import { ToastRecordingRequest } from './ToastRecordingRequest'
 import { ToastAutoMuteLargeRoom } from './ToastAutoMuteLargeRoom'
 import { ToastRoleChanged } from '@/features/notifications/components/ToastRoleChanged'
+import { ToastWhiteboard } from './ToastWhiteboard'
 
 interface ToastRegionProps extends AriaToastRegionProps {
   state: ToastState<ToastData>
@@ -79,6 +80,10 @@ const renderToast = (
 
     case NotificationType.RoleChanged:
       return <ToastRoleChanged key={toast.key} toast={toast} state={state} />
+
+    case NotificationType.WhiteboardStarted:
+    case NotificationType.WhiteboardStopped:
+      return <ToastWhiteboard key={toast.key} toast={toast} state={state} />
 
     default:
       return <Toast key={toast.key} toast={toast} state={state} />

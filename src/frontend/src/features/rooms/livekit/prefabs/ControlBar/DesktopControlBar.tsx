@@ -16,6 +16,7 @@ import { VideoDeviceControl } from '../../components/controls/Device/VideoDevice
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
+import { WhiteboardToggle } from '@/features/whiteboard'
 
 export function DesktopControlBar({
   onDeviceError,
@@ -88,6 +89,7 @@ export function DesktopControlBar({
             }
           />
         )}
+        <WhiteboardToggle />
         <SubtitlesToggle />
         <HandToggle />
         <OptionsButton />

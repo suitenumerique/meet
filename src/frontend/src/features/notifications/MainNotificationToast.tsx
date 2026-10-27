@@ -15,6 +15,7 @@ import { Emoji } from '@/features/reactions/types'
 import { useReactions } from '@/features/reactions/hooks/useReactions'
 import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
+import { setWhiteboardSharing } from '@/stores/whiteboard'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -133,6 +134,32 @@ export const MainNotificationToast = () => {
           )
           break
         }
+        case NotificationType.WhiteboardStarted:
+          setWhiteboardSharing(
+            true,
+            notification.sharerName || participant?.name,
+            notification.sharerIdentity || participant?.identity
+          )
+          toastQueue.add(
+            {
+              participant,
+              type: notification.type,
+              sharerName: notification.sharerName || participant?.name,
+            },
+            { timeout: NotificationDuration.WHITEBOARD }
+          )
+          break
+        case NotificationType.WhiteboardStopped:
+          setWhiteboardSharing(false)
+          toastQueue.add(
+            {
+              participant,
+              type: notification.type,
+              sharerName: notification.sharerName || participant?.name,
+            },
+            { timeout: NotificationDuration.ALERT }
+          )
+          break
         default:
           return
       }

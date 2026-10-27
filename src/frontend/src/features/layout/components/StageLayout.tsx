@@ -12,6 +12,8 @@ import {
 import { Track } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
+import { whiteboardStore } from '@/stores/whiteboard'
+import { WhiteboardStage } from '@/features/whiteboard'
 import { useEffect, useRef } from 'react'
 
 export const StageLayout = () => {
@@ -31,6 +33,7 @@ export const StageLayout = () => {
     .filter((track) => track.publication.source === Track.Source.ScreenShare)
 
   const { pinnedTrackRef } = useSnapshot(layoutStore)
+  const { isOpen: isWhiteboardOpen } = useSnapshot(whiteboardStore)
 
   const carouselTracks = tracks.filter(
     (track) => !isEqualTrackRef(track, pinnedTrackRef)
@@ -87,7 +90,21 @@ export const StageLayout = () => {
 
   return (
     <>
-      {!pinnedTrackRef ? (
+      {isWhiteboardOpen ? (
+        <div className="lk-focus-layout-wrapper" style={{ height: 'auto' }}>
+          <FocusLayoutContainer style={{ padding: 0 }}>
+            <CarouselLayout
+              tracks={tracks}
+              style={{
+                minWidth: '200px',
+              }}
+            >
+              <ParticipantTile />
+            </CarouselLayout>
+            <WhiteboardStage />
+          </FocusLayoutContainer>
+        </div>
+      ) : !pinnedTrackRef ? (
         <div className="lk-grid-layout-wrapper" style={{ height: 'auto' }}>
           <GridLayout tracks={tracks} style={{ padding: 0 }}>
             <ParticipantTile />

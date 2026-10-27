@@ -20,6 +20,7 @@ import { useSidePanel } from '../../hooks/useSidePanel'
 import { LinkButton } from '@/primitives'
 import { ResponsiveMenu } from './ResponsiveMenu'
 import { ToolsToggle } from '../../components/controls/ToolsToggle'
+import { WhiteboardToggle } from '@/features/whiteboard'
 import { CameraSwitchButton } from '../../components/controls/CameraSwitchButton'
 import { useConfig } from '@/api/useConfig'
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
@@ -198,6 +199,11 @@ export function MobileControlBar({
                 onPress={closeMenu}
               />
             )}
+            <WhiteboardToggle
+              variant="primaryTextDark"
+              description={true}
+              onPress={closeMenu}
+            />
             <ChatToggle description={true} onPress={closeMenu} />
             <ParticipantsToggle description={true} onPress={closeMenu} />
             <ToolsToggle description={true} onPress={closeMenu} />

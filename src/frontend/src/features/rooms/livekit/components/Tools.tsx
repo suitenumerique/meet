@@ -12,6 +12,9 @@ import {
   ScreenRecordingSidePanel,
 } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
+import { RiArtboardLine } from '@remixicon/react'
+import { closeSidePanel } from '@/stores/layout'
+import { useWhiteboard } from '@/features/whiteboard'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -102,6 +105,7 @@ export const Tools = () => {
     isToolsOpen,
     isSidePanelOpen,
   } = useSidePanel()
+  const { toggleWhiteboard, canUseWhiteboard } = useWhiteboard()
   const { t } = useTranslation('rooms', { keyPrefix: 'moreTools' })
 
   // Restore focus to the element that opened the Tools panel
@@ -172,6 +176,17 @@ export const Tools = () => {
           </A>
         )}
       </Text>
+      {canUseWhiteboard && (
+        <ToolButton
+          icon={<RiArtboardLine size={20} />}
+          title={t('tools.whiteboard.title')}
+          description={t('tools.whiteboard.body')}
+          onPress={() => {
+            toggleWhiteboard()
+            closeSidePanel()
+          }}
+        />
+      )}
       {isTranscriptEnabled && (
         <ToolButton
           icon={<Icon name="speech_to_text" />}

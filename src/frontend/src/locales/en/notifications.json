@@ -70,5 +70,10 @@
       "member": "Member"
     }
   },
+  "whiteboard": {
+    "started": "{{name}} started a shared whiteboard.",
+    "stopped": "{{name}} closed the shared whiteboard.",
+    "cta": "Open"
+  },
   "openMenu": "Open menu"
 }
