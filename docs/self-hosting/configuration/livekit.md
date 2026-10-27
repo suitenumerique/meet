@@ -1,6 +1,6 @@
 # LiveKit & TURN
 
-LiveKit is the media server: every participant sends it their audio and video, and it forwards each stream to the others. The [Deployment Guide](../compose/deployment-guide.md) sets it up from [`livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-server.yaml), which works as shipped. What follows covers the settings you may change in that file, and TURN for participants on locked-down networks. The ports each choice needs are in [Firewall & Ports](firewall.md).
+LiveKit is the media server: every participant sends it their audio and video, and it forwards each stream to the others. The [Deployment Guide](../compose/deployment-guide.md) sets it up from [`livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-server.yaml), which works as shipped. The ports each choice needs are in [Firewall & Ports](firewall.md).
 
 ## How media connects
 
@@ -19,8 +19,6 @@ For media, the browser tries each path in turn and keeps the first one its netwo
 
 A participant whose network allows none of these still joins the room, since signalling works, but gets no audio or video. If media works as soon as they switch to a phone hotspot, their network is blocking the media ports.
 
-LiveKit also calls Meet back over HTTP, a webhook, for each room event: room started and finished, participant left, recording progress. Meet uses these calls for the waiting room, presence, telephony and recordings. The `webhook:` block of `livekit-server.yaml` points them at `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, and its `api_key` must equal `LIVEKIT_API_KEY`.
-
 ## The media port
 
 `udp_port: 7882` in `livekit-server.yaml` sends every participant's media through that one UDP port. The other form is a wide port range. Set one form, never both: once a range is configured, `udp_port` has no effect.
@@ -34,7 +32,7 @@ LiveKit also calls Meet back over HTTP, a webhook, for each room event: room sta
       use_external_ip: true
     ```
 
-    For performance, LiveKit's comment in the file recommends at least as many ports as the server has CPU cores. All media still shares those few ports. Publish and open the whole range.
+    For performance, LiveKit's comment in the file recommends at least as many ports as the server has CPU cores. Publish and open the whole range.
 
 === "A wide range"
 
@@ -52,7 +50,10 @@ On Kubernetes, the chart serves the media ports from the node itself, see [Helm:
 
 ## `use_external_ip`
 
-`use_external_ip: true`, set in the example file, makes LiveKit learn its public IP at startup and announce that address to browsers. It asks a public STUN server, a service that tells a machine the address it is seen from. It is needed whenever the public IP is not on the server's network interface, as on AWS, GCP, Azure or any host behind NAT. Where the public IP is on the interface, it does no harm.
+`use_external_ip: true`, set in the example file, makes LiveKit learn its public IP at startup and announce that address to browsers.
+
+- It is needed whenever the public IP is not on the server's network interface: AWS, GCP, Azure, any host behind NAT. Elsewhere it does no harm.
+- LiveKit learns the IP from a public STUN server, a service that tells a machine the address it is seen from. Unless `stun_servers` under `rtc:` names others, it [asks](https://github.com/livekit/mediatransportutil/blob/master/pkg/rtcconfig/ip.go#L35-L40) Twilio's and Google's, so the server needs outbound UDP to `global.stun.twilio.com:3478` and `stun.l.google.com:19302`.
 
 ## TURN
 
@@ -89,7 +90,10 @@ To test it, block both 7882/UDP and 7881/TCP on a client machine, join a meeting
 
 ### TURN over TLS
 
-A network that blocks all UDP needs TURN over TLS, which looks like ordinary HTTPS to a firewall. It runs on 5349/TCP. The reverse proxy already holds 443/TCP, so running TURN there needs a second IP address, or a layer-4 load balancer in front, one that forwards TCP connections without decrypting them. A firewall that decrypts and inspects TLS blocks every form of TURN.
+A network that blocks all UDP needs TURN over TLS, on 5349/TCP, which looks like ordinary HTTPS to a firewall.
+
+- On 443/TCP instead, it needs a second IP address, since the reverse proxy holds that port, or a layer-4 load balancer in front that forwards TCP without decrypting it.
+- A firewall that decrypts and inspects TLS blocks every form of TURN.
 
 LiveKit terminates this TLS itself, so it needs the certificate and key for `livekit.example.com` as files:
 
@@ -132,7 +136,7 @@ turn:
   key_file: /certs/livekit.example.com.key
 ```
 
-The paths are inside the container. LiveKit reads the files only when it starts. Let's Encrypt certificates last 90 days and are renewed about every 60, so restart LiveKit after each renewal. A restart drops the calls in progress, so run it at a quiet hour, for instance from a weekly cron job:
+LiveKit reads the certificate only when it starts, so restart it after each Let's Encrypt renewal, about every 60 days. A restart drops the calls in progress: run it at a quiet hour, for instance from a weekly cron job:
 
 ```bash
 0 3 * * 0 docker compose -f ~/docker/meet/compose.yml restart livekit
@@ -152,7 +156,11 @@ rtc:
       ttl: 14400
 ```
 
-Setting up coturn itself is outside this guide.
+## Webhook
+
+LiveKit calls Meet back over HTTP for each room event: room started and finished, participant left, recording progress. The waiting room, presence, telephony and recordings rely on these calls.
+
+The `webhook:` block of `livekit-server.yaml` points them at `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`. Its `api_key` must equal [`LIVEKIT_API_KEY`](../../reference/env-variables.md#livekit).
 
 ## Check it works
 

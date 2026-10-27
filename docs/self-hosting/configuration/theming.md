@@ -7,9 +7,9 @@ Meet can carry your brand in two ways:
 
 ## Runtime theming
 
-### How it works
+### Load your CSS file
 
-Set `FRONTEND_CUSTOM_CSS_URL` on the **backend** container to the URL of your CSS file. The backend exposes it in `/api/v1.0/config/` as `custom_css_url`, and the frontend adds a `<link>` element for it to `<head>` at runtime.
+Set `FRONTEND_CUSTOM_CSS_URL` on the **backend** container to the URL of your CSS file.
 
 The frontend container can serve the file itself: mount it into the frontend's web root, `/usr/share/nginx/html`, and point the variable at its path:
 
@@ -60,6 +60,15 @@ The frontend container can serve the file itself: mount it into the frontend's w
 
 A file on another host works too, with its full URL, for example `https://cdn.example.com/custom.css`.
 
+### What to override
+
+The compiled CSS uses two kinds of CSS variables:
+
+- **Semantic tokens**, such as `--colors-primary`, used by some component styles. They are defined at build time inside `@layer tokens` and resolve to the preset blue palette: `--colors-primary` is `--colors-blue-700`.
+- **Raw palette tokens**, such as `--colors-primary-800`, used directly by many component styles.
+
+To rebrand the primary color fully, override the semantic tokens **and** the whole palette scale. Overriding only `--colors-primary` leaves every component that uses the scale in the default color. Meet is light outside a meeting and dark inside a room, where it uses its own scale, `--colors-primary-dark-*`: override that scale too.
+
 ### Key semantic tokens
 
 | Category | Purpose | Example token |
@@ -77,15 +86,6 @@ A file on another host works too, with its full URL, for example `https://cdn.ex
 
 !!! info
     Every semantic token is defined in [`src/frontend/panda.config.ts`](https://github.com/suitenumerique/meet/blob/main/src/frontend/panda.config.ts).
-
-### What to override
-
-The compiled CSS uses two kinds of CSS variables:
-
-- **Semantic tokens**, such as `--colors-primary`, used by some component styles. They are defined at build time inside `@layer tokens` and resolve to the preset blue palette: `--colors-primary` is `--colors-blue-700`.
-- **Raw palette tokens**, such as `--colors-primary-800`, used directly by many component styles.
-
-To rebrand the primary color fully, override the semantic tokens **and** the whole palette scale. Overriding only `--colors-primary` leaves every component that uses the scale in the default color. Meet is light outside a meeting and dark inside a room, where it uses its own scale, `--colors-primary-dark-*`: override that scale too.
 
 ### Example: full primary color override
 
@@ -125,11 +125,9 @@ To rebrand the primary color fully, override the semantic tokens **and** the who
 }
 ```
 
-With `FRONTEND_CUSTOM_CSS_URL` pointing at this file, the interface uses Roboto from the next page load.
-
 ## Custom assets (logo, images)
 
-To replace a built-in asset, such as the logo or a landing page image, mount your own file over it in the frontend container, under `/usr/share/nginx/html/assets`. It overrides the default at runtime. The landing page carousel images, for example, are:
+To replace a built-in asset, such as the logo or a landing page image, mount your own file over it in the frontend container, under `/usr/share/nginx/html/assets`. The landing page carousel images, for example, are:
 
 ```
 /usr/share/nginx/html/
@@ -185,7 +183,7 @@ Mount each file individually. Mounting the whole `assets/` directory would hide 
 
 ## Build-time theming
 
-The title in the browser tab comes from the `VITE_APP_TITLE` build argument, `LaSuite Meet` by default. To change it, build the frontend image from the repository root:
+The title in the browser tab, also the installed app's name, comes from the `VITE_APP_TITLE` build argument, `LaSuite Meet` by default. To change it, build the frontend image from the repository root:
 
 ```bash
 docker build \

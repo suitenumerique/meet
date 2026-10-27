@@ -1,21 +1,22 @@
 # External API
 
-The external API lets another application create and manage Meet rooms for a user. It lives at `/external-api/v1.0/` and exists only when the backend sets `EXTERNAL_API_ENABLED=True`: without it, every path under `/external-api/` answers 404. Every call carries `Authorization: Bearer <token>`, and each token stands for one Meet user, so a call can do only what that user's roles allow.
+The external API lets another application create and manage Meet rooms for a user, at `/external-api/v1.0/`.
+
+- It needs `EXTERNAL_API_ENABLED=True` on the backend: without it, every path under `/external-api/` answers 404.
+- Every call carries `Authorization: Bearer <token>`. A token stands for one Meet user and can do only what that user's roles allow.
 
 [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-application--delegated-brightgreen?logo=openapi-initiative)](openapi.yaml) [![OpenAPI Spec](https://img.shields.io/badge/OpenAPI-resource%20server-brightgreen?logo=openapi-initiative)](resource_server.yaml)
 
-Both specs import into Postman, Insomnia or any OpenAPI tool. The `EXTERNAL_API_*` and `APPLICATION_*` variables, with their defaults, are in [Environment Variables: External API](env-variables.md#external-api-applications).
+The `EXTERNAL_API_*` and `APPLICATION_*` variables, with their defaults, are in [Environment Variables: External API](env-variables.md#external-api-applications).
 
 ## Getting a token
 
-Four ways, compared:
-
 | Way | How the token is obtained | Its scopes come from | Also needs |
 |---|---|---|---|
-| [Application-delegated](external-api-delegated.md) | Your backend sends a client ID and secret, registered in the Django admin, and the user's email. The user does not sign in during the exchange. | The scopes ticked on the application in the Django admin | `APPLICATION_ENABLED=True` |
-| [Resource server (OAuth2)](external-api-resource-server.md) | The user signs in at your OIDC provider, and your application sends Meet the access token it issued. | The scopes your OIDC provider writes into the token | The `OIDC_RS_*` variables |
-| [Add-ons](external-api-addons.md) | An add-in running inside another application, the Outlook add-in for one, signs the user in to Meet through a popup. | `ADDONS_TOKEN_SCOPE`, the same for every add-in token | `ADDONS_ENABLED=True` |
-| [Menshen token exchange](#menshen-token-exchange) | Another La Suite service exchanges its user's token for one meant for Meet, at Menshen. | Menshen's `meet:room:create`, read as `rooms:create` | `MENSHEN_ENABLED=True` |
+| [Application-delegated](external-api-delegated.md) | Your backend sends the application's client ID and secret and the user's email; the user does not sign in | The scopes ticked on the application in the Django admin | `APPLICATION_ENABLED=True` |
+| [Resource server (OAuth2)](external-api-resource-server.md) | Your application sends the access token the user got from your OIDC provider | The scopes your OIDC provider writes into the token | The `OIDC_RS_*` variables |
+| [Add-ons](external-api-addons.md) | An add-in, such as the Outlook one, signs the user in to Meet in a popup | `ADDONS_TOKEN_SCOPE`, the same for every add-in token | `ADDONS_ENABLED=True` |
+| [Menshen token exchange](#menshen-token-exchange) | Another La Suite service exchanges its user's token at Menshen | Menshen's `meet:room:create`, read as `rooms:create` | `MENSHEN_ENABLED=True` |
 
 ## Scopes
 
@@ -28,20 +29,21 @@ Each endpoint needs one scope in the token, and answers 403 without it.
 | `rooms:create` | Creating a room |
 | `rooms:update` | Changing a room's access level and configuration |
 | `rooms:delete` | Deleting a room |
-| `users:session` | Getting a transit code that signs the user in to Meet in an iframe. Only an application-delegated token can use it. Unticking it on the application also stops the codes and the sign-ins it already gave. |
+| `users:session` | Getting a transit code that signs the user in to Meet in an iframe. Application-delegated tokens only. Unticking it also revokes the codes and sign-ins already given. |
 
 ## Endpoints
 
 | Method | Path | Scope | Who may call it |
 |---|---|---|---|
-| `GET` | `/external-api/v1.0/rooms/` | `rooms:list` | Any user. It returns the rooms where the user holds a role, 20 per page, with a `page` query parameter. |
-| `POST` | `/external-api/v1.0/rooms/` | `rooms:create` | Any user. The user becomes the room's owner. Answers 201 with the room. |
-| `GET` | `/external-api/v1.0/rooms/{id}/` | `rooms:retrieve` | A user holding any role on the room. Anyone else gets 403. |
-| `PATCH` | `/external-api/v1.0/rooms/{id}/` | `rooms:update` | An administrator or owner of the room. Anyone else gets 403. |
-| `DELETE` | `/external-api/v1.0/rooms/{id}/` | `rooms:delete` | An owner of the room. Anyone else gets 403. Answers 204. |
-| `POST` | `/external-api/v1.0/users/transit-code/` | `users:session` | Any user, with an application-delegated token. Answers 404 unless `USER_ACCESS_TOKEN_ENABLED=True`. |
+| `GET` | `/external-api/v1.0/rooms/` | `rooms:list` | Any user. Returns the rooms where they hold a role, 20 per page, with a `page` query parameter |
+| `POST` | `/external-api/v1.0/rooms/` | `rooms:create` | Any user, who becomes the room's owner. Answers 201 with the room |
+| `GET` | `/external-api/v1.0/rooms/{id}/` | `rooms:retrieve` | Any role on the room |
+| `PATCH` | `/external-api/v1.0/rooms/{id}/` | `rooms:update` | An administrator or owner of the room |
+| `DELETE` | `/external-api/v1.0/rooms/{id}/` | `rooms:delete` | An owner of the room. Answers 204 |
+| `POST` | `/external-api/v1.0/users/transit-code/` | `users:session` | Any user, with an application-delegated token. Answers 404 unless `USER_ACCESS_TOKEN_ENABLED=True` |
 
-`{id}` is the room's id: a slug answers 404.
+- A user without the role the last column names gets 403.
+- `{id}` is the room's id: a slug answers 404.
 
 ### Creating and updating a room
 
@@ -58,15 +60,17 @@ The body is optional on creation: an empty one takes the defaults.
 
 | Field | Values | Meaning |
 |---|---|---|
-| `access_level` | `public`, `trusted`, `restricted` | Who joins without waiting, see [Room access levels](security.md#room-access-levels). Omitted on creation, it takes `EXTERNAL_API_DEFAULT_ACCESS_LEVEL`. `public` answers 400 unless `EXTERNAL_API_ALLOW_PUBLIC_ACCESS=True` or `EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public`. |
-| `configuration.can_publish_sources` | A list of `camera`, `microphone`, `screen_share`, `screen_share_audio` | The media participants may send. Omitted or `null`, all of them. |
-| `configuration.everyone_can_mute` | `true` or `false` | Omitted counts as `true`: anyone in the room can mute others. `false` leaves it to administrators and owners. |
+| `access_level` | `public`, `trusted`, `restricted` | Who joins without waiting, see [Room access levels](security.md#room-access-levels). Defaults to `EXTERNAL_API_DEFAULT_ACCESS_LEVEL`. `public` answers 400 unless `EXTERNAL_API_ALLOW_PUBLIC_ACCESS=True` or `EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public`. |
+| `configuration.can_publish_sources` | A list of `camera`, `microphone`, `screen_share`, `screen_share_audio` | The media participants may send. Omitted or `null`, all of them |
+| `configuration.everyone_can_mute` | `true` or `false` | `true` or omitted: anyone in the room can mute others. `false`: administrators and owners only |
 
 Any other key in `configuration` answers 400. An update replaces the stored `configuration` whole, so send every key you want to keep.
 
 ### Deleting a room
 
-Deleting a room ends the meeting for everyone connected and stops its PIN from routing phone calls. The room disappears from the list, and a call naming it answers 410 from then on, or 403 to a user the call would have refused anyway. It keeps its slug and its PIN until the [room purge](env-variables.md#room-purge) removes it, so no new room takes them. Its recordings stay available to the people holding a role on them.
+- The meeting ends for everyone connected, and the room's PIN stops routing phone calls.
+- The room leaves the list. A call naming it answers 410, or 403 to a user without the role.
+- What it keeps until it is purged is in [Room purge](../self-hosting/configuration/room-purge.md#how-a-room-becomes-purgeable).
 
 ### Signing a user in to an iframe
 
@@ -79,7 +83,9 @@ The transit code lets an application show Meet in an iframe, where the browser b
 }
 ```
 
-Open Meet in the iframe with `#transit_code=<code>` at the end of the room's URL, within `expires_in` seconds. Meet's frontend removes the code from the address bar and exchanges it for a token that acts as the user for `USER_ACCESS_TOKEN_TTL` seconds. A code works once. The settings are in [Environment Variables: User access tokens](env-variables.md#user-access-tokens).
+- Open the room's URL in the iframe with `#transit_code=<code>` appended, within `expires_in` seconds. A code works once.
+- Meet's frontend exchanges it for a token acting as the user for `USER_ACCESS_TOKEN_TTL` seconds.
+- The settings are in [Environment Variables: User access tokens](env-variables.md#user-access-tokens).
 
 ## The room object
 
@@ -105,8 +111,8 @@ Every room endpoint but `DELETE` answers with this object, and the list wraps it
 | Field | Present | Meaning |
 |---|---|---|
 | `id` | Always | The room's id, used in `{id}` |
-| `name` | Always | Generated by Meet. A request cannot set it. |
-| `slug` | Always | Derived from `name`. It ends the room's link. |
+| `name` | Always | Generated by Meet; a request cannot set it |
+| `slug` | Always | Derived from `name`; ends the room's link |
 | `access_level`, `configuration` | Always | As sent, or the defaults |
 | `url` | When `APPLICATION_BASE_URL` is set | `APPLICATION_BASE_URL/<slug>`, the link to share |
 | `telephony` | When `ROOM_TELEPHONY_ENABLED=True` | The number to dial and the room's PIN |
@@ -123,12 +129,16 @@ Errors on the room endpoints answer `{"detail": "..."}`, and a rejected body map
 | 404 | No room has that id, or `EXTERNAL_API_ENABLED` is off |
 | 405 | The method is `PUT` |
 | 410 | The room has been deleted |
-| 500 | Closing the room on the media server failed during a deletion. The room is not deleted: try again. |
+| 500 | A deletion failed to close the room on the media server. The room is kept: retry |
 
 The application-delegated token endpoint answers its own errors, listed on [its page](external-api-delegated.md#errors).
 
 ## Menshen token exchange
 
-Menshen is La Suite's OAuth 2.0 token exchange server. A La Suite service exchanges its user's access token at Menshen for one whose audience includes Meet, then sends that token as `Authorization: Bearer <token>`. On each call, Meet asks Menshen whether the token is active, signing in as `MENSHEN_CLIENT_ID`. Meet finds the user by the token's `sub`. When no user has it and `OIDC_CREATE_USER` is on, Meet creates one with the token's email.
+Menshen is La Suite's OAuth 2.0 token exchange server. A La Suite service exchanges its user's access token there for one whose audience includes Meet, and sends it as `Authorization: Bearer <token>`.
 
-Menshen names scopes `service:resource:action`. Meet reads `meet:room:create` as `rooms:create` and ignores every other, so a Menshen token can only create rooms. The settings are in [Environment Variables: Menshen](env-variables.md#external-api-menshen-token-exchange).
+- On each call, Meet asks Menshen whether the token is active, signing in as `MENSHEN_CLIENT_ID`.
+- Meet finds the user by the token's `sub`, or creates one with the token's email when `OIDC_CREATE_USER` is on.
+- Meet reads `meet:room:create` as `rooms:create` and ignores every other scope, so a Menshen token can only create rooms.
+
+The settings are in [Environment Variables: Menshen](env-variables.md#external-api-menshen-token-exchange).

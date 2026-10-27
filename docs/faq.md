@@ -8,19 +8,21 @@ No. Meet runs in a recent Chrome, Firefox, Safari or Edge, on a computer or a ph
 
 ### Do I need an account?
 
-Not to join an **Open** room through its link. Other rooms can make you wait until someone admits you, see [Access levels](user/features-controls.md#access-levels). Where your instance allows it, **Create a meeting** also starts a meeting while you are signed out, one that no one owns, see [Start a meeting](user/getting-started.md#start-a-meeting).
+- Not to join an **Open** room through its link. Other rooms may make you wait until someone admits you, see [Access levels](user/features-controls.md#access-levels).
+- Where your instance allows it, you can also start a meeting signed out, one that no one owns, see [Start a meeting](user/getting-started.md#start-a-meeting).
 
 ### Why does the link say the meeting has been deleted?
 
-Its owner deleted the room, and its link cannot open a meeting any more, see [Deleted rooms](user/features-controls.md#deleted-rooms). Ask them for a new link.
+Its owner deleted the room, see [Deleted rooms](user/features-controls.md#deleted-rooms). Ask them for a new link.
 
 ### Why am I stuck in the waiting room?
 
-Someone has to admit you: the room's owner or a co-host, or, in a room open to trusted people, any signed-in participant already in the meeting. They see a pop-up, and you in the **Lobby** section of the participants panel (**See everyone**).
+Someone already in the meeting has to admit you; who can is in [Permissions](user/features-controls.md#permissions).
 
 ### How many people can join, and for how long?
 
-Meet runs meetings of 150 and more in production, with no cap of its own: the limit is the media server's capacity. There is no time limit; the meeting lasts until the last person leaves, see [When the meeting ends](overview/how-meet-works.md#when-the-meeting-ends).
+- People: Meet sets no cap and runs meetings of 150 and more in production; the limit is the media server's capacity.
+- Time: no limit. The meeting lasts until the last person leaves, see [When the meeting ends](overview/how-meet-works.md#when-the-meeting-ends).
 
 ## Audio, video and screen
 
@@ -32,15 +34,18 @@ Meet runs meetings of 150 and more in production, with no cap of its own: the li
 
 ### My audio echoes
 
-Someone's speakers are feeding back into their microphone, usually not yours: echo cancellation is always on for your own. Ask whoever echoes to use headphones or lower their volume.
+Someone else's speakers are feeding back into their microphone; yours has echo cancellation always on. Ask them to use headphones or lower their volume.
 
 ### Others sound choppy
 
-Usually a network problem on one side: close bandwidth-heavy tabs and apps, move closer to the Wi-Fi router, or ask the choppy participant to check their connection.
+Usually a network problem on one side. Close bandwidth-heavy tabs and apps, move closer to the Wi-Fi router, or ask the choppy participant to check their connection.
 
 ### How do I check my connection before a meeting?
 
-Click **Test your configuration** in the page footer, where your instance offers it, then **Run test**. It checks your browser, camera, microphone and network in about a minute. **Suboptimal connection** means your network blocks the direct route, so the call goes through a relay over TCP or TLS. You can join, but quality may drop. Your IT department can open the ports that avoid it, see [Firewall & Ports](self-hosting/configuration/firewall.md).
+Click **Test your configuration** in the page footer, where your instance offers it, then **Run test**.
+
+- **Suboptimal connection**: your network blocks the direct route. You can join, but quality may drop.
+- Your IT department can open the ports that avoid it, see [Firewall & Ports](self-hosting/configuration/firewall.md).
 
 ### I cannot share my screen
 
@@ -48,7 +53,9 @@ On macOS, allow your browser in **System Settings → Privacy & Security → Scr
 
 ### Which codecs does Meet use?
 
-Opus for audio. Video uses the codec your instance sets, VP9 by default, or VP8, H.264 or AV1, see [`LIVEKIT_DEFAULT_VIDEO_CODEC`](reference/env-variables.md#livekit). Recordings use H.264 and AAC.
+- Audio: Opus.
+- Video: VP9 by default, or VP8, H.264 or AV1, set by [`LIVEKIT_DEFAULT_VIDEO_CODEC`](reference/env-variables.md#livekit).
+- Recordings: H.264 and AAC.
 
 ## Recording and transcription
 
@@ -58,11 +65,13 @@ A red indicator shows for everyone while a recording runs.
 
 ### Who gets the recording, and for how long?
 
-Whoever started it, and the room's owner and co-hosts, see [Recording](user/recording.md#recording). Whoever runs your instance can also reach the file in its storage. How long the file is kept is your instance's choice, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
+- Whoever started it, and the room's owner and co-hosts, see [Recording](user/recording.md#recording). Whoever runs your instance can also reach the file.
+- How long it is kept is your instance's choice, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
 
 ### Why don't I see the recording or transcription buttons?
 
-If **More tools** has no **Record** or **Transcribe**, your instance has not set them up. If they show but you cannot start them, sign in: in an **Open** room or one open to trusted people, any signed-in participant can start them, unless your instance turns that off. In other rooms only the owner and co-hosts can; click **Request** and they are notified.
+- Not in **More tools**: your instance has not set them up.
+- Shown but you cannot start them: you lack the right in this room, see [Permissions](user/features-controls.md#permissions). Signing in is often enough; otherwise click **Request** to notify the owner and co-hosts.
 
 ## Security and privacy
 

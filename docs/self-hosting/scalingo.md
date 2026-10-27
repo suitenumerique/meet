@@ -1,11 +1,13 @@
 # Deployment on Scalingo
 
-This guide explains how to deploy LaSuite Meet on [Scalingo](https://scalingo.com/) using the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack).
+Deploy LaSuite Meet on [Scalingo](https://scalingo.com/) with the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack).
 
 ## Prerequisites
 
 - A Scalingo account
-- The Scalingo CLI, which the commands below use
+- The Scalingo CLI
+- An OIDC provider with a client for Meet
+- A LiveKit server running elsewhere: this guide does not deploy it, see [LiveKit Configuration](#livekit-configuration)
 
 ## Step 1: Create Your App
 
@@ -45,8 +47,6 @@ scalingo env-set REDIS_URL="\$SCALINGO_REDIS_URL"
 
 ### Django Settings
 
-Select the production configuration, and set a secret key and the app's hostname:
-
 ```bash
 scalingo env-set DJANGO_SETTINGS_MODULE="meet.settings"
 scalingo env-set DJANGO_CONFIGURATION="Production"
@@ -56,7 +56,7 @@ scalingo env-set DJANGO_ALLOWED_HOSTS="my-meet-app.osc-fr1.scalingo.io"
 
 ### OIDC Authentication
 
-Point Meet at your OIDC provider, Keycloak or Authentik for example, and at its client for Meet:
+Point Meet at your OIDC provider and its client for Meet. The endpoints below follow Keycloak's layout; [SSO & Authentication](configuration/sso.md) has them for other providers:
 
 ```bash
 scalingo env-set OIDC_OP_JWKS_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/certs"
@@ -71,7 +71,7 @@ scalingo env-set OIDC_RP_SIGN_ALGO="RS256"
 
 ### LiveKit Configuration
 
-Meet requires a LiveKit server for video conferencing, which this guide does not deploy. Run it elsewhere, with [LiveKit on Kubernetes](kubernetes/helm.md#livekit-on-kubernetes) or the `livekit` service of the [Docker Compose stack](compose/deployment-guide.md#stack-3-meet-core), then point Meet at it:
+Run LiveKit elsewhere, with [LiveKit on Kubernetes](kubernetes/helm.md#livekit-on-kubernetes) or the `livekit` service of the [Docker Compose stack](compose/deployment-guide.md#stack-3-meet-core), then point Meet at it:
 
 ```bash
 scalingo env-set LIVEKIT_API_URL="https://livekit.yourdomain.com"
@@ -85,21 +85,13 @@ Follow the Scalingo section of [Email (SMTP)](configuration/email.md#scalingo-se
 
 ## Step 4: Deploy
 
-Push the code to Scalingo, which builds and deploys it:
-
 ```bash
 git push scalingo main
 ```
 
-On deploy, the buildpack and the Procfile:
-1. Build the frontend (Vite)
-2. Build the backend (Django)
-3. Run the post-compile script (cleanup)
-4. Run the post-frontend script (move assets and prepare for deployment)
-5. Run database migrations via the `postdeploy` process, before the app goes live
-6. Start Nginx and Gunicorn (`web` process)
+The `postdeploy` process runs the database migrations before the app goes live.
 
-At runtime, `bin/buildpack_start.sh` runs both processes in the `web` container: Nginx serves the built frontend and proxies `/api/` and `/admin/` to Gunicorn, which runs Django.
+At runtime, `bin/buildpack_start.sh` runs Nginx and Gunicorn in the `web` container: Nginx serves the built frontend and proxies `/api/` and `/admin/` to Gunicorn, which runs Django.
 
 ## Step 5: Create superuser
 
@@ -122,7 +114,7 @@ Then point your DNS to Scalingo.
 
 ## Custom Logo (Optional)
 
-Set `CUSTOM_LOGO_URL` to the HTTPS URL of an SVG file, 5 MB at most:
+Set `CUSTOM_LOGO_URL` to the HTTPS URL of an SVG file, 5 MB at most. The build downloads it, so it applies at the next deploy, and a URL that fails these checks fails the build:
 
 ```bash
 scalingo env-set CUSTOM_LOGO_URL="https://cdn.yourdomain.com/logo.svg"

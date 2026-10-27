@@ -25,7 +25,7 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
     ```
 
 3. Apply any manual step UPGRADE.md lists for the target version.
-4. Start the new images; Compose recreates only the containers whose image changed:
+4. Start the new images:
 
     ```bash
     docker compose up -d
@@ -36,8 +36,6 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
     ```bash
     docker compose exec backend python manage.py migrate
     ```
-
-    Static files ship inside the backend image, so there is no `collectstatic` step.
 
 6. Check the backend started cleanly: `docker compose logs --tail=50 backend`.
 

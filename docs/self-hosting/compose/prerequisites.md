@@ -21,7 +21,7 @@ Any Linux distribution that runs Docker Engine. The ports to open are in [Firewa
 
 ### Docker
 
-Install Docker Engine, not Docker Desktop. The first line runs Docker's install script; the second lets your user run `docker` without `sudo`:
+Install Docker Engine, not Docker Desktop, and let your user run `docker` without `sudo`:
 
 ```bash
 curl -fsSL https://get.docker.com | sh
@@ -31,7 +31,7 @@ sudo usermod -aG docker $USER
 
 ### Docker Compose
 
-Docker Compose v2 is included with Docker Engine. Check it prints a v2 version:
+Docker Engine includes Compose v2. Check the version:
 
 ```bash
 docker compose version

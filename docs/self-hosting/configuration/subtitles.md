@@ -65,7 +65,7 @@ The multi-user transcriber agent ([`src/agents/multi_user_transcriber.py`](https
 
 ### Step 2: Agent
 
-The agent connects to the LiveKit server and waits for dispatch requests from the backend. Every agent variable, with its default, is in [Environment Variables: Subtitles agent](../../reference/env-variables.md#subtitles-agent).
+Every agent variable, with its default, is in [Environment Variables: Subtitles agent](../../reference/env-variables.md#subtitles-agent).
 
 === "Docker Compose"
 
@@ -147,12 +147,12 @@ Set `STT_PROVIDER` in the agent's environment, then the provider's variables:
 | | Deepgram | Kyutai Moshi | Voxtral via vLLM |
 |---|---|---|---|
 | `STT_PROVIDER` | `deepgram` | `kyutai` | `voxtral-vllm` |
-| Runs | In Deepgram's cloud, no infrastructure | Self-hosted, on a GPU for reasonable performance | Self-hosted, on a GPU for reasonable performance |
-| Setup | Sign up at [deepgram.com](https://deepgram.com/) and create an API key | Deploy a Kyutai STT service; the details depend on your Kyutai setup | Deploy vLLM serving [Voxtral](https://mistral.ai/news/voxtral), `mistralai/Voxtral-Mini-4B-Realtime-2602` or a compatible model, with a realtime WebSocket endpoint |
+| Runs | In Deepgram's cloud | Self-hosted, on a GPU | Self-hosted, on a GPU |
+| Setup | Sign up at [deepgram.com](https://deepgram.com/) and create an API key | Deploy a Kyutai STT service | Deploy vLLM serving [Voxtral](https://mistral.ai/news/voxtral), `mistralai/Voxtral-Mini-4B-Realtime-2602` or a compatible model, with a realtime WebSocket endpoint |
 | Variables | `DEEPGRAM_API_KEY` | `KYUTAI_STT_BASE_URL`, `KYUTAI_API_KEY` | `VOXTRAL_VLLM_BASE_URL`, and `VOXTRAL_VLLM_API_KEY` if the endpoint requires one |
-| Cost | Per-minute usage | No per-use cost after deployment, and the infrastructure to maintain | No per-use cost after deployment, and the infrastructure to maintain |
-| Audio | Sent to a third party, over the internet | Not shared with a third party | Not shared with a third party |
-| Notes | Many languages, high accuracy | Full control | Keep `ENABLE_SILERO_VAD=true`: voxtral-vllm has no server-side endpointing, the detection of when a speaker stops |
+| Cost | Per minute | Your infrastructure only | Your infrastructure only |
+| Audio | Sent to Deepgram | Stays on your servers | Stays on your servers |
+| Notes | Many languages, high accuracy | | Keep `ENABLE_SILERO_VAD=true`: voxtral-vllm has no server-side endpointing, the detection of when a speaker stops |
 
 ## Testing
 

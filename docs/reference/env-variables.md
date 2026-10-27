@@ -1,8 +1,7 @@
 # Environment Variables
 
 Every environment variable Meet's services read, grouped by service and then by
-feature. Sections run from what every instance needs to what few change, and
-each table lists its required variables first.
+feature.
 
 | Service | Where the variables go |
 |---|---|
@@ -40,10 +39,10 @@ their switch is set:
 |---|---|---|---|
 | `DJANGO_SETTINGS_MODULE` | **Yes** | -- | Must be `meet.settings`. Unset, the backend exits at start with `ImproperlyConfigured`. |
 | `DJANGO_CONFIGURATION` | **Yes** | -- | `Production`, `Demo`, `Development`, `Test`. Unset, the backend exits at start with `ImproperlyConfigured`. |
-| `DJANGO_SECRET_KEY` | **Yes** | -- | 50+ character random string for cryptographic signing |
+| `DJANGO_SECRET_KEY` | **Yes** | -- | 50+ character random string for cryptographic signing; how to generate it is in [Security](security.md#django-secret-key) |
 | `DJANGO_ALLOWED_HOSTS` | **Yes** | -- | Comma-separated list of allowed hostnames |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | No | -- | Comma-separated HTTPS origins allowed to send form posts from another domain. Requests from Meet's own domain, through the reverse proxy, need nothing here |
-| `NUM_PROXIES` | No | `1` | Number of proxies in front of the backend that append to `X-Forwarded-For`. The backend reads the client's address that many entries from the right, for rate limits and audit events. Set too low, every client gets a proxy's address; set too high, a client can choose its own. The Docker Compose template sets `2`: the reverse proxy and the frontend's nginx both append |
+| `NUM_PROXIES` | No | `1` | Proxies in front of the backend that append to `X-Forwarded-For`; rate limits and audit events read the client's address that many entries from the right. Too low, every client gets a proxy's address; too high, a client picks its own. The Docker Compose template sets `2`: the reverse proxy and the frontend's nginx |
 | `DJANGO_LANGUAGE_CODE` | No | `en-us` | Default language code for the Django backend |
 | `DJANGO_LANGUAGES` | No | English, French, Dutch, German, Spanish | Languages a user's profile can store, as `code,name` pairs separated by `;`, e.g. `en-us,English;fr-fr,French`. The interface's language picker keeps its own fixed list. |
 | `SESSION_COOKIE_AGE` | No | `43200` | Session cookie lifetime in seconds (default: 12 hours) |
@@ -75,7 +74,7 @@ production.
 |---|---|---|---|
 | `REDIS_URL` | No | `redis://redis:6379/1` | Full Redis URL used for the Django cache backend |
 | `SESSION_ENGINE` | No | `django.contrib.sessions.backends.cache` | Django session storage backend |
-| `CELERY_ENABLED` | No | `False` | Enable Celery for async task processing. Needed for the scheduled deletion of connection-test rooms, which does not happen without it. File deletion and recording emails then run in the worker, an email retried up to five times on an SMTP error; without Celery they run inline, and a failed email is not retried. |
+| `CELERY_ENABLED` | No | `False` | Run async tasks on a Celery worker. Without it, connection-test rooms are never deleted, and file deletion and recording emails run inline, a failed email not retried; the worker retries it up to five times. |
 | `CELERY_BROKER_URL` | No | `redis://redis:6379/0` | Redis URL used as Celery message broker. Defaults to the same Redis instance as the session cache. |
 | `CELERY_TASK_DEFAULT_QUEUE` | No | `meet-backend` | Default Celery queue name |
 | `CELERY_BROKER_TRANSPORT_OPTIONS` | No | `{}` | Extra options passed to the Celery broker transport, as a JSON dict |
@@ -129,9 +128,9 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `LIVEKIT_API_KEY` | **Yes** | -- | LiveKit API key (must match server config) |
-| `LIVEKIT_API_SECRET` | **Yes** | -- | LiveKit API secret (must match server config) |
-| `LIVEKIT_API_URL` | **Yes** | -- | **Public** LiveKit URL -- returned to browser clients AND used for server API calls. Must be `https://livekit.example.com` (not the Docker-internal address). |
+| `LIVEKIT_API_KEY` | **Yes** | -- | LiveKit API key. Must match a key under `keys:` in `livekit-server.yaml` |
+| `LIVEKIT_API_SECRET` | **Yes** | -- | LiveKit API secret, the value of that key under `keys:` |
+| `LIVEKIT_API_URL` | **Yes** | -- | **Public** LiveKit URL, e.g. `https://livekit.example.com`. Browsers receive it and the backend calls it, so it cannot be the Docker-internal address. |
 | `LIVEKIT_DEFAULT_VIDEO_CODEC` | No | `vp9` | Default video codec. One of `vp8`, `h264`, `vp9`, `av1`. |
 | `LIVEKIT_DEFAULT_SOURCES` | No | `["camera","microphone","screen_share","screen_share_audio"]` | Media sources participants can publish by default |
 | `LIVEKIT_FORCE_WSS_PROTOCOL` | No | `False` | Force WSS protocol in the WebSocket URL returned to clients. Enable for legacy browsers (Firefox <124, Chrome <125) where HTTPS URLs in `WebSocket()` may fail. |
@@ -153,7 +152,7 @@ Who may join a room is explained in [Unauthenticated access](../self-hosting/con
 | `ALLOW_UNSECURE_USER_LISTING` | No | `False` | Lets any signed-in user list users and search them by email (`GET /api/v1.0/users/?q=`). Off, the list is empty |
 | `LOBBY_WAITING_TIMEOUT` | No | `6` | Seconds a waiting request survives without a status poll; the waiting page's polling keeps it alive |
 | `LOBBY_DENIED_TIMEOUT` | No | `5` | Seconds before a denied participant may re-request entry |
-| `LOBBY_ACCEPTED_TIMEOUT` | No | `21600` | Seconds (6 hours) that an accepted lobby token remains valid. Controls how long after admission a participant can actually join. |
+| `LOBBY_ACCEPTED_TIMEOUT` | No | `21600` | Seconds an admission stays valid, so how long an admitted participant has to join (6 hours) |
 | `ROOM_CREATION_THROTTLE_RATES` | No | `50/minute` | Rooms one signed-in user may create through `/api/v1.0/rooms/` |
 | `ROOM_CREATION_DAILY_THROTTLE_RATES` | No | `1000/day` | The same, over a day |
 | `REQUEST_ENTRY_THROTTLE_RATES` | No | `150/minute` | Rate limit for room entry requests |
@@ -169,9 +168,7 @@ The `purge_inactive_rooms` command deletes rooms for good. The Helm chart runs i
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `ROOM_INACTIVITY_DELETION_DAYS` | No | -- | Days without a start after which a room is purged. A room never started counts from its creation. |
-| `ROOM_DELETED_RETENTION_DAYS` | No | -- | Days a room deleted by its owner is kept before it is purged. Until then it keeps its slug and PIN. |
-
-A room holding a saved recording is kept until that recording reaches `RECORDING_EXPIRATION_DAYS`, so with that variable unset such a room is never purged. The backend warns at start when either variable above is set and `RECORDING_EXPIRATION_DAYS` is unset or not shorter.
+| `ROOM_DELETED_RETENTION_DAYS` | No | -- | Days a room deleted by its owner is kept before it is purged |
 
 ### Email
 
@@ -218,7 +215,7 @@ See [Recording](../self-hosting/configuration/recording.md) for setup, and [Conf
 | `RECORDING_ENABLE` | For recording | `False` | Enable recording functionality. Must be `True` to show the record button in meetings. |
 | `RECORDING_DOWNLOAD_BASE_URL` | For recording | -- | Base URL for recording download notification links. **Must include the `/recording` path**: `https://meet.example.com/recording`, see [Troubleshooting](troubleshooting.md#recording-download-link-shows-verify-your-meeting-code). |
 | `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED` | No | `True` | Let any signed-in participant connected to a `public` or `trusted` room start and stop its recordings. `False` keeps that to the room's administrators and owners. |
-| `RECORDING_EXPIRATION_DAYS` | No | -- | Days after which Meet shows a recording as expired, in its page and its email. Meet deletes no recording file: set a lifecycle rule on the bucket with the same delay. Unset means no expiry |
+| `RECORDING_EXPIRATION_DAYS` | No | -- | Days after which Meet shows a recording as expired, in its page and email. Meet deletes no file: set a bucket lifecycle rule with the same delay. Unset, no expiry |
 | `RECORDING_MAX_DURATION` | No | -- | Recording limit in milliseconds, shown to users. Meet does not enforce it: set the same limit in LiveKit Egress. Unset means no limit |
 | `RECORDING_OUTPUT_FOLDER` | No | `recordings` | Folder/prefix used in S3 storage for recording files |
 | `MEDIA_AUTH_ORIGINAL_URL_HEADER` | No | `HTTP_X_ORIGINAL_URL` | Request header the reverse proxy uses to pass the original download URL to the backend's media-auth check. Traefik's ForwardAuth sends `X-Forwarded-Uri`: set `HTTP_X_FORWARDED_URI`. |
@@ -231,8 +228,8 @@ See [Recording](../self-hosting/configuration/recording.md) for setup, and [Conf
 | `RECORDING_ENCODING_AVAILABLE_PROFILES` | No | `talking_heads`, `text`, `mixed`, `full` | Profiles by name, each a frame rate and a video bitrate in kbps for every resolution, as a one-line dict: `{"talking_heads": {"fps": 15, "kbps": {"540p": 400, "720p": 700, "1080p": 1200}}, "text": {"fps": 15, "kbps": {"540p": 600, "720p": 1000, "1080p": 1800}}, "mixed": {"fps": 20, "kbps": {"540p": 900, "720p": 1500, "1080p": 2500}}, "full": {"fps": 30, "kbps": {"540p": 2000, "720p": 3000, "1080p": 4500}}}`. The backend refuses to start when a profile lacks a bitrate for one of the resolutions. |
 | `RECORDING_ENCODING_AUDIO_BITRATE_KBPS` | No | `128` | AAC audio bitrate in kbps |
 | `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S` | No | `0.0` | Key frame interval in seconds. `0.0` leaves it to LiveKit Egress. |
-| `RECORDING_WORKER_CLASSES` | No | -- | Maps recording mode to its worker class. Default: `screen_recording` → `VideoCompositeEgressService`, `transcript` → `AudioCompositeEgressService`. Only change if you implement custom egress workers. |
-| `SCREEN_RECORDING_BASE_URL` | No | -- | ⚠️ **Deprecated.** Use `RECORDING_DOWNLOAD_BASE_URL` instead. Still accepted but logs a warning. |
+| `RECORDING_WORKER_CLASSES` | No | -- | Worker class per recording mode. Default: `screen_recording` → `VideoCompositeEgressService`, `transcript` → `AudioCompositeEgressService`. Change it only for custom egress workers. |
+| `SCREEN_RECORDING_BASE_URL` | No | -- | **Deprecated.** Use `RECORDING_DOWNLOAD_BASE_URL` instead. Still accepted but logs a warning. |
 
 ### Transcription
 
@@ -268,7 +265,7 @@ Real-time captions, provided by the [subtitles agent](#subtitles-agent). See [Re
 
 ### Telephony
 
-Requires a running [LiveKit SIP](../overview/how-meet-works.md#agents-and-phone-calls) service and a SIP trunk from a VoIP provider (e.g. Twilio, Vonage, Infobip, or a self-hosted Asterisk/FreeSWITCH) - these variables alone don't provide dial-in, they only control how Meet displays/validates the phone number and PIN once SIP is wired up. See [Telephony](../self-hosting/configuration/telephony.md) for the full setup.
+These variables only set how Meet shows the phone number and handles PINs. Dial-in also needs a running [LiveKit SIP](../overview/how-meet-works.md#agents-and-phone-calls) service and a SIP trunk from a VoIP provider, such as Twilio, Vonage, Infobip, or a self-hosted Asterisk or FreeSWITCH. See [Telephony](../self-hosting/configuration/telephony.md) for the full setup.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -294,11 +291,11 @@ Backend settings served to the browser via `GET /api/v1.0/config/`, read at runt
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `FRONTEND_CUSTOM_CSS_URL` | No | -- | URL (or path) to a custom CSS file loaded at runtime. Use this to override CSS variables for colors, fonts, and spacing without rebuilding the image. Example: `https://your-domain.com/custom.css` or `/custom.css` (relative to the Meet domain). |
+| `FRONTEND_CUSTOM_CSS_URL` | No | -- | URL, or path on the Meet domain, of a CSS file loaded at runtime, e.g. `/custom.css`. It overrides the CSS variables for colors, fonts and spacing without rebuilding the image. |
 | `FRONTEND_IS_SILENT_LOGIN_ENABLED` | No | `True` | Enable silent OIDC authentication. Requires your provider to support `prompt=none`. |
 | `FRONTEND_EXTERNAL_HOME_URL` | No | -- | Custom URL for the home button |
 | `FRONTEND_DOCUMENTATION_URL` | No | -- | URL for a "Documentation" link/menu item in the UI |
-| `FRONTEND_TECHNICAL_DOCUMENTATION_URL` | No | -- | URL of a page giving the network requirements, for a participant's IT department. The connection test links to it when it ends with a warning, and so does the French government footer. Unset, neither shows the link. |
+| `FRONTEND_TECHNICAL_DOCUMENTATION_URL` | No | -- | Page giving the network requirements, for a participant's IT department. The connection test links to it after a warning, and so does the French government footer; unset, neither does. |
 | `FRONTEND_TRANSCRIPTION_DESTINATION` | No | -- | Label/link shown to users for where transcripts are delivered (e.g. your LaSuite Docs instance) |
 | `FRONTEND_IDLE_DISCONNECT_WARNING_DELAY` | No | -- | Milliseconds a participant alone in the room waits before the idle-disconnect warning. Unset disables it |
 | `FRONTEND_MAX_PARTICIPANTS_FOR_SOUND` | No | `5` | Above this participant count, join/leave sounds are muted |
@@ -315,7 +312,7 @@ Backend settings served to the browser via `GET /api/v1.0/config/`, read at runt
 
 ### Custom backgrounds
 
-Lets participants upload custom virtual background images. These `FILE_UPLOAD_*` variables currently only govern this one feature (`background_image` is the only upload category implemented). Disabled by default.
+Lets participants upload their own virtual background images, the only kind of upload Meet has, so the `FILE_UPLOAD_*` variables govern this feature alone.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -388,7 +385,7 @@ Lets external applications call Meet's [OAuth2 Resource Server API](external-api
 | `OIDC_RS_CLIENT_SECRET` | If used | -- | Client secret for the resource server |
 | `OIDC_RS_CLIENT_ID` | No | `meet` | Meet's client at the provider, used to call the introspection endpoint |
 | `OIDC_RS_SCOPES` | No | `["lasuite_meet"]` | A token must carry at least one of these scopes |
-| `OIDC_RS_SCOPES_PREFIX` | No | -- | Unset, integrators request flat scopes (e.g. `lasuite_meet rooms:list`). Set it (e.g. `lasuite_meet`) if your IdP issues namespaced scopes like `lasuite_meet:rooms:list`: the prefix is stripped from each scope before matching. |
+| `OIDC_RS_SCOPES_PREFIX` | No | -- | Set it (e.g. `lasuite_meet`) when your IdP issues namespaced scopes like `lasuite_meet:rooms:list`: the prefix is stripped from each scope before matching. Unset, scopes are flat (e.g. `rooms:list`). |
 | `OIDC_RS_AUDIENCE_CLAIM` | No | `client_id` | Token claim used to identify the audience/client |
 | `OIDC_RS_SIGNING_ALGO` | No | `ES256` | Read by the shared library for signed introspection responses. Meet reads introspection as plain JSON, so it has no effect today |
 | `OIDC_RS_PRIVATE_KEY_STR` | No | -- | Private key (PEM string) whose public part Meet publishes at `/jwks` |
@@ -462,7 +459,7 @@ The backend writes a JSON event for each sign-in, room and recording action and 
 | `AUDIT_LOG_LEVEL` | No | `INFO` | Log level of the `audit` logger |
 | `AUDIT_LOG_SERVICE_NAME` | No | `meet` | `service.name` of each event, and the dataset `<name>.audit` |
 | `AUDIT_LOG_DATA_STREAM_NAMESPACE` | No | `default` | Namespace of the data stream events are routed to, `logs-<service name>.audit-<namespace>`. The backend refuses to start when it contains `-`. |
-| `REQUEST_ID_TRUST_HEADER` | No | `False` | Reuse the request id the proxy sends, so the proxy, Gunicorn and audit events share one id. Turn it on only when your proxy overwrites that header: otherwise a client chooses the id. Off, the backend generates it. |
+| `REQUEST_ID_TRUST_HEADER` | No | `False` | Reuse the proxy's request id, so the proxy, Gunicorn and audit events share it. Turn it on only when your proxy overwrites that header, or a client chooses the id. Off, the backend generates it. |
 | `DOCKERFLOW_REQUEST_ID_HEADER_NAME` | No | `X-Request-ID` | Header carrying the request id. Read on requests only with `REQUEST_ID_TRUST_HEADER` on, always sent back on responses. |
 
 ### Analytics and marketing
@@ -557,7 +554,7 @@ AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<strong-random-secret>","webhook_ur
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `CELERY_BROKER_URL` | No | `redis://redis/0` | Celery broker URL. Note: the summary service default omits the port (`redis/0`), unlike the Django backend which uses `redis:6379/0`. |
+| `CELERY_BROKER_URL` | No | `redis://redis/0` | Celery broker URL. Unlike the backend's default, this one names no port. |
 | `CELERY_RESULT_BACKEND` | No | `redis://redis/0` | Celery result backend URL |
 | `CELERY_MAX_RETRIES` | No | `1` | Maximum retries for a failed Celery task |
 | `TRANSCRIBE_QUEUE_V2` | No | `transcribe-queue-v2` | Celery queue name for transcription tasks |

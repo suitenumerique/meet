@@ -1,6 +1,6 @@
 # Firewall & Ports
 
-Every port Meet needs is on this page. Open each one to any address (`0.0.0.0/0`) in your cloud provider's security group, or in [the host firewall](#the-host-firewall).
+Open each port below to any address (`0.0.0.0/0`) in your cloud provider's security group, or in [the host firewall](#the-host-firewall).
 
 ## Ports to open
 
@@ -28,7 +28,7 @@ How the browser picks between 7882, 7881 and TURN is in [LiveKit & TURN](livekit
 | 8000 | The Django backend, reached only through the frontend's nginx |
 | 5432 | PostgreSQL |
 | 6379 | Redis |
-| 9000 | Garage's S3 API, when you run it for recording |
+| 9000 | Garage's S3 API, when you run it for recording, and Keycloak's health checks |
 
 The Docker Compose files publish none of these.
 

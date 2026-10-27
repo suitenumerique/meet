@@ -1,6 +1,6 @@
 # Room purge
 
-Rooms pile up over time, and most of them are used once. The `purge_inactive_rooms` management command permanently deletes rooms after one of two periods, and deletes nothing until you set one. Both variables are in [Environment Variables: Room purge](../../reference/env-variables.md#room-purge):
+The `purge_inactive_rooms` management command permanently deletes rooms after one of two periods, and deletes nothing until you set one. Both variables are in [Environment Variables: Room purge](../../reference/env-variables.md#room-purge):
 
 | Variable | A room is purged once it is |
 |---|---|
@@ -16,7 +16,12 @@ Each time LiveKit tells the backend that a room has started, through its `room_s
 
 The upgrade to v1.33.0 marked every room that existed then as started on the day of the upgrade, so none of them can be purged before a full inactivity period has passed after it.
 
-Deleting a room only soft-deletes it: the room is hidden, its link tells visitors the meeting was deleted, and it keeps its slug and PIN code. A soft-deleted room is never started again, so its inactivity period keeps running, and it is purged at whichever of the two periods ends first.
+Deleting a room only soft-deletes it:
+
+- The room is hidden, and its link tells visitors the meeting was deleted.
+- It keeps its slug and PIN code, so no other room can take them.
+- Its recordings stay available to the people holding a role on them.
+- It is never started again, so it is purged at whichever of the two periods ends first.
 
 ## Rooms that are kept
 
@@ -31,7 +36,7 @@ The backend warns at startup when a purge period is set and `RECORDING_EXPIRATIO
 
 The backend deletes the room from the database, with its accesses, its telephony PIN code, and the recording entries it still holds, which are the expired ones and the ones never saved. The accesses to those recordings go with them.
 
-The recording **files stay in the bucket**: the backend never deletes anything from the storage. Removing them is the job of a lifecycle rule on the bucket, which should expire objects after `RECORDING_EXPIRATION_DAYS`. Without one, the purge leaves files behind that still take up storage and that nobody can open, since serving a recording needs its database entry.
+The recording **files stay in the bucket**: the backend never deletes anything from the storage. Add a lifecycle rule on the bucket that expires objects after `RECORDING_EXPIRATION_DAYS`. Without one, the purge leaves files that take up storage and that nobody can open, since serving a recording needs its database entry.
 
 Once a room is purged, its slug is free again. A soft-deleted room's link then no longer says the meeting was deleted, and its PIN code can go to another room. What opening the old link does depends on `ALLOW_UNREGISTERED_ROOMS`:
 

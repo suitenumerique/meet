@@ -1,6 +1,6 @@
 # Pull requests
 
-How a change goes from your fork into `main`: the workflow, the commit and changelog format, what CI checks, and what to run before asking for a review. [`CONTRIBUTING.md`](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md) is the project's short version, and also covers writing an issue. Setting up the code is in [Develop locally](develop.md).
+How a change goes from your fork into `main`. [`CONTRIBUTING.md`](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md) is the project's short version, and also covers writing an issue. Setting up the code is in [Develop locally](develop.md).
 
 ## TL;DR
 
@@ -19,7 +19,9 @@ git push -u origin my-change
 
 ## Before you start
 
-A small fix, a typo or an obvious bug, can go straight to a pull request. Before a larger change, or one written with the help of AI, talk to a maintainer on the [Matrix channel](https://matrix.to/#/#meet-official:matrix.org), as the [README](https://github.com/suitenumerique/meet/blob/main/README.md#contributing) asks: agreeing on the approach first saves a rewrite. Other places to ask are under [Community and support](../index.md#community-and-support).
+- A small fix, a typo or an obvious bug, can go straight to a pull request.
+- Before a larger change, or one written with the help of AI, agree on the approach with a maintainer on the [Matrix channel](https://matrix.to/#/#meet-official:matrix.org), as the [README](https://github.com/suitenumerique/meet/blob/main/README.md#contributing) asks.
+- Other places to ask are under [Community and support](../index.md#community-and-support).
 
 With an AI coding assistant, point it at these pages: [Develop locally](develop.md) explains every command, and [What CI checks](#what-ci-checks) gives the local command for each CI job.
 
@@ -68,10 +70,10 @@ The title is a [gitmoji](https://gitmoji.dev/), a scope in parentheses, a space 
 | Title length | More than 72 characters |
 | Title ending | A full stop or other punctuation at the end |
 | Work in progress | The word `wip` anywhere in the title |
-| Body | No body, or one shorter than 20 characters. Dependency upgrades (title starting with ⬆️) and releases (🔖) need none |
+| Body | No body, or one shorter than 20 characters. Dependency upgrades (title starting with ⬆️) need neither a body nor the title shape; releases (🔖) need no body |
 | Body width | A body line longer than 80 characters |
 
-Run the same check before pushing, from the repository root:
+Run the same check before pushing, from the repository root. It needs network access: the gitmoji rule downloads the gitmoji list.
 
 ```bash
 uvx --from gitlint-core gitlint --commits upstream/main..HEAD
@@ -81,7 +83,7 @@ The [devenv shell](develop.md#prerequisites) installs gitlint as a commit-messag
 
 ### Scopes
 
-The scope names the part of the repository the commit changes. gitlint accepts any word; these are the most used in the last 200 commits of `main`:
+The scope names the part of the repository the commit changes. gitlint accepts any word; these are the most used:
 
 | Scope | Part of the repository |
 |---|---|
@@ -99,7 +101,7 @@ The scope names the part of the repository the commit changes. gitlint accepts a
 
 ### Gitmojis
 
-The most used in recent history, with their [gitmoji.dev](https://gitmoji.dev/) meaning:
+The most used, with their [gitmoji.dev](https://gitmoji.dev/) meaning:
 
 | Gitmoji | Use it for |
 |---|---|
@@ -134,7 +136,7 @@ Every pull request adds one line to [`CHANGELOG.md`](https://github.com/suitenum
 CI fails the pull request when:
 
 - `CHANGELOG.md` is unchanged, unless a maintainer adds the `noChangeLog` label.
-- Any line of the file, link reference lines excepted, is 80 columns wide or more. The check measures with `wc -L`, which counts screen columns, so an emoji such as ✨ can count as two: leave a margin.
+- A line other than a link reference is 80 columns wide or more. `wc -L` counts screen columns, so an emoji such as ✨ can count as two: leave a margin.
 
 ## What CI checks
 
@@ -151,8 +153,8 @@ Every job below runs on each pull request to `main`, most through shared workflo
 | CI, summary tests | A failing summary service test | `make test-summary` |
 | CI, frontend lint and tests | An ESLint warning, a file Prettier would change, or a failing Vitest test | `make frontend-lint`, `make frontend-format`, `make test-frontend` |
 | CI, SDK | A lint or format problem in `src/sdk/library`, or a build failure | The SDK command in [Lint and format](develop.md#lint-and-format) |
-| [Docker Hub](https://github.com/suitenumerique/meet/blob/main/.github/workflows/docker-hub.yml) | An image that does not build, or a HIGH or CRITICAL vulnerability [Trivy](https://trivy.dev/) finds in it. It builds, without publishing, the backend, frontend, DINUM frontend, summary and agents images. The frontend build runs `npm run build`, so a TypeScript error fails here | `npm run build` in `src/frontend` for the type errors, `docker build --target backend-production .` for the backend image |
-| [Security analysis](https://github.com/suitenumerique/meet/blob/main/.github/workflows/security.yml) | A [zizmor](https://docs.zizmor.sh/) finding in the GitHub Actions workflows, which concerns you when you change `.github/workflows/` | `uvx zizmor .github/workflows` |
+| [Docker Hub](https://github.com/suitenumerique/meet/blob/main/.github/workflows/docker-hub.yml) | A backend, frontend, DINUM frontend, summary or agents image that does not build, a TypeScript error included, or a HIGH or CRITICAL vulnerability [Trivy](https://trivy.dev/) finds in it. Nothing is published | `npm run build` in `src/frontend` for the type errors, `docker build --target backend-production .` for the backend image |
+| [Security analysis](https://github.com/suitenumerique/meet/blob/main/.github/workflows/security.yml) | A [zizmor](https://docs.zizmor.sh/) finding in `.github/workflows/` | `uvx zizmor .github/workflows` |
 
 ## Checklist
 
@@ -174,7 +176,7 @@ Before asking for a review:
 
 A maintainer reviews the pull request. Keep it to one change: a fix and a refactor go in two pull requests, so neither waits on the other.
 
-CI rejects `fixup!` commits, so a review fix goes into the commit it belongs to, not a new one on top. Git does the folding:
+CI rejects `fixup!` commits, so a review fix goes into the commit it belongs to, not a new one on top:
 
 ```bash
 # Record the fix against the commit it amends

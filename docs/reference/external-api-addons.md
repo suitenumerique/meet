@@ -1,16 +1,14 @@
 # External API - Add-ons
 
-In this mode, an add-in running in an iframe inside another application, the Outlook add-in for one, gets a token for the user by having them sign in to Meet in a popup. The endpoints, scopes and room object the token then reaches are in [External API](external-api.md).
+In this mode, an add-in running in an iframe inside another application, such as the Outlook add-in, gets a token for the user by having them sign in to Meet in a popup. The endpoints, scopes and room object the token then reaches are in [External API](external-api.md).
 
 The session endpoints under `/api/v1.0/addons/sessions/` need `ADDONS_ENABLED=True`, and answer 404 without it. The room calls made with the token afterwards need `EXTERNAL_API_ENABLED=True` as well.
 
 ## When to use this mode
 
-You build an add-in that runs in an iframe inside another application, and its users sign in with Meet's OIDC provider. The other ways to get a token are compared in [External API: Getting a token](external-api.md#getting-a-token).
+Your add-in's users sign in with Meet's OIDC provider. The other ways to get a token are compared in [External API: Getting a token](external-api.md#getting-a-token).
 
 ## Authentication flow
-
-The add-ons flow uses a three-step token exchange:
 
 ```mermaid
 sequenceDiagram
@@ -59,7 +57,7 @@ The backend sets an `HttpOnly`, `Secure`, `SameSite=None` cookie named `addonsSi
 
 ## Step 2: Exchange transit token
 
-Once the user has signed in to Meet in the popup, the callback page calls the endpoint below. The call needs the user's Meet session, so the callback page must be a Meet page with the user signed in: without the session, it answers 401.
+The popup's callback page calls it once the user has signed in. The call needs the user's Meet session, so the callback must be a Meet page: without the session, it answers 401.
 
 ```http
 POST /api/v1.0/addons/sessions/exchange/
@@ -127,9 +125,7 @@ Every variable, with its default: [Environment Variables: Add-ons](env-variables
 
 ## Implementation reference
 
-See `src/addons/outlook/` for a working example. The Outlook add-in uses this flow to create meeting rooms and insert the link into calendar events.
-
-Implementation details:
-- Session management: `src/backend/core/addons/service.py`
-- API endpoints: `src/backend/core/addons/viewsets.py`
-- Frontend example: `src/addons/outlook/src/common/api.js`
+- Working example, the Outlook add-in: [`src/addons/outlook/`](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook)
+- Its calls to the session endpoints: [`src/addons/outlook/src/common/api.js`](https://github.com/suitenumerique/meet/blob/main/src/addons/outlook/src/common/api.js)
+- Session management: [`src/backend/core/addons/service.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/addons/service.py)
+- API endpoints: [`src/backend/core/addons/viewsets.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/addons/viewsets.py)

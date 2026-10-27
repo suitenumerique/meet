@@ -4,11 +4,11 @@
 
 ### No user passwords in Meet
 
-Users sign in through an external OIDC provider, Keycloak, Authentik or Google for example. End users have no password in Meet. Django admin accounts and application secrets are stored hashed.
+Users sign in through an external OIDC provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
 
 ### LiveKit JWT tokens
 
-Clients join the LiveKit media server with a JWT (JSON Web Token, a signed token carrying claims):
+Clients join the LiveKit media server with a JWT:
 
 - The backend signs it with `LIVEKIT_API_SECRET`.
 - It carries the user's identity, the room name and the user's permissions in the room.
@@ -28,9 +28,9 @@ Clients join the LiveKit media server with a JWT (JSON Web Token, a signed token
 
 ### Transport encryption (DTLS-SRTP)
 
-All WebRTC media is encrypted in transit using DTLS-SRTP. This is mandatory and enforced by all browsers; it cannot be disabled.
+All WebRTC media is encrypted in transit with DTLS-SRTP, which browsers enforce.
 
-This is **transport encryption** only. LiveKit is an SFU (Selective Forwarding Unit), a server that forwards each participant's stream to the others: it decrypts and re-encrypts media to forward it, so whoever runs the server can access the media. Meet has no end-to-end encryption.
+This is **transport encryption** only, and Meet has no end-to-end encryption. LiveKit, an SFU (Selective Forwarding Unit) that forwards each participant's stream to the others, decrypts and re-encrypts media to forward it, so whoever runs the server can access the media.
 
 
 ## API security
@@ -41,13 +41,15 @@ The Django backend checks CSRF tokens on browser requests that change data. Meet
 
 ### Object-level permissions
 
-Reading a room requires no sign-in and no role. Modifying a room requires being an administrator or owner of it, and deleting it requires being an owner. A deleted room answers 410 and keeps its slug and PIN until the [room purge](env-variables.md#room-purge), so nobody can take over its link meanwhile.
+- Reading a room requires no sign-in and no role.
+- Modifying a room requires being its administrator or owner; deleting it, its owner.
+- A deleted room keeps its link until the [room purge](../self-hosting/configuration/room-purge.md) removes it, so nobody can take it over meanwhile.
 
 `ALLOW_UNREGISTERED_ROOMS` decides what a slug that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
 ### Rate limiting
 
-These actions are throttled, each by its own setting. A signed-in caller is counted by account, and anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#core) sets. Every other endpoint has no limit: set one at your reverse proxy.
+Only these actions are throttled. Every other endpoint has no limit: set one at your reverse proxy.
 
 | Action | Setting | Default |
 |---|---|---|
@@ -61,7 +63,8 @@ These actions are throttled, each by its own setting. A signed-in caller is coun
 | A Roomkit join | `ROOMKIT_JOIN_THROTTLE_RATES` | `300/minute` |
 | Exchanging a transit code for a user access token | `EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES` | `30/minute` |
 
-An anonymous waiting-room request is the exception: it is counted by the participant id the first answer gave it, not by address, so counting starts with its second request.
+- A signed-in caller is counted by account, anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#core) sets.
+- An anonymous waiting-room request is the exception: it is counted by the participant id the first answer gave it, so counting starts with its second request.
 
 ### Audit logging
 
@@ -77,17 +80,17 @@ See [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md
 
 ### Django secret key
 
-Generate `DJANGO_SECRET_KEY` with:
+Generate [`DJANGO_SECRET_KEY`](env-variables.md#core):
 
 ```bash
 openssl rand -hex 50
 ```
 
-Rotate it immediately if it leaks. Rotating it invalidates every active session.
+Rotate it immediately if it leaks; rotating it invalidates every active session.
 
 ### LiveKit API secret
 
-Generate `LIVEKIT_API_SECRET` with:
+Generate [`LIVEKIT_API_SECRET`](env-variables.md#livekit):
 
 ```bash
 openssl rand -hex 32
@@ -120,11 +123,12 @@ Keep it at 32 characters or more, and guard it like a database password.
 
 ### Docker
 
-The backend and frontend images run as non-root users. Only the reverse proxy should mount `/var/run/docker.sock`, which it needs to discover containers; mount it read-only and give no other container access.
+- The backend and frontend images run as non-root users.
+- Only the reverse proxy mounts `/var/run/docker.sock`, to discover containers: mount it read-only, and in no other container.
 
 ### Kubernetes
 
-The Meet Helm chart supports full `restricted` Pod Security Standards as of v1.14.0. These must be configured per-component, see [Helm deployment security context](../self-hosting/kubernetes/helm.md#security-context-recommended).
+Since Meet v1.14.0, the Helm chart can meet the `restricted` Pod Security Standard. Nothing is set by default: set it for each component, see [Helm: Security context](../self-hosting/kubernetes/helm.md#security-context-recommended).
 
 
 ## Reporting vulnerabilities

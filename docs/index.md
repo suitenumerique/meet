@@ -2,7 +2,7 @@
 
 **Open Source video conferencing, self-hostable under MIT.**
 
-Built on [LiveKit](https://livekit.io/), LaSuite Meet delivers HD audio and video calls directly from your browser, with no plugin or client to install. It is developed by [DINUM](https://www.numerique.gouv.fr/), the French government's digital agency, and powers [Visio](https://visio.numerique.gouv.fr/), the official video platform for French public servants.
+Built on [LiveKit](https://livekit.io/), LaSuite Meet runs HD audio and video calls in the browser, with nothing to install. [DINUM](https://www.numerique.gouv.fr/), the French government's digital agency, develops it, and it powers [Visio](https://visio.numerique.gouv.fr/), the video platform of French public servants.
 
 [![GitHub Stars](https://img.shields.io/github/stars/suitenumerique/meet)](https://github.com/suitenumerique/meet/stargazers/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md)
@@ -33,14 +33,12 @@ Every feature is in the open source code. Meet runs on Docker Compose for a sing
 
 ## Where to start
 
-| You want to | Read |
-|---|---|
-| Use Meet | [Getting Started](user/getting-started.md), then [Features & Controls](user/features-controls.md) |
-| Understand how it works | [How Meet works](overview/how-meet-works.md) |
-| Run your own instance | [Self-Hosting](self-hosting/index.md), which compares Docker Compose, Kubernetes and Scalingo |
-| Connect another application | [External API](reference/external-api.md) |
-| Change the code | [Develop locally](contributing/develop.md) |
-| Look up a setting or fix a problem | [Environment Variables](reference/env-variables.md), [Troubleshooting](reference/troubleshooting.md) |
+- [Use Meet](user/getting-started.md)
+- [Understand how it works](overview/how-meet-works.md)
+- [Run your own instance](self-hosting/index.md)
+- [Connect another application](reference/external-api.md)
+- [Change the code](contributing/develop.md)
+- [Look up a setting](reference/env-variables.md) or [fix a problem](reference/troubleshooting.md)
 
 ## Known public instances
 
@@ -50,7 +48,7 @@ Every feature is in the open source code. Meet runs on Docker Compose for a sing
 | [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT | French territorial administration (ProConnect required) |
 | [visio.lasuite.coop](https://visio.lasuite.coop/) | lasuite.coop | Demo: test accounts from [lasuite.coop](https://lasuite.coop/applications/demo/), deleted after a month |
 | [mosa.cloud](https://mosa.cloud/) | mosa.cloud | Dutch commercial instance |
-| [Clever Cloud](https://www.clever.cloud/product/visio/) | Clever Cloud | Openvisio, a sovereign video conferencing offer based on LaSuite Meet |
+| [Clever Cloud](https://www.clever.cloud/product/visio/) | Clever Cloud | Commercial offer, Openvisio |
 | [Email.eu](https://email.eu/) | Email.eu | Sovereign business workspace |
 | [visio.samourai.app](https://visio.samourai.app/) | Samouraï | French cooperative instance, guests join by link |
 
@@ -64,7 +62,9 @@ Every feature is in the open source code. Meet runs on Docker Compose for a sing
 
 ## Reporting a vulnerability
 
-Report a security problem privately, through the [vulnerability report form](https://vdp.numerique.gouv.fr/p/Send-a-report?lang=en) or by email to `visio@numerique.gouv.fr`, never in a public issue or pull request. The maintainers fix it first, then name it in the release notes with its GitHub advisory number and, where one exists, its CVE. The full policy is [SECURITY.md](https://github.com/suitenumerique/meet/blob/main/SECURITY.md).
+- Report it privately, through the [vulnerability report form](https://vdp.numerique.gouv.fr/p/Send-a-report?lang=en) or to `visio@numerique.gouv.fr`, never in a public issue or pull request.
+- The maintainers fix it first, then name it in the release notes with its GitHub advisory and, where one exists, its CVE.
+- The full policy is [SECURITY.md](https://github.com/suitenumerique/meet/blob/main/SECURITY.md).
 
 ## License
 

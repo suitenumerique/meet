@@ -6,10 +6,10 @@ LaSuite Meet is fully self-hostable under the MIT license. The maintainers run o
 
 | Method | Status | Best for | Guide |
 |---|---|---|---|
-| Quick Start (Docker Compose) | Maintained | Evaluating Meet, or a fresh server: one script sets up nginx-proxy, Keycloak and Meet core | [Quick Start](compose/quick-start.md) |
-| Docker Compose, step by step | Maintained | One stack at a time, skipping the reverse proxy or identity provider you already run | [Deployment Guide](compose/deployment-guide.md) |
-| Kubernetes / Helm | Maintained, advanced support | Large organisations, high availability, teams comfortable with Kubernetes. DINUM runs Visio this way | [Kubernetes guide](kubernetes/prerequisites.md) |
-| Scalingo PaaS | Official | | [Scalingo guide](scalingo.md) |
+| Quick Start (Docker Compose) | Maintained | Evaluating Meet, or a fresh server: one script sets up everything | [Quick Start](compose/quick-start.md) |
+| Docker Compose, step by step | Maintained | Reusing the reverse proxy or identity provider you already run | [Deployment Guide](compose/deployment-guide.md) |
+| Kubernetes / Helm | Maintained, advanced support | Large organisations and high availability. DINUM runs Visio this way | [Kubernetes guide](kubernetes/prerequisites.md) |
+| Scalingo PaaS | Official | Teams already on Scalingo; LiveKit runs elsewhere | [Scalingo guide](scalingo.md) |
 | Nix | Community | Unstable | [package](https://search.nixos.org/packages?channel=unstable&show=lasuite-meet&query=lasuite-meet) |
 | YunoHost | Community | Small instances only, under construction | [package](https://github.com/YunoHost-Apps/meet_ynh) |
 
@@ -26,7 +26,7 @@ LaSuite Meet is fully self-hostable under the MIT license. The maintainers run o
 | LiveKit server | WebRTC media server |
 | PostgreSQL | Persistent data |
 | Redis | Cache and Celery broker |
-| Celery worker | Background tasks such as file deletion, when `CELERY_ENABLED` is `True`; otherwise the backend runs them itself |
+| Celery worker | Background tasks such as file deletion. Optional: without [`CELERY_ENABLED`](../reference/env-variables.md#redis-celery-and-presence), the backend runs them |
 | OIDC provider | User authentication |
 
 **For recording and transcription:**
@@ -50,8 +50,6 @@ LaSuite Meet is fully self-hostable under the MIT license. The maintainers run o
 ---
 
 ## Configuration
-
-Once the core runs, these pages enable and tune each feature:
 
 - [LiveKit & TURN](configuration/livekit.md) - media port, `use_external_ip`, TURN relay for participants on restrictive networks
 - [Firewall & Ports](configuration/firewall.md) - port tables, cloud security groups, ufw/firewalld rules

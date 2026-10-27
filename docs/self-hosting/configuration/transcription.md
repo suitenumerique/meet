@@ -11,13 +11,12 @@ Every variable and its default is in the Environment Variables reference: the ba
 - **[Recording](recording.md), set up and working.** Transcription uses the same LiveKit Egress, object storage and LiveKit webhook.
 - **A WhisperX API.** The summary service calls `POST {WHISPERX_BASE_URL}/audio/transcriptions` with `response_format=diarized_json` and needs speaker labels and word segments back. [meet-whisperx](https://github.com/suitenumerique/meet-whisperx) provides them, under the `/v1` prefix, so `WHISPERX_BASE_URL` ends in `/v1`. Run it on a GPU: transcription on CPU is very slow for anything beyond short recordings.
 - **An LLM API.** The summary service needs `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` to start, even with summaries off.
-- **LaSuite Docs, to deliver the transcript.** Set `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` in the summary service's environment, see [LaSuite Docs](../../reference/env-variables.md#lasuite-docs). Whether or not the push is enabled, each tenant needs `"allowed_push_to_docs": true` in `AUTHORIZED_TENANTS`: Meet always sends its Docs settings, and the summary service answers 400 to a tenant without the flag.
+- **LaSuite Docs, to deliver the transcript.** Set `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` in the summary service's environment, see [LaSuite Docs](../../reference/env-variables.md#lasuite-docs).
+- **`"allowed_push_to_docs": true` on each tenant** in `AUTHORIZED_TENANTS`, even with the push off: Meet always sends its Docs settings, and the summary service answers 400 to a tenant without the flag.
 
 The summary service rejects a transcription whose language is outside `WHISPERX_ALLOWED_LANGUAGES`, by default `en`, `fr`, `de` and `nl`. See [Speech-to-text (WhisperX)](../../reference/env-variables.md#speech-to-text-whisperx).
 
 ## How it works
-
-Meet sends the summary service an `.ogg` audio file for a transcription, or the `.mp4` of a screen recording with transcription.
 
 ```mermaid
 sequenceDiagram
@@ -48,9 +47,9 @@ sequenceDiagram
 
 ### Step 1: Summary service environment
 
-The summary service is the FastAPI application that handles transcription tasks, published on Docker Hub as `lasuite/meet-summary`. Its Celery workers run the same code, so they need the same environment.
+The summary service's Celery workers run the same code, so they need the same environment.
 
-The summary service reads the same bucket as the backend, with the backend's keys and region. Its storage settings work as follows:
+The summary service reads the same bucket as the backend, with the backend's keys and region:
 
 - It takes `AWS_S3_ENDPOINT_URL` with or without a scheme, and picks HTTP or HTTPS from `AWS_S3_SECURE_ACCESS` alone. That is `True` by default: set it to `False` for the plain-HTTP Garage of the Recording guide.
 - It signs every request for `AWS_S3_REGION_NAME`. Its signed links to transcripts and summaries are path-style, `<endpoint>/<bucket>/<key>`, so the storage must serve that form.
@@ -223,15 +222,13 @@ The summary service reads the same bucket as the backend, with the backend's key
         SUMMARY_SERVICE_WEBHOOK_API_TOKEN: "<same-webhook_api_key-you-set-in-AUTHORIZED_TENANTS>"
     ```
 
-    Apply the updated chart:
-
     ```bash
     helm upgrade meet meet/meet --namespace meet --values values.yaml
     ```
 
 ### Step 4: Speaker names (optional)
 
-Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. The summary service replaces these labels with participant names by matching WhisperX's speakers against voice-activity metadata, which the metadata collector agent records during the recording. The backend asks for that metadata only with `METADATA_COLLECTOR_ENABLED=True`. Every agent variable is in [Metadata collector agent](../../reference/env-variables.md#metadata-collector-agent).
+Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. With `METADATA_COLLECTOR_ENABLED=True`, the metadata collector agent records who speaks when, and the summary service matches that against WhisperX's speakers to name them. Every agent variable is in [Metadata collector agent](../../reference/env-variables.md#metadata-collector-agent).
 
 === "Docker Compose"
 

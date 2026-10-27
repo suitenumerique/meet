@@ -11,8 +11,6 @@ The Kubernetes deployment uses the official Meet Helm chart and targets producti
 
 ## Required tools
 
-Install each from its upstream documentation:
-
 - [kubectl](https://kubernetes.io/docs/tasks/tools/), configured for your cluster
 - [Helm 3](https://helm.sh/docs/intro/install/)
 - [helmfile](https://github.com/helmfile/helmfile/releases), optional, for several environments
@@ -33,7 +31,7 @@ Install each from its upstream documentation:
 
 ## External services
 
-The chart does not deploy these. The example values in [Helm Deployment](helm.md) reach them at in-cluster hostnames such as `postgresql.meet.svc.cluster.local`; a managed service works the same way at its own address. For production, prefer managed services to running these stateful workloads in the cluster.
+The chart does not deploy these. Prefer managed services in production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: use your service's address instead.
 
 | Service | Purpose | Options |
 |---|---|---|

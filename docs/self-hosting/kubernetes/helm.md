@@ -9,8 +9,6 @@ Working configurations for the official chart are in the repository's [`src/helm
 
 ## Getting the chart
 
-Add the chart's repository, published on GitHub Pages, and refresh its index:
-
 ```bash
 helm repo add meet https://suitenumerique.github.io/meet/
 helm repo update
@@ -30,7 +28,7 @@ helm search repo meet
 | Frontend (nginx) | `frontend` | 3 |
 | Celery backend worker | `celeryBackend` | 1 |
 | Summary service (FastAPI) | `summary` | 1 |
-| Celery transcribe workers | `celeryTranscribe` | (instances list) |
+| Celery transcribe workers | `celeryTranscribe` | 1 per instance, one instance (`default`) |
 | Celery summarize worker | `celerySummarize` | 1 |
 | Celery summary backend | `celerySummaryBackend` | 1 |
 | Agent metadata | `agentMetadata` | 1 |
@@ -147,7 +145,8 @@ ingressAdmin:
 
 Optional services have no `enabled` flag: they deploy by default. Set `replicas: 0`, or `instances: []` for `celeryTranscribe`, to disable one.
 
-`celeryBackend` runs the backend's background tasks, such as file deletion, only when `CELERY_ENABLED` is `"True"` in `backend.envVars`. Otherwise the backend runs them itself, and `celeryBackend` can go to 0. The others serve transcription, summaries and agents: disable those you do not use.
+- `celeryBackend` runs tasks only when [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence) is `"True"` in `backend.envVars`. Otherwise the backend runs its background tasks itself, and `celeryBackend` can go to 0.
+- The others serve transcription, summaries and agents: disable those you do not use.
 
 ```yaml
 celeryBackend:
@@ -174,7 +173,7 @@ agentSubtitles:
 
 ### Security context (recommended)
 
-Put the settings the `restricted` Pod Security Standard requires in each component's container-level `securityContext`. Every template reads `securityContext`, while `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`. Example for `backend`, to repeat for every component:
+Put the settings the `restricted` Pod Security Standard requires in each component's container-level `securityContext`: every template reads it, while `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`. Example for `backend`:
 
 ```yaml
 backend:
@@ -207,8 +206,6 @@ backend:
 
 ### Install
 
-Install the chart with your values into a new `meet` namespace:
-
 ```bash
 helm install meet meet/meet \
   --namespace meet \
@@ -217,8 +214,6 @@ helm install meet meet/meet \
 ```
 
 ### Check status
-
-List the pods and ingresses, then read the backend's logs:
 
 ```bash
 kubectl -n meet get pods
@@ -274,7 +269,7 @@ loadBalancer:
       secretName: livekit-tls
 ```
 
-Install it into the `meet` namespace with those values:
+`nginx` is not a value the chart treats specially: [any `type`](https://github.com/livekit/livekit-helm/blob/master/livekit-server/templates/ingress.yaml#L1) other than `disable`, the default, and `gclb` renders a plain Ingress carrying these annotations. Cloud-specific types are described in its [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
 
 ```bash
 helm install livekit-server livekit/livekit-server \
@@ -288,16 +283,12 @@ The chart serves LiveKit's media ports from the node itself through host network
 
 ## Recording and transcription
 
-Both have a Kubernetes setup on their own page:
-
-| Feature | Covers | Guide |
-|---|---|---|
-| Recording | Garage storage and its bucket, LiveKit Egress, backend configuration, `ingressMedia` | [Recording - Kubernetes setup](../configuration/recording.md#setup) |
-| AI transcription | Summary service, Celery workers, WhisperX configuration. Needs recording (S3 storage, Egress, `ingressMedia`) working first | [AI Transcription - Kubernetes setup](../configuration/transcription.md#setup) |
+- [Recording - Kubernetes setup](../configuration/recording.md#setup): Garage storage and its bucket, LiveKit Egress, backend configuration, `ingressMedia`
+- [AI Transcription - Kubernetes setup](../configuration/transcription.md#setup): summary service, Celery workers, WhisperX configuration. Needs recording (S3 storage, Egress, `ingressMedia`) working first
 
 ## Rebranding the favicon
 
-The frontend image serves the favicon as six static files from `/usr/share/nginx/html`: `favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `android-chrome-192x192.png`, `android-chrome-512x512.png`. Mount your own icons over those paths instead of forking and rebuilding the image. The right icon then shows from the first byte, with no flash, the iOS home-screen icon included. Other assets, such as the logo, are in [Theming: Custom assets](../configuration/theming.md#custom-assets-logo-images).
+The frontend image serves the favicon as six static files from `/usr/share/nginx/html`, named below. Mount your own over them instead of rebuilding the image. Other assets, such as the logo, are in [Theming: Custom assets](../configuration/theming.md#custom-assets-logo-images).
 
 Put your icons in a `ConfigMap`, either written as YAML (`binaryData` keeps the PNGs intact):
 
@@ -353,7 +344,7 @@ frontend:
 
 ## Secrets management
 
-Keep secrets out of a `values.yaml` in version control: reference Kubernetes Secrets instead:
+Keep secrets out of a `values.yaml` in version control by referencing Kubernetes Secrets:
 
 ```yaml
 backend:

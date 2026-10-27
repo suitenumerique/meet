@@ -1,6 +1,6 @@
 # Code tour
 
-Where each part of Meet lives and what it does, so you know which files a change touches. How the parts work together, from joining a meeting to transcription, is in [How Meet works](../overview/how-meet-works.md); running them, in [Develop locally](develop.md).
+How the parts work together, from joining a meeting to transcription, is in [How Meet works](../overview/how-meet-works.md); running them, in [Develop locally](develop.md).
 
 ## TL;DR
 
@@ -50,8 +50,8 @@ A Django 5.2 project, [`meet`](https://github.com/suitenumerique/meet/tree/main/
 | [`core/services/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/services) | The logic behind the API: the waiting room, presence, invitations, moderation, LiveKit webhooks, phone dial-in, subtitles |
 | [`core/recording/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/recording) | Starting and stopping recordings, and what happens once one ends |
 | [`core/tasks/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/tasks) | Celery tasks: deleting connection-test rooms, deleting files, sending email. They run on the Celery worker when [`CELERY_ENABLED`](../reference/env-variables.md#redis-celery-and-presence) is on, otherwise inline in the request |
-| [`core/management/commands/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/management/commands) | Maintenance commands, such as `purge_deleted_files` |
-| [`core/audit/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/audit), [`core/auditing.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/auditing.py) | The audit log of room, token and recording operations |
+| [`core/management/commands/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/management/commands) | Maintenance commands: `purge_deleted_files`, `purge_inactive_rooms`, `clean_pending_files` and `merge_duplicate_users` |
+| [`core/audit/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/audit), [`core/auditing.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/auditing.py) | The audit log of room, token and recording operations, see [The audit log](#the-audit-log) |
 | [`core/roomkit/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/roomkit) | Meeting-room hardware joining over SIP |
 | [`core/analytics/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/analytics) | Product analytics sent to PostHog, and the feature flags read from it |
 | [`core/admin.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/admin.py) | The Django admin pages |
@@ -81,6 +81,96 @@ Sign-in goes through the `oidc_login` module of [django-lasuite](https://github.
 | External API | `/external-api/v1.0/`, mounted only when `EXTERNAL_API_ENABLED` is on | `application`, `rooms` and `users` from [`core/external_api/viewsets.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/external_api/viewsets.py) |
 
 Most actions on a room are extra routes of `RoomViewSet`, such as `request-entry`, `start-recording` or `mute-participant`.
+
+## The audit log
+
+What each event holds, and how operators collect it, is in [Audit logging](../self-hosting/configuration/audit-logging.md).
+
+### Declaring an action
+
+Every action is declared once, in `core/auditing.py`, as an `audit.Action` constant. An action may carry its ECS category and types, which then apply to every event it emits; a type its category does not expect fails at import time:
+
+```python
+APPLICATION_TOKEN_ISSUE = audit.Action(
+    "application.token.issue",
+    category=EventCategory.AUTHENTICATION,
+    types=(EventType.START,),
+)
+ROOM_CREATE = audit.Action("room.create")
+```
+
+`core/auditing.py` imports nothing but the audit facility, so that any module can import it, authentication classes included. Models and authentication classes are registered apart, in `core/audit_registry.py`.
+
+### Auditing a DRF view
+
+A DRF view only declares the actions it audits: everything else is derived from the response. CRUD actions are mapped in `audit_actions`. An extra action names its own on its route, so that renaming its method cannot silently stop auditing it:
+
+```python
+from core import audit, auditing
+
+
+class RoomViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
+    audit_actions = {"create": auditing.ROOM_CREATE, "retrieve": auditing.ROOM_RETRIEVE}
+
+    def perform_create(self, serializer):
+        self.audit_target = serializer.save()
+
+    @action(detail=True, methods=["post"], audit_action=auditing.RECORDING_START)
+    def start_room_recording(self, request, pk=None): ...
+```
+
+`AuditViewMixin` fills in the rest:
+
+- It runs from DRF's `finalize_response` hook, which every response goes through, successful or not.
+- The ECS category and types come from the action, or default to `api` and the DRF action.
+- The outcome, reason and status code come from the response status: 401, 403 and 429 are `denied`, other errors are `failure`, filed as [Classification](../self-hosting/configuration/audit-logging.md#classification) describes.
+- The target is the object `get_object()` returned, unless the view assigns `audit_target`.
+- A view can also assign `audit_user_target`, `audit_actor`, where `None` records no account, and `audit_details`, or override `get_audit_fields()`.
+- An exception DRF does not handle is still recorded before it propagates.
+
+### Auditing from anywhere else
+
+Outside of `AuditViewMixin`, from a view or deeper in a service, call `audit.log`. A `category` or `types` given here wins over the action's:
+
+```python
+audit.log(auditing.USER_PROVISION, target=user)
+```
+
+Without `request=`, the event reads the context of the request being served, `audit.request_context()`, which `AuditLogMiddleware` captures when the request comes in. Outside a request, as in a Celery task, the context is empty and the actor is the system.
+
+!!! note
+    That context holds the Django request. DRF copies its user and auth onto it, but not its authenticator, so a call made inside a DRF view without `request=` should pass `auth_method=`.
+
+### How fields are filled
+
+- **Request fields** are read from the request: the real client address, the path and the user agent. `http.request.id` is the request id, settled by `AuditLogMiddleware` right after dockerflow assigns it, and echoed in the `DOCKERFLOW_REQUEST_ID_HEADER_NAME` response header. The inbound id is kept only when `REQUEST_ID_TRUST_HEADER` is set, see [Configuration](../self-hosting/configuration/audit-logging.md#configuration).
+- **The actor** comes from `request.user`, `request.auth` and the DRF authenticator, as [Actors](../self-hosting/configuration/audit-logging.md#actors) describes, the authenticator's class mapped to an auth method by `audit.register_auth_method`, see [Registering models](#registering-models-and-authentication-methods). Without a request, it is the system. Override it with `actor=`, `actor_type=`, `auth_method=` and `client_id=`; an explicit `actor_type=` keeps the signed-in account. `actor=None` records no account: for a caller failing to authenticate, an application acting before it is given a delegated user, or the system.
+- **The target** is described by its model name, its primary key and the `fields` its model is registered with, see [Targets](../self-hosting/configuration/audit-logging.md#targets). A model that is not registered is still identified. The account the action is about, `user.target`, is found from the target, unless given as `user_target=`. Name a service the backend calls with `target_service=`. Any other keyword argument lands under `lasuite.details`.
+
+### Emission never raises
+
+A broken configuration or value is reported on the application logger and to Sentry, and the business operation goes on. A registered field that cannot be read is left out of the target, and the event is still emitted.
+
+### How the admin is wired
+
+- The wiring lives in `core/audit/admin.py`. `AuditedAdminSite`, installed through `core.audit.apps.AuditedAdminConfig` in `INSTALLED_APPS`, adds auditing to every admin class as it is registered, Django's own included.
+- A new `ModelAdmin` is therefore covered with nothing to do. Registering its model only adds its category and allowed values.
+
+### Registering models and authentication methods
+
+The project describes itself to the audit facility in code, in `core/audit_registry.py`. Once the audit app is ready, it imports the `audit_registry` module of every installed app.
+
+**`audit.register(Model, ...)`** tells the audit log how to handle a model:
+
+- `fields`: the fields describing it as a target;
+- `admin_values`: the fields whose before and after values may be recorded for admin writes;
+- `category`: the ECS category of its admin writes;
+- `entity_type`: its ECS entity type, when one of the allowed values fits, such as `application` or `user`;
+- `user_target`: the attribute holding the account an event on it is about, such as `user` for an access.
+
+A proxy model falls back to its concrete model. Registering a model twice raises `AlreadyRegistered`, and an entity type ECS does not allow raises `ValueError`.
+
+**`audit.register_auth_method(klass, name)`** sets the `lasuite.auth.method` of a DRF authentication class or of a login backend. A DRF class inherits the name of its closest registered base, and DRF's own classes are built in. A login backend must be registered itself, because custom backends often subclass `ModelBackend` just for its permission checks. `ModelBackend` is built in as `password`.
 
 ## Frontend
 
@@ -169,11 +259,11 @@ LiveKit posts its events to `/api/v1.0/rooms/webhooks-livekit/`, the `webhooks_l
 |---|---|
 | `egress_updated` | Updates the recording's status |
 | `egress_ended` | Clears the recording state from the room metadata and stops the metadata collector. On success, [`core/recording/event/notification.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/recording/event/notification.py) emails a screen recording's link to its starter and the room's owners and administrators, and sends a transcription to the summary service |
-| `room_started` | Creates the room's phone dial-in rule when telephony or Roomkit is on |
+| `room_started` | Closes the LiveKit room again if its Meet room was deleted; otherwise records the start time `purge_inactive_rooms` reads, and creates the room's phone dial-in rule when telephony or Roomkit is on |
 | `room_finished` | Deletes that rule and clears the room's presence and waiting-room state |
-| `participant_left` | Removes the participant from the presence cache |
+| `participant_left` | Removes the participant from the presence cache, unless [`PRESENCE_CLEAR_ON_PARTICIPANT_LEFT`](../reference/env-variables.md#redis-celery-and-presence) is off |
 
-The events it knows are the `LiveKitWebhookEventType` enum in the same file; any other is acknowledged and ignored. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml). The server-side settings are in [Environment variables](../reference/env-variables.md#livekit).
+Any other event is acknowledged and ignored, and so is every event of a connection-test room or of a room [`LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX`](../reference/env-variables.md#livekit) does not match. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml). The server-side settings are in [Environment variables](../reference/env-variables.md#livekit).
 
 ### The frontend side
 

@@ -5,7 +5,10 @@ Meet sends email for two things only. Sign-in goes through your OIDC provider an
 - **Room invitations**, sent through the API (`POST /api/v1.0/rooms/<id>/invite/`); the interface has no button for them. Without SMTP, the request fails.
 - **A recording's download link**, emailed to whoever started the recording and to the room's owners and administrators. Without SMTP, the recording is still saved.
 
-To reach a recording whose email never left, find its ID in the Django admin under `/admin/` → **Core → Recordings**. Those same people can open `https://meet.example.com/recording/<id>`. Once SMTP works, the admin action **Resend notification to external service** sends the email again.
+To reach a recording whose email never left:
+
+- Find its ID in the Django admin, under `/admin/` → **Core → Recordings**. Those same people can open `https://meet.example.com/recording/<id>`.
+- Once SMTP works, the admin action **Resend notification to external service** sends the email again.
 
 ## What to set
 
@@ -22,7 +25,7 @@ To reach a recording whose email never left, find its ID in the Django admin und
 
 The branding variables (`DJANGO_EMAIL_BRAND_NAME`, `DJANGO_EMAIL_LOGO_IMG`, `DJANGO_EMAIL_SUPPORT_EMAIL`), the SMTP timeout `DJANGO_EMAIL_TIMEOUT`, and every default are in [Environment Variables: Email](../../reference/env-variables.md#email).
 
-With `CELERY_ENABLED=True`, the Celery worker sends the recording emails and retries a failed delivery, so a slow SMTP server never holds up the backend. Otherwise the backend sends them itself.
+With [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence)`=True`, the Celery worker sends the recording emails and retries a failed delivery, so a slow SMTP server never holds up the backend. Otherwise the backend sends them itself.
 
 ## Docker Compose setup
 
@@ -66,7 +69,7 @@ Send a test email from the backend, with your own address:
 docker compose exec backend python manage.py shell -c "from django.conf import settings; from django.core.mail import send_mail; send_mail('Meet test', 'It works.', settings.EMAIL_FROM, ['you@example.com'])"
 ```
 
-An SMTP error prints straight away. Meet's own failures appear in the backend log as `could not be sent` for recording links, or `were not sent` for invitations:
+Meet's own failures appear in the backend log as `could not be sent` for recording links, or `were not sent` for invitations:
 
 ```bash
 docker compose logs backend | grep -E "could not be sent|were not sent"

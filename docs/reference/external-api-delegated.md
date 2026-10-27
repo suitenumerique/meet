@@ -15,9 +15,9 @@ When the user signs in at your OIDC provider anyway, the [Resource server mode](
 
 Register each application in the Django admin, at `/admin/` under **Core → Applications**:
 
-- Meet generates the client ID, a random string of 40 characters by default, and the client secret. Copy the secret from the creation form: Meet stores it hashed and never shows it again.
-- Tick the scopes the application may use. Every token it obtains carries exactly those, whatever user it names.
-- With no domain added, the application may act for any email address. Adding domains restricts it to addresses in those.
+- Meet generates the client ID and secret. Copy the secret from the creation form: it is stored hashed and never shown again.
+- Tick the scopes the application may use. Every token it obtains carries exactly those, whatever the user.
+- Add email domains to restrict the users it may act for. With none, it may act for any address.
 
 ## Token request
 
@@ -35,7 +35,7 @@ Content-Type: application/json
 }
 ```
 
-`scope` carries the email address of the user to act for, and nothing else. A form-encoded body works too.
+`scope` carries the email address of the user to act for, and nothing else.
 
 **Response:**
 ```json

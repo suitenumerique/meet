@@ -4,7 +4,7 @@ The Meet backend exposes a REST API at `/api/v1.0/`, which Meet's own frontend u
 
 ## Interactive API Explorer
 
-An interactive Swagger UI is served at `/api/v1.0/swagger/` when `DJANGO_CONFIGURATION` is `Development` or `Test`. `USE_SWAGGER` is fixed in each configuration class and is not read from the environment, so setting `USE_SWAGGER=True` does not turn it on in `Production` or `Demo`.
+A Swagger UI is served at `/api/v1.0/swagger/` only when `DJANGO_CONFIGURATION` is `Development` or `Test`. `USE_SWAGGER` is not read from the environment, so no variable turns it on in another configuration.
 
 ## Authentication
 
@@ -34,7 +34,7 @@ The token is the `livekit.token` returned by `GET /api/v1.0/rooms/{id}/`. It is 
 Authorization: Bearer <user access token>
 ```
 
-Meet's frontend uses it in place of the session when it runs in another application's iframe. It gets the token from `POST /api/v1.0/users/exchange-access-token/`, and every endpoint then treats the call as the user's, with the user's roles. How the application starts this is in [External API: Signing a user in to an iframe](external-api.md#signing-a-user-in-to-an-iframe).
+Meet's frontend uses it instead of the session inside another application's iframe, getting it from `POST /api/v1.0/users/exchange-access-token/`. Every endpoint then acts as the user, with the user's roles. How the application starts this is in [External API: Signing a user in to an iframe](external-api.md#signing-a-user-in-to-an-iframe).
 
 ## Users
 
@@ -108,13 +108,19 @@ POST /api/v1.0/rooms/
   "access_level": "public"
 }
 ```
-`access_level` values: `public`, `trusted`, `restricted`, described in [Room access levels](security.md#room-access-levels). `slug` is read-only: Meet derives it from `name`. The creator becomes the room's owner. Each user may create a limited number of rooms per minute and per day, see [Rate limiting](security.md#rate-limiting).
+- `access_level` is `public`, `trusted` or `restricted`, see [Room access levels](security.md#room-access-levels).
+- `slug` is read-only: Meet derives it from `name`.
+- The creator becomes the room's owner.
+- Room creation is rate-limited per minute and per day, see [Rate limiting](security.md#rate-limiting).
 
 ### Get a room
 ```
 GET /api/v1.0/rooms/{id-or-slug}/
 ```
-Reading a room requires no sign-in. The response carries a `livekit` object, with the token and server URL the browser uses to join the media server, in three cases: the room is `public`, the room is `trusted` and the caller is signed in, or the caller holds a role on the room. Without `livekit`, the response also drops `pin_code`. Administrators and owners also get `accesses`, the list of roles on the room.
+Reading a room requires no sign-in. The response adds:
+
+- `livekit`, the token and server URL to join the media server, when the room is `public`, or `trusted` and the caller is signed in, or the caller holds a role on the room. Without `livekit`, `pin_code` is dropped too.
+- `accesses`, the list of roles on the room, for administrators and owners.
 
 ```json
 {
@@ -144,7 +150,11 @@ Requires being an administrator or owner of the room.
 ```
 DELETE /api/v1.0/rooms/{id}/
 ```
-Requires being an owner of the room. Answers 204, ends the meeting for everyone connected, and stops the room's PIN from routing phone calls. The room then answers 410, or 403 to a caller lacking the role the call needs, and keeps its slug and PIN until the [room purge](env-variables.md#room-purge) removes it. Its recordings stay available to the people holding a role on them. When the media server cannot close the room, the call answers 500 and the room is not deleted.
+Requires being an owner of the room. Answers 204:
+
+- The meeting ends for everyone connected, and the room's PIN stops routing phone calls.
+- The room then answers 410, or 403 to a caller lacking the role the call needs. What it keeps until it is purged is in [Room purge](../self-hosting/configuration/room-purge.md#how-a-room-becomes-purgeable).
+- When the media server cannot close the room, the call answers 500 and the room is not deleted.
 
 ### Other room endpoints
 
@@ -199,7 +209,6 @@ POST /api/v1.0/resource-accesses/
   "role": "administrator"
 }
 ```
-`role` values: `owner`, `administrator`, `member`.
 
 **Response:** HTTP 201 with the created access object.
 
@@ -247,7 +256,11 @@ Requires being signed in and either of these:
 - being an administrator or owner of the room;
 - being connected to the meeting of a `public` or `trusted` room, while `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED` is on, as it is by default.
 
-A LiveKit room token is refused. `mode` values: `screen_recording`, `transcript`. `options` and each of its keys are optional, and any other key is rejected. `encoding` picks a resolution, and optionally a profile, among those of [Recording](env-variables.md#recording); it is accepted only while `RECORDING_CUSTOM_ENCODING_ENABLED` is on.
+A LiveKit room token is refused.
+
+- `mode` is `screen_recording` or `transcript`.
+- `options` and each of its keys are optional; any other key is rejected.
+- `encoding` picks a resolution, and optionally a profile, among those of [Recording](env-variables.md#recording). It is accepted only while `RECORDING_CUSTOM_ENCODING_ENABLED` is on.
 
 | Code | Body | When |
 |---|---|---|
@@ -257,7 +270,11 @@ A LiveKit room token is refused. `mode` values: `screen_recording`, `transcript`
 | 429 | `{"detail": "..."}` | The user started too many recordings, see [Rate limiting](security.md#rate-limiting) |
 | 502 | `{"error": "..."}` | The recording service failed to start it |
 
-The recording's roles are set when it starts. The person starting it becomes its `owner` if they are an owner or administrator of the room, and its `member` otherwise. Every other owner and administrator of the room becomes its `owner`. Each of them receives the email announcing a screen recording is ready. Later changes to the room's roles do not change the recording's.
+The recording's roles are set when it starts, and later changes to the room's roles do not change them:
+
+- The person starting it becomes its `owner` if they are an owner or administrator of the room, and its `member` otherwise.
+- Every other owner and administrator of the room becomes its `owner`.
+- Each of them receives the email announcing a screen recording is ready.
 
 ### Stop recording
 ```
@@ -287,7 +304,7 @@ Requires being an administrator or owner of the recording, and the recording to 
 
 | Method | Path | Body | Who may call it |
 |---|---|---|---|
-| `POST` | `/api/v1.0/rooms/{id}/request-entry/` | `{"username": "Alice", "participant_id": "..."}` | Anyone, signed in or not. The answer's `id` is a signed participant id: send it back as `participant_id` on each later poll to keep the place in the queue. The answer carries a `livekit` token once the participant is admitted. |
+| `POST` | `/api/v1.0/rooms/{id}/request-entry/` | `{"username": "Alice", "participant_id": "..."}` | Anyone, signed in or not. Send the answer's `id`, a signed participant id, back as `participant_id` on each poll to keep the place in the queue. The answer carries a `livekit` token once admitted |
 | `GET` | `/api/v1.0/rooms/{id}/waiting-participants/` | None | A signed-in administrator or owner of the room. In a `trusted` room, also any signed-in user connected to the meeting. A `public` room returns an empty list. |
 | `POST` | `/api/v1.0/rooms/{id}/enter/` | `{"participant_id": "...", "allow_entry": true}` | The same people. A `public` room has no lobby and answers 404. |
 
@@ -299,7 +316,7 @@ Both lobby management endpoints refuse a LiveKit room token. A `participant_id` 
 
 | Method | Path | Body | Who may call it |
 |---|---|---|---|
-| `POST` | `/api/v1.0/rooms/{id}/mute-participant/` | `{"participant_identity": "...", "track_sid": "..."}` | An administrator or owner, signed in. While the room's `everyone_can_mute` is on, also anyone connected to the meeting, with a LiveKit room token. Omitted, `everyone_can_mute` counts as on. |
+| `POST` | `/api/v1.0/rooms/{id}/mute-participant/` | `{"participant_identity": "...", "track_sid": "..."}` | An administrator or owner, signed in. While the room's `everyone_can_mute` is on, as it is when omitted, also anyone connected to the meeting, with a LiveKit room token |
 | `POST` | `/api/v1.0/rooms/{id}/remove-participant/` | `{"participant_identity": "..."}` | An administrator or owner |
 | `POST` | `/api/v1.0/rooms/{id}/update-participant/` | `participant_identity` and at least one of `name`, `metadata`, `attributes`, `permission` | An administrator or owner |
 | `POST` | `/api/v1.0/rooms/{id}/update-participant-role/` | `{"participant_identity": "...", "role": "administrator"}` | An administrator or owner connected to the meeting. `role` is `member` or `administrator`, and nobody can change their own. A participant with a Meet account keeps the role as a `ResourceAccess`. |
@@ -344,7 +361,7 @@ Other services call these, never the browser or an external application.
 GET /api/v1.0/config/
 ```
 
-Returns the feature flags and configuration the frontend reads.
+Open to anyone. Returns the backend settings the frontend reads at runtime, listed under [Frontend](env-variables.md#frontend).
 
 ## Health check
 
@@ -379,15 +396,7 @@ The other errors come in three shapes:
 - Room actions, recording, participants and subtitles, return `{"error": "..."}`.
 - The lobby returns `{"message": "..."}`.
 
-| Code | Meaning |
-|---|---|
-| 400 | Bad request: invalid input |
-| 401 | Unauthorized: missing or invalid auth |
-| 403 | Forbidden: lacking permission |
-| 404 | Not found |
-| 410 | Gone: the room has been deleted |
-| 429 | Rate limited |
-| 500 | Internal server error |
+The status codes keep their standard meaning. `410` means the room has been deleted.
 
 ## Rate limiting
 

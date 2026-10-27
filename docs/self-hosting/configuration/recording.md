@@ -2,7 +2,7 @@
 
 Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When the recording is complete, the person who started it and the room's owners and administrators (co-hosts in the meeting) each receive an email with a download link.
 
-Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). `RECORDING_MAX_DURATION` is only the limit users see: Egress enforces it, so set the same limit in Egress. When Egress stops a recording at its limit, Meet saves the file as usual.
+Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). `RECORDING_MAX_DURATION` only shows users the limit: set the same limit in Egress, which enforces it. When Egress stops a recording at its limit, Meet saves the file as usual.
 
 **Known limitations:**
 
@@ -25,7 +25,14 @@ Meet copies the room's roles onto the recording when it starts, and later change
 | The room's owners and administrators | Yes | Yes |
 | The person who started it, when not an owner or administrator | Yes | No |
 
-Starting a recording is rate-limited per user, by `START_RECORDING_THROTTLE_RATES` and the daily cap `START_RECORDING_DAILY_THROTTLE_RATES`. Stopping one is never limited.
+Starting a recording is rate-limited per user, by `START_RECORDING_THROTTLE_RATES` and the daily cap `START_RECORDING_DAILY_THROTTLE_RATES`.
+
+## Requirements
+
+- A running LiveKit Egress server.
+- S3-compatible object storage. This guide self-hosts [Garage](https://garagehq.deuxfleurs.fr/); any S3-compatible provider works: AWS S3, Scaleway Object Storage, OVHcloud Object Storage.
+- SMTP, since the download link reaches users by email. See [Email (SMTP)](email.md).
+- The LiveKit webhook to Meet, which tells it a recording has finished. The base setup already configures it: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
 
 ## How it works
 
@@ -61,13 +68,6 @@ sequenceDiagram
     User->>Frontend: Navigate to /recording/{id}
 ```
 
-## Requirements
-
-- A running LiveKit Egress server.
-- S3-compatible object storage. This guide self-hosts [Garage](https://garagehq.deuxfleurs.fr/); any S3-compatible provider works: AWS S3, Scaleway Object Storage, OVHcloud Object Storage.
-- SMTP, since the download link reaches users by email. See [Email (SMTP)](email.md).
-- The LiveKit webhook to Meet, which tells it a recording has finished. The base setup already configures it: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
-
 ## Setup
 
 ### Step 1: Object storage
@@ -78,7 +78,7 @@ Garage runs here as a single node with no replication. On its first start it cre
 
 === "Docker Compose"
 
-    Garage runs as its own stack, from [`docs/examples/garage/`](https://github.com/suitenumerique/meet/tree/main/docs/examples/garage). The commands below download its `compose.yml`, its `garage.toml` and the `.env` template:
+    Garage runs as its own stack, from [`docs/examples/garage/`](https://github.com/suitenumerique/meet/tree/main/docs/examples/garage):
 
     ```bash
     mkdir -p ~/docker/garage && cd ~/docker/garage
@@ -105,7 +105,7 @@ Garage runs here as a single node with no replication. On its first start it cre
     docker compose up -d
     ```
 
-    Check that Garage created the bucket. The command prints its size and object count:
+    Check that Garage created the bucket:
 
     ```bash
     docker compose exec garage /garage bucket info meet-media-storage
@@ -359,13 +359,13 @@ The backend and Egress both reach the storage at `AWS_S3_ENDPOINT_URL`, whose sc
         RECORDING_DOWNLOAD_BASE_URL: "https://meet.example.com/recording"
     ```
 
-    The SMTP variables go in the same block, see [Email (SMTP)](email.md#kubernetes-setup). Apply the chart:
+    The SMTP variables go in the same block, see [Email (SMTP)](email.md#kubernetes-setup).
 
     ```bash
     helm upgrade meet meet/meet --namespace meet --values values.yaml
     ```
 
-Check that recording is enabled. The command asks the backend for the configuration it sends the frontend, and `jq` keeps its `recording` part:
+Check that recording is enabled:
 
 ```bash
 curl -s https://meet.example.com/api/v1.0/config/ | jq .recording
@@ -390,7 +390,7 @@ Expected output, with the default settings:
 }
 ```
 
-Without SMTP, find the recording's ID under `/admin/` → **Core → Recordings**. The people it was shared with can open `https://meet.example.com/recording/<id>`. Once SMTP works, the admin action **Resend notification to external service** sends the email again.
+Without SMTP, recordings are still saved: [Email (SMTP)](email.md) says how to reach one and resend its email.
 
 ### Step 4: Route recording downloads
 
@@ -480,9 +480,11 @@ The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header th
 
 ## Configuring recording encoding
 
-These settings apply to screen recordings only: transcript recordings are audio-only `.ogg` files, and Meet ignores any encoding sent for them.
+Meet encodes every screen recording with a **resolution** and a **profile**, which sets the framerate and the video bitrate for each resolution.
 
-Meet encodes every screen recording with a **resolution** and a **profile**, which sets the framerate and the video bitrate for each resolution. Meet passes the values to LiveKit Egress, whose H.264 Main video and AAC audio codecs stay fixed. The default, the `full` profile at `720p`, matches LiveKit's built-in `H264_720P_30` preset, and makes larger files than talking heads and screen sharing need.
+- Transcript recordings are audio-only `.ogg` files: Meet ignores any encoding sent for them.
+- Egress's codecs stay fixed: H.264 Main video and AAC audio.
+- The default, the `full` profile at `720p`, matches LiveKit's built-in `H264_720P_30` preset, and makes larger files than talking heads and screen sharing need.
 
 **Built-in profiles.** File size and Egress CPU cost both grow roughly with framerate × bitrate. The size column adds the default 128 kbps audio to the 720p video bitrate:
 
@@ -504,7 +506,7 @@ RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
 
 The keyframe interval sets how finely a player can seek in the file. Its default, `0.0`, leaves the choice to the encoder. To let LiveKit pick the whole encoding instead, set either default to an empty value: Meet logs a warning at startup and uses LiveKit's preset.
 
-**Letting users choose.** With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, room owners and administrators get a **Recording** tab in the settings dialog, where they pick a content type and a resolution among the available ones before starting a recording. Without it, the start-recording API refuses any per-recording encoding with a `400`.
+**Letting users choose.** With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, room owners and administrators pick the profile and resolution of each recording in the settings dialog's **Recording** tab. Without it, the start-recording API refuses any per-recording encoding with a `400`.
 
 **Your own resolutions and profiles.** `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS` and `RECORDING_ENCODING_AVAILABLE_PROFILES` replace the built-in sets. Each is a dictionary on a single line, with double-quoted keys and no outer quotes in an env file:
 
@@ -519,6 +521,7 @@ The backend refuses to start when a profile lacks a bitrate for one of the resol
 **Caveats:**
 
 - **Screen-share readability.** At 720p, text legibility breaks down below ~40 kbits per frame, the bitrate divided by the framerate. `talking_heads` gives 700 / 15 ≈ 47, just above. The same bitrate at 30 fps gives ~23 and visibly blurs dense slides, so lowering the framerate keeps shared screens readable better than lowering the bitrate. For deck-heavy meetings, use `text`: 1000 / 15 ≈ 67.
+- **Encoder speed.** Egress encodes with x264's `veryfast` preset, [set in its code](https://github.com/livekit/egress/blob/main/pkg/pipeline/builder/video.go#L1102): no Meet or Egress setting changes it.
 - **Audio.** AAC at 64 kbps stereo is transparent for voice but compresses music noticeably. Keep 128 kbps if meetings include music playback.
 
 ## Testing the full recording flow

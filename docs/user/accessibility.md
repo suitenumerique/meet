@@ -4,7 +4,7 @@ Meet works with a keyboard alone and with screen readers, and targets WCAG AA.
 
 ## Keyboard
 
-`Tab` and `Shift+Tab` move between controls, `Enter` or `Space` activates one, the arrow keys move inside toolbars, menus and panels, and `Escape` closes a dialog or panel. A **skip link** at the top of the page jumps to the main content. A dialog takes focus when it opens and gives it back to the button that opened it.
+The usual keys work everywhere: `Tab`, the arrow keys, `Enter` and `Escape`. A **skip link** at the top of the page jumps to the main content.
 
 <figure markdown="span">
   ![Keyboard shortcuts panel](../assets/keyboard-shortcuts.png)
@@ -29,18 +29,20 @@ Meet works with a keyboard alone and with screen readers, and targets WCAG AA.
 | Fit a zoomed shared screen to the window | `0` |
 | Move around a zoomed shared screen | Arrow keys |
 
-On a Mac, `Ctrl` is `⌘`. The zoom controls are in [Zooming into a shared screen](features-controls.md#zooming-into-a-shared-screen).
+On a Mac, `Ctrl` is `⌘`.
 
 ## Screen readers
 
-The screen reader announces mute and unmute, a recording starting or stopping, people joining, new chat messages while the chat is closed, and the zoom level of a shared screen as it changes. To hear others' reactions too ("Alice: thumbs up"), turn on **Announce reactions aloud** in **Settings → Accessibility**. The tab title shows the room code.
+- Announced: mute and unmute, a recording starting or stopping, people joining, new chat messages while the chat is closed, and a shared screen's zoom level.
+- Others' reactions ("Alice: thumbs up") are announced once you turn on **Announce reactions aloud** in **Settings → Accessibility**.
+- The tab title shows the room code.
 
 ## Display
 
 In **Settings → Accessibility**:
 
 - **Display font**: Lexend for readability, Atkinson Hyperlegible for low vision, OpenDyslexic for dyslexia
-- **Captions**: text size (small, medium, large), and text and background colour from a palette of 9, for [real-time subtitles](recording.md#real-time-subtitles)
+- **Captions**: text size and colours, for [real-time subtitles](recording.md#real-time-subtitles)
 
 Meet turns off its animations when your system asks for reduced motion.
 

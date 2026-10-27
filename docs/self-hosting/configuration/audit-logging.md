@@ -1,8 +1,12 @@
 # Audit logging
 
-Meet keeps an **audit log**: a record of the notable things that happen in the product, such as a room created through the external API, a recording started, a sign-in, or a change made in the Django admin. Every entry answers the same questions: who did what, to what, on whose behalf, from where, and whether it worked. It serves operators and security teams investigating an incident or watching for abuse, and data protection officers who need to know who accessed or changed what.
+Meet keeps an **audit log**: a record of the notable things that happen in the product, such as a room created through the external API, a recording started, a sign-in, or a change made in the Django admin. Every entry answers the same questions: who did what, to what, on whose behalf, from where, and whether it worked.
 
-Each event is a single line of JSON on the backend's standard output, written by a logger of its own, `audit`, apart from the application logs. Events follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs) (ECS) 9.5.0, which most SIEMs read without extra setup. Audit logging is always on and needs no setting.
+- Each event is one line of JSON on the backend's standard output, from its own logger, `audit`, apart from the application logs.
+- Events follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs) (ECS) 9.5.0, which most SIEMs read without extra setup.
+- Audit logging is always on and needs no setting.
+
+How the code emits events is in the [Code tour](../../contributing/code-tour.md#the-audit-log).
 
 Personal data is kept to a minimum. A person is identified by their account id, their OIDC `sub` and the domain of their email address. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
 
@@ -50,8 +54,6 @@ Pretty-printed, one event reads:
 }
 ```
 
-It reads: the application `calendar-app`, acting on behalf of a user from `gouv.fr`, created the room "Daily standup" from `1.2.3.4`, and it worked.
-
 When an action is refused, the event keeps the name of the action that was attempted, here still `room.create`. Only the fields describing the outcome change:
 
 ```json
@@ -66,7 +68,7 @@ When an action is refused, the event keeps the name of the action that was attem
 
 ## Collecting the events
 
-On the backend's output, each event is one compact line whose `data_stream.dataset` is `meet.audit`. That field is how a log shipper tells audit events from the application logs on the same output.
+Each event is one compact line on the backend's output. A log shipper tells it from the application logs by `data_stream.dataset: meet.audit`.
 
 === "Docker Compose"
 
@@ -90,13 +92,11 @@ On the backend's output, each event is one compact line whose `data_stream.datas
 
 Every audit variable and its default is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging). Three of them depend on your deployment:
 
-- **`NUM_PROXIES`** counts the proxies in front of the backend that append to `X-Forwarded-For`, and the rate limits use it too. The backend takes the client address that many entries from the right, so an address a client injects lands further left and is ignored. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. The Docker Compose template sets `2`, for the reverse proxy and the frontend's nginx, which appends the reverse proxy's address. With `1` there, every event would record the reverse proxy as the client. Add one more for a load balancer that also appends.
+- **`NUM_PROXIES`** counts the proxies in front of the backend that append to `X-Forwarded-For`; the rate limits use it too. The backend takes the client address that many entries from the right, so an address a client injects is ignored. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. The Docker Compose template sets `2`, for the reverse proxy and the frontend's nginx: with `1` there, every event would record the reverse proxy as the client. Add one for a load balancer that also appends.
 - **`REQUEST_ID_TRUST_HEADER`** reuses the request id the proxy sends, so the proxy, Gunicorn and the audit events share one id. Set it only when the proxy overwrites the header, on nginx with `proxy_set_header X-Request-ID $request_id;`. Otherwise nginx forwards the client's header, and a client could pick the id of someone else's request. `DOCKERFLOW_REQUEST_ID_HEADER_NAME` names that header.
 - **`AUDIT_LOG_SERVICE_NAME`** and **`AUDIT_LOG_DATA_STREAM_NAMESPACE`** set the data stream events are meant for, `logs-<service name>.audit-<namespace>`. The backend turns any `-` in the service name into `_`, and refuses to start when the namespace contains a `-`.
 
 ## Answering common questions
-
-The fields to filter on for the most common questions, in whatever tool you search your logs with:
 
 **Who created, changed or deleted this room?** Filter on `entity.target.sub_type: room` with the room's id in `entity.target.id`, or its slug in `entity.target.raw.slug`. `event.action` says what happened, and `user.id` or `lasuite.application.client_id` who did it. Rooms are audited when they are handled through the external API, as `room.*`, or the Django admin, as `admin.room.*`.
 
@@ -176,9 +176,16 @@ The backend picks the actor type by applying these rules in order:
 4. The caller is an account: `user`.
 5. Anything else: `anonymous`.
 
-An application acts for one user with the delegated token it obtained through `application.token.issue`. An embedded frontend runs inside an iframe, where session cookies are blocked, so it calls the API with a user access token instead. To get one, the application mints a single-use, short-lived transit code for its delegated user, and the frontend exchanges the code for the token. Only the code's SHA-256 is ever logged.
+How an application acts for a user:
 
-A La Suite application may call the external API with a token exchanged through Menshen, La Suite's token exchange server. Such a call is recorded as an `application`, with `lasuite.auth.method` `menshen_token`. Menshen reports itself as the client the token was issued to, not the application that exchanged it. So `lasuite.application.client_id` and `organization.id` hold Menshen's client id for every such call. Never recorded: the token, its `jti` and the email Menshen reports. For an opaque token, Menshen takes the `jti` from the token itself.
+- Directly, with the delegated token it obtained through `application.token.issue`.
+- Through an embedded frontend, which runs in an iframe where session cookies are blocked. The application mints a single-use, short-lived transit code for its delegated user, and the frontend exchanges the code for a user access token. Only the code's SHA-256 is ever logged.
+
+A La Suite application may call the external API with a token exchanged through Menshen, La Suite's token exchange server:
+
+- The call is recorded as an `application`, with `lasuite.auth.method` `menshen_token`.
+- Menshen reports itself as the client the token was issued to, not the application that exchanged it. So `lasuite.application.client_id` and `organization.id` hold Menshen's client id for every such call.
+- Never recorded: the token, its `jti`, which Menshen derives from an opaque token itself, and the email Menshen reports.
 
 ### Classification
 
@@ -248,7 +255,7 @@ A recording's target says what was recorded:
 
 ## Django admin
 
-The admin is the most sensitive part of the product, so every write made through it produces an audit event. Django's own history entry is still written: nothing is replaced, and no table is added.
+The admin is the most sensitive part of the product, so every write made through it produces an audit event. Django's own history entry is still written.
 
 The action name follows a template, `admin.<target>.<verb>`, where `<target>` is the model name and `<verb>` one of:
 
@@ -261,7 +268,12 @@ The action name follows a template, `admin.<target>.<verb>`, where `<target>` is
 
 This gives names such as `admin.room.update`, `admin.user.delete` or `admin.recording.action`. `event.category` is `iam` for anything that grants access to the product, and `configuration` otherwise. Writes on a user or a group put `user` or `group` first in `event.type`, as in `["user", "change"]`.
 
-**What changed.** `lasuite.details.changed_fields` always lists the names of the fields a form changed, exactly the ones Django reports in its own history. `lasuite.details.changes` gives their values, as `{"from": ..., "to": ...}`, but only for the fields a model explicitly allows, see [Registering models](#registering-models-and-authentication-methods). Anything that looks like a secret is refused, whatever the allow-list says: a password change is reported as a change to `password`, never with its value. A JSON field on the allow-list, such as a room's `configuration`, is recorded as JSON rather than as a string, and both versions are kept whole.
+**What changed.**
+
+- `lasuite.details.changed_fields` always lists the names of the fields a form changed, exactly the ones Django reports in its own history.
+- `lasuite.details.changes` gives their values, as `{"from": ..., "to": ...}`, but only for the fields a model explicitly allows, see [Registering models](../../contributing/code-tour.md#registering-models-and-authentication-methods).
+- Anything that looks like a secret is refused, whatever the allow-list says: a password change is reported as a change to `password`, never with its value.
+- A JSON field on the allow-list, such as a room's `configuration`, is recorded as JSON rather than as a string, and both versions are kept whole.
 
 **Inlines.** Objects edited through an inline produce their own event, linked to the parent's by `http.request.id`. Granting a role on a room produces both `admin.room.update` and `admin.resourceaccess.create`, whose `user.target` is the account granted the role.
 
@@ -269,90 +281,3 @@ This gives names such as `admin.room.update`, `admin.user.delete` or `admin.reco
 
 - **Reads.** Opening a change list, a change form or the history page emits nothing. Django's own history remains the record of who touched what.
 - **Custom actions that bypass the ORM hooks.** An action calling `queryset.update()` or `queryset.delete()` directly is reported as a single `admin.<target>.action`, with its name and the number of objects, not one event per object. `delete_selected` is the exception: Django reports its objects one by one, so it emits one `admin.<target>.delete` per object and no `action` event.
-
-## For developers: emitting events
-
-### Declaring an action
-
-Every action is declared once, in `core/auditing.py`, as an `audit.Action` constant. An action may carry its ECS category and types, which then apply to every event it emits. A type its category does not expect fails at import time, so a misclassified action cannot ship:
-
-```python
-APPLICATION_TOKEN_ISSUE = audit.Action(
-    "application.token.issue",
-    category=EventCategory.AUTHENTICATION,
-    types=(EventType.START,),
-)
-ROOM_CREATE = audit.Action("room.create")
-```
-
-`core/auditing.py` imports nothing but the audit facility, so that any module can import it, authentication classes included. Models and authentication classes are registered apart, in `core/audit_registry.py`.
-
-### Auditing a DRF view
-
-A Django REST Framework view, a DRF view, only declares the actions it audits: everything else is derived from the response. CRUD actions are mapped in `audit_actions`. An extra action names its own on its route, so that renaming its method cannot silently stop auditing it:
-
-```python
-from core import audit, auditing
-
-
-class RoomViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
-    audit_actions = {"create": auditing.ROOM_CREATE, "retrieve": auditing.ROOM_RETRIEVE}
-
-    def perform_create(self, serializer):
-        self.audit_target = serializer.save()
-
-    @action(detail=True, methods=["post"], audit_action=auditing.RECORDING_START)
-    def start_room_recording(self, request, pk=None): ...
-```
-
-`AuditViewMixin` fills in the rest:
-
-- It runs from DRF's `finalize_response` hook, which every response goes through, successful or not.
-- The ECS category and types come from the action, or default to `api` and the DRF action.
-- The outcome, reason and status code come from the response status: 401, 403 and 429 are `denied`, other errors are `failure`, filed as [Classification](#classification) describes.
-- The target is the object `get_object()` returned, unless the view assigns `audit_target`.
-- A view can also assign `audit_user_target`, `audit_actor`, where `None` records no account, and `audit_details`, or override `get_audit_fields()`.
-- An exception DRF does not handle is still recorded before it propagates.
-
-### Auditing from anywhere else
-
-Outside of `AuditViewMixin`, from a view or deeper in a service, call `audit.log`. A `category` or `types` given here wins over the action's:
-
-```python
-audit.log(auditing.USER_PROVISION, target=user)
-```
-
-Without `request=`, the event reads the context of the request being served, `audit.request_context()`, which `AuditLogMiddleware` captures when the request comes in. Outside a request, as in a Celery task, the context is empty and the actor is the system.
-
-!!! note
-    That context holds the Django request. DRF copies its user and auth onto it, but not its authenticator, so a call made inside a DRF view without `request=` should pass `auth_method=`.
-
-### How fields are filled
-
-- **Request fields** are read from the request: the real client address, the path and the user agent. `http.request.id` is the request id, settled by `AuditLogMiddleware` right after dockerflow assigns it, and echoed in the `DOCKERFLOW_REQUEST_ID_HEADER_NAME` response header. The inbound id is kept only when `REQUEST_ID_TRUST_HEADER` is set, see [Configuration](#configuration).
-- **The actor** is derived from `request.user`, `request.auth` and the DRF authenticator, as [Actors](#actors) describes. The authenticator's class is mapped to an auth method by `audit.register_auth_method`, see [Registering models](#registering-models-and-authentication-methods). Without a request, the actor is the system. You can override it with `actor=`, `actor_type=`, `auth_method=` and `client_id=`. An explicit `actor_type=` keeps the account the request is signed in as. `actor=None` records no account: for a caller failing to authenticate, an application acting before it is given a delegated user, or the system.
-- **The target** is described by its model name, its primary key and the `fields` its model is registered with, see [Targets](#targets). A model that is not registered is still identified. The account the action is about, `user.target`, is found from the target, unless given as `user_target=`. Name a service the backend calls with `target_service=`. Any other keyword argument lands under `lasuite.details`.
-
-### Emission never raises
-
-A broken configuration or value is reported on the application logger and to Sentry, and the business operation goes on. A registered field that cannot be read is left out of the target, and the event is still emitted.
-
-### How the admin is wired
-
-The wiring lives in `core/audit/admin.py`. `AuditedAdminSite` adds auditing to every admin class when it is registered, including those Django declares itself, and is installed through `core.audit.apps.AuditedAdminConfig` in `INSTALLED_APPS`. A new `ModelAdmin` is therefore covered without doing anything. Registering its model only adds its category and its allowed values.
-
-### Registering models and authentication methods
-
-The project describes itself to the audit facility in code, in `core/audit_registry.py`. Once the audit app is ready, it imports the `audit_registry` module of every installed app.
-
-**`audit.register(Model, ...)`** tells the audit log how to handle a model:
-
-- `fields`: the fields describing it as a target;
-- `admin_values`: the fields whose before and after values may be recorded for admin writes;
-- `category`: the ECS category of its admin writes;
-- `entity_type`: its ECS entity type, when one of the allowed values fits, such as `application` or `user`;
-- `user_target`: the attribute holding the account an event on it is about, such as `user` for an access.
-
-A proxy model falls back to its concrete model. Registering a model twice raises `AlreadyRegistered`, and an entity type ECS does not allow raises `ValueError`.
-
-**`audit.register_auth_method(klass, name)`** sets the `lasuite.auth.method` of a DRF authentication class or of a login backend. A DRF class inherits the name of its closest registered base, and DRF's own classes are built in. A login backend must be registered itself, because custom backends often subclass `ModelBackend` just for its permission checks. `ModelBackend` is built in as `password`.

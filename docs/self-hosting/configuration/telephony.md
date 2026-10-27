@@ -1,6 +1,6 @@
 # Telephony Integration
 
-Participants can join a meeting by phone through LiveKit's SIP bridge. SIP is the protocol phone providers use to set up calls. The room's info panel shows the dial-in number and the room's PIN; a caller dials the number, enters the PIN and joins as an audio-only participant.
+Participants can join a meeting by phone through LiveKit's SIP bridge. SIP is the protocol phone providers use to set up calls. A caller dials the number, enters the room's PIN and joins as an audio-only participant.
 
 !!!info
     Only Docker Compose is covered; the Helm chart does not deploy LiveKit SIP.
@@ -11,7 +11,7 @@ Participants can join a meeting by phone through LiveKit's SIP bridge. SIP is th
 Phone ──► PSTN ──► SIP Trunk ──► LiveKit SIP Bridge ──► LiveKit Room
 ```
 
-The PSTN is the public phone network. LiveKit's SIP component handles SIP signalling and converts audio between the phone network, usually G.711 (8 kHz), and WebRTC (Opus, 48 kHz). Phone participants therefore sound like a phone call. Recordings include their audio.
+The PSTN is the public phone network. LiveKit's SIP component handles SIP signalling and converts audio between the phone network, usually G.711 (8 kHz), and WebRTC (Opus, 48 kHz). Recordings include their audio.
 
 ## Prerequisites
 
@@ -99,7 +99,7 @@ lk sip inbound create \
 
 ## Dispatch rules
 
-Meet manages dispatch rules itself. When the first participant joins, LiveKit sends `room_started` and Meet creates a dispatch rule routing the room's PIN to it. On `room_finished` the rule is deleted. A caller can therefore join only while someone is connected from a browser, except Roomkit devices (see [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) in the Environment Variables reference).
+Meet manages dispatch rules itself: on LiveKit's `room_started` it creates a rule routing the room's PIN to the room, and on `room_finished` deletes it. A caller can therefore join only while someone is connected from a browser, except [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices.
 
 ## SIP provider setup (Twilio example)
 

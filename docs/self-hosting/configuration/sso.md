@@ -1,6 +1,6 @@
 # SSO & Authentication
 
-Meet signs users in through an **OpenID Connect (OIDC)** provider, and a production instance needs one. Users have no password in Meet. The only local passwords belong to the Django admin accounts created with `createsuperuser`.
+Meet signs users in through any standards-compliant **OpenID Connect (OIDC)** provider, which a production instance needs. Users have no password in Meet: only the Django admin accounts created with `createsuperuser` do.
 
 ```mermaid
 sequenceDiagram
@@ -19,9 +19,9 @@ sequenceDiagram
     BE-->>B: Session cookie, back to the page the user started from
 ```
 
-When a page loads without a Meet session, Meet first tries a silent login, `prompt=none`. A user already signed in at the provider is signed in to Meet without seeing a form. Anyone else stays on Meet, with a **Log in** button.
+When a page loads without a Meet session, Meet first tries a silent login, `prompt=none`: a user already signed in at the provider is signed in to Meet without seeing a form. A provider that does not support `prompt=none` needs [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../../reference/env-variables.md#frontend)`=False`.
 
-Any standards-compliant OIDC provider works. Keycloak, Authentik and Google each have a section here. Every variable is in [Environment Variables: Authentication](../../reference/env-variables.md#authentication-oidc).
+Every variable is in [Environment Variables: Authentication](../../reference/env-variables.md#authentication-oidc).
 
 ## Client configuration
 
@@ -71,23 +71,21 @@ OIDC_OP_USER_ENDPOINT=https://openidconnect.googleapis.com/v1/userinfo
 OIDC_RP_SCOPES=openid email profile
 ```
 
-Meet takes a user's display name from the `given_name` claim, which Google sends only with the `profile` scope. Google has no logout endpoint for third parties, so logging out ends the Meet session only.
+Meet takes a user's display name from the `given_name` claim, the default of [`OIDC_USERINFO_SHORTNAME_FIELD`](../../reference/env-variables.md#authentication-oidc), which Google sends only with the `profile` scope. Google has no logout endpoint for third parties, so logging out ends the Meet session only.
 
 ## Unauthenticated access
 
-While [`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#rooms-and-waiting-room) is `True`, the code's default, anyone can start a meeting without an account. They open a room code no room uses yet, from **Join a meeting** or straight from the address bar. That meeting is open to anyone with the code, has no owner, and creates no room.
+[`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#rooms-and-waiting-room) decides what opening a room code no room uses yet does:
 
-With `False`, which `env.d/production.dist/common` ships, such a code answers 404 to anonymous visitors. A signed-in visitor who opens it creates the room and owns it.
-
-Signed-in users create rooms from the home page. A room keeps its code and an owner, and its access level decides who joins directly. Everyone else goes to the waiting room.
-
-| Access level | Joins directly |
+| `ALLOW_UNREGISTERED_ROOMS` | Opening an unused room code |
 |---|---|
-| `public` | Anyone with the link |
-| `trusted` | Signed-in users |
-| `restricted` | People holding a role on the room |
+| `True`, the code's default | Anyone starts a meeting without an account. It is open to anyone with the code, has no owner and creates no room |
+| `False`, as `env.d/production.dist/common` ships | Anonymous visitors get a 404. A signed-in visitor creates the room and owns it |
 
-A new room takes the level its creator picked under **Settings → Rooms**. A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#rooms-and-waiting-room). To make it `trusted`:
+A room's access level decides who joins directly and who waits in the waiting room, see [How Meet works: Who gets in](../../overview/how-meet-works.md#who-gets-in):
+
+- A new room takes the level its creator picked under **Settings → Rooms**.
+- A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#rooms-and-waiting-room), `public` by default. To make it `trusted`:
 
 ```dotenv
 RESOURCE_DEFAULT_ACCESS_LEVEL=trusted

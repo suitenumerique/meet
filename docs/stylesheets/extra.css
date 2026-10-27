@@ -27,3 +27,18 @@ pre.mermaid {
   margin: 0.3rem auto 0;
   max-width: none;
 }
+
+/* A diagram opens full screen on click, see javascripts/mermaid-zoom.js. */
+.md-typeset div.mermaid {
+  cursor: zoom-in;
+}
+.mermaid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--md-default-bg-color);
+  cursor: zoom-out;
+}
