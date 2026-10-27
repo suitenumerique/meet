@@ -23,6 +23,12 @@ def get_settings_override():
 
 
 @pytest.fixture()
+def settings_override():
+    """Provide isolated settings containing the test tenant."""
+    return get_settings_override()
+
+
+@pytest.fixture()
 def client():
     """Provide a FastAPI TestClient for tests."""
     client = TestClient(app)

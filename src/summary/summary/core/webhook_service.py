@@ -30,16 +30,19 @@ def call_webhook_v2(
     logger.debug("Submitting to %s", tenant.webhook_url)
     logger.debug("Request payload: %s", payload.model_dump_json(indent=2))
 
-    response = requests.post(
-        tenant.webhook_url,
-        json=dump_for_transport(payload),
-        headers={
-            "Authorization": f"Bearer {tenant.webhook_api_key.get_secret_value()}",
-            "User-Agent": settings.app_external_user_agent,
-        },
-        timeout=(10, 20),
-    )
-    response.raise_for_status()
+    try:
+        response = requests.post(
+            tenant.webhook_url,
+            json=dump_for_transport(payload),
+            headers={
+                "Authorization": f"Bearer {tenant.webhook_api_key.get_secret_value()}",
+                "User-Agent": settings.app_external_user_agent,
+            },
+            timeout=(10, 20),
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        raise requests.RequestException("Webhook delivery failed") from None
 
     try:
         response_data = response.json()

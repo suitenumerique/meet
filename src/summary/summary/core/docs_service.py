@@ -4,7 +4,7 @@ import json
 import logging
 from urllib.parse import urljoin
 
-from requests import Session
+from requests import RequestException, Session
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
@@ -43,6 +43,8 @@ def _post_with_retries(*, url, data, api_key: str | None = None):
         response = session.post(url, json=data, timeout=(20, 3 * 60))
         response.raise_for_status()
         return response
+    except RequestException:
+        raise RequestException("Docs delivery failed") from None
     finally:
         session.close()
 

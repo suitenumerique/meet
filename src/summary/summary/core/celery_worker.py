@@ -171,9 +171,9 @@ def transcribe_audio(
             try:
                 res.raise_for_status()
             except requests.exceptions.HTTPError:
-                logger.exception("WhisperX transcription failed")
+                logger.error("WhisperX transcription failed")
                 # We reraise the error so that it can be retried by celery
-                raise
+                raise requests.exceptions.HTTPError("WhisperX request failed") from None
 
             transcription_json: dict[str, Any] = res.json()
             # We remove the "usage" key from the transcription_json dictionary
@@ -213,7 +213,7 @@ def transcribe_audio(
         redacted_cloud_storage_url = (
             redact_url(cloud_storage_url) if cloud_storage_url else None
         )
-        logger.exception(
+        logger.error(
             ("Unexpected error while preparing file %s "),
             redacted_cloud_storage_url,
         )
@@ -253,21 +253,18 @@ def resolve_speaker_identities_and_apply_to(
         new_transcription = speaker_mapping.apply_to(transcription.model_dump())
         return WhisperXResponse.model_validate(new_transcription)
 
-    except FileServiceException as exc:
+    except FileServiceException:
         logger.error(
-            "Error reading metadata for task %s; skipping speaker assignment."
-            " Error: %s",
+            "Error reading metadata for task %s; skipping speaker assignment.",
             task_id,
-            exc,
         )
         return transcription
 
-    except Exception as exc:
-        logger.exception(
+    except Exception:
+        logger.error(
             "resolve_speaker_identities failed for task %s; skipping"
-            " speaker assignment. Error: %s",
+            " speaker assignment.",
             task_id,
-            exc,
         )
         return transcription
 
