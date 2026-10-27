@@ -10,13 +10,16 @@ import {
   RiFileCopyLine,
   RiSpam2Fill,
 } from '@remixicon/react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { css } from '@/styled-system/css'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
+import { useEscapeToClose } from '@/hooks/useEscapeToClose'
+import { getFirstControlBarFocusable } from '@/utils/dom'
+import { CONTROL_BAR_REGION_ID } from '@/features/layout/components/ControlBarRegion'
 
 // fixme - extract in a proper primitive this dialog without overlay
 const StyledRACDialog = styled(Dialog, {
@@ -64,9 +67,20 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
     copyRoomUrlToClipboard,
   } = useCopyRoomToClipboard(roomData)
 
+  const dialogRef = useRef<HTMLElement>(null)
+
+  const dismiss = () => {
+    // The dialog opens on its own when joining, so there is no trigger to
+    // restore focus to: move it to the control bar instead of body.
+    getFirstControlBarFocusable(CONTROL_BAR_REGION_ID)?.focus()
+    setIsDismissed(true)
+  }
+
+  useEscapeToClose(showInviteDialog, dialogRef, dismiss)
+
   if (!showInviteDialog) return null
   return (
-    <StyledRACDialog>
+    <StyledRACDialog ref={dialogRef}>
       <VStack
         alignItems="left"
         justify="start"
@@ -81,9 +95,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
             invisible
             variant="tertiaryText"
             size="xs"
-            onPress={() => {
-              setIsDismissed(true)
-            }}
+            onPress={dismiss}
             aria-label={t('closeDialog')}
           >
             <RiCloseLine />
