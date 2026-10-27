@@ -54,8 +54,8 @@ class Analytics:
             self._client.capture(
                 event_name, distinct_id=distinct_id, properties=properties
             )
-        except Exception as e:
-            raise AnalyticsException("Failed to capture analytics event") from e
+        except Exception:
+            raise AnalyticsException("Failed to capture analytics event") from None
 
     def is_feature_enabled(self, feature_name: str, distinct_id: str = None) -> bool:
         """Check if a feature flag is enabled for a user."""
@@ -64,8 +64,8 @@ class Analytics:
 
         try:
             return self._client.feature_enabled(feature_name, distinct_id)
-        except Exception as e:
-            logger.error("Error checking feature flag %s: %s", feature_name, e)
+        except Exception:
+            logger.error("Error checking feature flag %s", feature_name)
             return False
 
 
