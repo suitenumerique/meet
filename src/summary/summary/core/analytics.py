@@ -5,7 +5,6 @@ import socket
 import time
 from collections import Counter
 from functools import cached_property, lru_cache
-from urllib.parse import urlsplit, urlunsplit
 
 import redis
 from celery.utils.log import get_task_logger
@@ -13,6 +12,7 @@ from posthog import Posthog
 
 from summary.core.config import get_settings
 from summary.core.models import SummarizeTaskJob, TranscribeTaskJob
+from summary.core.privacy import redact_url
 
 logger = get_task_logger(__name__)
 settings = get_settings()
@@ -133,8 +133,7 @@ class MetadataManager:
         }
 
         if isinstance(task_payload, TranscribeTaskJob):
-            parts = urlsplit(task_payload.cloud_storage_url)
-            clean_url = urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
+            clean_url = redact_url(task_payload.cloud_storage_url)
             initial_metadata["source_url"] = clean_url
             initial_metadata["asr_model"] = settings.whisperx_asr_model
         elif isinstance(task_payload, SummarizeTaskJob):

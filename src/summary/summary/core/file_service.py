@@ -17,6 +17,7 @@ import requests
 from botocore.config import Config
 
 from summary.core.config import get_settings
+from summary.core.privacy import redact_url
 from summary.core.shared_models import WhisperXResponse
 
 settings = get_settings()
@@ -314,7 +315,7 @@ class FileService:
         """Download file from a cloud storage URL to local temporary file."""
         logger.info(
             "Download recording from URL | cloud_storage_url: %s",
-            cloud_storage_url,
+            redact_url(cloud_storage_url),
         )
 
         if not cloud_storage_url:
@@ -376,7 +377,7 @@ class FileService:
 
     def read_cloud_storage_json(self, cloud_storage_url: str) -> dict:
         """Read and parse a JSON file from a url."""
-        logger.info("Reading JSON: %s", cloud_storage_url)
+        logger.info("Reading JSON: %s", redact_url(cloud_storage_url))
         res = requests.get(cloud_storage_url, timeout=(10, 100))
         res.raise_for_status()
         return res.json()
