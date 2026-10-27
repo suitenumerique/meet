@@ -2,7 +2,9 @@
 
 from typing import Annotated, Literal, Union
 
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+
+from summary.core.types import SecretUrl
 
 
 class WordSegment(BaseModel):
@@ -65,6 +67,8 @@ class WhisperXResponse(BaseModel):
 class BaseWebhook(BaseModel):
     """Base webhook payload."""
 
+    model_config = ConfigDict(hide_input_in_errors=True)
+
     job_id: str = Field(
         title="Job ID",
         description="The ID of the job document in the receiver system.",
@@ -76,7 +80,7 @@ class TranscribeWebhookSuccessPayload(BaseWebhook):
 
     type: Literal["transcript"] = Field(default="transcript")
     status: Literal["success"] = Field(default="success")
-    transcription_data_url: str = Field(
+    transcription_data_url: SecretUrl = Field(
         title="Transcript", description="URL to the raw transcription data."
     )
 
@@ -121,7 +125,7 @@ class SummarizeWebhookSuccessPayload(BaseWebhook):
 
     type: Literal["summary"] = Field(default="summary")
     status: Literal["success"] = Field(default="success")
-    summary_data_url: str = Field(
+    summary_data_url: SecretUrl = Field(
         title="Summary", description="URL to the raw summary data."
     )
 

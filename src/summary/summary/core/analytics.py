@@ -133,7 +133,7 @@ class MetadataManager:
         }
 
         if isinstance(task_payload, TranscribeTaskJob):
-            clean_url = redact_url(task_payload.cloud_storage_url)
+            clean_url = redact_url(task_payload.cloud_storage_url.get_secret_value())
             initial_metadata["source_url"] = clean_url
             initial_metadata["asr_model"] = settings.whisperx_asr_model
         elif isinstance(task_payload, SummarizeTaskJob):

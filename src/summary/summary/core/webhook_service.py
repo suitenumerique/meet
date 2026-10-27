@@ -6,6 +6,7 @@ import logging
 import requests
 
 from summary.core.config import get_settings
+from summary.core.privacy import dump_for_transport
 from summary.core.shared_models import (
     WebhookPayloads,
 )
@@ -31,7 +32,7 @@ def call_webhook_v2(
 
     response = requests.post(
         tenant.webhook_url,
-        json=payload.model_dump(),
+        json=dump_for_transport(payload),
         headers={
             "Authorization": f"Bearer {tenant.webhook_api_key.get_secret_value()}",
             "User-Agent": settings.app_external_user_agent,
