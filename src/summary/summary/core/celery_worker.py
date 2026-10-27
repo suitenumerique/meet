@@ -3,13 +3,14 @@
 # ruff: noqa: PLR0913
 
 import json
+import logging
 import time
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin
 
 import requests
-from celery import Celery, signals
+from celery import Celery, Task, signals
 from celery.utils.log import get_task_logger
 from openai.types.audio import Transcription
 from pydantic import SecretStr, ValidationError
@@ -72,8 +73,18 @@ def _reveal(secret: SecretStr | None) -> str | None:
     return secret.get_secret_value() if secret is not None else None
 
 
+class PrivateTask(Task):
+    """Hide task arguments in Celery logs and monitoring events."""
+
+    def apply_async(self, args=None, kwargs=None, **options):
+        """Publish with redacted display representations."""
+        options.update(argsrepr="[Filtered]", kwargsrepr="[Filtered]")
+        return super().apply_async(args=args, kwargs=kwargs, **options)
+
+
 celery = Celery(
     __name__,
+    task_cls=PrivateTask,
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
     broker_connection_retry_on_startup=True,
@@ -85,10 +96,28 @@ celery = Celery(
 celery.config_from_object("summary.core.celery_config")
 
 
+class CeleryLogPrivacyFilter(logging.Filter):
+    """Prevent Celery trace logs from serializing task results or exceptions."""
+
+    def filter(self, record):
+        """Keep task identity and state without upstream values."""
+        if record.levelno < logging.INFO:
+            return True
+        data = getattr(record, "data", None)
+        if isinstance(data, dict):
+            record.msg = "Task %s[%s] finished or retried (details omitted)"
+            record.args = (data.get("name", "unknown"), data.get("id", "unknown"))
+            record.data = {}
+            record.exc_info = None
+            record.exc_text = None
+        return True
+
+
 @signals.celeryd_init.connect
 def init_celery_sentry(**_kwargs):
     """Initialize Sentry in the Celery worker."""
     init_sentry()
+    logging.getLogger("celery.app.trace").addFilter(CeleryLogPrivacyFilter())
 
 
 file_service = FileService()

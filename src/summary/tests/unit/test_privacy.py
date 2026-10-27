@@ -90,6 +90,33 @@ def test_analytics_failure_does_not_chain_payload(monkeypatch):
     assert exc.value.__suppress_context__
 
 
+@pytest.mark.parametrize("log_level", [logging.DEBUG, logging.INFO, logging.ERROR])
+def test_celery_log_filter_respects_log_level(log_level):
+    """Celery trace values remain available in DEBUG only."""
+    record = logging.LogRecord(
+        "celery.app.trace", log_level, "", 0, "%s", (CANARY,), None
+    )
+    record.data = {"name": "task", "id": "job", "return_value": URL}
+    assert celery_worker.CeleryLogPrivacyFilter().filter(record)
+    if log_level == logging.DEBUG:
+        assert CANARY in record.getMessage()
+        assert record.data["return_value"] == URL
+    else:
+        assert CANARY not in record.getMessage()
+        assert record.data == {}
+
+
+def test_task_arguments_have_private_display_representations(monkeypatch):
+    """The actual task arguments are delivered but their event repr is hidden."""
+    publish = Mock()
+    monkeypatch.setattr(celery_worker.Task, "apply_async", publish)
+    task = celery_worker.PrivateTask()
+    task.apply_async(args=[CANARY], kwargs={"url": URL})
+    assert publish.call_args.kwargs["args"] == [CANARY]
+    assert publish.call_args.kwargs["argsrepr"] == "[Filtered]"
+    assert publish.call_args.kwargs["kwargsrepr"] == "[Filtered]"
+
+
 def test_analytics_source_url_removes_signature():
     """Task analytics keeps the source path without credentials or signature."""
     from datetime import datetime, timezone  # noqa: PLC0415
