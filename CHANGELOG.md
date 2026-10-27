@@ -45,6 +45,13 @@ and this project adheres to
 - ⬆️(backend) upgrade django-lasuite to v1.0.0
 - ⚡️(docker) build frontend assets natively for arm64 images
 
+### Fixed
+
+- 🔒️(summary) protect signed URLs in models, source logs and analytics metadata
+- 🔒️(summary) mask secret validation inputs and sanitize upstream and task errors
+- 🔒️(summary) scrub sensitive Sentry event and breadcrumb content while retaining
+  redacted frame locals and application DEBUG diagnostics
+
 ## [1.36.3] - 2026-10-23
 
 ### Fixed
