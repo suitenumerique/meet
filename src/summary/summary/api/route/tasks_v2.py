@@ -14,6 +14,7 @@ from summary.core.celery_worker import (
 )
 from summary.core.config import AuthorizedTenant, get_settings
 from summary.core.models import SummarizeTaskApiRequest, TranscribeTaskApiRequest
+from summary.core.privacy import dump_for_transport
 from summary.core.security import verify_tenant_api_key_v2
 from summary.core.shared_models import (
     SummarizeWebhookFailurePayload,
@@ -52,7 +53,7 @@ async def create_transcribe_task_v2(
     task = process_audio_transcribe_v2_task.apply_async(
         args=[
             {
-                **request.model_dump(),
+                **dump_for_transport(request),
                 "tenant_id": request_tenant.id,
                 "received_at": datetime.now(timezone.utc),
             }
@@ -125,7 +126,9 @@ async def get_transcribe_job_status(
 
     if task.status == "SUCCESS":
         result = task.result
-        return TranscribeWebhookSuccessPayload.model_validate(result).model_dump()
+        return dump_for_transport(
+            TranscribeWebhookSuccessPayload.model_validate(result)
+        )
 
     if task.status == "FAILURE":
         return TranscribeWebhookFailurePayload(
@@ -155,7 +158,7 @@ async def get_summarize_job_status(
 
     if task.status == "SUCCESS":
         result = task.result
-        return SummarizeWebhookSuccessPayload.model_validate(result).model_dump()
+        return dump_for_transport(SummarizeWebhookSuccessPayload.model_validate(result))
 
     if task.status == "FAILURE":
         return SummarizeWebhookFailurePayload(

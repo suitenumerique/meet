@@ -3,6 +3,8 @@
 from datetime import datetime
 from unittest.mock import ANY, MagicMock, patch
 
+import pytest
+
 
 class TestTasksV2:
     """Tests for the /v2/async-jobs-jobs endpoints."""
@@ -174,3 +176,64 @@ class TestTasksV2:
 
         assert response.status_code == 403
         assert response.json() == {"detail": "Forbidden"}
+
+
+@patch(
+    "summary.api.route.tasks_v2.process_audio_transcribe_v2_task.apply_async",
+    return_value=MagicMock(id="transcribe-job"),
+)
+def test_signed_urls_are_unwrapped_for_task_submission(mock_apply_async, client):
+    """API input secrets reach Celery intact, including nested metadata URLs."""
+    signed_url = "https://storage.example.com/file?signature=deterministic-signature"
+    response = client.post(
+        "/api/v2/async-jobs/transcribe",
+        headers={"Authorization": "Bearer test-api-token"},
+        json={
+            "user_sub": "user",
+            "language": "en",
+            "cloud_storage_url": signed_url,
+            "metadata": {
+                "cloud_storage_url": signed_url,
+                "started_at": "2026-01-01T10:00:00Z",
+                "ended_at": "2026-01-01T11:00:00Z",
+            },
+        },
+    )
+    assert response.status_code == 200
+    payload = mock_apply_async.call_args.kwargs["args"][0]
+    assert payload["cloud_storage_url"] == signed_url
+    assert payload["metadata"]["cloud_storage_url"] == signed_url
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        ("transcribe", "transcript", "transcription_data_url"),
+        ("summarize", "summary", "summary_data_url"),
+    ],
+)
+@patch("summary.api.route.tasks_v2.celery")
+@patch("summary.api.route.tasks_v2.AsyncResult")
+def test_success_status_returns_usable_signed_url(
+    mock_async_result, mock_celery, client, case
+):
+    """Success responses explicitly reveal result URLs for authorized clients."""
+    job_type, payload_type, url_field = case
+    signed_url = "https://storage.example.com/result?signature=deterministic-signature"
+    mock_celery.backend.client.exists.return_value = True
+    mock_async_result.return_value = MagicMock(
+        status="SUCCESS",
+        args=[{"tenant_id": "test-tenant"}],
+        result={"job_id": "job", url_field: signed_url},
+    )
+    response = client.get(
+        f"/api/v2/async-jobs/{job_type}/job",
+        headers={"Authorization": "Bearer test-api-token"},
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "job_id": "job",
+        "type": payload_type,
+        "status": "success",
+        url_field: signed_url,
+    }

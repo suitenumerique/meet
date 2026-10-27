@@ -2,16 +2,25 @@
 
 from datetime import datetime
 
-from pydantic import AwareDatetime, BaseModel, EmailStr, Field, field_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+)
 
 from summary.core.config import get_settings
-from summary.core.types import Url
+from summary.core.types import SecretUrl
 
 settings = get_settings()
 
 
 class SharedV2TaskCreation(BaseModel):
     """Model that holds basic information for task creation."""
+
+    model_config = ConfigDict(hide_input_in_errors=True)
 
     user_sub: str = Field(title="User Sub", description="The user's sub.")
     user_email: EmailStr | None = Field(
@@ -24,7 +33,9 @@ class SharedV2TaskCreation(BaseModel):
 class RecordingMetadata(BaseModel):
     """Model for recording metadata."""
 
-    cloud_storage_url: Url = Field(
+    model_config = ConfigDict(hide_input_in_errors=True)
+
+    cloud_storage_url: SecretUrl = Field(
         title="Cloud Storage URL",
         description="The URL of the metadata file for speaker assignment.",
     )
@@ -35,6 +46,8 @@ class RecordingMetadata(BaseModel):
 class PushToDocsBaseConfig(BaseModel):
     """Model containing information for pushing transcript and summaries to docs."""
 
+    model_config = ConfigDict(hide_input_in_errors=True)
+
     user_email: EmailStr = Field(
         title="User Email", description="The user's email, future owner of the docs."
     )
@@ -44,12 +57,12 @@ class PushToDocsBaseConfig(BaseModel):
 class PushToDocsTranscriptConfig(PushToDocsBaseConfig):
     """Model for push to docs information for transcripts."""
 
-    download_link: Url | None = Field(
+    download_link: SecretUrl | None = Field(
         default=None,
         title="Download Link",
         description="The link to download the recording.",
     )
-    form_link: Url | None = Field(
+    form_link: SecretUrl | None = Field(
         default=None,
         title="Form Link",
         description="The link to fill out a form for the recording.",
@@ -69,7 +82,7 @@ class PushToDocsSummaryConfig(PushToDocsBaseConfig):
 class TranscribeTaskApiRequest(SharedV2TaskCreation):
     """Model for creating a transcribe task (used for API request)."""
 
-    cloud_storage_url: Url = Field(
+    cloud_storage_url: SecretUrl = Field(
         title="Cloud storage URL",
         description="The URL of the audio file to transcribe.",
     )

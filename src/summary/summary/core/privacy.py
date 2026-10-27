@@ -2,6 +2,23 @@
 
 from urllib.parse import urlsplit, urlunsplit
 
+from pydantic import BaseModel, SecretStr
+
+
+def dump_for_transport(model: BaseModel) -> dict:
+    """Reveal secrets explicitly for task messages, HTTP bodies and API responses."""
+
+    def reveal(value):
+        if isinstance(value, SecretStr):
+            return value.get_secret_value()
+        if isinstance(value, dict):
+            return {key: reveal(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [reveal(item) for item in value]
+        return value
+
+    return reveal(model.model_dump())
+
 
 def redact_url(url):
     """Keep the source identifiable without logging query or user credentials."""

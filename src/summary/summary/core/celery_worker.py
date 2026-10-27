@@ -12,6 +12,7 @@ import requests
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
 from openai.types.audio import Transcription
+from pydantic import SecretStr
 from requests import exceptions
 
 from summary.core.analytics import MetadataManager, get_analytics
@@ -31,7 +32,7 @@ from summary.core.models import (
     SummarizeTaskJob,
     TranscribeTaskJob,
 )
-from summary.core.privacy import redact_url
+from summary.core.privacy import dump_for_transport, redact_url
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
     FORMAT_PLAN,
@@ -63,6 +64,11 @@ analytics = get_analytics()
 metadata_manager = MetadataManager()
 
 logger = get_task_logger(__name__)
+
+
+def _reveal(secret: SecretStr | None) -> str | None:
+    """Return the underlying value of an optional secret."""
+    return secret.get_secret_value() if secret is not None else None
 
 
 celery = Celery(
@@ -232,7 +238,7 @@ def resolve_speaker_identities_and_apply_to(
     logger.debug("Running resolve_speaker_identities")
     try:
         metadata = file_service.read_cloud_storage_json(
-            recording_metadata.cloud_storage_url
+            recording_metadata.cloud_storage_url.get_secret_value()
         )
         speaker_mapping = resolve_speaker_identities(
             metadata,
@@ -479,7 +485,7 @@ def process_audio_transcribe_v2_task(
         transcription_res = WhisperXResponse(
             **transcribe_audio(  # type: ignore
                 task_id=job_id,
-                cloud_storage_url=payload.cloud_storage_url,
+                cloud_storage_url=payload.cloud_storage_url.get_secret_value(),
                 language=payload.language,
                 raises=True,
             ).model_dump()
@@ -516,8 +522,8 @@ def process_audio_transcribe_v2_task(
             transcription_res.model_dump(),
             payload.context_language,
             payload.language,
-            payload.push_to_docs_config.download_link,
-            payload.push_to_docs_config.form_link,
+            _reveal(payload.push_to_docs_config.download_link),
+            _reveal(payload.push_to_docs_config.form_link),
         )
 
         create_document_in_lasuite_docs(
@@ -558,11 +564,11 @@ def process_audio_transcribe_v2_task(
         transcription_data_url=file_service.get_transcript_signed_url(job_id),
     )
     call_webhook_v2_task.apply_async(
-        args=[success_payload.model_dump(), payload.tenant_id]
+        args=[dump_for_transport(success_payload), payload.tenant_id]
     )
     metadata_manager.capture(job_id, settings.posthog_transcript_success)
 
-    return success_payload.model_dump()
+    return dump_for_transport(success_payload)
 
 
 @signals.task_prerun.connect(sender=process_audio_transcribe_v2_task)
@@ -654,11 +660,11 @@ def summarize_v2_task(
         summary_data_url=file_service.get_summary_signed_url(job_id),
     )
     call_webhook_v2_task.apply_async(
-        args=[success_payload.model_dump(), payload.tenant_id]
+        args=[dump_for_transport(success_payload), payload.tenant_id]
     )
     metadata_manager.capture(job_id, settings.posthog_summary_success)
 
-    return success_payload.model_dump()
+    return dump_for_transport(success_payload)
 
 
 @signals.task_prerun.connect(sender=summarize_v2_task)
