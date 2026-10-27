@@ -353,10 +353,10 @@ class FileService:
                     logger.debug("Recording local file path: %s", local_path)
                     return local_path
 
-        except requests.RequestException as e:
+        except requests.RequestException:
             raise FileServiceException(
                 "Unexpected error while downloading object from cloud_storage_url."
-            ) from e
+            ) from None
 
     def _validate_duration(self, duration_seconds: float) -> None:
         """Validate audio file duration against configured maximum."""
