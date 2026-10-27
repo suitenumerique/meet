@@ -79,6 +79,17 @@ def test_webhook_failure_keeps_retry_category(monkeypatch, settings_override):
     assert exc.value.__suppress_context__
 
 
+def test_analytics_failure_does_not_chain_payload(monkeypatch):
+    """Analytics errors do not expose arbitrary client exception text."""
+    client = analytics.Analytics()
+    client._client = Mock()
+    client._client.capture.side_effect = ValueError(CANARY)
+    with pytest.raises(analytics.AnalyticsException) as exc:
+        client.capture("event", "user")
+    assert CANARY not in str(exc.value)
+    assert exc.value.__suppress_context__
+
+
 def test_analytics_source_url_removes_signature():
     """Task analytics keeps the source path without credentials or signature."""
     from datetime import datetime, timezone  # noqa: PLC0415
