@@ -1,9 +1,12 @@
 """Sentry configuration."""
 
+import re
+
 import sentry_sdk
 from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScrubber
 
 from summary.core.config import get_settings
+from summary.core.privacy import redact_url
 
 # Exact names (case-insensitive) of variables and dict keys to redact.
 SENSITIVE_DATA_DENYLIST = [
@@ -90,5 +93,45 @@ def init_sentry() -> None:
         # Task creation requests carry the content to summarize.
         max_request_body_size="never",
         include_local_variables=True,
+        before_send=before_send,
+        before_send_transaction=before_send,
+        before_breadcrumb=before_breadcrumb,
         event_scrubber=build_event_scrubber(),
     )
+
+
+def _scrub_strings(value):
+    """Remove URL credentials, queries and fragments throughout an event."""
+    if isinstance(value, str):
+        return re.sub(
+            r"https?://[^\s\"'<>]+",
+            lambda m: redact_url(m.group()),
+            value,
+            flags=re.IGNORECASE,
+        )
+    if isinstance(value, dict):
+        return {key: _scrub_strings(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_scrub_strings(item) for item in value]
+    return value
+
+
+def before_send(event, hint):
+    """Keep exception types and stacks, but discard untrusted message text."""
+    del hint
+    event.pop("message", None)
+    event.pop("logentry", None)
+    request = event.get("request", {})
+    request.pop("data", None)
+    request.pop("query_string", None)
+    for exception in event.get("exception", {}).get("values", []):
+        exception["value"] = "[Filtered]"
+    return _scrub_strings(event)
+
+
+def before_breadcrumb(crumb, hint):
+    """Drop arbitrary breadcrumb text and scrub URLs in structured data."""
+    del hint
+    crumb.pop("message", None)
+    crumb.pop("data", None)
+    return _scrub_strings(crumb)
