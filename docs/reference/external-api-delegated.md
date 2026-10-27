@@ -1,8 +1,8 @@
 # External API - Application-Delegated Auth
 
-In this mode, your backend exchanges an application's client ID and secret for a short-lived token that acts for one user, named by email. The endpoints, scopes and room object the token then reaches are in [External API](external-api.md).
+In this mode, your backend exchanges an application's client ID and secret for a short-lived token that acts for one user, named by email. [External API](external-api.md) lists the endpoints, scopes and room object the token then gives access to.
 
-The token endpoint needs both `EXTERNAL_API_ENABLED=True` and `APPLICATION_ENABLED=True` on the backend. Missing either, it answers 404, with no hint of which one is off.
+The token endpoint needs both `EXTERNAL_API_ENABLED=True` and `APPLICATION_ENABLED=True` on the backend. If either is missing, it returns 404 without saying which one is off.
 
 ## When to use this mode
 
@@ -35,7 +35,7 @@ Content-Type: application/json
 }
 ```
 
-`scope` carries the email address of the user to act for, and nothing else.
+`scope` holds only the email address of the user to act for.
 
 **Response:**
 ```json

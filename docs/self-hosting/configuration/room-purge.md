@@ -57,7 +57,7 @@ Run the command once a day. With `--dry-run`, it lists the rooms it would delete
     docker compose exec backend python manage.py purge_inactive_rooms --dry-run
     ```
 
-    Compose has no scheduler, so add a line to the host's crontab with `crontab -e`. This one runs the purge every day at 01:00. `-T` keeps a terminal out of the command, which cron does not have:
+    Compose has no scheduler, so add a line to the host's crontab with `crontab -e`. This one runs the purge every day at 01:00. `-T` disables the pseudo-terminal, which cron does not provide:
 
     ```bash
     0 1 * * * cd $HOME/docker/meet && docker compose exec -T backend python manage.py purge_inactive_rooms

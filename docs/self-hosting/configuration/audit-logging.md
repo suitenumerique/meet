@@ -2,7 +2,7 @@
 
 Meet keeps an **audit log**: a record of the notable things that happen in the product, such as a room created through the external API, a recording started, a sign-in, or a change made in the Django admin. Every entry answers the same questions: who did what, to what, on whose behalf, from where, and whether it worked.
 
-- Each event is one line of JSON on the backend's standard output, from its own logger, `audit`, apart from the application logs.
+- Each event is one line of JSON that a dedicated logger, `audit`, writes to the backend's standard output, separate from the application logs.
 - Events follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs) (ECS) 9.5.0, which most SIEMs read without extra setup.
 - Audit logging is always on and needs no setting.
 
@@ -90,11 +90,11 @@ Each event is one compact line on the backend's output. A log shipper tells it f
 
 ## Configuration
 
-Every audit variable and its default is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging). Three of them depend on your deployment:
+Every audit variable and its default is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging), and `NUM_PROXIES` in [Core](../../reference/env-variables.md#core). These depend on your deployment:
 
 - **`NUM_PROXIES`** counts the proxies in front of the backend that append to `X-Forwarded-For`; the rate limits use it too. The backend takes the client address that many entries from the right, so an address a client injects is ignored. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. The Docker Compose template sets `2`, for the reverse proxy and the frontend's nginx: with `1` there, every event would record the reverse proxy as the client. Add one for a load balancer that also appends.
-- **`REQUEST_ID_TRUST_HEADER`** reuses the request id the proxy sends, so the proxy, Gunicorn and the audit events share one id. Set it only when the proxy overwrites the header, on nginx with `proxy_set_header X-Request-ID $request_id;`. Otherwise nginx forwards the client's header, and a client could pick the id of someone else's request. `DOCKERFLOW_REQUEST_ID_HEADER_NAME` names that header.
-- **`AUDIT_LOG_SERVICE_NAME`** and **`AUDIT_LOG_DATA_STREAM_NAMESPACE`** set the data stream events are meant for, `logs-<service name>.audit-<namespace>`. The backend turns any `-` in the service name into `_`, and refuses to start when the namespace contains a `-`.
+- **`REQUEST_ID_TRUST_HEADER`** reuses the request id the proxy sends, so the proxy, Gunicorn and the audit events share one id. Set it only when the proxy overwrites the header, for example on nginx with `proxy_set_header X-Request-ID $request_id;`. Otherwise nginx forwards the client's header, and a client could pick the id of someone else's request. `DOCKERFLOW_REQUEST_ID_HEADER_NAME` names that header.
+- **`AUDIT_LOG_SERVICE_NAME`** and **`AUDIT_LOG_DATA_STREAM_NAMESPACE`** set the data stream events are meant for, `logs-<service name>.audit-<namespace>`. The backend lower-cases the service name and turns any `-` in it into `_`, and refuses to start when the namespace contains a `-`.
 
 ## Answering common questions
 
@@ -115,9 +115,9 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | Field | Meaning |
 |---|---|
 | `@timestamp` | When the event was emitted: ISO 8601, in UTC, with millisecond precision |
-| `data_stream.*`, `event.dataset` | `logs`, `<AUDIT_LOG_SERVICE_NAME>.audit` and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
+| `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` as [Configuration](#configuration) builds it, and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
 | `service.name`, `service.environment`, `service.version`, `service.node.name` | The backend instance that wrote the event: `AUDIT_LOG_SERVICE_NAME`, the current environment, the release and the host name, which is the pod on Kubernetes. Never the caller |
-| `service.origin.name` | The internal service that called the backend, when the actor is a `service`: `roomkit`, `summary` or `livekit` |
+| `service.origin.name` | The internal service that called the backend, when the actor is a `service`: `summary` or `livekit` |
 | `service.target.name` | The service the backend called, such as `summary` for `recording.transcript.request` |
 | `event.id` | Unique id of the event, so that a shipper retrying it cannot create a duplicate |
 | `event.action` | What was attempted, from the [Catalogue](#catalogue), whatever the result: a refused `room.create` is still a `room.create` |
@@ -146,12 +146,12 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 
 ### Targets
 
-The resource an action was performed on is described in ECS `entity.target`, a field set ECS added in 9.3 and still flags as beta.
+The resource an action was performed on is described in ECS `entity.target`, a recent field set that ECS may still flag as beta.
 
 | Field | Meaning |
 |---|---|
 | `entity.target.id` | Its primary key |
-| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess` or `transit_code`, identified by its SHA-256 |
+| `entity.target.sub_type` | Its model, such as `room`, `recording`, `user`, `application`, `resourceaccess` or `transit_code`, identified by its SHA-256 |
 | `entity.target.type` | Its ECS entity type, when one fits: `user` for an account, `application` for an application |
 | `entity.target.name` | Its name, when its model registers one |
 | `entity.target.raw.*` | The other fields its model registers, such as a room's `slug` and `access_level`, or the OIDC `sub` of a user |
@@ -164,7 +164,7 @@ The resource an action was performed on is described in ECS `entity.target`, a f
 |---|---|---|
 | `user` | A person's account acting for itself: through a session, an OIDC or password login, an add-on token, or the LiveKit token of a known account. Device accounts are users like any other | That account |
 | `application` | A client application acting on behalf of a user. Either a Meet application, through its client credentials, its delegated token or the user access token of its embedded frontend, or another La Suite application, through the resource server or a token exchanged with Menshen. `lasuite.application.client_id` names it | The delegating user |
-| `service` | An internal service of the deployment calling the backend with a shared secret, named by `service.origin.name`: the LiveKit SIP bridge, `roomkit`, the summary service, `summary`, or the LiveKit server reporting on a recording, `livekit`. Never an account | Absent |
+| `service` | An internal service of the deployment calling the backend with a shared secret, named by `service.origin.name`: `summary` for the summary service, or `livekit` for the LiveKit server reporting on a recording. Never an account | Absent |
 | `system` | The backend itself, with no inbound request, as in a Celery task | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
 
@@ -195,7 +195,7 @@ A La Suite application may call the external API with a token exchanged through 
 - A refusal adds the `denied` type only when the category expects it. An API call becomes `["creation", "denied"]`. A failed login stays `["start"]`, and `event.outcome`, `event.reason` and `lasuite.outcome` show that it was refused.
 - A 401 is also filed under `authentication`, as in `["api", "authentication"]`, so that it counts as a failed authentication.
 
-When an audited API action raises an exception the backend does not handle, the event is still recorded: as a `failure` with reason `internal_error`, status code `500` and `error.type`.
+When an audited API action raises an exception the backend does not handle, the event is still recorded, as a `failure` with reason `internal_error`, status code `500` and `error.type`.
 
 ## Catalogue
 
@@ -272,7 +272,7 @@ This gives names such as `admin.room.update`, `admin.user.delete` or `admin.reco
 
 - `lasuite.details.changed_fields` always lists the names of the fields a form changed, exactly the ones Django reports in its own history.
 - `lasuite.details.changes` gives their values, as `{"from": ..., "to": ...}`, but only for the fields a model explicitly allows, see [Registering models](../../contributing/code-tour.md#registering-models-and-authentication-methods).
-- Anything that looks like a secret is refused, whatever the allow-list says: a password change is reported as a change to `password`, never with its value.
+- Anything that looks like a secret is left out, whatever the allow-list says: a password change is reported as a change to `password`, never with its value.
 - A JSON field on the allow-list, such as a room's `configuration`, is recorded as JSON rather than as a string, and both versions are kept whole.
 
 **Inlines.** Objects edited through an inline produce their own event, linked to the parent's by `http.request.id`. Granting a role on a room produces both `admin.room.update` and `admin.resourceaccess.create`, whose `user.target` is the account granted the role.

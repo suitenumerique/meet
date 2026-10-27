@@ -1,13 +1,13 @@
 # External API - Resource Server (OAuth2)
 
-In this mode, the user signs in at the OIDC provider Meet uses, and your application sends Meet the access token that provider issued. Meet asks the provider whether the token is valid, the standard [OAuth 2.0 resource server](https://www.oauth.com/oauth2-servers/the-resource-server/) pattern. The endpoints, scopes and room object the token then reaches are in [External API](external-api.md).
+In this mode, the user signs in at the OIDC provider Meet uses, and your application sends Meet the access token that provider issued. Meet asks the provider whether the token is valid, the standard [OAuth 2.0 resource server](https://www.oauth.com/oauth2-servers/the-resource-server/) pattern. [External API](external-api.md) lists the endpoints, scopes and room object the token then gives access to.
 
 The mode needs:
 
 - `EXTERNAL_API_ENABLED=True`, `OIDC_OP_URL`, `OIDC_OP_INTROSPECTION_ENDPOINT` and `OIDC_RS_CLIENT_SECRET`;
 - `OIDC_RS_CLIENT_ID`, unless the client is called `meet`, its default.
 
-With one missing, the backend starts without a warning, and every call presenting an OIDC token answers 401 with `Resource Server is improperly configured`.
+If one is missing, the backend starts without a warning, and every call presenting an OIDC token gets 401 with `Resource Server is improperly configured`.
 
 ## When to use this mode
 
@@ -29,7 +29,7 @@ Your application then sends the access token as `Authorization: Bearer <oidc-acc
 
 ## How Meet checks the token
 
-On each call, Meet sends the token to `OIDC_OP_INTROSPECTION_ENDPOINT`, signing in to it as `OIDC_RS_CLIENT_ID` with `OIDC_RS_CLIENT_SECRET`. These are Meet's own client at the provider, not your application's. The provider's JSON answer must hold:
+On each call, Meet sends the token to `OIDC_OP_INTROSPECTION_ENDPOINT`, signing in to it as `OIDC_RS_CLIENT_ID` with `OIDC_RS_CLIENT_SECRET`. These are Meet's own client at the provider, not your application's. The provider's JSON response must contain:
 
 - `active: true`;
 - a `scope` containing at least one scope from `OIDC_RS_SCOPES`;

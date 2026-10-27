@@ -28,7 +28,7 @@ sequenceDiagram
     end
 ```
 
-The multi-user transcriber agent ([`src/agents/multi_user_transcriber.py`](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py)) joins each room once and opens one STT stream per participant, for as long as the room runs. Any participant can start subtitles, anonymous ones in a public room included. What that costs:
+The multi-user transcriber agent ([`src/agents/multi_user_transcriber.py`](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py)) joins each room once and opens one STT stream per participant, for as long as the room runs. Any participant can start subtitles, anonymous ones in a public room included. The **Show subtitles** button is in the desktop layout only and, with `FRONTEND_ANALYTICS` set, only for users with the PostHog feature flag `subtitles`. What that costs:
 
 - **Provider:** cost grows with participants × time.
 - **Agent:** one instance serves several rooms at once, through LiveKit's dispatch. Its CPU, memory and network use grow with the number of participants in rooms with subtitles on.
@@ -100,7 +100,7 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
 
     ```yaml
       multi-user-transcriber:
-        image: lasuite/meet-agents:latest
+        image: lasuite/meet-agents:${MEET_VERSION:-latest}
         command: python multi_user_transcriber.py start
         restart: unless-stopped
         env_file:
@@ -124,7 +124,7 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
       replicas: 1
       envVars:
         LIVEKIT_URL: "ws://livekit-server:7880"
-        LIVEKIT_API_KEY: "meet"
+        LIVEKIT_API_KEY: "myapikey"
         LIVEKIT_API_SECRET: "<your LiveKit API secret>"
         STT_PROVIDER: "deepgram"
         DEEPGRAM_STT_MODEL: "nova-3"
@@ -157,7 +157,7 @@ Set `STT_PROVIDER` in the agent's environment, then the provider's variables:
 ## Testing
 
 1. Join a room from a browser.
-2. Start subtitles from the meeting controls.
+2. Click **Show subtitles** in the meeting controls.
 3. Speak: captions appear.
 
 Check the agent logs for errors:

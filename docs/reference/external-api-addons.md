@@ -1,6 +1,6 @@
 # External API - Add-ons
 
-In this mode, an add-in running in an iframe inside another application, such as the Outlook add-in, gets a token for the user by having them sign in to Meet in a popup. The endpoints, scopes and room object the token then reaches are in [External API](external-api.md).
+In this mode, an add-in running in an iframe inside another application, such as the Outlook add-in, gets a token for the user by having them sign in to Meet in a popup. [External API](external-api.md) lists the endpoints, scopes and room object the token then gives access to.
 
 The session endpoints under `/api/v1.0/addons/sessions/` need `ADDONS_ENABLED=True`, and answer 404 without it. The room calls made with the token afterwards need `EXTERNAL_API_ENABLED=True` as well.
 
@@ -57,7 +57,7 @@ The backend sets an `HttpOnly`, `Secure`, `SameSite=None` cookie named `addonsSi
 
 ## Step 2: Exchange transit token
 
-The popup's callback page calls it once the user has signed in. The call needs the user's Meet session, so the callback must be a Meet page: without the session, it answers 401.
+The popup's callback page calls this endpoint once the user has signed in. The call needs the user's Meet session, so the callback must be a Meet page: without the session, the endpoint returns 401.
 
 ```http
 POST /api/v1.0/addons/sessions/exchange/
@@ -75,7 +75,7 @@ Content-Type: application/json
 {"status": "ok"}
 ```
 
-This binds a token for the signed-in user to the session. A transit token works once: replaying it answers 400.
+This binds a token for the signed-in user to the session. A transit token works once: replaying it returns 400.
 
 ## Step 3: Poll for access token
 

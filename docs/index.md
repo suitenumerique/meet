@@ -33,12 +33,37 @@ Every feature is in the open source code. Meet runs on Docker Compose for a sing
 
 ## Where to start
 
-- [Use Meet](user/getting-started.md)
-- [Understand how it works](overview/how-meet-works.md)
-- [Run your own instance](self-hosting/index.md)
-- [Connect another application](reference/external-api.md)
-- [Change the code](contributing/develop.md)
-- [Look up a setting](reference/env-variables.md) or [fix a problem](reference/troubleshooting.md)
+<div class="grid cards" markdown>
+
+-   **Participants, hosts and teachers**
+
+    ---
+
+    [Getting Started](user/getting-started.md), then a guide for your case:
+
+    - [Hosting a large meeting](user/guides/large-meeting-host.md)
+    - [On a phone or a weak connection](user/guides/phone-or-weak-connection.md)
+    - [Deaf or hard of hearing](user/guides/deaf-hard-of-hearing.md)
+    - [Blind or low vision](user/guides/blind-low-vision.md)
+    - [Sign-language interpreter](user/guides/sign-language-interpreter.md)
+
+-   **System administrators**
+
+    ---
+
+    - [Install it](self-hosting/index.md)
+    - [Look up a setting](reference/env-variables.md)
+    - [Fix a problem](reference/troubleshooting.md)
+
+-   **Developers, integrators and contributors**
+
+    ---
+
+    - [How Meet works](overview/how-meet-works.md)
+    - [Connect another application](reference/external-api.md)
+    - [Change the code](contributing/develop.md)
+
+</div>
 
 ## Known public instances
 

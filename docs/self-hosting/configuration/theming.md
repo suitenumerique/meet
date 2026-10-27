@@ -1,6 +1,6 @@
 # Theming
 
-Meet can carry your brand in two ways:
+Meet can show your brand in two ways:
 
 - **Runtime theming**: a CSS file of your own overrides the design tokens, the CSS variables holding Meet's colors, fonts and spacing. Changes apply on the next page load, with no rebuild. Logos and images are replaced at runtime too, by [mounting files](#custom-assets-logo-images).
 - **Build-time theming**: the application title is a build argument, so changing it means rebuilding the Docker image.
@@ -127,7 +127,7 @@ To rebrand the primary color fully, override the semantic tokens **and** the who
 
 ## Custom assets (logo, images)
 
-To replace a built-in asset, such as the logo or a landing page image, mount your own file over it in the frontend container, under `/usr/share/nginx/html/assets`. The landing page carousel images, for example, are:
+To replace a built-in asset, such as the logo or a landing page image, mount your own file over it in the frontend container, under `/usr/share/nginx/html/assets`. The landing page carousel, for example, shows `1.png` to `3.png`, and `3.png` and `4.png` also illustrate the recording and transcription panels:
 
 ```
 /usr/share/nginx/html/
@@ -183,7 +183,7 @@ Mount each file individually. Mounting the whole `assets/` directory would hide 
 
 ## Build-time theming
 
-The title in the browser tab, also the installed app's name, comes from the `VITE_APP_TITLE` build argument, `LaSuite Meet` by default. To change it, build the frontend image from the repository root:
+The title in the browser tab, also the installed app's name, comes from the `VITE_APP_TITLE` build argument, `LaSuite Meet` when built outside Docker; always pass the argument to `docker build`, which otherwise leaves the title empty. To change it, build the frontend image from the repository root:
 
 ```bash
 docker build \

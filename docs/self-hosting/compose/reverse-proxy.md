@@ -1,6 +1,6 @@
 # Reverse Proxy
 
-Meet needs a reverse proxy that terminates TLS for three public hostnames. Any proxy works.
+Meet needs a reverse proxy: the one server that receives all HTTPS traffic for three public hostnames, holds their TLS certificates, and passes each request to the right container. Any proxy works. The Deployment Guide's Stack 1 sends you here: bring your own proxy and check the routing table, or set up [nginx-proxy or Traefik](#nginx-proxy-or-traefik).
 
 ## What the proxy must route
 
@@ -38,7 +38,7 @@ The traffic flow in more detail is in [Networking: Web request](../../reference/
 
 ## nginx-proxy or Traefik
 
-The [Deployment Guide](deployment-guide.md) uses one of these two, and the [Quick Start](quick-start.md) script sets up nginx-proxy. Either runs as its own stack on the `proxy` network, routes every container that opts in, and issues its Let's Encrypt certificate:
+The [Deployment Guide](deployment-guide.md) uses one of these two, and the [Quick Start](quick-start.md) script sets up nginx-proxy. Either runs as its own stack on the `proxy` network, routes every container that opts in, and obtains a Let's Encrypt certificate for each:
 
 - nginx-proxy + acme-companion find those containers by a `VIRTUAL_HOST` variable.
 - Traefik finds them by `traefik.enable=true` labels.
@@ -73,7 +73,7 @@ The `proxy` network must exist first, see [Before you start](deployment-guide.md
     cp ~/docker/hosts .env
     ```
 
-    `acme.json` stores Let's Encrypt certificates. It must exist with mode `600` before Traefik starts - Traefik refuses to start with any other permission.
+    `acme.json` stores Let's Encrypt certificates. It must exist with mode `600` before Traefik starts: Traefik does not use it with any other permission.
 
 ```bash
 docker compose up -d
@@ -83,7 +83,7 @@ docker compose up -d
 
 ### Step 2: How Meet services opt in
 
-Each stack's `docker-compose.override.yml`, which the Deployment Guide downloads for your proxy, opts its services in; you do not edit it. It sets `environment` or `labels`, and `compose.yml` sets `ports` and `networks`. Together, each row of the [routing table](#what-the-proxy-must-route) gets:
+Each stack's `docker-compose.override.yml`, which the Deployment Guide downloads for your proxy, opts its services in; you do not edit it. It sets `environment` or `labels`, and `compose.yml` sets `ports` and `networks`. Together, they give each row of the [routing table](#what-the-proxy-must-route) the following settings:
 
 #### Meet frontend
 
@@ -119,7 +119,7 @@ Each stack's `docker-compose.override.yml`, which the Deployment Guide downloads
 
 #### LiveKit
 
-Both proxies pass the WebSocket upgrade without extra configuration. The `ports` are the media ports, published on the host:
+Both proxies pass the WebSocket upgrade with their default settings. The `ports` are the media ports, published on the host:
 
 === "nginx-proxy"
 
@@ -193,6 +193,6 @@ The DNS records each hostname needs are in [Domain name](prerequisites.md#domain
 
 ---
 
-## Troubleshooting
+## Next
 
-Common problems and their fixes are in [Reverse proxy issues](../../reference/troubleshooting.md#reverse-proxy-issues).
+Continue with the Deployment Guide's [Stack 2: Identity provider](deployment-guide.md#stack-2-identity-provider). If a hostname does not answer, see [Reverse proxy issues](../../reference/troubleshooting.md#reverse-proxy-issues).

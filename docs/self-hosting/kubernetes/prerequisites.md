@@ -1,13 +1,10 @@
 # Prerequisites (Kubernetes)
 
-The Kubernetes deployment uses the official Meet Helm chart and targets production clusters. For a small instance without Kubernetes expertise, use the [Docker Compose guide](../compose/prerequisites.md) instead.
+Once everything here is in place, [Helm Deployment](helm.md) installs Meet on your production cluster with the official Helm chart. To only try Meet, run [Quick Start](../compose/quick-start.md) on a single server first; for a small instance without Kubernetes expertise, use the [Docker Compose guide](../compose/prerequisites.md).
 
 ## When to use Kubernetes
 
-- High availability: multiple replicas with automatic failover
-- Horizontal scaling: scale backend, frontend, and Celery workers independently
-- Multi-region or multi-zone deployments
-- GitOps workflows and declarative infrastructure
+Kubernetes pays off for high availability (replicas with automatic failover), scaling the backend, frontend and Celery workers independently, multi-region or multi-zone deployments, and GitOps.
 
 ## Required tools
 
@@ -25,13 +22,15 @@ The Kubernetes deployment uses the official Meet Helm chart and targets producti
 
 ### Required cluster components
 
+The Meet chart relies on these but does not install them:
+
 - **An ingress controller**: any works for video conferencing alone. Recording and uploaded background images need nginx-ingress: their ingresses, `ingressMedia` and `ingressMediaFiles`, authenticate their proxying to the S3 storage with nginx-ingress annotations.
 - **cert-manager**: with a Let's Encrypt `ClusterIssuer` for automatic TLS
-- **Public IPs on the LiveKit nodes**: the chart serves LiveKit's media ports from the node itself through host networking
+- **Public IPs on the LiveKit nodes**: LiveKit's Helm chart serves its media ports from the node itself through host networking
 
 ## External services
 
-The chart does not deploy these. Prefer managed services in production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: use your service's address instead.
+The chart does not deploy these; the OIDC provider is the identity service that signs users in. Prefer managed services in production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: use your service's address instead.
 
 | Service | Purpose | Options |
 |---|---|---|
@@ -43,7 +42,7 @@ The chart does not deploy these. Prefer managed services in production. The [Hel
 
 ## Network requirements
 
-The ports to open, on the ingress and on each node that runs LiveKit, are listed in [Firewall & Ports](../configuration/firewall.md).
+Call media reaches LiveKit on its nodes directly, bypassing the ingress. The ports to open, on the ingress and on each node that runs LiveKit, are listed in [Firewall & Ports](../configuration/firewall.md).
 
 ## DNS records
 
@@ -66,3 +65,7 @@ The ports to open, on the ingress and on each node that runs LiveKit, are listed
 - [ ] The ports in [Firewall & Ports](../configuration/firewall.md) open
 - [ ] S3-compatible storage available (if using recording)
 - [ ] SMTP relay configured (if using recording)
+
+## Next
+
+With every box ticked, continue to [Helm Deployment](helm.md).

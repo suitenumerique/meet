@@ -8,7 +8,7 @@ sequenceDiagram
     participant BE as Meet Backend
     participant KC as OIDC Provider
 
-    B->>BE: Click Log in (/api/v1.0/authenticate/)
+    B->>BE: Click Login (/api/v1.0/authenticate/)
     BE-->>B: Redirect → OIDC provider login
     B->>KC: Authenticate
     KC-->>B: Redirect → /api/v1.0/callback/?code=…
@@ -71,11 +71,11 @@ OIDC_OP_USER_ENDPOINT=https://openidconnect.googleapis.com/v1/userinfo
 OIDC_RP_SCOPES=openid email profile
 ```
 
-Meet takes a user's display name from the `given_name` claim, the default of [`OIDC_USERINFO_SHORTNAME_FIELD`](../../reference/env-variables.md#authentication-oidc), which Google sends only with the `profile` scope. Google has no logout endpoint for third parties, so logging out ends the Meet session only.
+Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULLNAME_FIELDS`](../../reference/env-variables.md#authentication-oidc), `given_name` and `usual_name` by default. Google sends `given_name` only with the `profile` scope, and never `usual_name`; set `OIDC_USERINFO_FULLNAME_FIELDS=given_name,family_name` to show the full name. Google has no logout endpoint for third parties, so logging out ends the Meet session only.
 
 ## Unauthenticated access
 
-[`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#rooms-and-waiting-room) decides what opening a room code no room uses yet does:
+[`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#rooms-and-waiting-room) decides what happens when someone opens a room code that no room uses yet:
 
 | `ALLOW_UNREGISTERED_ROOMS` | Opening an unused room code |
 |---|---|
@@ -95,7 +95,7 @@ The setting changes neither existing rooms nor the level a user already picked.
 
 ## Test it
 
-1. Open `https://meet.example.com` and click **Log in**: you reach your provider's login page.
+1. Open `https://meet.example.com` and click **Login**: you reach your provider's login page.
 2. After signing in, you are back on Meet, signed in.
 3. Your user appears in the Django admin at `https://meet.example.com/admin/`.
 

@@ -34,7 +34,7 @@ The token is the `livekit.token` returned by `GET /api/v1.0/rooms/{id}/`. It is 
 Authorization: Bearer <user access token>
 ```
 
-Meet's frontend uses it instead of the session inside another application's iframe, getting it from `POST /api/v1.0/users/exchange-access-token/`. Every endpoint then acts as the user, with the user's roles. How the application starts this is in [External API: Signing a user in to an iframe](external-api.md#signing-a-user-in-to-an-iframe).
+Inside another application's iframe, Meet's frontend uses this token instead of the session, and gets it from `POST /api/v1.0/users/exchange-access-token/`. Every endpoint then acts as the user, with the user's roles. [External API: Signing a user in to an iframe](external-api.md#signing-a-user-in-to-an-iframe) explains how the application starts this.
 
 ## Users
 
@@ -82,7 +82,7 @@ POST /api/v1.0/users/exchange-access-token/
 {"code": "<transit code>"}
 ```
 
-Open to callers without a session: the transit code is the credential. Answers the token as `{"access_token": "...", "token_type": "Bearer", "expires_in": 7200, "scope": "user:access"}`.
+Open to callers without a session: the transit code is the credential. Returns the token as `{"access_token": "...", "token_type": "Bearer", "expires_in": 7200, "scope": "user:access"}`.
 
 | Code | When |
 |---|---|
@@ -119,7 +119,7 @@ GET /api/v1.0/rooms/{id-or-slug}/
 ```
 Reading a room requires no sign-in. The response adds:
 
-- `livekit`, the token and server URL to join the media server, when the room is `public`, or `trusted` and the caller is signed in, or the caller holds a role on the room. Without `livekit`, `pin_code` is dropped too.
+- `livekit`, the token and server URL to join the media server, when the room is `public`, when it is `trusted` and the caller is signed in, or when the caller holds a role on the room. When `livekit` is left out, so is `pin_code`.
 - `accesses`, the list of roles on the room, for administrators and owners.
 
 ```json
@@ -138,7 +138,7 @@ Reading a room requires no sign-in. The response adds:
 }
 ```
 
-A slug matching no room answers 404, unless `ALLOW_UNREGISTERED_ROOMS=True`: then it answers `"id": null` with a `livekit` token for that slug. A deleted room answers 410 with `{"detail": "This room has been deleted."}`, whatever that setting.
+A slug matching no room returns 404, unless `ALLOW_UNREGISTERED_ROOMS=True`: then the response has `"id": null` and a `livekit` token for that slug. A deleted room returns 410 with `{"detail": "This room has been deleted."}`, regardless of that setting.
 
 ### Update a room
 ```
@@ -153,8 +153,8 @@ DELETE /api/v1.0/rooms/{id}/
 Requires being an owner of the room. Answers 204:
 
 - The meeting ends for everyone connected, and the room's PIN stops routing phone calls.
-- The room then answers 410, or 403 to a caller lacking the role the call needs. What it keeps until it is purged is in [Room purge](../self-hosting/configuration/room-purge.md#how-a-room-becomes-purgeable).
-- When the media server cannot close the room, the call answers 500 and the room is not deleted.
+- Calls on the room then return 410, or 403 for a caller lacking the role the call needs. [Room purge](../self-hosting/configuration/room-purge.md#how-a-room-becomes-purgeable) lists what the room keeps until it is purged.
+- When the media server cannot close the room, the call returns 500 and the room is not deleted.
 
 ### Other room endpoints
 
@@ -229,11 +229,11 @@ DELETE /api/v1.0/resource-accesses/{id}/
 
 Returns HTTP 204. Fails with 403 if the record is the last owner.
 
-The accesses of a deleted room can still be listed and read. Granting, changing or revoking one answers 410.
+The accesses of a deleted room can still be listed and read. Granting, changing or revoking one returns 410.
 
 ## Recording
 
-Starting and stopping a recording answer 404 while `RECORDING_ENABLE` is off.
+Starting and stopping a recording return 404 while `RECORDING_ENABLE` is off.
 
 ### Start recording
 ```
@@ -260,7 +260,7 @@ A LiveKit room token is refused.
 
 - `mode` is `screen_recording` or `transcript`.
 - `options` and each of its keys are optional; any other key is rejected.
-- `encoding` picks a resolution, and optionally a profile, among those of [Recording](env-variables.md#recording). It is accepted only while `RECORDING_CUSTOM_ENCODING_ENABLED` is on.
+- `encoding` picks a resolution, and optionally a profile, from those listed under [Recording](env-variables.md#recording). It is accepted only while `RECORDING_CUSTOM_ENCODING_ENABLED` is on.
 
 | Code | Body | When |
 |---|---|---|
@@ -304,11 +304,11 @@ Requires being an administrator or owner of the recording, and the recording to 
 
 | Method | Path | Body | Who may call it |
 |---|---|---|---|
-| `POST` | `/api/v1.0/rooms/{id}/request-entry/` | `{"username": "Alice", "participant_id": "..."}` | Anyone, signed in or not. Send the answer's `id`, a signed participant id, back as `participant_id` on each poll to keep the place in the queue. The answer carries a `livekit` token once admitted |
+| `POST` | `/api/v1.0/rooms/{id}/request-entry/` | `{"username": "Alice", "participant_id": "..."}` | Anyone, signed in or not. Send the `id` from the response, a signed participant id, back as `participant_id` on each poll to keep the place in the queue; one with an invalid signature returns 400. Once the participant is admitted, the response includes a `livekit` token |
 | `GET` | `/api/v1.0/rooms/{id}/waiting-participants/` | None | A signed-in administrator or owner of the room. In a `trusted` room, also any signed-in user connected to the meeting. A `public` room returns an empty list. |
-| `POST` | `/api/v1.0/rooms/{id}/enter/` | `{"participant_id": "...", "allow_entry": true}` | The same people. A `public` room has no lobby and answers 404. |
+| `POST` | `/api/v1.0/rooms/{id}/enter/` | `{"participant_id": "...", "allow_entry": true}` | The same people. A `public` room has no lobby and returns 404. |
 
-Both lobby management endpoints refuse a LiveKit room token. A `participant_id` whose signature does not check out answers 400.
+Both lobby management endpoints refuse a LiveKit room token.
 
 ## In-meeting actions
 
@@ -316,7 +316,7 @@ Both lobby management endpoints refuse a LiveKit room token. A `participant_id` 
 
 | Method | Path | Body | Who may call it |
 |---|---|---|---|
-| `POST` | `/api/v1.0/rooms/{id}/mute-participant/` | `{"participant_identity": "...", "track_sid": "..."}` | An administrator or owner, signed in. While the room's `everyone_can_mute` is on, as it is when omitted, also anyone connected to the meeting, with a LiveKit room token |
+| `POST` | `/api/v1.0/rooms/{id}/mute-participant/` | `{"participant_identity": "...", "track_sid": "..."}` | An administrator or owner, signed in. Also anyone connected to the meeting, with a LiveKit room token, while the room's `everyone_can_mute` is on, which is the default when it is omitted |
 | `POST` | `/api/v1.0/rooms/{id}/remove-participant/` | `{"participant_identity": "..."}` | An administrator or owner |
 | `POST` | `/api/v1.0/rooms/{id}/update-participant/` | `participant_identity` and at least one of `name`, `metadata`, `attributes`, `permission` | An administrator or owner |
 | `POST` | `/api/v1.0/rooms/{id}/update-participant-role/` | `{"participant_identity": "...", "role": "administrator"}` | An administrator or owner connected to the meeting. `role` is `member` or `administrator`, and nobody can change their own. A participant with a Meet account keeps the role as a `ResourceAccess`. |
@@ -328,7 +328,7 @@ Both lobby management endpoints refuse a LiveKit room token. A `participant_id` 
 
 Every file endpoint answers 404 unless `FILE_UPLOAD_ENABLED=True`, and each user sees only their own files. An upload takes three steps:
 
-1. `POST /api/v1.0/files/` with `{"type": "background_image", "filename": "beach.jpg"}` creates the record. Its answer carries `policy`, a signed URL in object storage.
+1. `POST /api/v1.0/files/` with `{"type": "background_image", "filename": "beach.jpg"}` creates the record. Its response includes `policy`, a signed URL in object storage.
 2. The browser uploads the file with a `PUT` to that URL.
 3. `POST /api/v1.0/files/{id}/upload-ended/` makes Meet check the uploaded file and mark it ready.
 
@@ -365,12 +365,12 @@ Open to anyone. Returns the backend settings the frontend reads at runtime, list
 
 ## Health check
 
-The backend answers on two paths, without sign-in:
+The backend serves health checks on two paths, without sign-in:
 
-- `/__lbheartbeat__` answers 200 as long as the process runs, without touching the database and whatever the `Host` header. The Helm chart probes startup and liveness on it.
-- `/__heartbeat__` runs the health checks, the database connection and the applied migrations among them, and answers 500 when one fails. The Helm chart probes readiness on it.
+- `/__lbheartbeat__` returns 200 as long as the process runs, without touching the database and regardless of the `Host` header. The Helm chart probes startup and liveness on it.
+- `/__heartbeat__` runs the health checks, the database connection and the applied migrations among them, and returns 500 when one fails. The Helm chart probes readiness on it.
 
-The summary service answers on the same two paths, and its `/__heartbeat__` also fails when its Celery broker cannot be reached.
+The summary service serves the same two paths, and its `/__heartbeat__` also fails when its Celery broker cannot be reached.
 
 ## Pagination
 

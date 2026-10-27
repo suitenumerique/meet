@@ -1,5 +1,7 @@
 # Helm Deployment
 
+On a cluster that meets the [Prerequisites](prerequisites.md), you install the Meet chart here, then LiveKit beside it.
+
 Working configurations for the official chart are in the repository's [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm):
 
 - [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) - DINUM's multi-environment setup
@@ -8,6 +10,8 @@ Working configurations for the official chart are in the repository's [`src/helm
 - [`meet/README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) - Full parameter reference
 
 ## Getting the chart
+
+Add the chart repository so Helm can find `meet/meet`:
 
 ```bash
 helm repo add meet https://suitenumerique.github.io/meet/
@@ -22,6 +26,8 @@ helm search repo meet
 
 ## Chart overview
 
+The chart runs these components, at these default replica counts:
+
 | Component | Helm key | Default replicas |
 |---|---|---|
 | Backend (Django) | `backend` | 3 |
@@ -34,13 +40,15 @@ helm search repo meet
 | Agent metadata | `agentMetadata` | 1 |
 | Agent subtitles | `agentSubtitles` | 1 |
 
-The chart deploys none of the [external services](prerequisites.md#external-services), nor [LiveKit](#livekit-on-kubernetes): provision them separately, and point the backend at them through its environment variables.
+The chart deploys neither the [external services](prerequisites.md#external-services) nor [LiveKit](#livekit-on-kubernetes): provision them separately, and point the backend at them through its environment variables.
 
 ## Base values.yaml
 
-Create a `values.yaml` for your deployment. Environment variables are passed as a flat dictionary under `backend.envVars`.
+Build one `values.yaml` for your deployment from the blocks below; Helm reads it at install.
 
 ### Backend
+
+The backend reads its configuration from environment variables, a flat dictionary under `backend.envVars`. Replace every example host and secret; [Secrets management](#secrets-management) keeps secrets out of the file.
 
 ```yaml
 backend:
@@ -117,6 +125,8 @@ frontend:
 
 ### Ingress (nginx-ingress + cert-manager)
 
+Two ingresses publish Meet and its `/admin` path, with cert-manager certificates:
+
 ```yaml
 ingress:
   enabled: true
@@ -145,8 +155,7 @@ ingressAdmin:
 
 Optional services have no `enabled` flag: they deploy by default. Set `replicas: 0`, or `instances: []` for `celeryTranscribe`, to disable one.
 
-- `celeryBackend` runs tasks only when [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence) is `"True"` in `backend.envVars`. Otherwise the backend runs its background tasks itself, and `celeryBackend` can go to 0.
-- The others serve transcription, summaries and agents: disable those you do not use.
+`celeryBackend` runs tasks only when [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence) is `"True"` in `backend.envVars`. Otherwise the backend runs file deletion and emails inline, nothing force-closes a connection-test room whose participant stays connected past the token TTL, and `celeryBackend` can go to 0. The others serve transcription, summaries and agents: disable those you do not use.
 
 ```yaml
 celeryBackend:
@@ -173,7 +182,7 @@ agentSubtitles:
 
 ### Security context (recommended)
 
-Put the settings the `restricted` Pod Security Standard requires in each component's container-level `securityContext`: every template reads it, while `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`. Example for `backend`:
+The chart sets no security context by default. Put the settings the `restricted` Pod Security Standard requires in each component's container-level `securityContext`: every template reads it, while `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`. Example for `backend`:
 
 ```yaml
 backend:
@@ -223,7 +232,7 @@ kubectl -n meet logs deployment/meet-backend
 
 ### Create a superuser
 
-Create an account that can open the admin panel at `/admin/`:
+The chart's `createsuperuser` Job already creates an admin account from `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD`. To add another account that can open `/admin/`:
 
 ```bash
 kubectl -n meet exec deployment/meet-backend -- \
@@ -234,14 +243,14 @@ kubectl -n meet exec deployment/meet-backend -- \
 
 ## LiveKit on Kubernetes
 
-LiveKit's official Helm chart is the simplest way to deploy it. Add its repository:
+LiveKit, the media server carrying the calls' audio and video, is not in the Meet chart. Its official Helm chart is the simplest way to deploy it. Add its repository:
 
 ```bash
 helm repo add livekit https://helm.livekit.io
 helm repo update
 ```
 
-Create `livekit-values.yaml`. LiveKit's own chart has no `ingress:` block: `loadBalancer` sets how it is exposed, here through the same nginx-ingress and cert-manager as the Meet ingress:
+Create `livekit-values.yaml`. LiveKit's own chart has no `ingress:` block; its `loadBalancer` key sets how LiveKit is exposed, here through the same nginx-ingress and cert-manager as the Meet ingress:
 
 ```yaml
 livekit:
@@ -269,7 +278,7 @@ loadBalancer:
       secretName: livekit-tls
 ```
 
-`nginx` is not a value the chart treats specially: [any `type`](https://github.com/livekit/livekit-helm/blob/master/livekit-server/templates/ingress.yaml#L1) other than `disable`, the default, and `gclb` renders a plain Ingress carrying these annotations. Cloud-specific types are described in its [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
+The chart does not treat `nginx` specially: [any `type`](https://github.com/livekit/livekit-helm/blob/master/livekit-server/templates/ingress.yaml#L1) other than `disable` (the default) and `gclb` renders a plain Ingress carrying these annotations. Cloud-specific types are described in its [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
 
 ```bash
 helm install livekit-server livekit/livekit-server \
@@ -282,6 +291,8 @@ helm install livekit-server livekit/livekit-server \
 The chart serves LiveKit's media ports from the node itself through host networking, bypassing the Ingress and any Service. Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Ports](../configuration/firewall.md) open in its security group or firewall.
 
 ## Recording and transcription
+
+Both are optional:
 
 - [Recording - Kubernetes setup](../configuration/recording.md#setup): Garage storage and its bucket, LiveKit Egress, backend configuration, `ingressMedia`
 - [AI Transcription - Kubernetes setup](../configuration/transcription.md#setup): summary service, Celery workers, WhisperX configuration. Needs recording (S3 storage, Egress, `ingressMedia`) working first
@@ -427,15 +438,19 @@ helm upgrade meet meet/meet \
   --values values.yaml
 ```
 
-The chart runs the database migrations in a Kubernetes Job on every install and upgrade. Watch it with:
+The chart runs the database migrations in a Job, `meet-backend-migrate`, which Kubernetes deletes 30 seconds after it finishes (`backend.jobs.ttlSecondsAfterFinished`), so read its logs while it runs:
 
 ```bash
 kubectl -n meet get jobs
 kubectl -n meet logs job/meet-backend-migrate
 ```
 
-The chart deletes the Job 30 seconds after it finishes, per `backend.jobs.ttlSecondsAfterFinished`, so read its logs while it runs. To run the migrations by hand instead:
+To run the migrations by hand instead:
 
 ```bash
 kubectl -n meet exec deployment/meet-backend -- python manage.py migrate
 ```
+
+## Next
+
+Add email, recording or hardening from the overview's [Next steps](../index.md#next-steps).

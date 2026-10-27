@@ -11,7 +11,7 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
     docker compose exec -T postgresql pg_dump -U meet meet > meet_backup_$(date +%Y%m%d).sql
     ```
 
-    `-T` keeps a terminal out of the stream, so nothing but the dump reaches the file.
+    `-T` disables the pseudo-terminal, so nothing but the dump reaches the file.
 
 3. **Note the version you run now**, to roll back to: `docker compose images backend` shows its tag.
 

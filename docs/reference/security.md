@@ -42,7 +42,7 @@ The Django backend checks CSRF tokens on browser requests that change data. Meet
 ### Object-level permissions
 
 - Reading a room requires no sign-in and no role.
-- Modifying a room requires being its administrator or owner; deleting it, its owner.
+- Modifying a room requires being its administrator or owner, and deleting it requires being its owner.
 - A deleted room keeps its link until the [room purge](../self-hosting/configuration/room-purge.md) removes it, so nobody can take it over meanwhile.
 
 `ALLOW_UNREGISTERED_ROOMS` decides what a slug that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
@@ -63,12 +63,12 @@ Only these actions are throttled. Every other endpoint has no limit: set one at 
 | A Roomkit join | `ROOMKIT_JOIN_THROTTLE_RATES` | `300/minute` |
 | Exchanging a transit code for a user access token | `EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES` | `30/minute` |
 
-- A signed-in caller is counted by account, anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#core) sets.
-- An anonymous waiting-room request is the exception: it is counted by the participant id the first answer gave it, so counting starts with its second request.
+- A signed-in caller is counted by account, anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#core) sets. Reading a room creation callback and exchanging a transit code count anonymous callers only.
+- An anonymous waiting-room request is the exception: it is counted by the participant id its first request received, so counting starts with its second request.
 
 ### Audit logging
 
-The backend writes an audit event for each sign-in, room and recording action and Django admin change, see [Audit logging](../self-hosting/configuration/audit-logging.md).
+The backend writes an audit event for each sign-in, each room or recording action, and each Django admin change, see [Audit logging](../self-hosting/configuration/audit-logging.md).
 
 
 ## Known security fixes
@@ -100,7 +100,7 @@ Keep it at 32 characters or more, and guard it like a database password.
 
 ### TLS
 
-- Use Let's Encrypt, whose certificates the reverse proxy issues automatically, or a commercial CA.
+- Use Let's Encrypt certificates, which the reverse proxy obtains automatically, or certificates from a commercial CA.
 - The `Production` configuration already sends `Strict-Transport-Security: max-age=60; includeSubDomains; preload`. A reverse proxy adding its own HSTS header on top makes browsers receive two.
 - Disable TLS 1.0/1.1. With nginx-proxy, set `ssl_protocols TLSv1.2 TLSv1.3;` in a custom nginx config. With Traefik, add to your Traefik configuration:
   ```yaml
@@ -124,7 +124,7 @@ Keep it at 32 characters or more, and guard it like a database password.
 ### Docker
 
 - The backend and frontend images run as non-root users.
-- Only the reverse proxy mounts `/var/run/docker.sock`, to discover containers: mount it read-only, and in no other container.
+- Mount `/var/run/docker.sock` read-only, and only in the reverse proxy, which needs it to discover containers.
 
 ### Kubernetes
 

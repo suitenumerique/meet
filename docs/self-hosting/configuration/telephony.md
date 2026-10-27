@@ -11,7 +11,7 @@ Participants can join a meeting by phone through LiveKit's SIP bridge. SIP is th
 Phone ──► PSTN ──► SIP Trunk ──► LiveKit SIP Bridge ──► LiveKit Room
 ```
 
-The PSTN is the public phone network. LiveKit's SIP component handles SIP signalling and converts audio between the phone network, usually G.711 (8 kHz), and WebRTC (Opus, 48 kHz). Recordings include their audio.
+The PSTN is the public phone network. LiveKit's SIP component handles SIP signalling and converts audio between the phone network, usually G.711 (8 kHz), and WebRTC (Opus, 48 kHz). Recordings include phone participants' audio.
 
 ## Prerequisites
 
@@ -99,7 +99,7 @@ lk sip inbound create \
 
 ## Dispatch rules
 
-Meet manages dispatch rules itself: on LiveKit's `room_started` it creates a rule routing the room's PIN to the room, and on `room_finished` deletes it. A caller can therefore join only while someone is connected from a browser, except [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices.
+Meet manages dispatch rules itself: on LiveKit's `room_started` it creates a rule routing the room's PIN to the room, and on `room_finished` deletes it. Callers other than [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices can therefore join only while someone is connected from a browser.
 
 ## SIP provider setup (Twilio example)
 
@@ -113,7 +113,7 @@ LiveKit SIP speaks its prompts, the PIN prompt among them, in English. For anoth
 
 ## Testing telephony
 
-Join a room from a browser, call `ROOM_TELEPHONY_PHONE_NUMBER`, and enter the PIN shown in the room info panel. When the call fails, see [Telephony issues](../../reference/troubleshooting.md#telephony-issues).
+Join a room from a browser, call `ROOM_TELEPHONY_PHONE_NUMBER`, and enter the PIN shown after **Code:** in the **Meeting information** panel. When the call fails, see [Telephony issues](../../reference/troubleshooting.md#telephony-issues).
 
 ## Limitations
 

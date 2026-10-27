@@ -1,15 +1,10 @@
 # Getting Started
 
-Your first meeting in four steps: start it, invite people, use the basic controls, and join someone else's meeting. You need a recent Chrome, Firefox, Safari or Edge, and a microphone.
+Your first meeting in four steps: start it, invite people, use the basic controls, and join someone else's meeting. You need a recent Chrome, Firefox, Safari or Edge, see [Browser support](features-controls.md#browser-support), and a microphone.
 
 !!! tip "No instance yet?"
 
-    Try Meet on the demo, [visio.lasuite.coop](https://visio.lasuite.coop/).
-
-    - Joining someone's link needs no account.
-    - Starting a meeting needs a free test account from the [LaSuite.coop demo page](https://lasuite.coop/applications/demo/), deleted after a month.
-
-    Other public instances are on the [home page](../index.md#known-public-instances).
+    Try Meet on the demo, [visio.lasuite.coop](https://visio.lasuite.coop/). Starting a meeting there takes a free test account, created from the [LaSuite.coop demo page](https://lasuite.coop/applications/demo/) and deleted after one month; joining someone's link needs none. Other public instances are listed on the [home page](../index.md#known-public-instances).
 
 ## Start a meeting
 
@@ -20,11 +15,11 @@ Your first meeting in four steps: start it, invite people, use the basic control
 
 - Sign in first: you then own the room and control its host settings.
 - To send a link before the day, pick **Create a meeting for a later date** instead.
-- Where your instance allows it, you can start a meeting signed out. It has no owner, so no one can change its settings or record it.
+- Where your Meet server allows it, you can start a meeting signed out. It has no owner, so no one can change its settings or record it.
 
 ## Invite people
 
-Click **Copy link** in **Your meeting is ready** and send it. Later, the info button (ⓘ) → **Copy information** gives it again.
+Click **Copy link** in **Your meeting is ready** and send it. To copy it again later, click the info button (ⓘ) → **Copy information**.
 
 <figure markdown="span">
   ![Info button](../assets/info-button.png)
@@ -42,7 +37,7 @@ The controls you need most, and their shortcuts, are in [The basics](features-co
 
 ## Join a meeting
 
-Open the link, or paste the code on the home page and click **Join meeting**.
+Open the link, or click **Join a meeting** on the home page, paste the link or code, and click **Join meeting**.
 
 <figure markdown="span">
   ![Pre-join screen](../assets/pre-join-screen.png){ width="700" }
@@ -54,3 +49,5 @@ Allow the camera and microphone, enter your name, and click **Join**. Depending 
 !!! tip "See both sides"
 
     Open your own link in a second browser tab to see what your guests see, the waiting room included.
+
+A guide for your case: [hosting a large meeting or a class](guides/large-meeting-host.md), [on a phone or a weak connection](guides/phone-or-weak-connection.md), [deaf or hard of hearing](guides/deaf-hard-of-hearing.md), [blind or low vision](guides/blind-low-vision.md), [sign-language interpreter](guides/sign-language-interpreter.md).

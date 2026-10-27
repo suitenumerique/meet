@@ -9,7 +9,7 @@ LiveKit talks to a browser on two channels:
 - **Signalling**, the control messages of the call: a WebSocket on 443 through your reverse proxy, which forwards it to LiveKit's port 7880. Port 7880 is [never public](firewall.md#never-public).
 - **Media**, the audio and video themselves, straight between the browser and LiveKit, without the reverse proxy.
 
-For media, the browser tries each path in turn and keeps the first one its network allows:
+For media, the browser uses the best path its network allows, in this order of preference:
 
 | Path | Port | Used when |
 |---|---|---|
@@ -44,7 +44,7 @@ A participant whose network allows none of these still joins the room, since sig
       use_external_ip: true
     ```
 
-    LiveKit gives each connection its own port from the range. It opens far more ports to the internet, so use it only when several LiveKit processes share one host. In `compose.yml`, replace `"7882:7882/udp"` with `"50000-60000:50000-60000/udp"`.
+    LiveKit gives each connection its own port from the range. A range opens far more ports to the internet, so use it only when several LiveKit processes share one host. In `compose.yml`, replace `"7882:7882/udp"` with `"50000-60000:50000-60000/udp"`.
 
 On Kubernetes, the chart serves the media ports from the node itself, see [Helm: LiveKit media ports](../kubernetes/helm.md#livekit-media-ports).
 
@@ -69,7 +69,7 @@ Enabling or changing TURN changes `ports:` in `compose.yml`. Apply it with `dock
 
 ### TURN over UDP on 443
 
-Most networks let UDP through on 443, because HTTP/3 uses it. LiveKit takes 443/UDP and the reverse proxy keeps 443/TCP: they are separate sockets and do not conflict.
+Many networks let UDP through on 443, because HTTP/3 uses it. LiveKit takes 443/UDP and the reverse proxy keeps 443/TCP: they are separate sockets and do not conflict.
 
 1. Add to `livekit-server.yaml`:
 
@@ -92,8 +92,8 @@ To test it, block both 7882/UDP and 7881/TCP on a client machine, join a meeting
 
 A network that blocks all UDP needs TURN over TLS, on 5349/TCP, which looks like ordinary HTTPS to a firewall.
 
-- On 443/TCP instead, it needs a second IP address, since the reverse proxy holds that port, or a layer-4 load balancer in front that forwards TCP without decrypting it.
-- A firewall that decrypts and inspects TLS blocks every form of TURN.
+- Running it on 443/TCP instead needs either a second IP address, since the reverse proxy holds that port, or a layer-4 load balancer in front that forwards TCP without decrypting it.
+- A firewall that decrypts and inspects TLS can block every form of TURN.
 
 LiveKit terminates this TLS itself, so it needs the certificate and key for `livekit.example.com` as files:
 
@@ -150,8 +150,8 @@ LiveKit's built-in TURN has no plain TCP transport. For TURN over TCP on 3478, o
 rtc:
   turn_servers:
     - host: turn.example.com
-      port: 443
-      protocol: tls
+      port: 3478
+      protocol: tcp
       secret: your-coturn-shared-secret
       ttl: 14400
 ```
@@ -164,6 +164,6 @@ The `webhook:` block of `livekit-server.yaml` points them at `https://meet.examp
 
 ## Check it works
 
-After the stack is up, `curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/` answers `200`, and `docker compose logs livekit --tail=30` shows no error. Then join a meeting from two devices and check that both hear and see each other. Problems and their fixes are in [Troubleshooting](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).
+After the stack is up, `curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/` prints `200`, and `docker compose logs livekit --tail=30` shows no error. Then join a meeting from two devices and check that both hear and see each other. Problems and their fixes are in [Troubleshooting](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).
 
 The variables that connect the backend to LiveKit are in [Environment Variables: LiveKit](../../reference/env-variables.md#livekit). Recording needs a further service, LiveKit Egress, see [Recording](recording.md).

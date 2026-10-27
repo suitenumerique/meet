@@ -1,10 +1,10 @@
 # Code tour
 
-How the parts work together, from joining a meeting to transcription, is in [How Meet works](../overview/how-meet-works.md); running them, in [Develop locally](develop.md).
+[How Meet works](../overview/how-meet-works.md) explains how the parts work together, from joining a meeting to transcription, and [Develop locally](develop.md) how to run them.
 
 ## TL;DR
 
-The Django backend is [`src/backend`](https://github.com/suitenumerique/meet/tree/main/src/backend), the React frontend [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend), and LiveKit carries the media; the code joining them is under [How Meet talks to LiveKit](#how-meet-talks-to-livekit). The agents, the summary service and the Helm chart each have their own directory under `src/`.
+The Django backend is [`src/backend`](https://github.com/suitenumerique/meet/tree/main/src/backend), the React frontend [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend), and LiveKit carries the media. [How Meet talks to LiveKit](#how-meet-talks-to-livekit) covers the code that joins them. The agents, the summary service and the Helm chart each have their own directory under `src/`.
 
 ## The repository
 
@@ -49,7 +49,7 @@ A Django 5.2 project, [`meet`](https://github.com/suitenumerique/meet/tree/main/
 | [`core/authentication/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/authentication) | Sign-in, and the authentication of requests carrying a LiveKit pass |
 | [`core/services/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/services) | The logic behind the API: the waiting room, presence, invitations, moderation, LiveKit webhooks, phone dial-in, subtitles |
 | [`core/recording/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/recording) | Starting and stopping recordings, and what happens once one ends |
-| [`core/tasks/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/tasks) | Celery tasks: deleting connection-test rooms, deleting files, sending email. They run on the Celery worker when [`CELERY_ENABLED`](../reference/env-variables.md#redis-celery-and-presence) is on, otherwise inline in the request |
+| [`core/tasks/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/tasks) | Celery tasks: deleting connection-test rooms, deleting files, sending email. They run on the Celery worker when [`CELERY_ENABLED`](../reference/env-variables.md#redis-celery-and-presence) is on. Otherwise file deletion and email run inline in the request, and the connection-test room cleanup is not scheduled |
 | [`core/management/commands/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/management/commands) | Maintenance commands: `purge_deleted_files`, `purge_inactive_rooms`, `clean_pending_files` and `merge_duplicate_users` |
 | [`core/audit/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/audit), [`core/auditing.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/auditing.py) | The audit log of room, token and recording operations, see [The audit log](#the-audit-log) |
 | [`core/roomkit/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/roomkit) | Meeting-room hardware joining over SIP |
@@ -84,7 +84,7 @@ Most actions on a room are extra routes of `RoomViewSet`, such as `request-entry
 
 ## The audit log
 
-What each event holds, and how operators collect it, is in [Audit logging](../self-hosting/configuration/audit-logging.md).
+[Audit logging](../self-hosting/configuration/audit-logging.md) describes what each event holds and how operators collect it.
 
 ### Declaring an action
 
@@ -99,7 +99,7 @@ APPLICATION_TOKEN_ISSUE = audit.Action(
 ROOM_CREATE = audit.Action("room.create")
 ```
 
-`core/auditing.py` imports nothing but the audit facility, so that any module can import it, authentication classes included. Models and authentication classes are registered apart, in `core/audit_registry.py`.
+`core/auditing.py` imports nothing but the audit facility and leaf helpers such as `core.services.transit_code`, so that any module can import it, authentication classes included. Models and authentication classes are registered separately, in `core/audit_registry.py`.
 
 ### Auditing a DRF view
 
@@ -125,7 +125,7 @@ class RoomViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
 - The ECS category and types come from the action, or default to `api` and the DRF action.
 - The outcome, reason and status code come from the response status: 401, 403 and 429 are `denied`, other errors are `failure`, filed as [Classification](../self-hosting/configuration/audit-logging.md#classification) describes.
 - The target is the object `get_object()` returned, unless the view assigns `audit_target`.
-- A view can also assign `audit_user_target`, `audit_actor`, where `None` records no account, and `audit_details`, or override `get_audit_fields()`.
+- A view can also assign `audit_user_target`, `audit_details` and `audit_actor`, where `None` records no account, or override `get_audit_fields()`.
 - An exception DRF does not handle is still recorded before it propagates.
 
 ### Auditing from anywhere else
@@ -143,9 +143,9 @@ Without `request=`, the event reads the context of the request being served, `au
 
 ### How fields are filled
 
-- **Request fields** are read from the request: the real client address, the path and the user agent. `http.request.id` is the request id, settled by `AuditLogMiddleware` right after dockerflow assigns it, and echoed in the `DOCKERFLOW_REQUEST_ID_HEADER_NAME` response header. The inbound id is kept only when `REQUEST_ID_TRUST_HEADER` is set, see [Configuration](../self-hosting/configuration/audit-logging.md#configuration).
-- **The actor** comes from `request.user`, `request.auth` and the DRF authenticator, as [Actors](../self-hosting/configuration/audit-logging.md#actors) describes, the authenticator's class mapped to an auth method by `audit.register_auth_method`, see [Registering models](#registering-models-and-authentication-methods). Without a request, it is the system. Override it with `actor=`, `actor_type=`, `auth_method=` and `client_id=`; an explicit `actor_type=` keeps the signed-in account. `actor=None` records no account: for a caller failing to authenticate, an application acting before it is given a delegated user, or the system.
-- **The target** is described by its model name, its primary key and the `fields` its model is registered with, see [Targets](../self-hosting/configuration/audit-logging.md#targets). A model that is not registered is still identified. The account the action is about, `user.target`, is found from the target, unless given as `user_target=`. Name a service the backend calls with `target_service=`. Any other keyword argument lands under `lasuite.details`.
+- **Request fields** are read from the request: the real client address, the path and the user agent. `http.request.id` is the request id, set by `AuditLogMiddleware` right after dockerflow assigns it, and echoed in the `DOCKERFLOW_REQUEST_ID_HEADER_NAME` response header. The inbound id is kept only when `REQUEST_ID_TRUST_HEADER` is set, see [Configuration](../self-hosting/configuration/audit-logging.md#configuration).
+- **The actor** comes from `request.user`, `request.auth` and the DRF authenticator, as [Actors](../self-hosting/configuration/audit-logging.md#actors) describes. `audit.register_auth_method` maps the authenticator's class to an auth method, see [Registering models](#registering-models-and-authentication-methods). Without a request, it is the system. Override it with `actor=`, `actor_type=`, `auth_method=` and `client_id=`; an explicit `actor_type=` keeps the signed-in account. `actor=None` records no account: for a caller failing to authenticate, an application acting before it is given a delegated user, or the system.
+- **The target** is described by its model name, its primary key and the `fields` its model is registered with, see [Targets](../self-hosting/configuration/audit-logging.md#targets). A model that is not registered is still identified. The account the action is about, `user.target`, is found from the target, unless given as `user_target=`. Name a service the backend calls with `target_service=`. Any other keyword argument is recorded under `lasuite.details`.
 
 ### Emission never raises
 
@@ -240,7 +240,7 @@ sequenceDiagram
 
 ### What the backend asks LiveKit
 
-Every call goes through the client [`create_livekit_client()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) returns.
+Every call goes through the client that [`create_livekit_client()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) returns.
 
 | What | Backend side | What the frontend does with it |
 |---|---|---|
@@ -263,7 +263,7 @@ LiveKit posts its events to `/api/v1.0/rooms/webhooks-livekit/`, the `webhooks_l
 | `room_finished` | Deletes that rule and clears the room's presence and waiting-room state |
 | `participant_left` | Removes the participant from the presence cache, unless [`PRESENCE_CLEAR_ON_PARTICIPANT_LEFT`](../reference/env-variables.md#redis-celery-and-presence) is off |
 
-Any other event is acknowledged and ignored, and so is every event of a connection-test room or of a room [`LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX`](../reference/env-variables.md#livekit) does not match. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml). The server-side settings are in [Environment variables](../reference/env-variables.md#livekit).
+Any other event is acknowledged and ignored, and so is every event of a connection-test room or of a room whose name [`LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX`](../reference/env-variables.md#livekit) does not match. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml). The server-side settings are in [Environment variables](../reference/env-variables.md#livekit).
 
 ### The frontend side
 
@@ -289,7 +289,7 @@ Their settings are under [Agents](../reference/env-variables.md#agents).
 
 | Path | What it holds |
 |---|---|
-| [`src/sdk`](https://github.com/suitenumerique/meet/tree/main/src/sdk) | The SDK in `library/`, published on npm as `@gouvfr-lasuite/visio-sdk`, which adds a button that creates a Meet link to another web application, and a sample application using it in `consumer/`. Its own guide is [`src/sdk/library/CONTRIBUTING.md`](https://github.com/suitenumerique/meet/blob/main/src/sdk/library/CONTRIBUTING.md) |
+| [`src/sdk`](https://github.com/suitenumerique/meet/tree/main/src/sdk) | The SDK in `library/`, published on npm as `@gouvfr-lasuite/visio-sdk`, which adds to another web application a button that creates a Meet link, and a sample application using it in `consumer/`. Its own guide is [`src/sdk/library/CONTRIBUTING.md`](https://github.com/suitenumerique/meet/blob/main/src/sdk/library/CONTRIBUTING.md) |
 | [`src/addons/outlook`](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook) | The Outlook add-in that adds a Meet link to an event, calling [`core/addons/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/addons) |
 | [`src/mail`](https://github.com/suitenumerique/meet/tree/main/src/mail) | The MJML sources of the emails, compiled by `make mails-build` into `src/backend/core/templates/mail/` |
 
@@ -297,7 +297,7 @@ Their settings are under [Agents](../reference/env-variables.md#agents).
 
 | Path | What it holds |
 |---|---|
-| [`src/helm/meet`](https://github.com/suitenumerique/meet/tree/main/src/helm/meet) | The Helm chart. Its values are documented in its [`README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md), which `generate-readme.sh` regenerates from `values.yaml`. Deploying it is in [Helm deployment](../self-hosting/kubernetes/helm.md) |
+| [`src/helm/meet`](https://github.com/suitenumerique/meet/tree/main/src/helm/meet) | The Helm chart. Its values are documented in its [`README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md), which `generate-readme.sh` regenerates from `values.yaml`. [Helm deployment](../self-hosting/kubernetes/helm.md) covers deploying it |
 | [`src/helm/helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl), [`src/helm/env.d`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d) | The helmfile and the values of the `dev-keycloak` and `dev-dinum` environments that Tilt deploys |
 | [`env.d/development`](https://github.com/suitenumerique/meet/tree/main/env.d/development) | One `.dist` template per service of the development stack. `make bootstrap` copies each to the same name without `.dist` |
 | [`env.d/production.dist`](https://github.com/suitenumerique/meet/tree/main/env.d/production.dist) | The production templates. The directory carries the `.dist` suffix, not the files, so each keeps its name when the [Deployment guide](../self-hosting/compose/deployment-guide.md) downloads it |

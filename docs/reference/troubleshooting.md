@@ -18,18 +18,18 @@ docker compose logs --tail=50 keycloak
 
 ## Application issues
 
-### Backend exits at start with `ImproperlyConfigured`
+### Backend runs the Development configuration, or fails at start
 
-The proxy answers 502 while the backend is down.
+The proxy returns 502 while the backend is down.
 
-**Cause**: `DJANGO_SETTINGS_MODULE` or `DJANGO_CONFIGURATION` is not set; the error names which one. `manage.py` commands such as `migrate` do not fail this way: without the variables they silently run the `Development` configuration.
+**Cause**: `DJANGO_CONFIGURATION` is not set: `wsgi.py`, `manage.py` and the Celery app then fall back to `Development`, which needs development-only packages the published image does not include.
 
 **Fix**: Set `DJANGO_SETTINGS_MODULE=meet.settings` and `DJANGO_CONFIGURATION=Production` in `env.d/common` and recreate the backend.
 
 
 ### 502 Bad Gateway on all routes
 
-**Cause**: The `frontend` container nginx is not listening on port 8083, or the backend is unreachable.
+**Cause**: The nginx in the `frontend` container is not listening on port 8083, or the backend is unreachable.
 
 **Fix**:
 1. Check `docker compose logs frontend` for nginx errors
@@ -72,10 +72,10 @@ docker compose exec backend python -c "import urllib.request; print(urllib.reque
 LIVEKIT_API_URL=https://livekit.example.com
 ```
 
-Check the LiveKit subdomain answers:
+Check that the LiveKit subdomain responds:
 ```bash
 curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
-# Expected: 200
+# Expected: a status code below 400
 ```
 
 
@@ -101,7 +101,7 @@ docker compose exec livekit ls -l /certs/
 
 **Cause**: Too little bandwidth. LiveKit lowers the quality it forwards to a receiver whose connection cannot hold more.
 
-**Fix**: Lasting pixelation means the server's bandwidth, which every stream passes through, or the sender's upload is short. Give the server more bandwidth, or have the sender use a better connection.
+**Fix**: Lasting pixelation means the sender's upload or the server's bandwidth is too low, since every stream passes through the server. Give the server more bandwidth, or have the sender use a better connection.
 
 ## Recording issues
 
@@ -109,7 +109,7 @@ docker compose exec livekit ls -l /certs/
 
 The button shows only when all of these hold:
 
-- `RECORDING_ENABLE=True` on the backend; `curl https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled` must answer `true`.
+- `RECORDING_ENABLE=True` on the backend; `curl https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled` must print `true`.
 - You may record in this room, as [Who can record](../self-hosting/configuration/recording.md#who-can-record) lists. Anyone else sees **Record** under **More tools** with a **Request** button.
 - Where frontend analytics is configured, the PostHog feature flag for recording is on for you.
 
@@ -122,15 +122,15 @@ The storage variables do not affect the button; they decide whether the file is 
 
 **Fix**: Check the [`webhook:` block](../self-hosting/configuration/livekit.md#webhook) of `livekit-server.yaml`, which the base install writes:
 
-- its URL is the **public HTTPS** address, `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, not an internal one such as `http://backend:8000/...`, which Django redirects to HTTPS and loses;
+- its URL is the **public HTTPS** address, `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, not an internal one such as `http://backend:8000/...`, which the Production configuration refuses (an HTTPS redirect, or 400 when that host is not in `DJANGO_ALLOWED_HOSTS`);
 - its `api_key` equals `LIVEKIT_API_KEY`.
 
-Then recreate LiveKit, `docker compose up -d livekit`, and watch the requests arrive with `docker compose logs -f backend | grep webhooks-livekit`; each one should answer `200`.
+Then recreate LiveKit, `docker compose up -d livekit`, and watch the requests arrive with `docker compose logs -f backend | grep webhooks-livekit`; each one should get a `200` response.
 
 
 ### Recording fails immediately / "no response from servers"
 
-**Cause**: LiveKit Egress refuses to start: the server reports fewer CPUs than the default `room_composite_cpu_cost`, 4.0, as is common on a VPS or shared hosting.
+**Cause**: LiveKit Egress refuses to start: the server reports fewer CPUs than the default `room_composite_cpu_cost`, the CPU Egress reserves for a room recording. This is common on a VPS or shared hosting.
 
 **Fix**: Add CPU cost overrides to `livekit-egress.yaml`:
 ```yaml

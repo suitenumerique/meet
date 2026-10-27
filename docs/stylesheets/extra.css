@@ -42,3 +42,10 @@ pre.mermaid {
   background: var(--md-default-bg-color);
   cursor: zoom-out;
 }
+
+/* A small arrow after a navigation entry that leaves the site, such as Changelog. */
+.md-nav__link[href^="http"]::after {
+  content: "↗";
+  font-size: 0.8em;
+  margin-left: 0.25em;
+}

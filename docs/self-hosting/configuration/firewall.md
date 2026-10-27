@@ -34,7 +34,7 @@ The Docker Compose files publish none of these.
 
 ## The host firewall
 
-Docker opens every port a container publishes with firewall rules of its own, which take precedence over ufw and firewalld. With Docker Compose, a container publishes every port of the first table, so:
+Docker opens every port a container publishes with firewall rules of its own, which take precedence over ufw and firewalld. With Docker Compose, each port of the first table you use is published by a container, so:
 
 - ufw or firewalld rules cannot open or close those ports. Your cloud provider's security group is what filters them.
 - A port that must stay closed must not be published at all. This is why the second table's ports are not.
@@ -65,7 +65,7 @@ Replace `7882/udp` with your range if you chose one.
 
 ## Check the ports
 
-From another machine, a TCP port answers when it is open:
+From another machine, `nc` connects to a TCP port when it is open:
 
 ```bash
 nc -zv meet.example.com 443

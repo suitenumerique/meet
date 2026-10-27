@@ -1,6 +1,6 @@
 # Develop locally
 
-The whole stack runs on your machine in Docker Compose, driven by the [`Makefile`](https://github.com/suitenumerique/meet/blob/main/Makefile). Where the code lives is in the [Code tour](code-tour.md), and how a change gets merged in [Pull requests](pull-requests.md).
+The whole stack runs on your machine in Docker Compose, driven by the [`Makefile`](https://github.com/suitenumerique/meet/blob/main/Makefile). The [Code tour](code-tour.md) shows where the code lives, and [Pull requests](pull-requests.md) how a change gets merged.
 
 ## TL;DR
 
@@ -50,7 +50,7 @@ make bootstrap FLUSH_ARGS='--no-input'
 Run it once after cloning, and again to start over from a clean database. In order, it:
 
 1. Creates `data/media` and `data/static`, which the containers mount.
-2. Copies each template in [`env.d/development/`](https://github.com/suitenumerique/meet/tree/main/env.d/development) to the same name without `.dist`, skipping files that already exist, and fills `env.d/development/garage` with a random secret.
+2. Copies each template in [`env.d/development/`](https://github.com/suitenumerique/meet/tree/main/env.d/development) but `common.e2e.dist` to the same name without `.dist`, skipping files that already exist, and fills `env.d/development/garage` with a random secret.
 3. Builds the backend, frontend and subtitles agent images.
 4. Applies the database migrations.
 5. Empties the database, creates the Django admin and 100 demo users, as `make demo` does. `FLUSH_ARGS='--no-input'` skips the confirmation that emptying the database asks for.
@@ -93,7 +93,7 @@ It does not install the frontend's npm dependencies on your machine: `make front
 
 ### LiveKit agents
 
-`make run` leaves the subtitles agent and the metadata collector off, since each costs CPU and memory. With its agent stopped, a feature fails silently: the backend still sends it work.
+`make run` leaves the subtitles agent and the metadata collector off, since each costs CPU and memory. When a feature's agent is stopped, the feature fails silently: the backend still sends the agent work.
 
 | Command | What it does |
 |---|---|
@@ -154,12 +154,14 @@ Every `npm` script runs from `src/frontend`. The `make` targets above and below 
 
 The interface ships in English, French, German, Dutch and Spanish, and every string is translated in the pull request that adds it.
 
-**Frontend.** A component reads its strings through `t()` from `react-i18next`, by key, from a namespace file in [`src/frontend/src/locales/<language>/`](https://github.com/suitenumerique/meet/tree/main/src/frontend/src/locales). [`HandToggle.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/livekit/components/controls/HandToggle.tsx) reads `controls.hand.raise` from `rooms.json`:
+**Frontend.** A component reads its strings through `t()` from `react-i18next`, by key, from a namespace file in [`src/frontend/src/locales/<language>/`](https://github.com/suitenumerique/meet/tree/main/src/frontend/src/locales). [`HandToggle.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/livekit/components/controls/HandToggle.tsx) reads `controls.hand.raise` or `controls.hand.lower` from `rooms.json`:
 
 ```tsx
 const { t } = useTranslation('rooms', { keyPrefix: 'controls.hand' })
 // ...
-aria-label={t('raise')}
+const tooltipLabel = isHandRaised ? 'lower' : 'raise'
+// ...
+aria-label={t(tooltipLabel)} // controls.hand.raise or controls.hand.lower
 ```
 
 | Command | What it does |
@@ -201,7 +203,7 @@ Every dependency is pinned to an exact version. CI installs from the lock files,
 
 | Command | What it does |
 |---|---|
-| `make test` | Runs the backend, summary service and frontend suites in turn, stopping at the first failure; the backend one in parallel. `ARGS` passes pytest arguments to the first two, as in `make test ARGS="-x"` |
+| `make test` | Runs the backend suite in parallel, then the summary service and frontend suites, stopping at the first failure. `ARGS` passes pytest arguments to the first two, as in `make test ARGS="-x"` |
 | `make test-back` | Runs the backend suite on one process. `make test-back ARGS="core/tests/rooms/"` limits it to a directory |
 | `make test-back-parallel` | Runs the backend suite on every CPU core, through pytest-xdist |
 | `make test-summary` | Runs the summary service suite |
@@ -249,7 +251,7 @@ The `make` targets fix what they can in place. CI only checks, so run them befor
 | `make frontend-format` | Runs Prettier on `src/frontend/src`, rewriting the files |
 | `cd src/sdk/library && npm ci && npm run lint && npm run check && npm run build` | Lints, checks the formatting of, and builds the SDK, as CI does. Run it when you touch [`src/sdk`](https://github.com/suitenumerique/meet/tree/main/src/sdk) |
 
-CI also checks commit messages, spelling and shell scripts; the local commands for those are in [What CI checks](pull-requests.md#what-ci-checks).
+CI also checks commit messages, spelling and shell scripts: [What CI checks](pull-requests.md#what-ci-checks) gives the local command for each.
 
 ## Kubernetes with Tilt
 
@@ -267,7 +269,7 @@ Besides Docker, it needs:
 
 | Command | What it does |
 |---|---|
-| `make build-k8s-cluster` | Run it once. Copies `env.d/development/kube-secret.dist`, then runs [`bin/start-kind.sh`](https://github.com/suitenumerique/meet/blob/main/bin/start-kind.sh), which pipes [`create_cluster.sh`](https://github.com/numerique-gouv/tools/blob/main/kind/create_cluster.sh) from `numerique-gouv/tools` to `bash`: read that script first. It installs a mkcert certificate authority, an image registry on `localhost:5001`, and a kind cluster `suite` serving `*.127.0.0.1.nip.io` over HTTPS |
+| `make build-k8s-cluster` | Copies `env.d/development/kube-secret.dist` if needed. It does not create the cluster: run [`./bin/start-kind.sh`](https://github.com/suitenumerique/meet/blob/main/bin/start-kind.sh) yourself once, which pipes [`create_cluster.sh`](https://github.com/numerique-gouv/tools/blob/main/kind/create_cluster.sh) from `numerique-gouv/tools` to `bash`; read that script first. That script installs a mkcert certificate authority, an image registry on `localhost:5001`, and a kind cluster `suite` serving `*.127.0.0.1.nip.io` over HTTPS |
 | `make start-tilt-keycloak` | Runs `tilt up` with [`bin/Tiltfile`](https://github.com/suitenumerique/meet/blob/main/bin/Tiltfile) in the `meet` namespace, with a Keycloak in the cluster. Builds the backend, frontend, summary, agents and LiveKit images, deploys the chart, applies the migrations and creates the Django admin once |
 | `make start-tilt-dinum` | The same, with the DINUM-styled frontend from [`docker/dinum-frontend`](https://github.com/suitenumerique/meet/tree/main/docker/dinum-frontend) |
 | `tilt down --namespace=meet -f ./bin/Tiltfile` | Deletes what Tilt deployed. Stopping `tilt up` with Ctrl+C leaves the deployment running |
@@ -303,7 +305,7 @@ A page follows these rules:
     ```
 
     Two screenshots side by side go in one `<div class="figure-row" markdown>`. Images live in [`docs/assets/`](https://github.com/suitenumerique/meet/tree/main/docs/assets).
-- **An icon inside a sentence or a table carries `class="off-glb"`**, which keeps it out of the lightbox that opens screenshots full size: `<img class="off-glb" src="../assets/icons/mic-line.svg" width="20" />`.
+- **An icon inside a sentence or a table has `class="off-glb"`**, which keeps it out of the lightbox that opens screenshots full size: `<img class="off-glb" src="../assets/icons/mic-line.svg" width="20" />`.
 - **A new page is added to `nav` in `zensical.toml`**, or it builds without appearing in the navigation.
 
 CI's spelling and shellcheck jobs cover `docs/` too, see [What CI checks](pull-requests.md#what-ci-checks).

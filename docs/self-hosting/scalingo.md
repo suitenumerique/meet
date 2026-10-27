@@ -1,24 +1,21 @@
 # Deployment on Scalingo
 
-Deploy LaSuite Meet on [Scalingo](https://scalingo.com/) with the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack).
+At the end, LaSuite Meet runs as a [Scalingo](https://scalingo.com/) app built by the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack), with PostgreSQL and Redis addons. To only try Meet, run [Quick Start](compose/quick-start.md) on a single server first.
 
 ## Prerequisites
 
 - A Scalingo account
 - The Scalingo CLI
-- An OIDC provider with a client for Meet
+- An OIDC provider, the identity service that signs users in, with a client for Meet
 - A LiveKit server running elsewhere: this guide does not deploy it, see [LiveKit Configuration](#livekit-configuration)
 
 ## Step 1: Create Your App
 
-Create an app with the `scalingo` CLI or the [Scalingo dashboard](https://dashboard.scalingo.com/).
+Create the app with the `scalingo` CLI or the [Scalingo dashboard](https://dashboard.scalingo.com/).
 
 ## Step 2: Provision Addons
 
-Add a PostgreSQL addon and a Redis addon, for caching and sessions. They set these environment variables automatically:
-
-- `SCALINGO_POSTGRESQL_URL` - Database connection string
-- `SCALINGO_REDIS_URL` - Redis connection string
+Meet keeps its data in PostgreSQL and uses Redis for caching and sessions. Add both as addons; they set their connection strings, `SCALINGO_POSTGRESQL_URL` and `SCALINGO_REDIS_URL`, automatically.
 
 ## Step 3: Configure Environment Variables
 
@@ -46,6 +43,8 @@ scalingo env-set REDIS_URL="\$SCALINGO_REDIS_URL"
 ```
 
 ### Django Settings
+
+Run Django in production mode, with your own secret key and the app's hostname:
 
 ```bash
 scalingo env-set DJANGO_SETTINGS_MODULE="meet.settings"
@@ -85,11 +84,13 @@ Follow the Scalingo section of [Email (SMTP)](configuration/email.md#scalingo-se
 
 ## Step 4: Deploy
 
+Push the code to build and start the app:
+
 ```bash
 git push scalingo main
 ```
 
-The `postdeploy` process runs the database migrations before the app goes live.
+The `postdeploy` line of `Procfile` runs the database migrations on each deployment.
 
 At runtime, `bin/buildpack_start.sh` runs Nginx and Gunicorn in the `web` container: Nginx serves the built frontend and proxies `/api/` and `/admin/` to Gunicorn, which runs Django.
 
@@ -136,3 +137,7 @@ Common problems and their fixes are in [Troubleshooting](../reference/troublesho
 - [Suite Numérique Buildpack](https://github.com/suitenumerique/buildpack)
 - [Meet Environment Variables](../reference/env-variables.md)
 - [Django Configurations Documentation](https://django-configurations.readthedocs.io/)
+
+## Next
+
+Add email, recording or hardening from the overview's [Next steps](index.md#next-steps).

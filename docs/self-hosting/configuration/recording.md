@@ -1,6 +1,6 @@
 # Recording
 
-Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When the recording is complete, the person who started it and the room's owners and administrators (co-hosts in the meeting) each receive an email with a download link.
+Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When a screen recording is complete, the person who started it and the room's owners and administrators (co-hosts in the meeting) each receive an email with a download link.
 
 Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). `RECORDING_MAX_DURATION` only shows users the limit: set the same limit in Egress, which enforces it. When Egress stops a recording at its limit, Meet saves the file as usual.
 
@@ -16,13 +16,13 @@ Every recording variable and its default is in [Environment Variables: Recording
 | `public` or `trusted` | The room's owners and administrators, and any signed-in participant connected to the meeting |
 | `restricted` | The room's owners and administrators only |
 
-Set `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED=False` to reserve recording to the room's owners and administrators on every room. A participant who joined without signing in can never record.
+Set `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED=False` to restrict recording to the room's owners and administrators on every room. A participant who joined without signing in can never record.
 
 Meet copies the room's roles onto the recording when it starts, and later changes to the room do not affect it:
 
 | Person | Can watch and download | Can delete |
 |---|---|---|
-| The room's owners and administrators | Yes | Yes |
+| The room's owners and administrators | Yes | Yes, once it has ended |
 | The person who started it, when not an owner or administrator | Yes | No |
 
 Starting a recording is rate-limited per user, by `START_RECORDING_THROTTLE_RATES` and the daily cap `START_RECORDING_DAILY_THROTTLE_RATES`.
@@ -30,9 +30,9 @@ Starting a recording is rate-limited per user, by `START_RECORDING_THROTTLE_RATE
 ## Requirements
 
 - A running LiveKit Egress server.
-- S3-compatible object storage. This guide self-hosts [Garage](https://garagehq.deuxfleurs.fr/); any S3-compatible provider works: AWS S3, Scaleway Object Storage, OVHcloud Object Storage.
+- S3-compatible object storage. This guide self-hosts [Garage](https://garagehq.deuxfleurs.fr/), but any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVHcloud Object Storage.
 - SMTP, since the download link reaches users by email. See [Email (SMTP)](email.md).
-- The LiveKit webhook to Meet, which tells it a recording has finished. The base setup already configures it: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
+- The LiveKit webhook to Meet, which tells Meet a recording has finished. The base setup already configures it: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
 
 ## How it works
 
@@ -486,7 +486,7 @@ Meet encodes every screen recording with a **resolution** and a **profile**, whi
 - Egress's codecs stay fixed: H.264 Main video and AAC audio.
 - The default, the `full` profile at `720p`, matches LiveKit's built-in `H264_720P_30` preset, and makes larger files than talking heads and screen sharing need.
 
-**Built-in profiles.** File size and Egress CPU cost both grow roughly with framerate × bitrate. The size column adds the default 128 kbps audio to the 720p video bitrate:
+**Built-in profiles.** File size grows with the bitrate, and Egress CPU cost with the framerate and resolution. The size column adds the default 128 kbps audio to the 720p video bitrate:
 
 | Profile | FPS | 540p kbps | 720p kbps | 1080p kbps | ~size per hour at 720p | Best for |
 |---|---|---|---|---|---|---|
@@ -526,9 +526,9 @@ The backend refuses to start when a profile lacks a bitrate for one of the resol
 
 ## Testing the full recording flow
 
-1. Start a meeting and click **Record**.
-2. Speak for 30 seconds, then click **Stop recording**.
-3. Check that the file reached the bucket: run the bucket check of Step 1 again, and the object count goes up by one.
+1. Start a meeting, open **More tools** → **Record**, and click **Start recording the meeting**.
+2. Speak for 30 seconds, then click **Stop recording the meeting**.
+3. Check that the file reached the bucket: run the bucket check of Step 1 again: the object count should have gone up by one.
 4. Check the recording's status under `/admin/` → **Core → Recordings**.
 5. Check that the email with the download link arrived.
 

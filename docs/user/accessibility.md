@@ -1,19 +1,19 @@
 # Accessibility & Shortcuts
 
-Meet works with a keyboard alone and with screen readers, and targets WCAG AA.
+Meet works with a keyboard alone and with screen readers. It follows the recommendations of RGAA, France's accessibility standard, but has not been audited yet.
+
+!!! tip "A guide for your case"
+
+    [Deaf or hard of hearing](guides/deaf-hard-of-hearing.md) · [Blind or low vision](guides/blind-low-vision.md) · [Sign-language interpreter](guides/sign-language-interpreter.md)
 
 ## Keyboard
 
 The usual keys work everywhere: `Tab`, the arrow keys, `Enter` and `Escape`. A **skip link** at the top of the page jumps to the main content.
 
-<figure markdown="span">
-  ![Keyboard shortcuts panel](../assets/keyboard-shortcuts.png)
-  <figcaption>Settings → Shortcuts</figcaption>
-</figure>
+In a meeting, `Ctrl+Shift+/` or **Settings → Shortcuts** lists these shortcuts:
 
 | Action | Shortcut |
 |---|---|
-| Show every shortcut | `Ctrl+Shift+/` |
 | Focus the bottom toolbar | `F2` |
 | Focus the page buttons, when participants fill more than one page | `Ctrl+Shift+G` |
 | Microphone on or off | `Ctrl+D` |

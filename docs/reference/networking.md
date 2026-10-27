@@ -2,7 +2,7 @@
 
 ## Ports
 
-Which ports to open, and which never to expose, are in [Firewall & Ports](../self-hosting/configuration/firewall.md), with the firewall rules for every configuration.
+[Firewall & Ports](../self-hosting/configuration/firewall.md) lists which ports to open, which never to expose, and the firewall rules for every configuration.
 
 ## Traffic flow
 
@@ -54,7 +54,7 @@ LiveKit server (SFU: forwards each stream, does not transcode)
 ```
 
 - When a participant's network blocks that UDP port, the browser falls back to TCP, then to a [TURN relay](../self-hosting/configuration/livekit.md#turn) if one is enabled, see [How media connects](../self-hosting/configuration/livekit.md#how-media-connects). Every port is in [Firewall & Ports](../self-hosting/configuration/firewall.md).
-- On a cloud server, whose public IP is not on its network interface, LiveKit needs [`use_external_ip`](../self-hosting/configuration/livekit.md#use_external_ip) to announce that IP.
+- On a cloud server whose public IP is not on its network interface, LiveKit needs [`use_external_ip`](../self-hosting/configuration/livekit.md#use_external_ip) to announce that IP.
 
 ### LiveKit webhook (room, egress, and recording events)
 
@@ -67,9 +67,9 @@ LiveKit Server → POST https://meet.example.com/api/v1.0/rooms/webhooks-livekit
 | Network | Type | Members | Purpose |
 |---|---|---|---|
 | `proxy` | Bridge (external) | reverse proxy, frontend, livekit, keycloak | reverse proxy routing and TLS |
-| `internal` | Bridge, one per stack | Meet stack: backend, frontend, celery, postgresql, redis, livekit; Keycloak stack: keycloak, kc-postgresql | Service-to-service communication |
+| `internal` | Bridge, one per stack | Meet stack: backend, frontend, celery, postgresql, redis, livekit; Keycloak stack: keycloak, postgresql | Service-to-service communication |
 
-Object storage is not part of the Meet stack. The Garage example, [`docs/examples/garage/compose.yml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/garage/compose.yml), joins the Meet stack's `internal` network as `meet_internal`, or the name `MEET_INTERNAL_NETWORK` sets.
+Object storage is not part of the Meet stack. The Garage example, [`docs/examples/garage/compose.yml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/garage/compose.yml), joins the Meet stack's `internal` network, named `meet_internal` unless `MEET_INTERNAL_NETWORK` sets another name.
 
 ## Internal DNS resolution
 
