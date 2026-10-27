@@ -9,6 +9,7 @@ import requests
 from summary.core import analytics, celery_worker, webhook_service
 from summary.core.llm_service import LLMException, LLMService
 from summary.core.privacy import redact_url
+from summary.core.sentry import before_breadcrumb, before_send
 from summary.core.shared_models import SummarizeWebhookSuccessPayload
 
 CANARY = "sensitive-canary"
@@ -18,6 +19,52 @@ URL = f"https://user:password@example.com/file?signature={CANARY}#fragment"
 def test_url_redaction():
     """Credentials and signed query strings are removed."""
     assert redact_url(URL) == "https://example.com/file?[redacted]"
+
+
+def test_sentry_scrubs_events_and_breadcrumbs():
+    """Untrusted exception messages and breadcrumb data never leave in events."""
+    event = {
+        "request": {"url": URL, "data": CANARY, "query_string": CANARY},
+        "exception": {
+            "values": [
+                {
+                    "type": "ValueError",
+                    "value": CANARY,
+                    "stacktrace": {"frames": [{"vars": {"job_id": "job-1"}}]},
+                }
+            ]
+        },
+        "extra": {"url": URL},
+    }
+    result = before_send(event, {})
+    assert CANARY not in str(result)
+    assert result["exception"]["values"][0]["type"] == "ValueError"
+    assert result["exception"]["values"][0]["stacktrace"]["frames"][0]["vars"] == {
+        "job_id": "job-1"
+    }
+    assert before_breadcrumb({"message": CANARY, "data": {"url": URL}}, {}) == {}
+
+
+@pytest.mark.parametrize("scheme", ["http", "HTTP", "hTtP", "https", "HTTPS", "hTtPs"])
+def test_sentry_url_scrubbing_is_case_insensitive(scheme):
+    """Scheme casing cannot bypass redaction of URLs nested in event strings."""
+    event = {
+        "extra": {
+            "nested": [
+                {
+                    "detail": (
+                        f"prefix <{scheme}://user:password@example.com/Path"
+                        f"?signature={CANARY}#fragment> suffix"
+                    )
+                }
+            ]
+        }
+    }
+    result = before_send(event, {})
+    assert result["extra"]["nested"][0]["detail"] == (
+        f"prefix <{scheme.lower()}://example.com/Path?[redacted]> suffix"
+    )
+    assert CANARY not in str(result)
 
 
 def test_llm_exception_does_not_include_upstream_message(caplog):
