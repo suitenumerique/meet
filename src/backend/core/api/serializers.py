@@ -436,6 +436,7 @@ class RoomConfiguration(BaseModel):
 
     can_publish_sources: list[TrackSource] | None = None
     everyone_can_mute: bool | None = None
+    allow_whiteboard: bool | None = None
 
     model_config = {"extra": "forbid"}
 
