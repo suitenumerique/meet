@@ -3,20 +3,23 @@
 # ruff: noqa: PLR0913
 
 import json
+import logging
 import time
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin
 
 import requests
-from celery import Celery, signals
+from celery import Celery, Task, signals
 from celery.utils.log import get_task_logger
 from openai.types.audio import Transcription
+from pydantic import SecretStr, ValidationError
 from requests import exceptions
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.docs_service import create_document_in_lasuite_docs
+from summary.core.exceptions import CleanedValidationError
 from summary.core.file_service import (
     CorruptedAudioFile,
     FileService,
@@ -31,6 +34,7 @@ from summary.core.models import (
     SummarizeTaskJob,
     TranscribeTaskJob,
 )
+from summary.core.privacy import dump_for_transport, redact_url
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
     FORMAT_PLAN,
@@ -63,8 +67,24 @@ metadata_manager = MetadataManager()
 
 logger = get_task_logger(__name__)
 
+
+def _reveal(secret: SecretStr | None) -> str | None:
+    """Return the underlying value of an optional secret."""
+    return secret.get_secret_value() if secret is not None else None
+
+
+class PrivateTask(Task):
+    """Hide task arguments in Celery logs and monitoring events."""
+
+    def apply_async(self, args=None, kwargs=None, **options):
+        """Publish with redacted display representations."""
+        options.update(argsrepr="[Filtered]", kwargsrepr="[Filtered]")
+        return super().apply_async(args=args, kwargs=kwargs, **options)
+
+
 celery = Celery(
     __name__,
+    task_cls=PrivateTask,
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
     broker_connection_retry_on_startup=True,
@@ -76,10 +96,28 @@ celery = Celery(
 celery.config_from_object("summary.core.celery_config")
 
 
+class CeleryLogPrivacyFilter(logging.Filter):
+    """Prevent Celery trace logs from serializing task results or exceptions."""
+
+    def filter(self, record):
+        """Keep task identity and state without upstream values."""
+        if record.levelno < logging.INFO:
+            return True
+        data = getattr(record, "data", None)
+        if isinstance(data, dict):
+            record.msg = "Task %s[%s] finished or retried (details omitted)"
+            record.args = (data.get("name", "unknown"), data.get("id", "unknown"))
+            record.data = {}
+            record.exc_info = None
+            record.exc_text = None
+        return True
+
+
 @signals.celeryd_init.connect
 def init_celery_sentry(**_kwargs):
     """Initialize Sentry in the Celery worker."""
     init_sentry()
+    logging.getLogger("celery.app.trace").addFilter(CeleryLogPrivacyFilter())
 
 
 file_service = FileService()
@@ -162,9 +200,9 @@ def transcribe_audio(
             try:
                 res.raise_for_status()
             except requests.exceptions.HTTPError:
-                logger.exception("WhisperX transcription failed")
+                logger.error("WhisperX transcription failed")
                 # We reraise the error so that it can be retried by celery
-                raise
+                raise requests.exceptions.HTTPError("WhisperX request failed") from None
 
             transcription_json: dict[str, Any] = res.json()
             # We remove the "usage" key from the transcription_json dictionary
@@ -175,13 +213,16 @@ def transcribe_audio(
             # We force the use of the Transcription model here
             # to avoid changing too much code for now.
             # Note that it should be WhisperXResponse instead.
-            transcription = Transcription.model_validate(
-                # We add a dummy "text" to make the model validate,
-                # Some API responses lack the "text" key.
-                {"text": "", **transcription_json},
-                extra="allow",
-                strict=False,
-            )
+            try:
+                transcription = Transcription.model_validate(
+                    # We add a dummy "text" to make the model validate,
+                    # Some API responses lack the "text" key.
+                    {"text": "", **transcription_json},
+                    extra="allow",
+                    strict=False,
+                )
+            except ValidationError as exc:
+                raise CleanedValidationError(exc, secret_input=True) from None
 
             # Logging
             transcription_duration = round(time.time() - transcription_start_time, 2)
@@ -199,9 +240,9 @@ def transcribe_audio(
         if raises:
             raise e
         redacted_cloud_storage_url = (
-            cloud_storage_url.split("?", 1)[0] if cloud_storage_url else None
+            redact_url(cloud_storage_url) if cloud_storage_url else None
         )
-        logger.exception(
+        logger.error(
             ("Unexpected error while preparing file %s "),
             redacted_cloud_storage_url,
         )
@@ -230,7 +271,7 @@ def resolve_speaker_identities_and_apply_to(
     logger.debug("Running resolve_speaker_identities")
     try:
         metadata = file_service.read_cloud_storage_json(
-            recording_metadata.cloud_storage_url
+            recording_metadata.cloud_storage_url.get_secret_value()
         )
         speaker_mapping = resolve_speaker_identities(
             metadata,
@@ -241,21 +282,18 @@ def resolve_speaker_identities_and_apply_to(
         new_transcription = speaker_mapping.apply_to(transcription.model_dump())
         return WhisperXResponse.model_validate(new_transcription)
 
-    except FileServiceException as exc:
+    except FileServiceException:
         logger.error(
-            "Error reading metadata for task %s; skipping speaker assignment."
-            " Error: %s",
+            "Error reading metadata for task %s; skipping speaker assignment.",
             task_id,
-            exc,
         )
         return transcription
 
-    except Exception as exc:
-        logger.exception(
+    except Exception:
+        logger.error(
             "resolve_speaker_identities failed for task %s; skipping"
-            " speaker assignment. Error: %s",
+            " speaker assignment.",
             task_id,
-            exc,
         )
         return transcription
 
@@ -302,6 +340,17 @@ def format_actions(llm_output: dict) -> str:
     return ""
 
 
+def parse_llm_json(value: str) -> dict:
+    """Parse an LLM response without exposing it in decoding errors."""
+    try:
+        result = json.loads(value)
+        if not isinstance(result, dict):
+            raise ValueError
+        return result
+    except (TypeError, ValueError):
+        raise LLMException("Invalid LLM response") from None
+
+
 def summarize_transcription_internals(
     *, distinct_id: str, transcript: str, session_id: str
 ) -> str:
@@ -342,13 +391,13 @@ def summarize_transcription_internals(
     )
     logger.info("Plan generated")
 
-    res = json.loads(parts)
+    res = parse_llm_json(parts)
     parts = res.get("titles", [])
-    logger.info("Parts to summarize: %s", parts)
+    logger.info("Parts to summarize: %s", len(parts))
     parts_summarized = []
-    for part in parts:
+    for i, part in enumerate(parts):
         prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
-        logger.info("Summarizing part: %s", part)
+        logger.info("Summarizing part %s", i + 1)
         parts_summarized.append(
             llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part, name="part")
         )
@@ -364,7 +413,7 @@ def summarize_transcription_internals(
         response_format=FORMAT_NEXT_STEPS,
     )
 
-    next_steps = format_actions(json.loads(next_steps))
+    next_steps = format_actions(parse_llm_json(next_steps))
 
     logger.info("Next steps generated")
 
@@ -437,9 +486,11 @@ def call_webhook_v2_task(
     tenant_id: str,
 ):
     """Calls a webhook asynchrously (retry handled by celery)."""
-    call_webhook_v2(
-        payload=webhook_payload_adapter.validate_python(payload), tenant_id=tenant_id
-    )
+    try:
+        validated_payload = webhook_payload_adapter.validate_python(payload)
+    except ValidationError as exc:
+        raise CleanedValidationError(exc, secret_input=True) from None
+    call_webhook_v2(payload=validated_payload, tenant_id=tenant_id)
 
 
 @celery.task(
@@ -465,7 +516,10 @@ def process_audio_transcribe_v2_task(
         self: Celery task instance (passed on with bind=True)
         payload: Serialized dictionary of TranscribeSummarizeTaskCreationV2
     """
-    payload = TranscribeTaskJob.model_validate(payload)
+    try:
+        payload = TranscribeTaskJob.model_validate(payload)
+    except ValidationError as exc:
+        raise CleanedValidationError(exc, secret_input=True) from None
     logger.info(
         "Transcribing for object received | Owner: %s",
         payload.user_sub,
@@ -477,7 +531,7 @@ def process_audio_transcribe_v2_task(
         transcription_res = WhisperXResponse(
             **transcribe_audio(  # type: ignore
                 task_id=job_id,
-                cloud_storage_url=payload.cloud_storage_url,
+                cloud_storage_url=payload.cloud_storage_url.get_secret_value(),
                 language=payload.language,
                 raises=True,
             ).model_dump()
@@ -514,8 +568,8 @@ def process_audio_transcribe_v2_task(
             transcription_res.model_dump(),
             payload.context_language,
             payload.language,
-            payload.push_to_docs_config.download_link,
-            payload.push_to_docs_config.form_link,
+            _reveal(payload.push_to_docs_config.download_link),
+            _reveal(payload.push_to_docs_config.form_link),
         )
 
         create_document_in_lasuite_docs(
@@ -556,18 +610,22 @@ def process_audio_transcribe_v2_task(
         transcription_data_url=file_service.get_transcript_signed_url(job_id),
     )
     call_webhook_v2_task.apply_async(
-        args=[success_payload.model_dump(), payload.tenant_id]
+        args=[dump_for_transport(success_payload), payload.tenant_id]
     )
     metadata_manager.capture(job_id, settings.posthog_transcript_success)
 
-    return success_payload.model_dump()
+    return dump_for_transport(success_payload)
 
 
 @signals.task_prerun.connect(sender=process_audio_transcribe_v2_task)
 def task_started_transcript(task_id=None, task=None, args=None, **kwargs):
     """Signal handler called before task execution begins."""
     if args:
-        metadata_manager.create(task_id, TranscribeTaskJob.model_validate(args[0]))
+        try:
+            payload = TranscribeTaskJob.model_validate(args[0])
+        except ValidationError as exc:
+            raise CleanedValidationError(exc, secret_input=True) from None
+        metadata_manager.create(task_id, payload)
 
 
 @signals.task_retry.connect(sender=process_audio_transcribe_v2_task)
@@ -627,7 +685,10 @@ def summarize_v2_task(
     1. Run summary internals
     2. Sends the final summary via webhook.
     """
-    payload = SummarizeTaskJob.model_validate(payload)
+    try:
+        payload = SummarizeTaskJob.model_validate(payload)
+    except ValidationError as exc:
+        raise CleanedValidationError(exc, secret_input=True) from None
     summary = summarize_transcription_internals(
         distinct_id=payload.user_sub,
         transcript=payload.content,
@@ -652,18 +713,22 @@ def summarize_v2_task(
         summary_data_url=file_service.get_summary_signed_url(job_id),
     )
     call_webhook_v2_task.apply_async(
-        args=[success_payload.model_dump(), payload.tenant_id]
+        args=[dump_for_transport(success_payload), payload.tenant_id]
     )
     metadata_manager.capture(job_id, settings.posthog_summary_success)
 
-    return success_payload.model_dump()
+    return dump_for_transport(success_payload)
 
 
 @signals.task_prerun.connect(sender=summarize_v2_task)
 def task_started_summary(task_id=None, task=None, args=None, **kwargs):
     """Signal handler called before task execution begins."""
     if args:
-        metadata_manager.create(task_id, SummarizeTaskJob.model_validate(args[0]))
+        try:
+            payload = SummarizeTaskJob.model_validate(args[0])
+        except ValidationError as exc:
+            raise CleanedValidationError(exc, secret_input=True) from None
+        metadata_manager.create(task_id, payload)
 
 
 @signals.task_retry.connect(sender=summarize_v2_task)

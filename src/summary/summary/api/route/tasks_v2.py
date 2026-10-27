@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from celery.result import AsyncResult
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import ValidationError
 
 from summary.core.analytics import get_analytics
 from summary.core.celery_worker import (
@@ -13,7 +14,9 @@ from summary.core.celery_worker import (
     summarize_v2_task,
 )
 from summary.core.config import AuthorizedTenant, get_settings
+from summary.core.exceptions import CleanedValidationError
 from summary.core.models import SummarizeTaskApiRequest, TranscribeTaskApiRequest
+from summary.core.privacy import dump_for_transport
 from summary.core.security import verify_tenant_api_key_v2
 from summary.core.shared_models import (
     SummarizeWebhookFailurePayload,
@@ -52,7 +55,7 @@ async def create_transcribe_task_v2(
     task = process_audio_transcribe_v2_task.apply_async(
         args=[
             {
-                **request.model_dump(),
+                **dump_for_transport(request),
                 "tenant_id": request_tenant.id,
                 "received_at": datetime.now(timezone.utc),
             }
@@ -125,7 +128,11 @@ async def get_transcribe_job_status(
 
     if task.status == "SUCCESS":
         result = task.result
-        return TranscribeWebhookSuccessPayload.model_validate(result).model_dump()
+        try:
+            payload = TranscribeWebhookSuccessPayload.model_validate(result)
+        except ValidationError as exc:
+            raise CleanedValidationError(exc, secret_input=True) from None
+        return dump_for_transport(payload)
 
     if task.status == "FAILURE":
         return TranscribeWebhookFailurePayload(
@@ -155,7 +162,11 @@ async def get_summarize_job_status(
 
     if task.status == "SUCCESS":
         result = task.result
-        return SummarizeWebhookSuccessPayload.model_validate(result).model_dump()
+        try:
+            payload = SummarizeWebhookSuccessPayload.model_validate(result)
+        except ValidationError as exc:
+            raise CleanedValidationError(exc, secret_input=True) from None
+        return dump_for_transport(payload)
 
     if task.status == "FAILURE":
         return SummarizeWebhookFailurePayload(

@@ -5,7 +5,6 @@ import socket
 import time
 from collections import Counter
 from functools import cached_property, lru_cache
-from urllib.parse import urlsplit, urlunsplit
 
 import redis
 from celery.utils.log import get_task_logger
@@ -13,6 +12,7 @@ from posthog import Posthog
 
 from summary.core.config import get_settings
 from summary.core.models import SummarizeTaskJob, TranscribeTaskJob
+from summary.core.privacy import redact_url
 
 logger = get_task_logger(__name__)
 settings = get_settings()
@@ -54,8 +54,8 @@ class Analytics:
             self._client.capture(
                 event_name, distinct_id=distinct_id, properties=properties
             )
-        except Exception as e:
-            raise AnalyticsException("Failed to capture analytics event") from e
+        except Exception:
+            raise AnalyticsException("Failed to capture analytics event") from None
 
     def is_feature_enabled(self, feature_name: str, distinct_id: str = None) -> bool:
         """Check if a feature flag is enabled for a user."""
@@ -64,8 +64,8 @@ class Analytics:
 
         try:
             return self._client.feature_enabled(feature_name, distinct_id)
-        except Exception as e:
-            logger.error("Error checking feature flag %s: %s", feature_name, e)
+        except Exception:
+            logger.error("Error checking feature flag %s", feature_name)
             return False
 
 
@@ -133,8 +133,7 @@ class MetadataManager:
         }
 
         if isinstance(task_payload, TranscribeTaskJob):
-            parts = urlsplit(task_payload.cloud_storage_url)
-            clean_url = urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
+            clean_url = redact_url(task_payload.cloud_storage_url.get_secret_value())
             initial_metadata["source_url"] = clean_url
             initial_metadata["asr_model"] = settings.whisperx_asr_model
         elif isinstance(task_payload, SummarizeTaskJob):

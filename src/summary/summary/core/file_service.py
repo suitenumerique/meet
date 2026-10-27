@@ -17,6 +17,7 @@ import requests
 from botocore.config import Config
 
 from summary.core.config import get_settings
+from summary.core.privacy import redact_url
 from summary.core.shared_models import WhisperXResponse
 
 settings = get_settings()
@@ -314,7 +315,7 @@ class FileService:
         """Download file from a cloud storage URL to local temporary file."""
         logger.info(
             "Download recording from URL | cloud_storage_url: %s",
-            cloud_storage_url,
+            redact_url(cloud_storage_url),
         )
 
         if not cloud_storage_url:
@@ -352,10 +353,10 @@ class FileService:
                     logger.debug("Recording local file path: %s", local_path)
                     return local_path
 
-        except requests.RequestException as e:
+        except requests.RequestException:
             raise FileServiceException(
                 "Unexpected error while downloading object from cloud_storage_url."
-            ) from e
+            ) from None
 
     def _validate_duration(self, duration_seconds: float) -> None:
         """Validate audio file duration against configured maximum."""
@@ -376,7 +377,7 @@ class FileService:
 
     def read_cloud_storage_json(self, cloud_storage_url: str) -> dict:
         """Read and parse a JSON file from a url."""
-        logger.info("Reading JSON: %s", cloud_storage_url)
+        logger.info("Reading JSON: %s", redact_url(cloud_storage_url))
         res = requests.get(cloud_storage_url, timeout=(10, 100))
         res.raise_for_status()
         return res.json()

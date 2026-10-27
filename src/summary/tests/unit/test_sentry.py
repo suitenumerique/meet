@@ -1,27 +1,32 @@
 """Tests for the Sentry configuration.
 
 Each test raises an error from code handling meeting content and inspects the
-event Sentry would send: the content must be redacted, while harmless local
-variables are kept for debugging.
+event Sentry would send: sensitive content is redacted and useful locals remain.
 """
 
 import json
+import logging
 from collections.abc import Callable, Iterator
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
 from unittest.mock import Mock
 
 import httpx
 import openai
 import pytest
+import requests
 import sentry_sdk
 from botocore.exceptions import ClientError
 from botocore.stub import Stubber
+from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.stdlib import StdlibIntegration
 from sentry_sdk.transport import Transport
 
-from summary.core import file_service
+from summary.core import file_service, webhook_service
 from summary.core import sentry as sentry_module
-from summary.core.file_service import FileService
+from summary.core.file_service import FileService, FileServiceException
 from summary.core.llm_service import LLMException, LLMService
-from summary.core.shared_models import WhisperXResponse
+from summary.core.shared_models import SummarizeWebhookSuccessPayload, WhisperXResponse
 
 CANARY = "CANARY-MEETING-CONTENT"
 
@@ -51,8 +56,14 @@ def sentry_events() -> Iterator[SentryEvents]:
         transport=transport,
         send_default_pii=False,
         include_local_variables=True,
+        before_send=sentry_module.before_send,
+        before_breadcrumb=sentry_module.before_breadcrumb,
         event_scrubber=sentry_module.build_event_scrubber(),
         default_integrations=False,
+        integrations=[
+            LoggingIntegration(level=logging.DEBUG, event_level=None),
+            StdlibIntegration(),
+        ],
     )
 
     def flush() -> list[str]:
@@ -61,6 +72,125 @@ def sentry_events() -> Iterator[SentryEvents]:
 
     yield flush
     sentry_sdk.init()  # Disable Sentry for the following tests
+
+
+@pytest.fixture
+def missing_recording_url() -> Iterator[str]:
+    """Serve a deterministic 404 through the real instrumented HTTP client."""
+
+    class MissingRecordingHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(404)
+            self.end_headers()
+
+        def log_message(self, format, *args):
+            pass
+
+    with ThreadingHTTPServer(("127.0.0.1", 0), MissingRecordingHandler) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            yield (
+                f"http://127.0.0.1:{server.server_port}/recordings/recording-123.mp4"
+                f"?X-Amz-Credential={CANARY}-credential"
+                f"&X-Amz-Signature={CANARY}-signature"
+            )
+        finally:
+            server.shutdown()
+            thread.join()
+
+
+def test_sentry_download_404_excludes_signed_url(
+    sentry_events: SentryEvents, missing_recording_url: str, caplog
+) -> None:
+    """A failed download excludes signed URLs from logs, locals and breadcrumbs."""
+    with caplog.at_level(logging.INFO):
+        try:
+            FileService()._download_from_cloud_storage_url(missing_recording_url)
+        except FileServiceException as exc:
+            assert exc.__cause__ is None
+            assert exc.__suppress_context__
+            sentry_sdk.capture_exception()
+        else:
+            pytest.fail("the download should have failed")
+
+    [event] = sentry_events()
+    assert CANARY not in event
+    assert CANARY not in caplog.text
+    assert "/recordings/recording-123.mp4?[redacted]" in caplog.text
+    parsed = json.loads(event)
+    assert [item["type"] for item in parsed["exception"]["values"]] == [
+        "FileServiceException"
+    ]
+    download_vars = next(
+        frame_vars for frame_vars in _local_vars(event) if "extension" in frame_vars
+    )
+    assert download_vars["extension"] == "'.mp4'"
+    assert download_vars["cloud_storage_url"] == "[Filtered]"
+    breadcrumbs = parsed["breadcrumbs"]["values"]
+    assert any(crumb.get("type") == "http" for crumb in breadcrumbs)
+    assert any(
+        crumb.get("category") == "summary.core.file_service" for crumb in breadcrumbs
+    )
+    assert all("message" not in crumb and "data" not in crumb for crumb in breadcrumbs)
+
+
+def test_sentry_chained_http_error_excludes_signed_url(
+    sentry_events: SentryEvents, missing_recording_url: str
+) -> None:
+    """Sentry also filters signed URLs in explicitly chained HTTP errors."""
+    try:
+        try:
+            response = requests.get(missing_recording_url, timeout=5)
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            raise FileServiceException("Download failed") from exc
+    except FileServiceException:
+        sentry_sdk.capture_exception()
+
+    [event] = sentry_events()
+    assert CANARY not in event
+    exceptions = json.loads(event)["exception"]["values"]
+    assert [item["type"] for item in exceptions] == [
+        "HTTPError",
+        "FileServiceException",
+    ]
+    assert all(item["value"] == "[Filtered]" for item in exceptions)
+
+
+def test_sentry_excludes_webhook_debug_content(
+    sentry_events: SentryEvents, monkeypatch, settings_override, caplog
+) -> None:
+    """Raw DEBUG responses stay in application logs and out of Sentry events."""
+    monkeypatch.setattr(webhook_service, "settings", settings_override)
+    signed_url = f"https://storage.example.com/result?signature={CANARY}"
+    response = Mock(status_code=200)
+    response.json.return_value = {
+        "id": "document-123",
+        "content": CANARY,
+        "url": signed_url,
+    }
+    monkeypatch.setattr(webhook_service.requests, "post", Mock(return_value=response))
+    with caplog.at_level(logging.DEBUG):
+        webhook_service.call_webhook_v2(
+            tenant_id="test-tenant",
+            payload=SummarizeWebhookSuccessPayload(
+                job_id="job", summary_data_url=signed_url
+            ),
+        )
+        try:
+            raise RuntimeError("A later failure")
+        except RuntimeError:
+            sentry_sdk.capture_exception()
+
+    assert CANARY in caplog.text
+    [event] = sentry_events()
+    assert CANARY not in event
+    assert any(
+        crumb.get("category") == "summary.core.webhook_service"
+        and crumb.get("level") == "debug"
+        for crumb in json.loads(event)["breadcrumbs"]["values"]
+    )
 
 
 def _transcript() -> WhisperXResponse:
@@ -121,7 +251,7 @@ def s3_stubber(monkeypatch: pytest.MonkeyPatch) -> Iterator[Stubber]:
 def test_sentry_store_transcript_failure_redacts_transcript(
     sentry_events: SentryEvents, s3_stubber: Stubber
 ) -> None:
-    """A failed S3 upload does not send the transcript, but keeps the job id."""
+    """A failed S3 upload redacts the transcript while retaining useful locals."""
     s3_stubber.add_client_error("put_object", service_error_code="InvalidDigest")
 
     try:
