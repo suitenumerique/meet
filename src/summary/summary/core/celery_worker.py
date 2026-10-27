@@ -31,6 +31,7 @@ from summary.core.models import (
     SummarizeTaskJob,
     TranscribeTaskJob,
 )
+from summary.core.privacy import redact_url
 from summary.core.prompt import (
     FORMAT_NEXT_STEPS,
     FORMAT_PLAN,
@@ -62,6 +63,7 @@ analytics = get_analytics()
 metadata_manager = MetadataManager()
 
 logger = get_task_logger(__name__)
+
 
 celery = Celery(
     __name__,
@@ -199,7 +201,7 @@ def transcribe_audio(
         if raises:
             raise e
         redacted_cloud_storage_url = (
-            cloud_storage_url.split("?", 1)[0] if cloud_storage_url else None
+            redact_url(cloud_storage_url) if cloud_storage_url else None
         )
         logger.exception(
             ("Unexpected error while preparing file %s "),
