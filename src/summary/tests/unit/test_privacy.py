@@ -6,7 +6,8 @@ from unittest.mock import Mock
 import pytest
 import requests
 
-from summary.core import analytics, webhook_service
+from summary.core import analytics, celery_worker, webhook_service
+from summary.core.llm_service import LLMException, LLMService
 from summary.core.privacy import redact_url
 from summary.core.shared_models import SummarizeWebhookSuccessPayload
 
@@ -17,6 +18,19 @@ URL = f"https://user:password@example.com/file?signature={CANARY}#fragment"
 def test_url_redaction():
     """Credentials and signed query strings are removed."""
     assert redact_url(URL) == "https://example.com/file?[redacted]"
+
+
+def test_llm_exception_does_not_include_upstream_message(caplog):
+    """LLM failures retain their category without logging upstream text."""
+    observability = Mock(is_enabled=False)
+    observability.get_openai_client.return_value.chat.completions.create.side_effect = (
+        ValueError(CANARY)
+    )
+    with caplog.at_level(logging.DEBUG), pytest.raises(LLMException) as exc:
+        LLMService(observability).call("system", CANARY, "test")
+    assert CANARY not in str(exc.value)
+    assert CANARY not in caplog.text
+    assert exc.value.__suppress_context__
 
 
 @pytest.mark.parametrize("log_level", [logging.DEBUG, logging.INFO])
@@ -86,6 +100,14 @@ def test_analytics_source_url_removes_signature():
     metadata = manager._save_metadata.call_args.args[1]
     assert metadata["source_url"] == "https://example.com/file?[redacted]"
     assert CANARY not in str(metadata)
+
+
+def test_invalid_llm_json_is_sanitized():
+    """Invalid structured LLM output retains a retryable LLM category."""
+    with pytest.raises(LLMException) as exc:
+        celery_worker.parse_llm_json(CANARY)
+    assert CANARY not in str(exc.value)
+    assert exc.value.__suppress_context__
 
 
 @pytest.mark.parametrize(

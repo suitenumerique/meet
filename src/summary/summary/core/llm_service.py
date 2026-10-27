@@ -140,6 +140,6 @@ class LLMService:
             response = self._client.chat.completions.create(**params)
             return response.choices[0].message.content
 
-        except Exception as e:
-            logger.exception("LLM call failed: %s", e)
-            raise LLMException(f"LLM call failed: {e}") from e
+        except Exception:
+            logger.error("LLM call failed")
+            raise LLMException("LLM call failed") from None

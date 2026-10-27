@@ -311,6 +311,17 @@ def format_actions(llm_output: dict) -> str:
     return ""
 
 
+def parse_llm_json(value: str) -> dict:
+    """Parse an LLM response without exposing it in decoding errors."""
+    try:
+        result = json.loads(value)
+        if not isinstance(result, dict):
+            raise ValueError
+        return result
+    except (TypeError, ValueError):
+        raise LLMException("Invalid LLM response") from None
+
+
 def summarize_transcription_internals(
     *, distinct_id: str, transcript: str, session_id: str
 ) -> str:
@@ -351,13 +362,13 @@ def summarize_transcription_internals(
     )
     logger.info("Plan generated")
 
-    res = json.loads(parts)
+    res = parse_llm_json(parts)
     parts = res.get("titles", [])
-    logger.info("Parts to summarize: %s", parts)
+    logger.info("Parts to summarize: %s", len(parts))
     parts_summarized = []
-    for part in parts:
+    for i, part in enumerate(parts):
         prompt_user_part = PROMPT_USER_PART.format(part=part, transcript=transcript)
-        logger.info("Summarizing part: %s", part)
+        logger.info("Summarizing part %s", i + 1)
         parts_summarized.append(
             llm_service.call(PROMPT_SYSTEM_PART, prompt_user_part, name="part")
         )
@@ -373,7 +384,7 @@ def summarize_transcription_internals(
         response_format=FORMAT_NEXT_STEPS,
     )
 
-    next_steps = format_actions(json.loads(next_steps))
+    next_steps = format_actions(parse_llm_json(next_steps))
 
     logger.info("Next steps generated")
 
