@@ -12,12 +12,13 @@ import requests
 from celery import Celery, signals
 from celery.utils.log import get_task_logger
 from openai.types.audio import Transcription
-from pydantic import SecretStr
+from pydantic import SecretStr, ValidationError
 from requests import exceptions
 
 from summary.core.analytics import MetadataManager, get_analytics
 from summary.core.config import get_settings
 from summary.core.docs_service import create_document_in_lasuite_docs
+from summary.core.exceptions import CleanedValidationError
 from summary.core.file_service import (
     CorruptedAudioFile,
     FileService,
@@ -183,13 +184,16 @@ def transcribe_audio(
             # We force the use of the Transcription model here
             # to avoid changing too much code for now.
             # Note that it should be WhisperXResponse instead.
-            transcription = Transcription.model_validate(
-                # We add a dummy "text" to make the model validate,
-                # Some API responses lack the "text" key.
-                {"text": "", **transcription_json},
-                extra="allow",
-                strict=False,
-            )
+            try:
+                transcription = Transcription.model_validate(
+                    # We add a dummy "text" to make the model validate,
+                    # Some API responses lack the "text" key.
+                    {"text": "", **transcription_json},
+                    extra="allow",
+                    strict=False,
+                )
+            except ValidationError as exc:
+                raise CleanedValidationError(exc, secret_input=True) from None
 
             # Logging
             transcription_duration = round(time.time() - transcription_start_time, 2)
@@ -445,9 +449,11 @@ def call_webhook_v2_task(
     tenant_id: str,
 ):
     """Calls a webhook asynchrously (retry handled by celery)."""
-    call_webhook_v2(
-        payload=webhook_payload_adapter.validate_python(payload), tenant_id=tenant_id
-    )
+    try:
+        validated_payload = webhook_payload_adapter.validate_python(payload)
+    except ValidationError as exc:
+        raise CleanedValidationError(exc, secret_input=True) from None
+    call_webhook_v2(payload=validated_payload, tenant_id=tenant_id)
 
 
 @celery.task(
@@ -473,7 +479,10 @@ def process_audio_transcribe_v2_task(
         self: Celery task instance (passed on with bind=True)
         payload: Serialized dictionary of TranscribeSummarizeTaskCreationV2
     """
-    payload = TranscribeTaskJob.model_validate(payload)
+    try:
+        payload = TranscribeTaskJob.model_validate(payload)
+    except ValidationError as exc:
+        raise CleanedValidationError(exc, secret_input=True) from None
     logger.info(
         "Transcribing for object received | Owner: %s",
         payload.user_sub,
@@ -575,7 +584,11 @@ def process_audio_transcribe_v2_task(
 def task_started_transcript(task_id=None, task=None, args=None, **kwargs):
     """Signal handler called before task execution begins."""
     if args:
-        metadata_manager.create(task_id, TranscribeTaskJob.model_validate(args[0]))
+        try:
+            payload = TranscribeTaskJob.model_validate(args[0])
+        except ValidationError as exc:
+            raise CleanedValidationError(exc, secret_input=True) from None
+        metadata_manager.create(task_id, payload)
 
 
 @signals.task_retry.connect(sender=process_audio_transcribe_v2_task)
@@ -635,7 +648,10 @@ def summarize_v2_task(
     1. Run summary internals
     2. Sends the final summary via webhook.
     """
-    payload = SummarizeTaskJob.model_validate(payload)
+    try:
+        payload = SummarizeTaskJob.model_validate(payload)
+    except ValidationError as exc:
+        raise CleanedValidationError(exc, secret_input=True) from None
     summary = summarize_transcription_internals(
         distinct_id=payload.user_sub,
         transcript=payload.content,
@@ -671,7 +687,11 @@ def summarize_v2_task(
 def task_started_summary(task_id=None, task=None, args=None, **kwargs):
     """Signal handler called before task execution begins."""
     if args:
-        metadata_manager.create(task_id, SummarizeTaskJob.model_validate(args[0]))
+        try:
+            payload = SummarizeTaskJob.model_validate(args[0])
+        except ValidationError as exc:
+            raise CleanedValidationError(exc, secret_input=True) from None
+        metadata_manager.create(task_id, payload)
 
 
 @signals.task_retry.connect(sender=summarize_v2_task)
