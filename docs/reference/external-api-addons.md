@@ -1,12 +1,8 @@
-# External API - Add-ons
+# Add-ons
 
-In this mode, an add-in running in an iframe inside another application, such as the Outlook add-in, gets a token for the user by having them sign in to Meet in a popup. [External API](external-api.md) lists the endpoints, scopes and room object the token then gives access to.
+In this mode, an add-in gets a token for the user by having them sign in to Meet in a popup. The add-in runs in an iframe inside another application, such as Outlook.
 
-The session endpoints under `/api/v1.0/addons/sessions/` need `ADDONS_ENABLED=True`, and answer 404 without it. The room calls made with the token afterwards need `EXTERNAL_API_ENABLED=True` as well.
-
-## When to use this mode
-
-Your add-in's users sign in with Meet's OIDC provider. The other ways to get a token are compared in [External API: Getting a token](external-api.md#getting-a-token).
+The session endpoints under `/api/v1.0/addons/sessions/` need [`ADDONS_ENABLED=True`](env-variables.md#add-ons) and answer 404 without it. The room calls made with the token afterwards need `EXTERNAL_API_ENABLED=True` as well.
 
 ## Authentication flow
 
@@ -103,29 +99,7 @@ Cookie: addonsSid=...
 
 The session is deleted and the cookie cleared after this final read.
 
-## Using the access token
-
-With the default `ADDONS_TOKEN_SCOPE`, `rooms:create`, the token can only create rooms.
-
-```http
-POST /external-api/v1.0/rooms/
-Authorization: Bearer eyJhbGci...
-Content-Type: application/json
-```
-
-```json
-{
-  "access_level": "trusted"
-}
-```
-
-## Backend configuration
-
-Every variable, with its default: [Environment Variables: Add-ons](env-variables.md#add-ons).
-
 ## Implementation reference
 
 - Working example, the Outlook add-in: [`src/addons/outlook/`](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook)
 - Its calls to the session endpoints: [`src/addons/outlook/src/common/api.js`](https://github.com/suitenumerique/meet/blob/main/src/addons/outlook/src/common/api.js)
-- Session management: [`src/backend/core/addons/service.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/addons/service.py)
-- API endpoints: [`src/backend/core/addons/viewsets.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/addons/viewsets.py)

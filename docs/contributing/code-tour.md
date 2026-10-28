@@ -4,7 +4,7 @@
 
 ## TL;DR
 
-The Django backend is [`src/backend`](https://github.com/suitenumerique/meet/tree/main/src/backend), the React frontend [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend), and LiveKit carries the media. [How Meet talks to LiveKit](#how-meet-talks-to-livekit) covers the code that joins them. The agents, the summary service and the Helm chart each have their own directory under `src/`.
+The Django backend is [`src/backend`](https://github.com/suitenumerique/meet/tree/main/src/backend), the React frontend [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend), and LiveKit carries the media. The agents, the summary service and the Helm chart each have their own directory under `src/`.
 
 ## The repository
 
@@ -19,11 +19,11 @@ meet/
 │   ├── addons/       Outlook add-in
 │   ├── mail/         MJML sources of the emails
 │   └── helm/         Helm chart and the helmfile used for local Kubernetes
-├── .github/          CI workflows, run on every pull request
-├── docker/           Development configuration: Keycloak realm, LiveKit, nginx, Garage
+├── .github/          CI workflows: pull request checks, image builds, Helm chart release
+├── docker/           Development configuration: Keycloak realm, LiveKit, nginx, Garage; and the DINUM frontend image
 ├── env.d/            Environment file templates, for development and production
-├── bin/              Wrappers around docker compose, the Tiltfile, release scripts
-├── deploy/           Scalingo deployment scripts
+├── bin/              Wrappers around docker compose, the Tiltfile, release and Scalingo buildpack scripts
+├── deploy/           The nginx configuration template of the Scalingo deployment
 ├── crowdin/          The Crowdin configuration that syncs the translations
 ├── docs/             This site
 ├── gitlint/          The commit message rule CI applies
@@ -36,14 +36,14 @@ meet/
 
 ## Backend
 
-A Django 5.2 project, [`meet`](https://github.com/suitenumerique/meet/tree/main/src/backend/meet), holds the settings and the root URLs. One app, [`core`](https://github.com/suitenumerique/meet/tree/main/src/backend/core), holds the code. A second app, [`demo`](https://github.com/suitenumerique/meet/tree/main/src/backend/demo), holds the `create_demo` and `createsuperuser` commands that `make demo` and `make superuser` call.
+A [Django](https://www.djangoproject.com/) 5.2 project, [`meet`](https://github.com/suitenumerique/meet/tree/main/src/backend/meet), holds the settings and the root URLs. One app, [`core`](https://github.com/suitenumerique/meet/tree/main/src/backend/core), holds the code. A second app, [`demo`](https://github.com/suitenumerique/meet/tree/main/src/backend/demo), holds the `create_demo` and `createsuperuser` commands that `make demo` and `make superuser` call.
 
 | Path under `src/backend/` | What it holds |
 |---|---|
-| [`meet/settings.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/meet/settings.py) | Every setting, read from environment variables through django-configurations; each variable is in [Environment variables](../reference/env-variables.md). `DJANGO_CONFIGURATION` picks the class: `Development` or `Test` locally; on a server `Production`, or one of its children `Feature`, `Staging`, `Sandbox`, `PreProduction` and `Demo`; `Build` while the image builds; `ContinuousIntegration`, a child of `Test` |
+| [`meet/settings.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/meet/settings.py) | Every setting, read from environment variables through django-configurations; each variable is in [Environment variables](../reference/env-variables.md). `DJANGO_CONFIGURATION` picks the class: `Development` or `Test` locally, `Production` on a server |
 | [`meet/celery_app.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/meet/celery_app.py) | The Celery application the `celery-dev` worker runs |
 | [`core/models.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/models.py) | The data model, described under [Models](#models) |
-| [`core/api/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/api) | The REST API the frontend calls, under `/api/v1.0/`: viewsets, serializers, permissions, throttling |
+| [`core/api/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/api) | The REST API the frontend calls, under `/api/v1.0/`, built on [Django REST Framework](https://www.django-rest-framework.org/): viewsets, serializers, permissions, throttling |
 | [`core/external_api/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/external_api) | The API other applications call to create and manage rooms, authenticated with application tokens |
 | [`core/addons/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/addons) | The endpoints of add-ins embedded in other applications, such as the Outlook add-in |
 | [`core/authentication/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/authentication) | Sign-in, and the authentication of requests carrying a LiveKit pass |
@@ -82,99 +82,9 @@ Sign-in goes through the `oidc_login` module of [django-lasuite](https://github.
 
 Most actions on a room are extra routes of `RoomViewSet`, such as `request-entry`, `start-recording` or `mute-participant`.
 
-## The audit log
-
-[Audit logging](../self-hosting/configuration/audit-logging.md) describes what each event holds and how operators collect it.
-
-### Declaring an action
-
-Every action is declared once, in `core/auditing.py`, as an `audit.Action` constant. An action may carry its ECS category and types, which then apply to every event it emits; a type its category does not expect fails at import time:
-
-```python
-APPLICATION_TOKEN_ISSUE = audit.Action(
-    "application.token.issue",
-    category=EventCategory.AUTHENTICATION,
-    types=(EventType.START,),
-)
-ROOM_CREATE = audit.Action("room.create")
-```
-
-`core/auditing.py` imports nothing but the audit facility and leaf helpers such as `core.services.transit_code`, so that any module can import it, authentication classes included. Models and authentication classes are registered separately, in `core/audit_registry.py`.
-
-### Auditing a DRF view
-
-A DRF view only declares the actions it audits: everything else is derived from the response. CRUD actions are mapped in `audit_actions`. An extra action names its own on its route, so that renaming its method cannot silently stop auditing it:
-
-```python
-from core import audit, auditing
-
-
-class RoomViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
-    audit_actions = {"create": auditing.ROOM_CREATE, "retrieve": auditing.ROOM_RETRIEVE}
-
-    def perform_create(self, serializer):
-        self.audit_target = serializer.save()
-
-    @action(detail=True, methods=["post"], audit_action=auditing.RECORDING_START)
-    def start_room_recording(self, request, pk=None): ...
-```
-
-`AuditViewMixin` fills in the rest:
-
-- It runs from DRF's `finalize_response` hook, which every response goes through, successful or not.
-- The ECS category and types come from the action, or default to `api` and the DRF action.
-- The outcome, reason and status code come from the response status: 401, 403 and 429 are `denied`, other errors are `failure`, filed as [Classification](../self-hosting/configuration/audit-logging.md#classification) describes.
-- The target is the object `get_object()` returned, unless the view assigns `audit_target`.
-- A view can also assign `audit_user_target`, `audit_details` and `audit_actor`, where `None` records no account, or override `get_audit_fields()`.
-- An exception DRF does not handle is still recorded before it propagates.
-
-### Auditing from anywhere else
-
-Outside of `AuditViewMixin`, from a view or deeper in a service, call `audit.log`. A `category` or `types` given here wins over the action's:
-
-```python
-audit.log(auditing.USER_PROVISION, target=user)
-```
-
-Without `request=`, the event reads the context of the request being served, `audit.request_context()`, which `AuditLogMiddleware` captures when the request comes in. Outside a request, as in a Celery task, the context is empty and the actor is the system.
-
-!!! note
-    That context holds the Django request. DRF copies its user and auth onto it, but not its authenticator, so a call made inside a DRF view without `request=` should pass `auth_method=`.
-
-### How fields are filled
-
-- **Request fields** are read from the request: the real client address, the path and the user agent. `http.request.id` is the request id, set by `AuditLogMiddleware` right after dockerflow assigns it, and echoed in the `DOCKERFLOW_REQUEST_ID_HEADER_NAME` response header. The inbound id is kept only when `REQUEST_ID_TRUST_HEADER` is set, see [Configuration](../self-hosting/configuration/audit-logging.md#configuration).
-- **The actor** comes from `request.user`, `request.auth` and the DRF authenticator, as [Actors](../self-hosting/configuration/audit-logging.md#actors) describes. `audit.register_auth_method` maps the authenticator's class to an auth method, see [Registering models](#registering-models-and-authentication-methods). Without a request, it is the system. Override it with `actor=`, `actor_type=`, `auth_method=` and `client_id=`; an explicit `actor_type=` keeps the signed-in account. `actor=None` records no account: for a caller failing to authenticate, an application acting before it is given a delegated user, or the system.
-- **The target** is described by its model name, its primary key and the `fields` its model is registered with, see [Targets](../self-hosting/configuration/audit-logging.md#targets). A model that is not registered is still identified. The account the action is about, `user.target`, is found from the target, unless given as `user_target=`. Name a service the backend calls with `target_service=`. Any other keyword argument is recorded under `lasuite.details`.
-
-### Emission never raises
-
-A broken configuration or value is reported on the application logger and to Sentry, and the business operation goes on. A registered field that cannot be read is left out of the target, and the event is still emitted.
-
-### How the admin is wired
-
-- The wiring lives in `core/audit/admin.py`. `AuditedAdminSite`, installed through `core.audit.apps.AuditedAdminConfig` in `INSTALLED_APPS`, adds auditing to every admin class as it is registered, Django's own included.
-- A new `ModelAdmin` is therefore covered with nothing to do. Registering its model only adds its category and allowed values.
-
-### Registering models and authentication methods
-
-The project describes itself to the audit facility in code, in `core/audit_registry.py`. Once the audit app is ready, it imports the `audit_registry` module of every installed app.
-
-**`audit.register(Model, ...)`** tells the audit log how to handle a model:
-
-- `fields`: the fields describing it as a target;
-- `admin_values`: the fields whose before and after values may be recorded for admin writes;
-- `category`: the ECS category of its admin writes;
-- `entity_type`: its ECS entity type, when one of the allowed values fits, such as `application` or `user`;
-- `user_target`: the attribute holding the account an event on it is about, such as `user` for an access.
-
-A proxy model falls back to its concrete model. Registering a model twice raises `AlreadyRegistered`, and an entity type ECS does not allow raises `ValueError`.
-
-**`audit.register_auth_method(klass, name)`** sets the `lasuite.auth.method` of a DRF authentication class or of a login backend. A DRF class inherits the name of its closest registered base, and DRF's own classes are built in. A login backend must be registered itself, because custom backends often subclass `ModelBackend` just for its permission checks. `ModelBackend` is built in as `password`.
-
 ## Frontend
 
-A React 18 and TypeScript application built with Vite. Its libraries, whose versions are in [`package.json`](https://github.com/suitenumerique/meet/blob/main/src/frontend/package.json):
+A [React](https://react.dev/) 18 and [TypeScript](https://www.typescriptlang.org/) application built with [Vite](https://vite.dev/). Its libraries, whose versions are in [`package.json`](https://github.com/suitenumerique/meet/blob/main/src/frontend/package.json):
 
 | For | Library |
 |---|---|
@@ -215,14 +125,14 @@ Accessibility follows these patterns:
 
 The pass is the LiveKit access token the backend signs for each participant; the browser connects to LiveKit with it, as [Joining a meeting](../overview/how-meet-works.md#joining-a-meeting) describes.
 
-[`generate_token()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) in `core/utils.py` builds it. The token's name is the participant's display name, and it carries three attributes: `color`, derived from the participant's identity, `room_role` and `is_authenticated`. Owners and administrators get LiveKit's `room_admin` grant, which lets them moderate.
+[`generate_token()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) in `core/utils.py` builds it. The token's name is the participant's display name, and it carries three attributes: `room_role`, `is_authenticated`, and `color`, derived from the participant's identity. Owners and administrators get LiveKit's `room_admin` grant, which lets them moderate.
 
 The pass reaches the browser two ways:
 
 - In the `livekit` field of `GET /api/v1.0/rooms/<id>/`, which `RoomSerializer` in [`core/api/serializers.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/api/serializers.py) adds when the visitor may enter at once.
 - In the answer to `POST /api/v1.0/rooms/<id>/request-entry/`, once someone admits the visitor from the waiting room, from [`core/services/lobby.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/services/lobby.py).
 
-The pass also authenticates a few API calls from participants without an account: `start-subtitle`, `mute-participant`, `toggle-hand` and `rename` accept it through `LiveKitTokenAuthentication` in [`core/authentication/livekit.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/authentication/livekit.py).
+The pass also authenticates the API calls that [LiveKit room token](../reference/api.md#livekit-room-token) lists, for every participant, signed in or not. They accept it through `LiveKitTokenAuthentication` in [`core/authentication/livekit.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/authentication/livekit.py).
 
 ```mermaid
 sequenceDiagram
@@ -258,7 +168,7 @@ LiveKit posts its events to `/api/v1.0/rooms/webhooks-livekit/`, the `webhooks_l
 | Event | What the backend does |
 |---|---|
 | `egress_updated` | Updates the recording's status |
-| `egress_ended` | Clears the recording state from the room metadata and stops the metadata collector. On success, [`core/recording/event/notification.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/recording/event/notification.py) emails a screen recording's link to its starter and the room's owners and administrators, and sends a transcription to the summary service |
+| `egress_ended` | Clears the recording state from the room metadata and stops the metadata collector. On success, [`core/recording/event/notification.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/recording/event/notification.py) emails a screen recording's link to the people [Email](../self-hosting/configuration/email.md) names, and sends a transcription to the summary service |
 | `room_started` | Closes the LiveKit room again if its Meet room was deleted; otherwise records the start time `purge_inactive_rooms` reads, and creates the room's phone dial-in rule when telephony or Roomkit is on |
 | `room_finished` | Deletes that rule and clears the room's presence and waiting-room state |
 | `participant_left` | Removes the participant from the presence cache, unless [`PRESENCE_CLEAR_ON_PARTICIPANT_LEFT`](../reference/env-variables.md#redis-celery-and-presence) is off |
@@ -283,7 +193,7 @@ Their settings are under [Agents](../reference/env-variables.md#agents).
 
 ## Summary service
 
-[`src/summary`](https://github.com/suitenumerique/meet/tree/main/src/summary) is a FastAPI application with Celery workers. The backend posts a recording to its API, [`summary/api/route/tasks_v2.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/api/route/tasks_v2.py), and the workers in [`summary/core/celery_worker.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/core/celery_worker.py) transcribe it, summarise it and report back to the backend's `/api/v1.0/recordings/external-process-hook/`. The queues and the order of the steps are in [How Meet works](../overview/how-meet-works.md#transcription-and-summary), and the settings under [Summary service](../reference/env-variables.md#summary-service).
+[`src/summary`](https://github.com/suitenumerique/meet/tree/main/src/summary) is a [FastAPI](https://fastapi.tiangolo.com/) application with [Celery](https://docs.celeryq.dev/) workers. The backend posts a recording to its API, [`summary/api/route/tasks_v2.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/api/route/tasks_v2.py), and the workers in [`summary/core/celery_worker.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/core/celery_worker.py) transcribe it, summarise it and report back to the backend's `/api/v1.0/recordings/external-process-hook/`. The queues and the order of the steps are in [How Meet works](../overview/how-meet-works.md#transcription-and-summary), and the settings under [Summary service](../reference/env-variables.md#summary-service).
 
 ## Other packages
 
@@ -291,7 +201,7 @@ Their settings are under [Agents](../reference/env-variables.md#agents).
 |---|---|
 | [`src/sdk`](https://github.com/suitenumerique/meet/tree/main/src/sdk) | The SDK in `library/`, published on npm as `@gouvfr-lasuite/visio-sdk`, which adds to another web application a button that creates a Meet link, and a sample application using it in `consumer/`. Its own guide is [`src/sdk/library/CONTRIBUTING.md`](https://github.com/suitenumerique/meet/blob/main/src/sdk/library/CONTRIBUTING.md) |
 | [`src/addons/outlook`](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook) | The Outlook add-in that adds a Meet link to an event, calling [`core/addons/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/addons) |
-| [`src/mail`](https://github.com/suitenumerique/meet/tree/main/src/mail) | The MJML sources of the emails, compiled by `make mails-build` into `src/backend/core/templates/mail/` |
+| [`src/mail`](https://github.com/suitenumerique/meet/tree/main/src/mail) | The MJML sources of the emails, compiled as [Email templates](develop.md#email-templates) describes |
 
 ## Deployment files
 
@@ -299,7 +209,94 @@ Their settings are under [Agents](../reference/env-variables.md#agents).
 |---|---|
 | [`src/helm/meet`](https://github.com/suitenumerique/meet/tree/main/src/helm/meet) | The Helm chart. Its values are documented in its [`README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md), which `generate-readme.sh` regenerates from `values.yaml`. [Helm deployment](../self-hosting/kubernetes/helm.md) covers deploying it |
 | [`src/helm/helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl), [`src/helm/env.d`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d) | The helmfile and the values of the `dev-keycloak` and `dev-dinum` environments that Tilt deploys |
-| [`env.d/development`](https://github.com/suitenumerique/meet/tree/main/env.d/development) | One `.dist` template per service of the development stack. `make bootstrap` copies each to the same name without `.dist` |
+| [`env.d/development`](https://github.com/suitenumerique/meet/tree/main/env.d/development) | One `.dist` template per service of the development stack, which [First run](develop.md#first-run) copies |
 | [`env.d/production.dist`](https://github.com/suitenumerique/meet/tree/main/env.d/production.dist) | The production templates. The directory carries the `.dist` suffix, not the files, so each keeps its name when the [Deployment guide](../self-hosting/compose/deployment-guide.md) downloads it |
 | [`Dockerfile`](https://github.com/suitenumerique/meet/blob/main/Dockerfile), [`src/frontend/Dockerfile`](https://github.com/suitenumerique/meet/blob/main/src/frontend/Dockerfile), [`docker/dinum-frontend`](https://github.com/suitenumerique/meet/tree/main/docker/dinum-frontend) | The backend image, the frontend image, and the frontend image with the French government's styles |
 | [`deploy/`](https://github.com/suitenumerique/meet/tree/main/deploy), [`Procfile`](https://github.com/suitenumerique/meet/blob/main/Procfile) | The Scalingo deployment, described in [Scalingo](../self-hosting/scalingo.md) |
+
+## The audit log
+
+[Audit logging](../self-hosting/configuration/audit-logging.md) describes what each event holds and how operators collect it.
+
+### Declaring an action
+
+Every action is declared once, in `core/auditing.py`, as an `audit.Action` constant. An action may carry its ECS category and types, which then apply to every event it emits; a type its category does not expect fails at import time:
+
+```python
+APPLICATION_TOKEN_ISSUE = audit.Action(
+    "application.token.issue",
+    category=EventCategory.AUTHENTICATION,
+    types=(EventType.START,),
+)
+ROOM_CREATE = audit.Action("room.create")
+```
+
+`core/auditing.py` imports nothing but the audit facility and leaf helpers such as `core.services.transit_code`, so that any module can import it, authentication classes included. Models and authentication classes are registered separately, in `core/audit_registry.py`.
+
+### Auditing a DRF view
+
+A DRF view only declares the actions it audits: everything else is derived from the response. CRUD actions are mapped in `audit_actions`. An extra action names its own on its route, so that renaming its method cannot silently stop auditing it:
+
+```python
+from core import audit, auditing
+
+
+class RoomViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
+    audit_actions = {"create": auditing.ROOM_CREATE, "retrieve": auditing.ROOM_RETRIEVE}
+
+    def perform_create(self, serializer):
+        self.audit_target = serializer.save()
+
+    @action(detail=True, methods=["post"], audit_action=auditing.RECORDING_START)
+    def start_room_recording(self, request, pk=None): ...
+```
+
+`AuditViewMixin` fills in the rest:
+
+- The ECS category and types come from the action, or default to `api` and the DRF action.
+- The outcome, reason and status code come from the response status: 401, 403 and 429 are `denied`, other errors are `failure`, filed as [Classification](../self-hosting/configuration/audit-logging.md#classification) describes.
+- The target is the object `get_object()` returned, unless the view assigns `audit_target`.
+- A view can also assign `audit_user_target`, `audit_details` and `audit_actor`, where `None` records no account, or override `get_audit_fields()`.
+
+### Auditing from anywhere else
+
+Outside of `AuditViewMixin`, from a view or deeper in a service, call `audit.log`. A `category` or `types` given here wins over the action's:
+
+```python
+audit.log(auditing.USER_PROVISION, target=user)
+```
+
+Without `request=`, the event reads the context of the request being served, `audit.request_context()`, which `AuditLogMiddleware` captures when the request comes in. Outside a request, as in a Celery task, the context is empty and the actor is the system.
+
+!!! note
+    That context holds the Django request. DRF copies the user and auth onto the Django request, but not the authenticator, so a call made inside a DRF view without `request=` should pass `auth_method=`.
+
+### How fields are filled
+
+- **Request fields** are read from the request: the real client address, the path, the user agent and the request id.
+- **The actor** comes from `request.user`, `request.auth` and the DRF authenticator, as [Actors](../self-hosting/configuration/audit-logging.md#actors) describes. `audit.register_auth_method` maps the authenticator's class to an auth method, see [Registering models](#registering-models-and-authentication-methods). Without a request, the actor is the system. Override the actor with `actor=`, `actor_type=`, `auth_method=` and `client_id=`; an explicit `actor_type=` keeps the signed-in account. `actor=None` records no account: for a caller failing to authenticate, an application acting before it is given a delegated user, or the system.
+- **The target** is described by its model name, its primary key and the `fields` its model is registered with, see [Targets](../self-hosting/configuration/audit-logging.md#targets). A model that is not registered is still identified. The account the action is about, `user.target`, is found from the target, unless given as `user_target=`. Name a service the backend calls with `target_service=`. Any other keyword argument is recorded under `lasuite.details`.
+
+### Emission never raises
+
+A broken configuration or value is reported on the application logger and to Sentry, and the business operation goes on. A registered field that cannot be read is left out of the target, and the event is still emitted.
+
+### Admin pages need nothing
+
+Every admin class, Django's own included, is audited as it is registered, by `AuditedAdminSite` in `core/audit/admin.py`. Registering a new admin's model only adds its category and allowed values.
+
+### Registering models and authentication methods
+
+The project describes itself to the audit facility in code, in `core/audit_registry.py`. Once the audit app is ready, it imports the `audit_registry` module of every installed app.
+
+**`audit.register(Model, ...)`** tells the audit log how to handle a model:
+
+- `fields`: the fields describing it as a target;
+- `admin_values`: the fields whose before and after values may be recorded for admin writes;
+- `category`: the ECS category of its admin writes;
+- `entity_type`: its ECS entity type, when one of the allowed values fits, such as `application` or `user`;
+- `user_target`: the attribute holding the account an event on it is about, such as `user` for an access.
+
+A proxy model falls back to its concrete model. Registering a model twice raises `AlreadyRegistered`, and an entity type ECS does not allow raises `ValueError`.
+
+**`audit.register_auth_method(klass, name)`** sets the `lasuite.auth.method` of a DRF authentication class or of a login backend. A DRF class inherits the name of its closest registered base, and DRF's own classes are built in. A login backend must be registered itself, because custom backends often subclass `ModelBackend` just for its permission checks. `ModelBackend` is built in as `password`.

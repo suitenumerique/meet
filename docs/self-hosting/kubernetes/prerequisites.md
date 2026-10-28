@@ -1,10 +1,6 @@
 # Prerequisites (Kubernetes)
 
-Once everything here is in place, [Helm Deployment](helm.md) installs Meet on your production cluster with the official Helm chart. To only try Meet, run [Quick Start](../compose/quick-start.md) on a single server first; for a small instance without Kubernetes expertise, use the [Docker Compose guide](../compose/prerequisites.md).
-
-## When to use Kubernetes
-
-Kubernetes pays off for high availability (replicas with automatic failover), scaling the backend, frontend and Celery workers independently, multi-region or multi-zone deployments, and GitOps.
+Once everything here is in place, [Helm Deployment](helm.md) installs Meet on your production cluster with the official Helm chart.
 
 ## Required tools
 
@@ -24,13 +20,13 @@ Kubernetes pays off for high availability (replicas with automatic failover), sc
 
 The Meet chart relies on these but does not install them:
 
-- **An ingress controller**: any works for video conferencing alone. Recording and uploaded background images need nginx-ingress: their ingresses, `ingressMedia` and `ingressMediaFiles`, authenticate their proxying to the S3 storage with nginx-ingress annotations.
+- **An ingress controller**: any works for calls. Recording and uploaded background images need nginx-ingress, since their ingresses rely on its annotations.
 - **cert-manager**: with a Let's Encrypt `ClusterIssuer` for automatic TLS
 - **Public IPs on the LiveKit nodes**: LiveKit's Helm chart serves its media ports from the node itself through host networking
 
 ## External services
 
-The chart does not deploy these; the OIDC provider is the identity service that signs users in. Prefer managed services in production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: use your service's address instead.
+The chart does not deploy these. Prefer managed services in production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: use your service's address instead.
 
 | Service | Purpose | Options |
 |---|---|---|
@@ -63,8 +59,7 @@ Call media reaches LiveKit on its nodes directly, bypassing the ingress. The por
 - [ ] OIDC provider configured
 - [ ] Domain names with DNS pointing to your ingress load balancer
 - [ ] The ports in [Firewall & Ports](../configuration/firewall.md) open
-- [ ] S3-compatible storage available (if using recording)
-- [ ] SMTP relay configured (if using recording)
+- [ ] With recording: S3-compatible storage available and an SMTP relay configured
 
 ## Next
 

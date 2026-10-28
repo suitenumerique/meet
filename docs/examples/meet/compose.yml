@@ -2,14 +2,19 @@
 #
 # Runs: backend, frontend, celery, livekit, postgresql, redis
 #
-# This file is proxy-agnostic. Before running, copy your proxy override:
-#   cp docker-compose.override.yml.nginx   docker-compose.override.yml   # nginx-proxy
-#   cp docker-compose.override.yml.traefik docker-compose.override.yml   # Traefik
+# This file is proxy-agnostic.
 #
-# Then: docker compose up -d
+# Usage:
+#   cd ~/docker/meet
+#   # download your proxy's override as docker-compose.override.yml, see the Deployment Guide
+#   cp ~/docker/hosts .env
+#   # fill the placeholders of env.d/common, env.d/postgresql and
+#   # livekit-server.yaml, as the Deployment Guide shows
+#   docker compose up -d
+#   docker compose exec backend python manage.py migrate
 #
-# External networks expected:
-#   proxy    - shared with your reverse proxy (nginx-proxy or Traefik)
+# Networks:
+#   proxy    - external, shared with your reverse proxy (nginx-proxy or Traefik)
 #   internal - created automatically by this stack
 
 services:

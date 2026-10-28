@@ -1,6 +1,6 @@
 # AI Transcription
 
-AI transcription is in beta. Whoever may start a recording, as [Recording: Who can record](recording.md#who-can-record) lists, can start a transcription, or add one to a screen recording. Meet sends the recording to the summary service, which transcribes it. With `FRONTEND_ANALYTICS` set, only users with the PostHog feature flag `transcription-summary` see the **Transcribe** tool.
+AI transcription is in beta. The people who [can record](recording.md#who-can-record) can also start a transcription, or add one to a screen recording. Meet sends the recording to the summary service, which transcribes it, as [How do transcription and the summary work?](../../overview/how-meet-works.md#transcription-and-summary) shows. With `FRONTEND_ANALYTICS` set, only users with the PostHog feature flag `transcription-summary` can start one.
 
 Meet delivers the transcript only by pushing it to [LaSuite Docs](https://github.com/suitenumerique/docs), as a document owned by the person who started the transcription. Without `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, the transcript stays under `transcripts/` in the bucket and reaches no user.
 
@@ -14,34 +14,7 @@ Every variable and its default is in the Environment Variables reference: the ba
 - **LaSuite Docs, to deliver the transcript.** Set `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` in the summary service's environment, see [LaSuite Docs](../../reference/env-variables.md#lasuite-docs).
 - **`"allowed_push_to_docs": true` on each tenant** in `AUTHORIZED_TENANTS`, even with the push off: Meet always sends its Docs settings, and the summary service returns 400 to a tenant without the flag.
 
-The summary service rejects a transcription whose language is outside `WHISPERX_ALLOWED_LANGUAGES`, by default `en`, `fr`, `de` and `nl`. See [Speech-to-text (WhisperX)](../../reference/env-variables.md#speech-to-text-whisperx).
-
-## How it works
-
-```mermaid
-sequenceDiagram
-  participant Backend as Backend API
-  participant Summary as Summary Service
-  participant Celery as Celery Worker (transcribe-queue-v2)
-  participant S3 as S3 storage
-  participant STT as WhisperX API
-  participant Docs as LaSuite Docs
-
-  Backend->>Summary: POST /api/v2/async-jobs/transcribe (bearer token)
-  Note right of Backend: Payload: user_sub, user_email, cloud_storage_url, language, metadata, push_to_docs_config
-
-  Summary->>Celery: Register task (transcribe-queue-v2)
-  Celery->>S3: Fetch audio file (pre-signed URL)
-  Celery->>STT: Transcribe audio (WhisperX)
-  STT-->>Celery: Segmented transcript
-  Celery->>Celery: Format transcript & speaker diarization
-  opt IS_LASUITE_DOCS_INTEGRATION_ENABLED
-    Celery->>Docs: POST /create-for-owner (title, content, email, sub, api token)
-    Docs-->>Celery: Acknowledgement
-  end
-  Celery->>S3: Store transcript under transcripts/
-  Celery->>Backend: POST /api/v1.0/recordings/external-process-hook/ (call-webhook-queue-v2)
-```
+The summary service rejects a transcription whose language is outside [`WHISPERX_ALLOWED_LANGUAGES`](../../reference/env-variables.md#speech-to-text-whisperx).
 
 ## Setup
 
@@ -51,7 +24,7 @@ The summary service's Celery workers run the same code, so they need the same en
 
 The summary service fetches each recording through a link the backend signs, and writes transcripts and summaries to the backend's bucket, with the backend's keys and region:
 
-- It takes `AWS_S3_ENDPOINT_URL` with or without a scheme, and picks HTTP or HTTPS from `AWS_S3_SECURE_ACCESS` alone. That is `True` by default: set it to `False` for the plain-HTTP Garage of the Recording guide.
+- It picks HTTP or HTTPS from [`AWS_S3_SECURE_ACCESS`](../../reference/env-variables.md#storage): set it to `False` for the plain-HTTP Garage of the Recording guide.
 - It signs every request for `AWS_S3_REGION_NAME`. Its signed links to transcripts and summaries are path-style, `<endpoint>/<bucket>/<key>`, so the storage must serve that form.
 - Storage built on Google Cloud Storage refuses the checksums that boto3, the AWS SDK for Python, sends by default. There, set `AWS_S3_REQUEST_CHECKSUM_CALCULATION` and `AWS_S3_RESPONSE_CHECKSUM_VALIDATION` to `when_required`.
 
@@ -190,8 +163,6 @@ The summary service fetches each recording through a link the backend signs, and
 
 ### Step 3: Connect the Meet backend
 
-`SUMMARY_SERVICE_API_TOKEN` and `SUMMARY_SERVICE_WEBHOOK_API_TOKEN` must match the tenant's `api_key` and `webhook_api_key` in `AUTHORIZED_TENANTS`.
-
 === "Docker Compose"
 
     Add to `env.d/common`:
@@ -234,7 +205,7 @@ Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. 
 
     Add `METADATA_COLLECTOR_ENABLED=True` to `env.d/common`.
 
-    Create `env.d/metadata-collector`. Like the summary service, the agent takes the storage endpoint with or without a scheme and picks HTTP or HTTPS from `AWS_S3_SECURE_ACCESS`, which is `False` by default for the agent:
+    Create `env.d/metadata-collector`:
 
     ```dotenv
     LIVEKIT_URL=ws://livekit:7880
@@ -307,7 +278,7 @@ Summarization writes a summary of the transcript with an LLM and pushes it to La
 - The push to LaSuite Docs is enabled.
 - The person who started the transcription has the feature flag `summary-enabled`. Meet reads it from the analytics backend that `ANALYTICS_BACKEND` names, such as PostHog, or from a static list when no backend is set.
 - `IS_SUMMARY_ENABLED=True` in the summary service, its default. Set it to `False` to produce transcripts only.
-- A worker consumes `summarize-queue-v2`. The Helm chart already deploys it as `celerySummarize`. On Docker Compose, add a service like `celery-summary-transcribe` above, with `-Q summarize-queue-v2`.
+- A worker consumes `summarize-queue-v2`. The Helm chart already deploys it as `celerySummarize`. On Docker Compose, add a service like Step 2's `celery-summary-transcribe`, with `-Q summarize-queue-v2`.
 
 The LLM variables are in [Summaries (LLM)](../../reference/env-variables.md#summaries-llm), and the analytics ones in [Analytics and marketing](../../reference/env-variables.md#analytics-and-marketing).
 

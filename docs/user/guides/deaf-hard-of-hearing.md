@@ -4,7 +4,7 @@ For anyone who follows a meeting by reading, or through a sign-language interpre
 
 ## Before the meeting
 
-Ask the host whether **Show subtitles** appears in their meeting, since not every Meet server offers it, and whether an interpreter is coming. With an interpreter, see [how to keep them large on your screen](sign-language-interpreter.md).
+Not every Meet server offers subtitles: ask the host whether **Show subtitles** appears in their meeting, and whether an interpreter is coming. With an interpreter, see [how to keep them large on your screen](sign-language-interpreter.md).
 
 ## Live subtitles
 

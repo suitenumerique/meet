@@ -1,34 +1,10 @@
 # Real-time Subtitles
 
-Real-time subtitles show live captions in the meeting as participants speak. A LiveKit agent sends their audio to a speech-to-text (STT) provider and publishes the text it gets back.
+A LiveKit agent turns speech into live captions with a speech-to-text (STT) provider, as [How do live subtitles work?](../../overview/how-meet-works.md#subtitles) shows.
 
-## How it works
+## Who sees it, and what it costs
 
-```mermaid
-sequenceDiagram
-    participant Owner as Participant
-    participant Backend as Meet Backend
-    participant LK as LiveKit Server
-    participant Agent as Multi-User Transcriber Agent
-    participant STT as STT Provider<br/>(Deepgram/Kyutai/Voxtral)
-    participant Users as Participants
-
-    Owner->>Backend: Start subtitles
-    Backend->>LK: Create agent dispatch
-    LK->>Agent: Dispatch to room
-    Agent->>LK: Join room (silent participant)
-    Agent->>LK: Subscribe to all audio tracks
-    
-    loop For each participant speaking
-        LK->>Agent: Audio stream
-        Agent->>STT: Audio chunk
-        STT-->>Agent: Transcribed text
-        Agent->>LK: Publish caption (text output)
-        LK-->>Users: Display caption
-    end
-```
-
-The multi-user transcriber agent ([`src/agents/multi_user_transcriber.py`](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py)) joins each room once and opens one STT stream per participant, for as long as the room runs. Any participant can start subtitles, anonymous ones in a public room included. The **Show subtitles** button is in the desktop layout only and, with `FRONTEND_ANALYTICS` set, only for users with the PostHog feature flag `subtitles`. What that costs:
+The [multi-user transcriber agent](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py) joins each room once and opens one STT stream per participant, for as long as the room runs. Any participant can start subtitles, anonymous ones in a public room included. The **Show subtitles** button shows on computers only. With `FRONTEND_ANALYTICS` set, it shows only to users with the PostHog feature flag `subtitles`. What subtitles cost:
 
 - **Provider:** cost grows with participants × time.
 - **Agent:** one instance serves several rooms at once, through LiveKit's dispatch. Its CPU, memory and network use grow with the number of participants in rooms with subtitles on.
@@ -117,7 +93,14 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
 
 === "Kubernetes"
 
-    The chart always deploys the agent as `agentSubtitles`. Configure it in your `values.yaml`:
+    The chart always deploys the agent as `agentSubtitles`. Put the Deepgram API key in a Secret:
+
+    ```bash
+    kubectl -n meet create secret generic meet-deepgram \
+      --from-literal=api-key="<your Deepgram API key>"
+    ```
+
+    Then configure the agent in your `values.yaml`:
 
     ```yaml
     agentSubtitles:
@@ -132,8 +115,8 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
         ENABLE_SILERO_VAD: "true"
         DEEPGRAM_API_KEY:
           secretKeyRef:
-            name: meet-secrets
-            key: deepgram-api-key
+            name: meet-deepgram
+            key: api-key
     ```
 
     ```bash
@@ -142,14 +125,13 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
 
 ## STT providers
 
-Set `STT_PROVIDER` in the agent's environment, then the provider's variables:
+Set `STT_PROVIDER` in the agent's environment, then the provider's variables in [Subtitles agent](../../reference/env-variables.md#subtitles-agent):
 
 | | Deepgram | Kyutai Moshi | Voxtral via vLLM |
 |---|---|---|---|
 | `STT_PROVIDER` | `deepgram` | `kyutai` | `voxtral-vllm` |
 | Runs | In Deepgram's cloud | Self-hosted, on a GPU | Self-hosted, on a GPU |
 | Setup | Sign up at [deepgram.com](https://deepgram.com/) and create an API key | Deploy a Kyutai STT service | Deploy vLLM serving [Voxtral](https://mistral.ai/news/voxtral), `mistralai/Voxtral-Mini-4B-Realtime-2602` or a compatible model, with a realtime WebSocket endpoint |
-| Variables | `DEEPGRAM_API_KEY` | `KYUTAI_STT_BASE_URL`, `KYUTAI_API_KEY` | `VOXTRAL_VLLM_BASE_URL`, and `VOXTRAL_VLLM_API_KEY` if the endpoint requires one |
 | Cost | Per minute | Your infrastructure only | Your infrastructure only |
 | Audio | Sent to Deepgram | Stays on your servers | Stays on your servers |
 | Notes | Many languages, high accuracy | | Keep `ENABLE_SILERO_VAD=true`: voxtral-vllm has no server-side endpointing, the detection of when a speaker stops |

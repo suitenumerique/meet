@@ -1,23 +1,6 @@
 # SSO & Authentication
 
-Meet signs users in through any standards-compliant **OpenID Connect (OIDC)** provider, which a production instance needs. Users have no password in Meet: only the Django admin accounts created with `createsuperuser` do.
-
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant BE as Meet Backend
-    participant KC as OIDC Provider
-
-    B->>BE: Click Login (/api/v1.0/authenticate/)
-    BE-->>B: Redirect → OIDC provider login
-    B->>KC: Authenticate
-    KC-->>B: Redirect → /api/v1.0/callback/?code=…
-    B->>BE: GET /api/v1.0/callback/?code=…
-    BE->>KC: Exchange code for tokens
-    KC-->>BE: ID token + access token
-    BE->>BE: Create or update the user
-    BE-->>B: Session cookie, back to the page the user started from
-```
+Meet signs users in through any standards-compliant **OpenID Connect (OIDC)** provider, in the flow that [Signing in](../../overview/how-meet-works.md#signing-in) shows. A production instance needs one. Users have no password in Meet: only the Django admin accounts created with `createsuperuser` do.
 
 When a page loads without a Meet session, Meet first tries a silent login, `prompt=none`: a user already signed in at the provider is signed in to Meet without seeing a form. A provider that does not support `prompt=none` needs [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../../reference/env-variables.md#frontend)`=False`.
 
@@ -35,12 +18,12 @@ Then give Meet the client ID and secret, and the provider's endpoints.
 
 ## Keycloak
 
-The [Deployment Guide](../compose/deployment-guide.md) runs Keycloak with a realm that already holds this client, and `env.d/common` ships with its endpoints filled in from your hosts file. Only `OIDC_RP_CLIENT_SECRET` needs setting. The Keycloak admin console is at `https://auth.example.com`.
+The [Deployment Guide](../compose/deployment-guide.md) runs Keycloak with a realm that already holds this client, and `env.d/common` ships with its endpoints filled in from your hosts file. Only `OIDC_RP_CLIENT_SECRET` needs setting. The Keycloak admin console is at `https://auth.example.com/admin/`.
 
 ## Authentik
 
-1. In **Applications → Providers → Create**, choose **OAuth2/OpenID Provider**, set the redirect URI above, and note the client ID and secret.
-2. In **Applications → Applications → Create**, create an application bound to that provider. Its slug is the `<slug>` below.
+1. In **Applications → Providers → Create**, choose **OAuth2/OpenID Provider**, set the redirect URI `https://meet.example.com/api/v1.0/callback/`, and note the client ID and secret.
+2. In **Applications → Applications → Create**, create an application bound to that provider. Its slug fills `<slug>` in step 3.
 3. Read the endpoints from `https://authentik.example.com/application/o/<slug>/.well-known/openid-configuration`, then set:
 
 ```dotenv
@@ -58,7 +41,7 @@ Without `OIDC_OP_LOGOUT_ENDPOINT`, logging out ends the Meet session only: the p
 ## Google Workspace
 
 1. In the [Google Cloud Console](https://console.cloud.google.com), open **APIs & Services → Credentials → Create Credentials → OAuth client ID**, type **Web application**.
-2. Add the redirect URI above, and note the client ID and secret.
+2. Add the redirect URI `https://meet.example.com/api/v1.0/callback/`, and note the client ID and secret.
 3. Set:
 
 ```dotenv
@@ -82,10 +65,10 @@ Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULL
 | `True`, the code's default | Anyone starts a meeting without an account. It is open to anyone with the code, has no owner and creates no room |
 | `False`, as `env.d/production.dist/common` ships | Anonymous visitors get a 404. A signed-in visitor creates the room and owns it |
 
-A room's access level decides who joins directly and who waits in the waiting room, see [How Meet works: Who gets in](../../overview/how-meet-works.md#who-gets-in):
+A new room's [access level](../../overview/how-meet-works.md#who-gets-in) comes from its creator or the server:
 
-- A new room takes the level its creator picked under **Settings → Rooms**.
-- A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#rooms-and-waiting-room), `public` by default. To make it `trusted`:
+- A room created in Meet takes the level its creator picked under **Settings → Rooms**; one created through the [external API](../../reference/external-api.md#creating-and-updating-a-room) takes `EXTERNAL_API_DEFAULT_ACCESS_LEVEL`.
+- A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#rooms-and-waiting-room). To make it `trusted`:
 
 ```dotenv
 RESOURCE_DEFAULT_ACCESS_LEVEL=trusted

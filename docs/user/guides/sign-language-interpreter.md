@@ -4,7 +4,7 @@ For interpreters signing in a Meet meeting, and the hosts who invite them.
 
 ## Get pinned
 
-Join like anyone else, see [Getting Started](../getting-started.md), and keep your camera on. Then ask everyone who follows you to pin your video: they hover it and click the pin. You then fill their screen.
+Join like anyone else, see [Getting Started](../getting-started.md), and keep your camera on. Then ask everyone who follows you to pin your video.
 
 <div class="figure-row" markdown>
 <figure markdown="span">
@@ -16,8 +16,6 @@ Join like anyone else, see [Getting Started](../getting-started.md), and keep yo
   <figcaption>The pinned video fills the screen</figcaption>
 </figure>
 </div>
-
-A pin only changes the screen of whoever set it, so say it when the meeting starts.
 
 ## Agree with the host beforehand
 

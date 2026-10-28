@@ -12,7 +12,68 @@ docker compose ps
 docker compose logs --tail=50 backend
 docker compose logs --tail=50 frontend
 docker compose logs --tail=50 livekit
-docker compose logs --tail=50 keycloak
+docker compose -f ~/docker/keycloak/compose.yml logs --tail=50 keycloak
+```
+
+
+## Reverse proxy issues
+
+### Traefik refuses to start
+
+**Cause**: `acme.json` has wrong permissions or does not exist.
+
+```bash
+ls -la ~/docker/traefik/acme.json
+# Must show: -rw------- (600)
+```
+
+**Fix**:
+```bash
+touch ~/docker/traefik/acme.json
+chmod 600 ~/docker/traefik/acme.json
+docker restart traefik
+```
+
+
+### Service returns 502 / Traefik can't reach a container
+
+**Cause**: The container is not on the `proxy` Docker network, whose members [Docker networks](networking.md#docker-networks) lists.
+
+**Fix**: Add `proxy` to the service's `networks:` list:
+```yaml
+networks:
+  - proxy
+  - internal
+```
+Then recreate: `docker compose up -d --force-recreate <service>`
+
+
+### Route not appearing / service returns 404
+
+**Cause**: The `traefik.enable=true` label is missing. Traefik runs with `--providers.docker.exposedByDefault=false`, so each container must opt in.
+
+**Fix**: Add the label and recreate the container:
+```bash
+docker compose up -d --force-recreate <service>
+```
+
+
+### TLS certificate not being issued
+
+1. Verify port 80 is publicly reachable: the HTTP-01 ACME challenge needs it
+2. Verify DNS resolves to this server before the proxy starts
+3. Check the certificate logs:
+    - nginx-proxy: `docker compose -f ~/docker/nginx-proxy/compose.yml logs acme-companion`
+    - Traefik: `docker logs traefik | grep -i "acme\|certificate\|error"`
+
+
+### Port conflict on 80 or 443
+
+**Cause**: Another process, another proxy or Apache for example, already holds the port.
+
+**Fix**: Find it, and stop it before starting your proxy:
+```bash
+sudo ss -tlpn 'sport = :80 or sport = :443'
 ```
 
 
@@ -22,9 +83,9 @@ docker compose logs --tail=50 keycloak
 
 The proxy returns 502 while the backend is down.
 
-**Cause**: `DJANGO_CONFIGURATION` is not set: `wsgi.py`, `manage.py` and the Celery app then fall back to `Development`, which needs development-only packages the published image does not include.
+**Cause**: `DJANGO_CONFIGURATION` is not set, so the backend and its Celery worker fall back to `Development`, which needs development-only packages the published image does not include.
 
-**Fix**: Set `DJANGO_SETTINGS_MODULE=meet.settings` and `DJANGO_CONFIGURATION=Production` in `env.d/common` and recreate the backend.
+**Fix**: Set `DJANGO_CONFIGURATION=Production` in `env.d/common` and recreate the backend.
 
 
 ### 502 Bad Gateway on all routes
@@ -52,7 +113,7 @@ Then restart the frontend container: `docker compose restart frontend`.
 
 ### Login redirects but loops back, or the provider says `Invalid parameter: redirect_uri`
 
-**Cause A**: The redirect URI registered at your OIDC provider is not exactly `https://meet.example.com/api/v1.0/callback/`, with the versioned path and the trailing slash. On Keycloak, fix it under Clients → meet → Settings → Valid redirect URIs.
+**Cause A**: The redirect URI registered at your OIDC provider differs from the one [Client configuration](../self-hosting/configuration/sso.md#client-configuration) gives, trailing slash included. On Keycloak, fix it under Clients → meet → Settings → Valid redirect URIs.
 
 **Cause B**: The backend cannot reach the provider for the token exchange: wrong `OIDC_OP_*` URLs, or the provider is down. Check from `~/docker/meet`; it must print `200`:
 ```bash
@@ -65,7 +126,7 @@ docker compose exec backend python -c "import urllib.request; print(urllib.reque
 
 ### Disconnected from meeting immediately / "You left the meeting"
 
-**Cause**, most often: `LIVEKIT_API_URL` is the Docker-internal address, `http://livekit:7880`. The backend hands that URL to browsers in `GET /api/v1.0/rooms/{id}/`, and they cannot reach it.
+**Cause**, most often: `LIVEKIT_API_URL` is the Docker-internal address, `http://livekit:7880`, which browsers cannot reach. [`LIVEKIT_API_URL`](env-variables.md#livekit) says why it must be public.
 
 **Fix**: `LIVEKIT_API_URL` must be the public HTTPS URL:
 ```dotenv
@@ -81,9 +142,9 @@ curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
 
 ### Can join the room but no audio/video
 
-**Cause**: The participant's network, or your server's firewall, blocks both 7882/UDP and 7881/TCP. With only UDP blocked, media still flows over TCP, with more latency.
+**Cause**: The participant's network, or your server's firewall, blocks every media path that [How media connects](../self-hosting/configuration/livekit.md#how-media-connects) lists.
 
-**Fix**: Open both in your cloud provider's security group, see [Firewall & Ports](../self-hosting/configuration/firewall.md). For participants on networks that block them, enable [TURN](../self-hosting/configuration/livekit.md#turn).
+**Fix**: Open the media ports, 7882/UDP and 7881/TCP, in your cloud provider's security group, as [Firewall & Ports](../self-hosting/configuration/firewall.md#ports-to-open) lists. For participants on networks that block them, enable [TURN](../self-hosting/configuration/livekit.md#turn).
 
 ### TURN is enabled but does not relay
 
@@ -99,9 +160,9 @@ docker compose exec livekit ls -l /certs/
 
 ### Audio works but video is very pixelated or choppy
 
-**Cause**: Too little bandwidth. LiveKit lowers the quality it forwards to a receiver whose connection cannot hold more.
+**Cause**: The sender's upload or the server's bandwidth is too low. Every stream passes through the server, and LiveKit lowers the quality it forwards to a receiver whose connection cannot hold more.
 
-**Fix**: Lasting pixelation means the sender's upload or the server's bandwidth is too low, since every stream passes through the server. Give the server more bandwidth, or have the sender use a better connection.
+**Fix**: Give the server more bandwidth, or have the sender use a better connection.
 
 ## Recording issues
 
@@ -122,8 +183,8 @@ The storage variables do not affect the button; they decide whether the file is 
 
 **Fix**: Check the [`webhook:` block](../self-hosting/configuration/livekit.md#webhook) of `livekit-server.yaml`, which the base install writes:
 
-- its URL is the **public HTTPS** address, `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, not an internal one such as `http://backend:8000/...`, which the Production configuration refuses (an HTTPS redirect, or 400 when that host is not in `DJANGO_ALLOWED_HOSTS`);
-- its `api_key` equals `LIVEKIT_API_KEY`.
+- its URL is the **public HTTPS** address `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, never an internal one such as `http://backend:8000/...`, which the Production configuration refuses;
+- its `api_key` equals [`LIVEKIT_API_KEY`](env-variables.md#livekit).
 
 Then recreate LiveKit, `docker compose up -d livekit`, and watch the requests arrive with `docker compose logs -f backend | grep webhooks-livekit`; each one should get a `200` response.
 
@@ -132,14 +193,7 @@ Then recreate LiveKit, `docker compose up -d livekit`, and watch the requests ar
 
 **Cause**: LiveKit Egress refuses to start: the server reports fewer CPUs than the default `room_composite_cpu_cost`, the CPU Egress reserves for a room recording. This is common on a VPS or shared hosting.
 
-**Fix**: Add CPU cost overrides to `livekit-egress.yaml`:
-```yaml
-cpu_cost:
-  room_composite_cpu_cost: 1.5
-  track_composite_cpu_cost: 1.0
-  track_cpu_cost: 0.5
-```
-Restart the egress container: `docker compose restart livekit-egress`
+**Fix**: Add the `cpu_cost` block of [Step 2: LiveKit Egress](../self-hosting/configuration/recording.md#step-2-livekit-egress) to `livekit-egress.yaml`, then restart the egress container: `docker compose restart livekit-egress`
 
 
 ### Recording starts but file never appears
@@ -191,84 +245,23 @@ Then recreate the backend and Celery: `docker compose up -d --force-recreate bac
 
 ### No audio from a phone participant
 
-**Cause**: The RTP port range, 10000-20000/UDP, is blocked.
+**Cause**: The telephony audio ports that [Firewall & Ports](../self-hosting/configuration/firewall.md#ports-to-open) lists are blocked.
 
-**Fix**: Open it, as [Firewall & Ports](../self-hosting/configuration/firewall.md) lists.
+**Fix**: Open 10000-20000/UDP, the phone audio ports.
 
 
 ### SIP call fails to connect
 
-**Cause**: The origination URI in your SIP provider's console does not point to your LiveKit SIP service on port 5060, or a firewall blocks 5060/UDP.
+**Cause**: The origination URI in your SIP provider's console does not point to your LiveKit SIP service, or a firewall blocks its SIP port, which [Firewall & Ports](../self-hosting/configuration/firewall.md#ports-to-open) lists.
 
 **Fix**: Point the origination URI at the SIP service on 5060, see [SIP provider setup](../self-hosting/configuration/telephony.md#sip-provider-setup-twilio-example), and open 5060/UDP.
 
 
 ### Calls are rejected: no dispatch rule matched
 
-**Cause**: Meet creates a room's dispatch rule on the `room_started` webhook, sent when the first participant joins. Until then, or while the webhook does not reach the backend, the room has no rule.
+**Cause**: A room has no dispatch rule until its first browser participant joins, as [How do phone calls join?](../overview/how-meet-works.md#agents-and-phone-calls) explains. It also has none while LiveKit's webhook does not reach the backend.
 
 **Fix**: Have someone join the room from a browser before phone participants dial in, and check the webhook arrives: `docker compose logs backend | grep webhooks-livekit`.
-
-
-## Reverse proxy issues
-
-### Traefik refuses to start
-
-**Cause**: `acme.json` has wrong permissions or does not exist.
-
-```bash
-ls -la ~/docker/traefik/acme.json
-# Must show: -rw------- (600)
-```
-
-**Fix**:
-```bash
-touch ~/docker/traefik/acme.json
-chmod 600 ~/docker/traefik/acme.json
-docker restart traefik
-```
-
-
-### Service returns 502 / Traefik can't reach a container
-
-**Cause**: The container is not on the `proxy` Docker network. Only the services with Traefik labels need it: `frontend`, `livekit` and `keycloak`. `backend` has no labels and is reached only through `frontend`.
-
-**Fix**: Add `proxy` to the service's `networks:` list:
-```yaml
-networks:
-  - proxy
-  - internal
-```
-Then recreate: `docker compose up -d --force-recreate <service>`
-
-
-### Route not appearing / service returns 404
-
-**Cause**: The `traefik.enable=true` label is missing. Traefik runs with `--providers.docker.exposedByDefault=false`, so each container must opt in.
-
-**Fix**: Add the label and recreate the container:
-```bash
-docker compose up -d --force-recreate <service>
-```
-
-
-### TLS certificate not being issued
-
-1. Verify port 80 is publicly reachable (required for the HTTP-01 ACME challenge)
-2. Verify DNS resolves to this server before the proxy starts
-3. Check the certificate logs:
-    - nginx-proxy: `docker compose -f ~/docker/nginx-proxy/compose.yml logs acme-companion`
-    - Traefik: `docker logs traefik | grep -i "acme\|certificate\|error"`
-
-
-### Port conflict on 80 or 443
-
-**Cause**: Another process, another proxy or Apache for example, already holds the port.
-
-**Fix**: Find it, and stop it before starting your proxy:
-```bash
-sudo ss -tlpn 'sport = :80 or sport = :443'
-```
 
 
 ## Docker and container issues
@@ -299,6 +292,4 @@ docker volume prune -f   # removes unused volumes, other projects' included
 
 ## Getting more help
 
-1. **Search existing issues**: [github.com/suitenumerique/meet/issues](https://github.com/suitenumerique/meet/issues)
-2. **Matrix community**: [#meet-official:matrix.org](https://matrix.to/#/#meet-official:matrix.org)
-3. **Open a new issue**: include your Meet version, deployment method, and relevant logs
+Search the [existing issues](https://github.com/suitenumerique/meet/issues) first, or ask the community, see [Community and support](../index.md#community-and-support). A new issue needs your Meet version, your deployment method and the relevant logs.

@@ -19,7 +19,7 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet runs HD audio and video ca
 - **HD audio and video** in the browser, with noise suppression and quality that adapts to each connection
 - **Large meetings**, built for more than 100 participants
 - **Several screen shares at once**, each one zoomable
-- **Chat, emoji reactions and raised hands**, with nothing kept after the meeting, see [What is stored where](overview/how-meet-works.md#what-is-stored-where)
+- **Chat, emoji reactions and raised hands**, kept only with a transcription, see [What is stored where](overview/how-meet-works.md#what-is-stored-where)
 - **Waiting room** and three access levels, so the host decides who comes in
 - **Recording** to S3-compatible storage, with the download link sent by email
 - **Transcription and AI summary** *(beta)*, delivered to [LaSuite Docs](https://github.com/suitenumerique/docs)
@@ -29,7 +29,7 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet runs HD audio and video ca
 - **Virtual backgrounds**: blur or an image
 - **Keyboard navigation and screen reader support**
 
-Every feature is in the open source code. Meet runs on Docker Compose for a single server or on Kubernetes at scale.
+Every feature is in the open source code.
 
 ## Where to start
 
@@ -61,6 +61,7 @@ Every feature is in the open source code. Meet runs on Docker Compose for a sing
 
     - [How Meet works](overview/how-meet-works.md)
     - [Connect another application](reference/external-api.md)
+    - [Show Meet inside your app](reference/external-api.md#signing-a-user-in-to-an-iframe)
     - [Change the code](contributing/develop.md)
 
 </div>

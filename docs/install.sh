@@ -135,7 +135,7 @@ curl -fsSL -o "${KC_DIR}/env.d/kc_postgresql"         "${RAW_ENVD_URL}/kc_postgr
 KC_ADMIN_PASSWORD=$(openssl rand -hex 16)
 KC_DB_PASSWORD=$(openssl rand -hex 16)
 KC_CLIENT_SECRET=$(openssl rand -hex 16)
-# Only the Meet realm user actually logs in via a browser, so keep it typeable.
+# meet-admin types it by hand at the first login, before Keycloak asks for a new one, so keep it short.
 MEET_ADMIN_PASSWORD=$(openssl rand -base64 12)
 
 set_env "KC_BOOTSTRAP_ADMIN_PASSWORD" "$KC_ADMIN_PASSWORD"  "${KC_DIR}/env.d/keycloak"

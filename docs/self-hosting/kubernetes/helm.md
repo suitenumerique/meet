@@ -4,10 +4,10 @@ On a cluster that meets the [Prerequisites](prerequisites.md), you install the M
 
 Working configurations for the official chart are in the repository's [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm):
 
-- [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl) - DINUM's multi-environment setup
-- [`env.d/common.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/env.d/common.yaml.gotmpl) - Values shared by every environment, including the backend's environment variables and the media ingresses
-- [`env.d/dev-keycloak/`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d/dev-keycloak) - Complete values files for Meet, LiveKit, and Egress
-- [`meet/README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) - Full parameter reference
+- [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl): DINUM's multi-environment setup
+- [`env.d/common.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/env.d/common.yaml.gotmpl): Values shared by every environment, including the backend's environment variables and the media ingresses
+- [`env.d/dev-keycloak/`](https://github.com/suitenumerique/meet/tree/main/src/helm/env.d/dev-keycloak): Complete values files for Meet, LiveKit, and Egress
+- [`meet/README.md`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md): Full parameter reference
 
 ## Getting the chart
 
@@ -34,7 +34,7 @@ The chart runs these components, at these default replica counts:
 | Frontend (nginx) | `frontend` | 3 |
 | Celery backend worker | `celeryBackend` | 1 |
 | Summary service (FastAPI) | `summary` | 1 |
-| Celery transcribe workers | `celeryTranscribe` | 1 per instance, one instance (`default`) |
+| Celery transcribe workers | `celeryTranscribe` | 1 per instance, one instance named `default` |
 | Celery summarize worker | `celerySummarize` | 1 |
 | Celery summary backend | `celerySummaryBackend` | 1 |
 | Agent metadata | `agentMetadata` | 1 |
@@ -44,7 +44,7 @@ The chart deploys neither the [external services](prerequisites.md#external-serv
 
 ## Base values.yaml
 
-Build one `values.yaml` for your deployment from the blocks below; Helm reads it at install.
+Put each of these blocks in one `values.yaml`; Helm reads it at install.
 
 ### Backend
 
@@ -85,7 +85,7 @@ backend:
     CELERY_BROKER_URL: "redis://redis-master:6379/0"
 
     LIVEKIT_API_KEY: "myapikey"
-    LIVEKIT_API_SECRET: "livekit-secret"
+    LIVEKIT_API_SECRET: "your-livekit-secret"
     LIVEKIT_API_URL: "https://livekit.example.com"
 
     OIDC_RP_CLIENT_ID: "meet"
@@ -97,16 +97,9 @@ backend:
     OIDC_OP_USER_ENDPOINT: "https://auth.example.com/realms/meet/protocol/openid-connect/userinfo"
     OIDC_OP_JWKS_ENDPOINT: "https://auth.example.com/realms/meet/protocol/openid-connect/certs"
     OIDC_OP_LOGOUT_ENDPOINT: "https://auth.example.com/realms/meet/protocol/openid-connect/logout"
-
-    DJANGO_EMAIL_HOST: "smtp.example.com"
-    DJANGO_EMAIL_PORT: "587"
-    DJANGO_EMAIL_HOST_USER: "meet@example.com"
-    DJANGO_EMAIL_HOST_PASSWORD: "smtp-password"
-    DJANGO_EMAIL_USE_TLS: "True"
-    DJANGO_EMAIL_FROM: "meet@example.com"
 ```
 
-See [Environment Variables](../../reference/env-variables.md) for what each one does and which are required.
+See [Environment Variables](../../reference/env-variables.md) for what each one does and which are required. The SMTP variables go in the same block, see [Email (SMTP)](../configuration/email.md#kubernetes-setup).
 
 ### Frontend
 
@@ -155,7 +148,7 @@ ingressAdmin:
 
 Optional services have no `enabled` flag: they deploy by default. Set `replicas: 0`, or `instances: []` for `celeryTranscribe`, to disable one.
 
-`celeryBackend` runs tasks only when [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence) is `"True"` in `backend.envVars`. Otherwise the backend runs file deletion and emails inline, nothing force-closes a connection-test room whose participant stays connected past the token TTL, and `celeryBackend` can go to 0. The others serve transcription, summaries and agents: disable those you do not use.
+`celeryBackend` runs tasks only when [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence) is `"True"` in `backend.envVars`. Otherwise the backend deletes files and sends emails itself, and `celeryBackend` can go to 0. The others serve transcription, summaries and agents: disable those you do not use.
 
 ```yaml
 celeryBackend:
@@ -182,7 +175,7 @@ agentSubtitles:
 
 ### Security context (recommended)
 
-The chart sets no security context by default. Put the settings the `restricted` Pod Security Standard requires in each component's container-level `securityContext`: every template reads it, while `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`. Example for `backend`:
+The chart sets no security context by default. Put the settings the `restricted` Pod Security Standard requires in each component's container-level `securityContext`, which every template reads. `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`. Example for `backend`:
 
 ```yaml
 backend:
@@ -243,7 +236,7 @@ kubectl -n meet exec deployment/meet-backend -- \
 
 ## LiveKit on Kubernetes
 
-LiveKit, the media server carrying the calls' audio and video, is not in the Meet chart. Its official Helm chart is the simplest way to deploy it. Add its repository:
+LiveKit, the media server carrying the calls' audio and video, is not in the Meet chart. Add the repository of its official Helm chart:
 
 ```bash
 helm repo add livekit https://helm.livekit.io
@@ -278,7 +271,7 @@ loadBalancer:
       secretName: livekit-tls
 ```
 
-The chart does not treat `nginx` specially: [any `type`](https://github.com/livekit/livekit-helm/blob/master/livekit-server/templates/ingress.yaml#L1) other than `disable` (the default) and `gclb` renders a plain Ingress carrying these annotations. Cloud-specific types are described in its [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
+[Every `type`](https://github.com/livekit/livekit-helm/blob/master/livekit-server/templates/ingress.yaml#L1) except `gclb` and the default, `disable`, renders a plain Ingress carrying these annotations. Cloud-specific types are described in its [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
 
 ```bash
 helm install livekit-server livekit/livekit-server \
@@ -288,20 +281,20 @@ helm install livekit-server livekit/livekit-server \
 
 ### LiveKit media ports
 
-The chart serves LiveKit's media ports from the node itself through host networking, bypassing the Ingress and any Service. Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Ports](../configuration/firewall.md) open in its security group or firewall.
+Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Ports](../configuration/firewall.md) open in its security group or firewall.
 
 ## Recording and transcription
 
 Both are optional:
 
-- [Recording - Kubernetes setup](../configuration/recording.md#setup): Garage storage and its bucket, LiveKit Egress, backend configuration, `ingressMedia`
-- [AI Transcription - Kubernetes setup](../configuration/transcription.md#setup): summary service, Celery workers, WhisperX configuration. Needs recording (S3 storage, Egress, `ingressMedia`) working first
+- [Recording: Kubernetes setup](../configuration/recording.md#setup)
+- [AI Transcription: Kubernetes setup](../configuration/transcription.md#setup), once recording works
 
 ## Rebranding the favicon
 
-The frontend image serves the favicon as six static files from `/usr/share/nginx/html`, named below. Mount your own over them instead of rebuilding the image. Other assets, such as the logo, are in [Theming: Custom assets](../configuration/theming.md#custom-assets-logo-images).
+The frontend image serves the favicon as six static files from `/usr/share/nginx/html`. Mount your own over them instead of rebuilding the image. Other assets, such as the logo, are in [Theming: Custom assets](../configuration/theming.md#custom-assets-logo-images).
 
-Put your icons in a `ConfigMap`, either written as YAML (`binaryData` keeps the PNGs intact):
+Put your icons in a `ConfigMap`, either written as YAML, under `binaryData` so the PNGs stay intact:
 
 ```yaml
 apiVersion: v1
@@ -438,7 +431,7 @@ helm upgrade meet meet/meet \
   --values values.yaml
 ```
 
-The chart runs the database migrations in a Job, `meet-backend-migrate`, which Kubernetes deletes 30 seconds after it finishes (`backend.jobs.ttlSecondsAfterFinished`), so read its logs while it runs:
+The chart runs the database migrations in a Job, `meet-backend-migrate`. Kubernetes deletes it 30 seconds after it finishes, per `backend.jobs.ttlSecondsAfterFinished`, so read its logs while it runs:
 
 ```bash
 kubectl -n meet get jobs
@@ -453,4 +446,4 @@ kubectl -n meet exec deployment/meet-backend -- python manage.py migrate
 
 ## Next
 
-Add email, recording or hardening from the overview's [Next steps](../index.md#next-steps).
+Continue with [Next steps](../index.md#next-steps).

@@ -1,81 +1,5 @@
 # Security
 
-## Authentication model
-
-### No user passwords in Meet
-
-Users sign in through an external OIDC provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
-
-### LiveKit JWT tokens
-
-Clients join the LiveKit media server with a JWT:
-
-- The backend signs it with `LIVEKIT_API_SECRET`.
-- It carries the user's identity, the room name and the user's permissions in the room.
-- It is valid for 6 hours.
-- Anyone holding `LIVEKIT_API_SECRET` can forge tokens for your LiveKit server: if it leaks, rotate it immediately.
-
-### Room access levels
-
-| `access_level` | Who joins directly | Who waits in the lobby |
-|---|---|---|
-| `public` | Anyone with the room link | No one |
-| `trusted` | Authenticated users | Unauthenticated users |
-| `restricted` | People holding a role on the room (owner, administrator, member) | Everyone else, authenticated or not |
-
-
-## Media encryption
-
-### Transport encryption (DTLS-SRTP)
-
-All WebRTC media is encrypted in transit with DTLS-SRTP, which browsers enforce.
-
-This is **transport encryption** only, and Meet has no end-to-end encryption. LiveKit, an SFU (Selective Forwarding Unit) that forwards each participant's stream to the others, decrypts and re-encrypts media to forward it, so whoever runs the server can access the media.
-
-
-## API security
-
-### CSRF protection
-
-The Django backend checks CSRF tokens on browser requests that change data. Meet's own domain needs no setting; `DJANGO_CSRF_TRUSTED_ORIGINS` lists any other domain allowed to post to it.
-
-### Object-level permissions
-
-- Reading a room requires no sign-in and no role.
-- Modifying a room requires being its administrator or owner, and deleting it requires being its owner.
-- A deleted room keeps its link until the [room purge](../self-hosting/configuration/room-purge.md) removes it, so nobody can take it over meanwhile.
-
-`ALLOW_UNREGISTERED_ROOMS` decides what a slug that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
-
-### Rate limiting
-
-Only these actions are throttled. Every other endpoint has no limit: set one at your reverse proxy.
-
-| Action | Setting | Default |
-|---|---|---|
-| Creating a room through `/api/v1.0/rooms/` | `ROOM_CREATION_THROTTLE_RATES` | `50/minute` |
-| The same, over a day | `ROOM_CREATION_DAILY_THROTTLE_RATES` | `1000/day` |
-| Starting a recording | `START_RECORDING_THROTTLE_RATES` | `10/minute` |
-| The same, over a day | `START_RECORDING_DAILY_THROTTLE_RATES` | `100/day` |
-| Requesting entry from the waiting room | `REQUEST_ENTRY_THROTTLE_RATES` | `150/minute` |
-| Reading a room creation callback | `CREATION_CALLBACK_THROTTLE_RATES` | `600/minute` |
-| Starting a connection test | `CONNECTION_TEST_THROTTLE_RATES` | `30/minute` |
-| A Roomkit join | `ROOMKIT_JOIN_THROTTLE_RATES` | `300/minute` |
-| Exchanging a transit code for a user access token | `EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES` | `30/minute` |
-
-- A signed-in caller is counted by account, anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#core) sets. Reading a room creation callback and exchanging a transit code count anonymous callers only.
-- An anonymous waiting-room request is the exception: it is counted by the participant id its first request received, so counting starts with its second request.
-
-### Audit logging
-
-The backend writes an audit event for each sign-in, each room or recording action, and each Django admin change, see [Audit logging](../self-hosting/configuration/audit-logging.md).
-
-
-## Known security fixes
-
-See [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) and [GitHub Security Advisories](https://github.com/suitenumerique/meet/security/advisories).
-
-
 ## Infrastructure hardening
 
 ### Django secret key
@@ -83,7 +7,7 @@ See [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md
 Generate [`DJANGO_SECRET_KEY`](env-variables.md#core):
 
 ```bash
-openssl rand -hex 50
+openssl rand -hex 32
 ```
 
 Rotate it immediately if it leaks; rotating it invalidates every active session.
@@ -96,11 +20,10 @@ Generate [`LIVEKIT_API_SECRET`](env-variables.md#livekit):
 openssl rand -hex 32
 ```
 
-Keep it at 32 characters or more, and guard it like a database password.
+Keep it at 32 characters or more. Anyone holding it can forge tokens for your LiveKit server: if it leaks, rotate it at once.
 
 ### TLS
 
-- Use Let's Encrypt certificates, which the reverse proxy obtains automatically, or certificates from a commercial CA.
 - The `Production` configuration already sends `Strict-Transport-Security: max-age=60; includeSubDomains; preload`. A reverse proxy adding its own HSTS header on top makes browsers receive two.
 - Disable TLS 1.0/1.1. With nginx-proxy, set `ssl_protocols TLSv1.2 TLSv1.3;` in a custom nginx config. With Traefik, add to your Traefik configuration:
   ```yaml
@@ -113,13 +36,13 @@ Keep it at 32 characters or more, and guard it like a database password.
 ### Database
 
 - Use a strong, unique password for PostgreSQL
-- Never expose port 5432 publicly
+- Never expose its port publicly, as [Never public](../self-hosting/configuration/firewall.md#never-public) lists
 - Use TLS if the database is on a separate host
 
 ### Object storage (S3)
 
-- Do not expose the storage's ports publicly. Recording downloads go through `/media/` on the reverse proxy instead.
-- Limit Meet's storage credentials to its own buckets, with an access policy (IAM-style).
+- Do not expose the storage's ports publicly, as [Never public](../self-hosting/configuration/firewall.md#never-public) lists. Recording downloads go through `/media/` on the reverse proxy instead.
+- Limit Meet's storage credentials to its own buckets, with an IAM-style access policy.
 
 ### Docker
 
@@ -128,9 +51,64 @@ Keep it at 32 characters or more, and guard it like a database password.
 
 ### Kubernetes
 
-Since Meet v1.14.0, the Helm chart can meet the `restricted` Pod Security Standard. Nothing is set by default: set it for each component, see [Helm: Security context](../self-hosting/kubernetes/helm.md#security-context-recommended).
+The Helm chart can meet the `restricted` Pod Security Standard, but sets nothing by default: set it for each component, see [Helm: Security context](../self-hosting/kubernetes/helm.md#security-context-recommended).
 
 
-## Reporting vulnerabilities
+## API security
 
-Report them privately, never in a public issue: see [Reporting a vulnerability](../index.md#reporting-a-vulnerability).
+### CSRF protection
+
+The Django backend checks CSRF tokens on browser requests that change data. [`DJANGO_CSRF_TRUSTED_ORIGINS`](env-variables.md#core) lists the other domains allowed to post.
+
+### Object-level permissions
+
+- Who may read, change or delete a room is in the [Backend API](api.md#rooms).
+- A deleted room keeps its link until the [room purge](../self-hosting/configuration/room-purge.md) removes it, so nobody can take it over meanwhile.
+
+`ALLOW_UNREGISTERED_ROOMS` decides what a room code that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
+
+### Rate limiting
+
+Only these actions are throttled. Every other endpoint has no limit: set one at your reverse proxy.
+
+| Action | Setting |
+|---|---|
+| Creating a room through `/api/v1.0/rooms/` | [`ROOM_CREATION_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
+| The same, over a day | [`ROOM_CREATION_DAILY_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
+| Starting a recording | [`START_RECORDING_THROTTLE_RATES`](env-variables.md#recording) |
+| The same, over a day | [`START_RECORDING_DAILY_THROTTLE_RATES`](env-variables.md#recording) |
+| Requesting entry from the waiting room | [`REQUEST_ENTRY_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
+| Reading a room creation callback | [`CREATION_CALLBACK_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
+| Starting a connection test | [`CONNECTION_TEST_THROTTLE_RATES`](env-variables.md#connection-test) |
+| A Roomkit join | [`ROOMKIT_JOIN_THROTTLE_RATES`](env-variables.md#roomkit-meeting-room-sip-devices) |
+| Exchanging a transit code for a user access token | [`EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES`](env-variables.md#user-access-tokens) |
+
+- A signed-in caller is counted by account, anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#core) sets. Reading a room creation callback and exchanging a transit code count anonymous callers only.
+- An anonymous waiting-room request is counted by participant, not by address, from its second request on.
+
+### Audit logging
+
+The backend writes an audit event for each sign-in, each room action made through the external API, each recording action, and each Django admin change, see [Audit logging](../self-hosting/configuration/audit-logging.md).
+
+
+## Authentication model
+
+### No user passwords in Meet
+
+Users sign in through an external OIDC provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
+
+### LiveKit JWT tokens
+
+Clients join LiveKit with the pass that [What happens when someone joins?](../overview/how-meet-works.md#joining-a-meeting) describes. The backend signs it with `LIVEKIT_API_SECRET`.
+
+
+## Media encryption
+
+### Transport encryption (DTLS-SRTP)
+
+Media is encrypted in transit with DTLS-SRTP, never end to end, so whoever runs LiveKit can reach it, as [Is it secure?](../overview/how-meet-works.md#security) explains.
+
+
+## Vulnerabilities
+
+Fixed ones are in [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) and the [GitHub Security Advisories](https://github.com/suitenumerique/meet/security/advisories). Report a new one privately, never in a public issue: see [Reporting a vulnerability](../index.md#reporting-a-vulnerability).

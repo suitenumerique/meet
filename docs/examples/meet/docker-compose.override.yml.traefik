@@ -4,7 +4,7 @@
 # TLS certificates for each service.
 #
 # Usage:
-#   cp docker-compose.override.yml.traefik docker-compose.override.yml
+#   saved as docker-compose.override.yml, see the Deployment Guide
 #   docker compose up -d
 
 services:

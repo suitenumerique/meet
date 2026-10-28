@@ -1,6 +1,6 @@
 # Prerequisites (Docker Compose)
 
-To install Meet with Docker Compose, you need a Linux server, Docker, three domain names and a sign-in provider. For a cluster, see the [Kubernetes prerequisites](../kubernetes/prerequisites.md).
+For a cluster, see the [Kubernetes prerequisites](../kubernetes/prerequisites.md).
 
 ## Server requirements
 
@@ -35,7 +35,7 @@ The install steps also use `curl` and `openssl`.
 
 ### Docker Compose
 
-Each part of Meet starts with `docker compose`. Docker Engine includes Compose v2; check that the version starts with `v2`:
+Docker Engine includes Compose v2; check that the version starts with `v2`:
 
 ```bash
 docker compose version
@@ -44,13 +44,13 @@ docker compose version
 
 ### Domain name
 
-Meet requires HTTPS: a self-signed certificate does not work for WebRTC, which carries the audio and video. Point three subdomains at your server's public IP. The reverse proxy, the server in front of Meet that handles HTTPS, gets a certificate for each:
+Meet requires HTTPS: a self-signed certificate does not work for WebRTC, which carries the audio and video. Point three subdomains at your server's public IP:
 
 | Subdomain | Serves |
 |---|---|
 | `meet.example.com` | Meet frontend and backend API |
-| `auth.example.com` | Keycloak, if you run the Deployment Guide's Keycloak stack |
-| `livekit.example.com` | LiveKit WebSocket, TLS-terminated by the reverse proxy |
+| `auth.example.com` | Keycloak, unless you use your own OIDC provider |
+| `livekit.example.com` | LiveKit, the media server |
 
 Each must resolve before you start the stacks: Let's Encrypt checks it when it issues the certificate.
 
@@ -60,13 +60,13 @@ Users sign in through an OIDC provider, a login service that tells Meet who they
 
 ## Checklist
 
-- [ ] A Linux server with the hardware specs above
+- [ ] A Linux server meeting the [Hardware](#hardware) table
 - [ ] Docker and Docker Compose installed
 - [ ] The ports in [Firewall & Ports](../configuration/firewall.md) open
-- [ ] Three subdomains pointing to your server (meet, auth, livekit)
+- [ ] `meet`, `auth` and `livekit` subdomains pointing to your server
 - [ ] An OIDC provider with a client for Meet, or the plan to run Keycloak
 
 ## Next: pick your guide
 
 - [Quick Start](quick-start.md): one script on a fresh server, with nginx-proxy and Keycloak.
-- [Deployment Guide](deployment-guide.md): the same steps by hand, when you already run a reverse proxy or sign-in provider, use Traefik, or want to control each step.
+- [Deployment Guide](deployment-guide.md): the same steps by hand, when you already run a reverse proxy or a sign-in provider.

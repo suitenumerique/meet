@@ -101,16 +101,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OAuthError'
+                $ref: '#/components/schemas/Error'
               examples:
                 invalidCredentials:
                   summary: Invalid credentials
                   value:
-                    error: "Invalid credentials"
+                    detail: "Invalid credentials"
                 inactiveApplication:
                   summary: Application is inactive
                   value:
-                    error: "Application is inactive"
+                    detail: "Application is inactive"
         '400':
           description: Invalid request
           content:
@@ -118,10 +118,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/OAuthError'
               examples:
-                userNotFound:
-                  summary: User not found
+                invalidScope:
+                  summary: Scope is not an email address
                   value:
-                    error: "User not found."
+                    error: "Scope should be a valid email address."
         '403':
           description: Access denied - cannot delegate user
           content:
@@ -133,6 +133,17 @@ paths:
                   summary: Domain not authorized
                   value:
                     error: "This application is not authorized for this email domain."
+        '404':
+          description: No user has that email, and Meet may not create one
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                userNotFound:
+                  summary: User not found
+                  value:
+                    detail: "User not found."
         '415':
           description: |
             Unsupported media type. The request body must be sent as
@@ -147,7 +158,7 @@ paths:
                   value:
                     detail: 'Unsupported media type "text/plain" in request.'
 
-  /rooms:
+  /rooms/:
     get:
       tags:
         - Rooms
@@ -166,14 +177,6 @@ paths:
             type: integer
             minimum: 1
             default: 1
-        - name: page_size
-          in: query
-          description: Number of items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
       responses:
         '200':
           description: List of accessible rooms
@@ -202,7 +205,7 @@ paths:
                   summary: Paginated room list
                   value:
                     count: 2
-                    next: "https://visio-sandbox.beta.numerique.gouv.fr/external-api/v1.0/rooms?page=2"
+                    next: "https://visio-sandbox.beta.numerique.gouv.fr/external-api/v1.0/rooms/?page=2"
                     previous: null
                     results:
                       - id: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
@@ -220,7 +223,6 @@ paths:
         '403':
           $ref: '#/components/responses/ForbiddenError'
 
-  /rooms/:
     post:
       tags:
         - Rooms
@@ -267,7 +269,7 @@ paths:
         '403':
           $ref: '#/components/responses/ForbiddenError'
 
-  /rooms/{id}:
+  /rooms/{id}/:
     get:
       tags:
         - Rooms
@@ -537,14 +539,14 @@ components:
       type: object
       description: |
         Optional room behaviour settings. Unknown fields are rejected.
-        All fields are optional and default to `null` (server-side defaults apply).
+        All fields are optional.
       properties:
         can_publish_sources:
           type: array
           nullable: true
           description: |
             Restricts which media tracks participants are allowed to publish.
-            If `null`, all sources are permitted.
+            If omitted or `null`, the instance's `LIVEKIT_DEFAULT_SOURCES` applies.
           items:
             type: string
             enum:
@@ -558,7 +560,7 @@ components:
           nullable: true
           description: |
             Whether any participant can mute others, or only the room owner/moderator.
-            If `null`, the server default applies.
+            If omitted, any participant can mute others. `null` acts as `false`.
           example: true
       additionalProperties: false
 
@@ -663,11 +665,11 @@ components:
             invalidToken:
               summary: Invalid or expired token
               value:
-                error: "Invalid token."
+                detail: "Invalid token."
             tokenExpired:
               summary: Token has expired
               value:
-                error: "Token expired."
+                detail: "Token expired."
 
     ForbiddenError:
       description: Insufficient permissions for this operation

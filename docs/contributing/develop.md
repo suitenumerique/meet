@@ -31,14 +31,6 @@ The `Makefile` runs every container under your user ID, through `DOCKER_USER`, s
 
 The stack publishes these ports, so they must be free: 3000, 8071, 8080, 8083, 8001, 9000, 1081, 6379, 15432, 5433, 7880, 7881, 7882/UDP, 3478/UDP and 30000 to 30100/UDP. All listen on `127.0.0.1` only, except LiveKit's 7880.
 
-On a Nix workstation, [`devenv.nix`](https://github.com/suitenumerique/meet/blob/main/devenv.nix) provides the tools instead:
-
-| Command | What it does |
-|---|---|
-| `devenv shell` | Opens a shell with Python 3.13, Node.js 22, uv, gettext, the PostgreSQL client, the Docker and Podman clients, and installs gitlint as a commit-message hook. It points `docker` at the Podman socket: set `MEET_PODMAN_SOCKET=0` before entering to keep Docker |
-| `devenv --profile agents shell` | Adds what the LiveKit agents need, including the LiveKit CLI. The `summary` profile adds Redis, and `k8s` adds the tools listed under [Kubernetes with Tilt](#kubernetes-with-tilt) |
-| `meet-venv` | Inside the shell, creates or refreshes the virtual environments of `src/backend`, `src/agents` and `src/summary` |
-
 ## Start the stack with Docker Compose
 
 ### First run
@@ -47,18 +39,7 @@ On a Nix workstation, [`devenv.nix`](https://github.com/suitenumerique/meet/blob
 make bootstrap FLUSH_ARGS='--no-input'
 ```
 
-Run it once after cloning, and again to start over from a clean database. In order, it:
-
-1. Creates `data/media` and `data/static`, which the containers mount.
-2. Copies each template in [`env.d/development/`](https://github.com/suitenumerique/meet/tree/main/env.d/development) but `common.e2e.dist` to the same name without `.dist`, skipping files that already exist, and fills `env.d/development/garage` with a random secret.
-3. Builds the backend, frontend and subtitles agent images.
-4. Applies the database migrations.
-5. Empties the database, creates the Django admin and 100 demo users, as `make demo` does. `FLUSH_ARGS='--no-input'` skips the confirmation that emptying the database asks for.
-6. Compiles the backend translations.
-7. Installs the email template generator and builds the email templates.
-8. Starts the stack, as `make run` does.
-
-It does not install the frontend's npm dependencies on your machine: `make frontend-development-install` does, before you first run the frontend outside its container.
+Run it once after cloning, and again to start over: it empties the database, then creates the Django admin and 100 demo users. It keeps the files you already have in `env.d/development/`, and does not install the frontend's npm dependencies on your machine: `make frontend-development-install` does.
 
 ### Where everything answers
 
@@ -118,7 +99,7 @@ Garage keeps recordings, transcripts and summaries in its own format under `data
 
 - The `app-dev` container runs Django's development server with [`src/backend`](https://github.com/suitenumerique/meet/tree/main/src/backend) mounted at `/app`: saving a Python file restarts it.
 - The Celery worker, `celery-dev`, does not reload: run `make run-backend` after changing a task.
-- The container runs the `Development` configuration, with debug mode and the API schema pages on. Its settings come from `env.d/development/common` and `env.d/development/postgresql`, documented in [Environment variables](../reference/env-variables.md).
+- The container runs the `Development` configuration, with debug mode and the [API schema pages](../reference/api.md#interactive-api-explorer) on. Its settings come from `env.d/development/common` and `env.d/development/postgresql`, documented in [Environment variables](../reference/env-variables.md).
 
 | Command | What it does |
 |---|---|
@@ -131,16 +112,15 @@ Garage keeps recordings, transcripts and summaries in its own format under `data
 
 ## Work on the frontend
 
-The `frontend` container on port 3000 serves a production build of [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend): it shows a change only after `make build-frontend` and `make run`. Its build-time variables are under [Frontend](../reference/env-variables.md#frontend). For daily work, run the Vite dev server on your machine, which reloads on every save:
+The `frontend` container on port 3000 serves a production build of [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend): it shows a change only after `make build-frontend` and `make run`. The settings it reads at runtime come from the backend, under [Frontend](../reference/env-variables.md#frontend). For daily work, start the backend with `make run-backend`, then run the Vite dev server on your machine, which reloads on every save:
 
 | Command | What it does |
 |---|---|
-| `make run-backend` | Starts the backend and its services, without the frontend container |
 | `make frontend-development-install` | Runs `npm install` in `src/frontend`. Run it once, and again when `package-lock.json` changes |
 | `make run-frontend-development` | Stops the frontend container, then runs `npm run dev`: generates the Panda CSS code and serves the app on <http://localhost:3000> with hot reload, calling the API on <http://localhost:8071>, from [`.env.development`](https://github.com/suitenumerique/meet/blob/main/src/frontend/.env.development) |
 | `make build-frontend` | Rebuilds the frontend container's image. Run it before `make run` when you go back to the container |
 
-Every `npm` script runs from `src/frontend`. The `make` targets above and below call the main ones; the others are:
+Every `npm` script runs from `src/frontend`. The `make` targets call the main ones; the others are:
 
 | Command | What it does |
 |---|---|
@@ -149,55 +129,6 @@ Every `npm` script runs from `src/frontend`. The `make` targets above and below 
 | `npm run preview` | Serves the last `npm run build` output, to check a production bundle |
 | `npm run lint:fix` | Fixes what ESLint can fix by itself |
 | `npm run check` | Checks the formatting without changing anything, as CI does: any file Prettier would change fails |
-
-## Translations
-
-The interface ships in English, French, German, Dutch and Spanish, and every string is translated in the pull request that adds it.
-
-**Frontend.** A component reads its strings through `t()` from `react-i18next`, by key, from a namespace file in [`src/frontend/src/locales/<language>/`](https://github.com/suitenumerique/meet/tree/main/src/frontend/src/locales). [`HandToggle.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/livekit/components/controls/HandToggle.tsx) reads `controls.hand.raise` or `controls.hand.lower` from `rooms.json`:
-
-```tsx
-const { t } = useTranslation('rooms', { keyPrefix: 'controls.hand' })
-// ...
-const tooltipLabel = isHandRaised ? 'lower' : 'raise'
-// ...
-aria-label={t(tooltipLabel)} // controls.hand.raise or controls.hand.lower
-```
-
-| Command | What it does |
-|---|---|
-| `make frontend-i18n-extract` | Runs `npm run i18n:extract`: adds each new `t()` key, empty, in all five languages, removes unused keys and sorts the files. Fill every empty value before pushing: it shows as blank text, not a fallback |
-
-**Backend.** Emails and API messages use Django's gettext, with one catalogue per language in [`src/backend/locale/`](https://github.com/suitenumerique/meet/tree/main/src/backend/locale).
-
-| Command | What it does |
-|---|---|
-| `make back-i18n-generate` | Runs `makemessages` for every language, which adds new strings to each `django.po` file. Translate them there |
-| `make back-i18n-compile` | Compiles the `.po` files into the `.mo` files Django reads. `make bootstrap` runs it; run it again to see your translations |
-
-The `crowdin-*`, `i18n-generate-and-upload` and `i18n-download-and-compile` targets sync the catalogues with Crowdin. They are for maintainers, and need a Crowdin token in `env.d/development/crowdin`.
-
-## Email templates
-
-The emails are written in MJML in [`src/mail/mjml/`](https://github.com/suitenumerique/meet/tree/main/src/mail/mjml) and compiled into the templates the backend sends.
-
-| Command | What it does |
-|---|---|
-| `make mails-install` | Installs the generator's npm dependencies, in a Node container. `make bootstrap` runs it |
-| `make mails-build` | Compiles every `.mjml` file into HTML and plain text under `src/backend/core/templates/mail/`. Run it after editing a template; Mailcatcher shows the result |
-
-## Add a dependency
-
-Every dependency is pinned to an exact version. CI installs from the lock files, with `uv sync --locked` and `npm ci`, so a manifest edited without its lock file fails.
-
-| Command | What it does |
-|---|---|
-| `cd src/backend && uv add "<package>==<version>"` | Adds a backend dependency to `pyproject.toml` and `uv.lock`. Add `--dev` for a tool only tests or linters use |
-| `make build-backend` | Rebuilds the backend image with the new dependency. `uv` exists only during the build, so it cannot install into a running container |
-| `DOCKER_USER=$(id -u):$(id -g) docker compose up -d --force-recreate --renew-anon-volumes app-dev celery-dev` | Restarts the backend on the new image. `--renew-anon-volumes` replaces the old container's virtual environment volume, which a plain restart keeps |
-| `cd src/agents && uv add "<package>==<version>"`, then `make build-agents` | The same for the agents. `make build-agents` rebuilds the subtitles agent; rebuild the metadata collector with `docker compose build metadata-collector-dev` |
-| `cd src/summary && uv add "<package>==<version>"`, then `docker compose build app-summary-dev celery-summary-transcribe celery-summary-summarize` | The same for the summary service, whose three containers each build their own image |
-| `cd src/frontend && npm install --save-exact <package>@<version>` | Adds a frontend dependency to `package.json` and `package-lock.json`. Run `make build-frontend` if you use the frontend container |
 
 ## Tests
 
@@ -253,6 +184,65 @@ The `make` targets fix what they can in place. CI only checks, so run them befor
 
 CI also checks commit messages, spelling and shell scripts: [What CI checks](pull-requests.md#what-ci-checks) gives the local command for each.
 
+## Translations
+
+The interface ships in English, French, German, Dutch and Spanish, and every string is translated in the pull request that adds it.
+
+**Frontend.** A component reads its strings through `t()` from `react-i18next`, by key, from a namespace file in [`src/frontend/src/locales/<language>/`](https://github.com/suitenumerique/meet/tree/main/src/frontend/src/locales). [`HandToggle.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/livekit/components/controls/HandToggle.tsx) reads `controls.hand.raise` or `controls.hand.lower` from `rooms.json`:
+
+```tsx
+const { t } = useTranslation('rooms', { keyPrefix: 'controls.hand' })
+// ...
+const tooltipLabel = isHandRaised ? 'lower' : 'raise'
+// ...
+aria-label={t(tooltipLabel)} // controls.hand.raise or controls.hand.lower
+```
+
+| Command | What it does |
+|---|---|
+| `make frontend-i18n-extract` | Runs `npm run i18n:extract`: adds each new `t()` key, empty, in all five languages, removes unused keys and sorts the files. Fill every empty value before pushing: it shows as blank text, not a fallback |
+
+**Backend.** Emails and API messages use Django's gettext, with one catalogue per language in [`src/backend/locale/`](https://github.com/suitenumerique/meet/tree/main/src/backend/locale).
+
+| Command | What it does |
+|---|---|
+| `make back-i18n-generate` | Runs `makemessages` for every language, which adds new strings to each `django.po` file. Translate them there |
+| `make back-i18n-compile` | Compiles the `.po` files into the `.mo` files Django reads. `make bootstrap` runs it; run it again to see your translations |
+
+The `crowdin-*`, `i18n-generate-and-upload` and `i18n-download-and-compile` targets sync the catalogues with Crowdin. They are for maintainers, and need a Crowdin token in `env.d/development/crowdin`.
+
+## Email templates
+
+The emails are written in MJML in [`src/mail/mjml/`](https://github.com/suitenumerique/meet/tree/main/src/mail/mjml) and compiled into the templates the backend sends.
+
+| Command | What it does |
+|---|---|
+| `make mails-install` | Installs the generator's npm dependencies, in a Node container. `make bootstrap` runs it |
+| `make mails-build` | Compiles every `.mjml` file into HTML and plain text under `src/backend/core/templates/mail/`. Run it after editing a template; Mailcatcher shows the result |
+
+## Add a dependency
+
+Every dependency is pinned to an exact version. CI installs from the lock files, with `uv sync --locked` and `npm ci`, so a manifest edited without its lock file fails.
+
+| Command | What it does |
+|---|---|
+| `cd src/backend && uv add "<package>==<version>"` | Adds a backend dependency to `pyproject.toml` and `uv.lock`. Add `--dev` for a tool only tests or linters use |
+| `make build-backend` | Rebuilds the backend image with the new dependency. `uv` exists only during the build, so it cannot install into a running container |
+| `DOCKER_USER=$(id -u):$(id -g) docker compose up -d --force-recreate --renew-anon-volumes app-dev celery-dev` | Restarts the backend on the new image. `--renew-anon-volumes` replaces the old container's virtual environment volume, which a plain restart keeps |
+| `cd src/agents && uv add "<package>==<version>"`, then `make build-agents` | The same for the agents. `make build-agents` rebuilds the subtitles agent; rebuild the metadata collector with `docker compose build metadata-collector-dev` |
+| `cd src/summary && uv add "<package>==<version>"`, then `docker compose build app-summary-dev celery-summary-transcribe celery-summary-summarize` | The same for the summary service, whose three containers each build their own image |
+| `cd src/frontend && npm install --save-exact <package>@<version>` | Adds a frontend dependency to `package.json` and `package-lock.json`. Run `make build-frontend` if you use the frontend container |
+
+## Nix with devenv
+
+On a Nix workstation, [`devenv.nix`](https://github.com/suitenumerique/meet/blob/main/devenv.nix) provides the tools of [Prerequisites](#prerequisites) instead:
+
+| Command | What it does |
+|---|---|
+| `devenv shell` | Opens a shell with Python 3.13, Node.js 22, uv, gettext, the PostgreSQL client, the Docker and Podman clients, and installs gitlint as a commit-message hook. It points `docker` at the Podman socket: set `MEET_PODMAN_SOCKET=0` before entering to keep Docker |
+| `devenv --profile agents shell` | Adds what the LiveKit agents need, including the LiveKit CLI. The `summary` profile adds Redis, and `k8s` adds the tools listed under [Kubernetes with Tilt](#kubernetes-with-tilt) |
+| `meet-venv` | Inside the shell, creates or refreshes the virtual environments of `src/backend`, `src/agents` and `src/summary` |
+
 ## Kubernetes with Tilt
 
 [Tilt](https://tilt.dev/) runs Meet in a local Kubernetes cluster with the [Helm chart](https://github.com/suitenumerique/meet/tree/main/src/helm) and copies your edits into the running pods. Use it only when a change touches the chart or depends on Kubernetes.
@@ -269,7 +259,8 @@ Besides Docker, it needs:
 
 | Command | What it does |
 |---|---|
-| `make build-k8s-cluster` | Copies `env.d/development/kube-secret.dist` if needed. It does not create the cluster: run [`./bin/start-kind.sh`](https://github.com/suitenumerique/meet/blob/main/bin/start-kind.sh) yourself once, which pipes [`create_cluster.sh`](https://github.com/numerique-gouv/tools/blob/main/kind/create_cluster.sh) from `numerique-gouv/tools` to `bash`; read that script first. That script installs a mkcert certificate authority, an image registry on `localhost:5001`, and a kind cluster `suite` serving `*.127.0.0.1.nip.io` over HTTPS |
+| [`./bin/start-kind.sh`](https://github.com/suitenumerique/meet/blob/main/bin/start-kind.sh) | Run it once. It creates a kind cluster `suite` serving `*.127.0.0.1.nip.io` over HTTPS, with a mkcert certificate authority and an image registry on `localhost:5001`. It pipes [`create_cluster.sh`](https://github.com/numerique-gouv/tools/blob/main/kind/create_cluster.sh) from `numerique-gouv/tools` to `bash`: read that script first |
+| `make build-k8s-cluster` | Copies `env.d/development/kube-secret.dist` if needed. It does not create the cluster |
 | `make start-tilt-keycloak` | Runs `tilt up` with [`bin/Tiltfile`](https://github.com/suitenumerique/meet/blob/main/bin/Tiltfile) in the `meet` namespace, with a Keycloak in the cluster. Builds the backend, frontend, summary, agents and LiveKit images, deploys the chart, applies the migrations and creates the Django admin once |
 | `make start-tilt-dinum` | The same, with the DINUM-styled frontend from [`docker/dinum-frontend`](https://github.com/suitenumerique/meet/tree/main/docker/dinum-frontend) |
 | `tilt down --namespace=meet -f ./bin/Tiltfile` | Deletes what Tilt deployed. Stopping `tilt up` with Ctrl+C leaves the deployment running |

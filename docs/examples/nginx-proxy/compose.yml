@@ -7,6 +7,7 @@
 # Usage:
 #   docker network create proxy
 #   cd ~/docker/nginx-proxy
+#   cp ~/docker/hosts .env
 #   docker compose up -d
 
 services:

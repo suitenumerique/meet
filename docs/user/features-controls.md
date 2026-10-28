@@ -7,14 +7,14 @@
 
 ## The basics
 
-| | Action | Shortcut |
-|---|---|---|
-| <img class="off-glb" src="../assets/icons/mic-line.svg" width="20" /> | Mute or unmute | `Ctrl+D` |
-| <img class="off-glb" src="../assets/icons/video-on-line.svg" width="20" /> | Camera on or off | `Ctrl+E` |
-| <img class="off-glb" src="../assets/icons/chat-1-line.svg" width="20" /> | [Chat](#chat) | `Ctrl+Shift+M` |
-| <img class="off-glb" src="../assets/icons/screen-share.svg" width="20" /> | [Share your screen](#screen-sharing) | |
-| <img class="off-glb" src="../assets/icons/hand.svg" width="20" /> | [Raise your hand](#raised-hands) | `Ctrl+Shift+H` |
-| <img class="off-glb" src="../assets/icons/phone-fill.svg" width="20" /> | Leave: the meeting goes on without you, see [When the meeting ends](../overview/how-meet-works.md#when-the-meeting-ends) | |
+| | Action |
+|---|---|
+| <img class="off-glb" src="../assets/icons/mic-line.svg" width="20" /> | Mute or unmute |
+| <img class="off-glb" src="../assets/icons/video-on-line.svg" width="20" /> | Camera on or off |
+| <img class="off-glb" src="../assets/icons/chat-1-line.svg" width="20" /> | [Chat](#chat) |
+| <img class="off-glb" src="../assets/icons/screen-share.svg" width="20" /> | [Share your screen](#screen-sharing) |
+| <img class="off-glb" src="../assets/icons/hand.svg" width="20" /> | [Raise your hand](#raised-hands) |
+| <img class="off-glb" src="../assets/icons/phone-fill.svg" width="20" /> | Leave: the meeting goes on without you, see [When the meeting ends](../overview/how-meet-works.md#when-the-meeting-ends) |
 
 The <img class="off-glb" src="../assets/icons/arrow-up-s-line.svg" width="20" /> beside the microphone and the camera picks the device. Every shortcut is in [Accessibility & Shortcuts](accessibility.md#keyboard).
 
@@ -28,21 +28,70 @@ The owner and co-hosts can:
 | Mute someone | **See everyone** → the microphone beside the name |
 | Remove someone | **See everyone** → menu beside the name → **Remove from the call**. They can come back as the [access level](#access-levels) allows |
 | Choose who can join | <img class="off-glb" src="../assets/icons/admin-line.svg" width="20" /> **Open admin** → **Host settings**, see [Access levels](#access-levels) |
+| Make co-host | **See everyone** → menu beside the name → **Make co-host**, signed-in participants only, see [Roles](#roles) |
+| Mute everyone, lower all hands | **See everyone** → **Mute all microphones**, **Lower all hands** |
+| Stop participants from using their microphone, camera or screen share, or from muting others | **Host settings**, see [Permissions](#permissions) |
 
-Everything else hosts can do is under [Hosting](#hosting). Running a class or a large meeting? See [the guide](guides/large-meeting-host.md).
+Running a class or a large meeting? See [the guide](guides/large-meeting-host.md).
+
+<div class="figure-row" markdown>
+<figure markdown="span">
+  ![Participants panel](../assets/participants-panel.png)
+  <figcaption>The menu beside a name: Pin, Remove from the call, Make co-host</figcaption>
+</figure>
+<figure markdown="span">
+  ![Host settings](../assets/admin-panel.png)
+  <figcaption>Host settings: permissions and access</figcaption>
+</figure>
+</div>
+
+### Permissions
+
+| Action | Owner | Co-host | Everyone else |
+|---|---|---|---|
+| Change the access level and host settings | ✅ | ✅ | ❌ |
+| Make co-host, remove participants, mute everyone, lower all hands | ✅ | ✅ | ❌ |
+| Admit from the waiting room | ✅ | ✅ | Signed in, in a room open to trusted people |
+| Mute others, share screen, turn on microphone and camera | ✅ | ✅ | ✅ unless turned off in the host settings |
+| Start or stop [recording and transcription](recording.md) | ✅ | ✅ | Signed in, in a room that is not **Restricted**, where the Meet server [allows it](#set-up-by-your-administrator) |
+| Chat, react, raise hand | ✅ | ✅ | ✅ |
+| [Delete the room](#deleted-rooms) | ✅ | ❌ | ❌ |
+
+Meet has no button to turn off a single participant's camera.
+
+### Roles
+
+| Role | Who |
+|---|---|
+| **Owner** | Whoever created the room while signed in |
+| **Co-host** | A signed-in participant the owner or a co-host promoted, from the participants panel. *Administrator* in the API |
+| **Member** | Given through the [backend API](../reference/api.md#room-access-roles), and kept by a co-host whose role is removed. Joins a **Restricted** room directly |
+
+### Room access levels { #access-levels }
+
+| Access level | Joins directly | Requests entry |
+|---|---|---|
+| **Open** | Anyone with the link | No one |
+| **Open to trusted people** | Signed-in users | Everyone else |
+| **Restricted** | People with a role on the room | Everyone else |
+
+### Deleted rooms
+
+- Meet has no delete button: an owner deletes a room through the [Backend API](../reference/api.md#other-room-endpoints) or another application's [External API](../reference/external-api.md#deleting-a-room).
+- Everyone in it is disconnected, and its link then says the meeting was deleted.
+- Whoever runs your Meet server can also have old rooms deleted automatically, see [Room purge](../self-hosting/configuration/room-purge.md).
 
 ## More in the call
 
 | Feature | Where | Notes |
 |---|---|---|
-| Push-to-talk | Hold `V` | |
-| Reactions | <img class="off-glb" src="../assets/icons/emotion-line.svg" width="20" /> **Send reaction**, or `Ctrl+Shift+E` | |
+| Reactions | <img class="off-glb" src="../assets/icons/emotion-line.svg" width="20" /> **Send reaction** | |
 | Pin a participant | Hover their video → **Pin** | |
-| Fullscreen | **More Options** (the ⋯ button) → **Fullscreen**, or `Ctrl+Shift+F` | |
+| Fullscreen | ⋯ **More Options** → **Fullscreen** | |
 | Picture-in-picture | **More Options** → **Picture-in-picture** | |
-| Backgrounds and effects | The <img class="off-glb" src="../assets/icons/arrow-up-s-line.svg" width="20" /> beside the camera, **More Options**, or the pre-join screen | Blur or an image. Uploading your own needs a sign-in, where [allowed](#set-up-by-your-administrator) |
+| Backgrounds and effects | The <img class="off-glb" src="../assets/icons/arrow-up-s-line.svg" width="20" /> beside the camera, **More Options**, or the pre-join screen | Blur or an image, your own included. Signed in, it is kept for later meetings, where [allowed](#set-up-by-your-administrator) |
 | Subtitles *(beta)* | <img class="off-glb" src="../assets/icons/closed-captioning-line.svg" width="20" /> **Show subtitles** | See [Real-time subtitles](recording.md#real-time-subtitles) |
-| Phone dial-in | The info button (ⓘ) | See [Phone dial-in](#phone-dial-in) |
+| Phone dial-in | The ⓘ info button | See [Phone dial-in](#phone-dial-in) |
 | Switch camera | On a phone, **More Options** → **Switch camera** | |
 | Change your name | **More Options** → **Settings** → **Profile** | |
 
@@ -70,7 +119,7 @@ Everything else hosts can do is under [Hosting](#hosting). Running a class or a 
 </figure>
 
 - Messages go to everyone; there are no private messages.
-- Nothing is kept after the meeting, unless a transcription is running and your Meet server collects its metadata.
+- Nothing is kept after the meeting, unless a transcription is running and your Meet server saves the chat with it.
 
 ### Screen sharing
 
@@ -94,7 +143,7 @@ Everything else hosts can do is under [Hosting](#hosting). Running a class or a 
 
 ### Phone dial-in
 
-- Dial the number shown under the info button (ⓘ), then enter the PIN.
+- Dial the number shown under the ⓘ info button, then enter the code shown after **Code:**.
 - Callers have audio only, and can join only once someone is in the meeting from a browser.
 
 ## Browser support
@@ -109,66 +158,7 @@ Every browser, iPhone included, can join, talk, use the camera, chat, react and 
 | Android phone | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 | iPhone | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-On a Mac, allow your browser to record the screen in **System Settings → Privacy & Security**, and read `Ctrl` as `⌘` in shortcuts. On a phone or a weak connection, see [the guide](guides/phone-or-weak-connection.md).
-
-## Hosting
-
-Besides [the basics for hosts](#for-hosts), the owner and co-hosts can:
-
-| Action | Where | Notes |
-|---|---|---|
-| Make co-host | **See everyone** → menu beside the name → **Make co-host** | Signed-in participants only, see [Roles](#roles) |
-| Mute everyone, lower all hands | **See everyone** → **Mute all microphones**, **Lower all hands** | |
-| Stop participants from using their microphone, camera or screen share, or from muting others | **Host settings** | See [Permissions](#permissions) |
-
-<div class="figure-row" markdown>
-<figure markdown="span">
-  ![Participants panel](../assets/participants-panel.png)
-  <figcaption>The menu beside a name: Pin, Remove from the call, Make co-host</figcaption>
-</figure>
-<figure markdown="span">
-  ![Host settings](../assets/admin-panel.png)
-  <figcaption>Host settings: permissions and access</figcaption>
-</figure>
-</div>
-
-### Permissions
-
-| Action | Owner | Co-host | Everyone else |
-|---|---|---|---|
-| Change the access level and host settings | ✅ | ✅ | ❌ |
-| Make co-host, remove participants, mute everyone, lower all hands | ✅ | ✅ | ❌ |
-| Admit from the waiting room | ✅ | ✅ | Signed in, in a room open to trusted people |
-| Mute others, share screen, turn on microphone and camera | ✅ | ✅ | ✅ unless turned off in the host settings |
-| Start or stop [recording and transcription](recording.md) | ✅ | ✅ | Signed in, in a room that is not **Restricted**, where the Meet server [allows it](#set-up-by-your-administrator) |
-| Chat, react, raise hand | ✅ | ✅ | ✅ |
-| [Delete the room](#deleted-rooms) | ✅ | ❌ | ❌ |
-
-Turning off **Enable video** in the host settings stops everyone except the owner and co-hosts from using their camera. No one can turn off a single participant's camera.
-
-### Roles
-
-| Role | Who |
-|---|---|
-| **Owner** | Whoever created the room while signed in |
-| **Co-host** | A signed-in participant the owner or a co-host promoted, from the participants panel. *Administrator* in the API |
-| **Member** | Given through the [API](../reference/api.md#room-access-roles). Joins a **Restricted** room directly |
-
-### Room access levels { #access-levels }
-
-Each room has an access level, set by its owner or a co-host in **Host settings**. It decides who joins directly and who waits to be admitted.
-
-| Access level | Joins directly | Requests entry |
-|---|---|---|
-| **Open** | Anyone with the link | No one |
-| **Open to trusted people** | Signed-in users | Everyone else |
-| **Restricted** | People with a role on the room | Everyone else |
-
-### Deleted rooms
-
-- Meet has no delete button: an owner deletes a room through the [API](../reference/api.md), from another application.
-- Everyone in it is disconnected, and its link then says the meeting was deleted.
-- Whoever runs your Meet server can also have old rooms deleted automatically, see [Room purge](../self-hosting/configuration/room-purge.md).
+On a Mac, allow your browser to record the screen in **System Settings → Privacy & Security**. On a phone or a weak connection, see [the guide](guides/phone-or-weak-connection.md).
 
 ## Settings
 
@@ -193,7 +183,7 @@ In a meeting, open **More Options** → **Settings**. Everything there stays in 
 
 - A signed-in user can change their name only where the Meet server allows it.
 
-On the home page, the settings button sets the language and, once signed in, who can join the rooms you create and what participants may publish there.
+On the home page, the settings button sets the language. Once you are signed in, it also sets who can join the rooms you create and what participants may publish there. These choices do not apply to a room the Outlook add-in or another application creates for you.
 
 ## Set up by your administrator
 

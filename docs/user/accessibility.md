@@ -33,8 +33,8 @@ On a Mac, `Ctrl` is `⌘`.
 
 ## Screen readers
 
-- Announced: mute and unmute, a recording starting or stopping, people joining, new chat messages while the chat is closed, and a shared screen's zoom level.
-- Others' reactions ("Alice: thumbs up") are announced once you turn on **Announce reactions aloud** in **Settings → Accessibility**.
+- Announced: your microphone or camera going on or off, a recording starting or stopping, people joining, new chat messages while the chat is closed, whose video you pinned or unpinned, and a shared screen's zoom level.
+- Others' reactions, such as "Alice: thumbs up", are announced once you turn on **Announce reactions aloud** in **Settings → Accessibility**.
 - The tab title shows the room code.
 
 ## Display

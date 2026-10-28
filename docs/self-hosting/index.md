@@ -1,10 +1,10 @@
 # Self-Hosting LaSuite Meet
 
-LaSuite Meet is free software under the MIT license, ready to run on your own servers. Each guide below lists what it needs; what the pieces do is in [How Meet works](../overview/how-meet-works.md#the-pieces).
+Each guide lists what it needs; what the pieces do is in [How Meet works](../overview/how-meet-works.md#the-pieces).
 
 !!! tip "Fastest: Quick Start"
 
-    One script does the Docker Compose install for you: the reverse proxy, Keycloak and Meet, on a fresh Linux server.
+    One script installs Meet and everything it needs on a fresh Linux server.
 
     [Start with Quick Start](compose/quick-start.md){ .md-button .md-button--primary }
 
@@ -18,7 +18,8 @@ LaSuite Meet is free software under the MIT license, ready to run on your own se
 ## Next steps
 
 - [Set up email](configuration/email.md), so invitations and recording links reach people.
-- [Add optional features](configuration/recording.md): recording, transcription, live subtitles, phone dial-in, all under **Configuration**.
+- [Harden the server](../reference/security.md#infrastructure-hardening) before it goes into production.
+- [Add optional features](../user/features-controls.md#set-up-by-your-administrator), each with its setup guide.
 - [Keep Meet up to date](configuration/upgrade.md).
 - Stuck? See [Troubleshooting](../reference/troubleshooting.md).
 

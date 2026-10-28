@@ -1,6 +1,6 @@
 # Firewall & Ports
 
-Open each port below to any address (`0.0.0.0/0`) in your cloud provider's security group, or in [the host firewall](#the-host-firewall).
+Open each port to any address, `0.0.0.0/0`, in your cloud provider's security group, or in [the host firewall](#the-host-firewall).
 
 ## Ports to open
 
@@ -25,7 +25,6 @@ How the browser picks between 7882, 7881 and TURN is in [LiveKit & TURN](livekit
 | 7880 | LiveKit's signalling, reached only through the reverse proxy |
 | 8083 | The frontend's nginx, reached only through the reverse proxy |
 | 8080 | Keycloak, reached only through the reverse proxy |
-| 8000 | The Django backend, reached only through the frontend's nginx |
 | 5432 | PostgreSQL |
 | 6379 | Redis |
 | 9000 | Garage's S3 API, when you run it for recording, and Keycloak's health checks |
@@ -34,10 +33,10 @@ The Docker Compose files publish none of these.
 
 ## The host firewall
 
-Docker opens every port a container publishes with firewall rules of its own, which take precedence over ufw and firewalld. With Docker Compose, each port of the first table you use is published by a container, so:
+Docker opens every port a container publishes with firewall rules of its own, which take precedence over ufw and firewalld. With Docker Compose, the containers publish every port of [Ports to open](#ports-to-open), so:
 
 - ufw or firewalld rules cannot open or close those ports. Your cloud provider's security group is what filters them.
-- A port that must stay closed must not be published at all. This is why the second table's ports are not.
+- A port that must stay closed must not be published at all.
 
 The host firewall matters for a port Docker does not publish. LiveKit on Kubernetes is one: it listens on the node's own network. Open its ports as for any service:
 

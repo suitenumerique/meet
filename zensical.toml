@@ -51,7 +51,6 @@ nav = [
     {"Troubleshooting" = "reference/troubleshooting.md"}
   ]},
   {"Integrating" = [
-    {"API" = "reference/api.md"},
     {"External API" = "reference/external-api.md"},
     {"Application-delegated" = "reference/external-api-delegated.md"},
     {"Resource server (OAuth2)" = "reference/external-api-resource-server.md"},
@@ -66,6 +65,7 @@ nav = [
   {"Contributing" = [
     {"Develop locally" = "contributing/develop.md"},
     {"Code tour" = "contributing/code-tour.md"},
+    {"Backend API" = "reference/api.md"},
     {"Pull requests" = "contributing/pull-requests.md"}
   ]}
 ]

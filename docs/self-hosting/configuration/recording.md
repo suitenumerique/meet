@@ -1,8 +1,8 @@
 # Recording
 
-Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When a screen recording is complete, the person who started it and the room's owners and administrators (co-hosts in the meeting) each receive an email with a download link.
+Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When a screen recording is complete, the person who started it and the room's owners and co-hosts each receive an email with a download link. How a recording travels from the button to that email is in [How does recording work?](../../overview/how-meet-works.md#recording).
 
-Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). `RECORDING_MAX_DURATION` only shows users the limit: set the same limit in Egress, which enforces it. When Egress stops a recording at its limit, Meet saves the file as usual.
+Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). [`RECORDING_MAX_DURATION`](../../reference/env-variables.md#recording) is only the limit users see: set the same limit in LiveKit Egress, which stops the recording. When Egress stops a recording at its limit, Meet saves the file as usual.
 
 **Known limitations:**
 
@@ -13,19 +13,19 @@ Every recording variable and its default is in [Environment Variables: Recording
 
 | Room access level | Who can start and stop a recording |
 |---|---|
-| `public` or `trusted` | The room's owners and administrators, and any signed-in participant connected to the meeting |
-| `restricted` | The room's owners and administrators only |
+| `public` or `trusted` | The room's owners and co-hosts, and any signed-in participant connected to the meeting |
+| `restricted` | The room's owners and co-hosts only |
 
-Set `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED=False` to restrict recording to the room's owners and administrators on every room. A participant who joined without signing in can never record.
+Set `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED=False` to restrict recording to the room's owners and co-hosts on every room. A participant who joined without signing in can never record.
 
 Meet copies the room's roles onto the recording when it starts, and later changes to the room do not affect it:
 
 | Person | Can watch and download | Can delete |
 |---|---|---|
-| The room's owners and administrators | Yes | Yes, once it has ended |
-| The person who started it, when not an owner or administrator | Yes | No |
+| The room's owners and co-hosts | Yes | Yes, once it has ended |
+| The person who started it, when not an owner or co-host | Yes | No |
 
-Starting a recording is rate-limited per user, by `START_RECORDING_THROTTLE_RATES` and the daily cap `START_RECORDING_DAILY_THROTTLE_RATES`.
+Starting a recording is rate-limited per user, as [Rate limiting](../../reference/security.md#rate-limiting) lists.
 
 ## Requirements
 
@@ -34,45 +34,11 @@ Starting a recording is rate-limited per user, by `START_RECORDING_THROTTLE_RATE
 - SMTP, since the download link reaches users by email. See [Email (SMTP)](email.md).
 - The LiveKit webhook to Meet, which tells Meet a recording has finished. The base setup already configures it: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
 
-## How it works
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend as Frontend (React)
-    participant Backend as Django Backend
-    participant LiveKit as LiveKit API
-    participant Egress as LiveKit Egress
-    participant Storage as S3 storage
-    participant Email as Email Service
-
-    User->>Frontend: Click start recording
-    Frontend->>Backend: POST /api/v1.0/rooms/{id}/start-recording/
-    Backend->>LiveKit: Create egress request
-    LiveKit->>Egress: Start room composite egress
-    Egress->>LiveKit: Join room, capture audio/video
-    LiveKit-->>Backend: Return egress_id
-    Backend-->>Frontend: HTTP 201: Recording started
-    Frontend->>Frontend: Notify other participants
-
-    Note over LiveKit,Egress: Recording in progress…
-
-    User->>Frontend: Click stop recording
-    Frontend->>Backend: POST /api/v1.0/rooms/{id}/stop-recording/
-    Backend->>LiveKit: Stop egress request
-    LiveKit->>Egress: Stop recording
-    Egress->>Storage: Upload recorded file
-    LiveKit-->>Backend: POST /api/v1.0/rooms/webhooks-livekit/ (egress_ended)
-    Backend->>Email: Notify the starter and the room's owners and administrators
-    Email->>User: Email with download link
-    User->>Frontend: Navigate to /recording/{id}
-```
-
 ## Setup
 
 ### Step 1: Object storage
 
-To use an external S3-compatible provider instead of Garage, skip this step and use the provider's endpoint, keys and region wherever `AWS_S3_*` appears below. The bucket stays private: the backend authorizes each download, as Step 4 sets up.
+To use an external S3-compatible provider instead of Garage, skip this step and use the provider's endpoint, keys and region in the `AWS_S3_*` variables of Step 3. The bucket stays private: the backend authorizes each download, as Step 4 sets up.
 
 Garage runs here as a single node with no replication. On its first start it creates its access key and the `meet-media-storage` bucket, and it leaves both untouched on later starts. Garage refuses to start with an access key shorter than 8 characters or a secret key shorter than 16.
 
@@ -218,7 +184,7 @@ Garage runs here as a single node with no replication. On its first start it cre
 
 ### Step 2: LiveKit Egress
 
-Create `livekit-egress.yaml`:
+Create `livekit-egress.yaml`. On Docker Compose, create it in `~/docker/meet`, beside the Meet stack's `compose.yml`:
 
 ```yaml
 api_key: meet
@@ -237,7 +203,7 @@ cpu_cost:
 - The `redis` section is mandatory. Egress talks to LiveKit server through Redis, and crashes at start without it.
 - `cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores. See [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers).
 - The file needs no `s3` section. Meet sends the storage settings with every recording request, built from the backend's `AWS_S3_*` variables of Step 3.
-- On Kubernetes, point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`.
+- On Kubernetes, point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`, and set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `myapikey` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes).
 
 === "Docker Compose"
 
@@ -259,6 +225,7 @@ cpu_cost:
     ```
 
     ```bash
+    cd ~/docker/meet
     docker compose up -d livekit-egress
     ```
 
@@ -365,40 +332,11 @@ The backend and Egress both reach the storage at `AWS_S3_ENDPOINT_URL`, whose sc
     helm upgrade meet meet/meet --namespace meet --values values.yaml
     ```
 
-Check that recording is enabled:
-
-```bash
-curl -s https://meet.example.com/api/v1.0/config/ | jq .recording
-```
-
-Expected output, with the default settings:
-
-```json
-{
-  "is_enabled": true,
-  "available_modes": ["screen_recording", "transcript"],
-  "expiration_days": null,
-  "max_duration": null,
-  "encoding": {
-    "is_custom_enabled": false,
-    "available_resolutions": ["540p", "720p", "1080p"],
-    "available_profiles": ["talking_heads", "text", "mixed", "full"],
-    "default_resolution": "720p",
-    "default_profile": "full"
-  },
-  "authenticated_participants_enabled": true
-}
-```
-
-Without SMTP, recordings are still saved: [Email (SMTP)](email.md) says how to reach one and resend its email.
+Check that recording is enabled: `curl -s https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled` prints `true`.
 
 ### Step 4: Route recording downloads
 
-The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy checks each such request before passing it to the storage:
-
-1. It asks the backend's `/api/v1.0/recordings/media-auth/` endpoint.
-2. The backend checks that the user may retrieve the recording, and returns signed S3 headers.
-3. The proxy forwards the request to the storage with those headers.
+The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy asks the backend's `/api/v1.0/recordings/media-auth/` whether the user may retrieve it, then fetches the file from the storage with the signed headers the backend returns.
 
 The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header the proxy sends to the storage must equal that URL's `host:port`.
 
@@ -448,7 +386,7 @@ The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header th
 
 === "Kubernetes"
 
-    The chart's `ingressMedia` does the same with nginx-ingress auth subrequests. Its annotations work with nginx-ingress only, not with other ingress controllers. `rewrite-target` sends `/media/<path>` to `/<bucket>/<path>` on the storage, `upstream-vhost` is the `Host` header above, and `serviceMedia` names the same storage.
+    The chart's `ingressMedia` does the same with nginx-ingress auth subrequests. Its annotations work with nginx-ingress only, not with other ingress controllers. `rewrite-target` sends `/media/<path>` to `/<bucket>/<path>` on the storage. `upstream-vhost` sets the `Host` header to the storage's `host:port`, and `serviceMedia` names the same storage.
 
     The chart's defaults for `serviceMedia.host` and `upstream-vhost` already point at `garage.meet.svc.cluster.local`, the Service of Step 1. With another storage, set both to its address. Add to `values.yaml`:
 
@@ -504,9 +442,9 @@ RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64
 RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
 ```
 
-The keyframe interval sets how finely a player can seek in the file. Its default, `0.0`, leaves the choice to the encoder. To let LiveKit pick the whole encoding instead, set either default to an empty value: Meet logs a warning at startup and uses LiveKit's preset.
+The keyframe interval sets how finely a player can seek in the file. Its default, `0.0`, leaves the choice to the encoder. To let LiveKit pick the whole encoding instead, set either default to an empty value, as [`RECORDING_ENCODING_DEFAULT_RESOLUTION`](../../reference/env-variables.md#recording) describes.
 
-**Letting users choose.** With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, room owners and administrators pick the profile and resolution of each recording in the settings dialog's **Recording** tab. Without it, the start-recording API refuses any per-recording encoding with a `400`.
+**Letting users choose.** With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, room owners and co-hosts pick the profile and resolution of each recording in the settings dialog's **Recording** tab.
 
 **Your own resolutions and profiles.** `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS` and `RECORDING_ENCODING_AVAILABLE_PROFILES` replace the built-in sets. Each is a dictionary on a single line, with double-quoted keys and no outer quotes in an env file:
 
@@ -516,19 +454,18 @@ RECORDING_ENCODING_AVAILABLE_PROFILES={"small": {"fps": 15, "kbps": {"540p": 350
 RECORDING_ENCODING_DEFAULT_PROFILE=small
 ```
 
-The backend refuses to start when a profile lacks a bitrate for one of the resolutions, or has one for a resolution that does not exist, so replacing one set usually means replacing both. The two defaults must name entries of these sets. The **Recording** tab has labels for the four built-in profiles only.
+Each profile must have a bitrate for exactly the available resolutions, as [`RECORDING_ENCODING_AVAILABLE_PROFILES`](../../reference/env-variables.md#recording) requires, so replacing one set usually means replacing both. The two defaults must name entries of these sets. The **Recording** tab has labels for the four built-in profiles only.
 
 **Caveats:**
 
-- **Screen-share readability.** At 720p, text legibility breaks down below ~40 kbits per frame, the bitrate divided by the framerate. `talking_heads` gives 700 / 15 ≈ 47, just above. The same bitrate at 30 fps gives ~23 and visibly blurs dense slides, so lowering the framerate keeps shared screens readable better than lowering the bitrate. For deck-heavy meetings, use `text`: 1000 / 15 ≈ 67.
-- **Encoder speed.** Egress encodes with x264's `veryfast` preset, [set in its code](https://github.com/livekit/egress/blob/main/pkg/pipeline/builder/video.go#L1102): no Meet or Egress setting changes it.
+- **Screen-share readability.** At 720p, text blurs below about 40 kbit per frame, the bitrate divided by the framerate: `talking_heads` gives 47, `text` 67. For slide-heavy meetings use `text`, and lower the framerate before the bitrate.
 - **Audio.** AAC at 64 kbps stereo is transparent for voice but compresses music noticeably. Keep 128 kbps if meetings include music playback.
 
 ## Testing the full recording flow
 
 1. Start a meeting, open **More tools** → **Record**, and click **Start recording the meeting**.
 2. Speak for 30 seconds, then click **Stop recording the meeting**.
-3. Check that the file reached the bucket: run the bucket check of Step 1 again: the object count should have gone up by one.
+3. Run the bucket check of Step 1 again, from `~/docker/garage` on Docker Compose: the object count has gone up by one.
 4. Check the recording's status under `/admin/` → **Core → Recordings**.
 5. Check that the email with the download link arrived.
 

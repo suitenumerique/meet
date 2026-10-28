@@ -2,8 +2,8 @@
 
 Meet sends email for two things only. Sign-in goes through your OIDC provider and sends none.
 
-- **Room invitations**, sent through the API (`POST /api/v1.0/rooms/<id>/invite/`); the interface has no button for them. Without SMTP, the request fails.
-- **A screen recording's download link**, emailed to whoever started the recording and to the room's owners and administrators. Without SMTP, the recording is still saved.
+- **Room invitations**, sent through the API's `POST /api/v1.0/rooms/<id>/invite/`; the interface has no button for them. Without SMTP, the request fails.
+- **A screen recording's download link**, emailed to whoever started the recording and to the room's owners and co-hosts. Without SMTP, the recording is still saved.
 
 To reach a recording whose email never left:
 
@@ -12,18 +12,9 @@ To reach a recording whose email never left:
 
 ## What to set
 
-| Variable | Example |
-|---|---|
-| `DJANGO_EMAIL_HOST` | `smtp.example.com` |
-| `DJANGO_EMAIL_PORT` | `587` |
-| `DJANGO_EMAIL_HOST_USER` | `meet@example.com` |
-| `DJANGO_EMAIL_HOST_PASSWORD` | your SMTP password |
-| `DJANGO_EMAIL_USE_TLS` | `True` on port 587 (STARTTLS); use `DJANGO_EMAIL_USE_SSL=True` instead on port 465 |
-| `DJANGO_EMAIL_FROM` | `meet@example.com` |
-| `DJANGO_EMAIL_APP_BASE_URL` | `https://meet.example.com`, used to build the invitation link. The recording link comes from [`RECORDING_DOWNLOAD_BASE_URL`](../../reference/env-variables.md#recording) |
-| `DJANGO_EMAIL_DOMAIN` | `meet.example.com` |
+Set your SMTP server's host, port, login and sender address with the variables of [Environment Variables: Email](../../reference/env-variables.md#email). On port 587, set `DJANGO_EMAIL_USE_TLS=True` for STARTTLS. On port 465, set `DJANGO_EMAIL_USE_SSL=True` instead.
 
-The branding variables (`DJANGO_EMAIL_BRAND_NAME`, `DJANGO_EMAIL_LOGO_IMG`, `DJANGO_EMAIL_SUPPORT_EMAIL`), the SMTP timeout `DJANGO_EMAIL_TIMEOUT`, and every default are in [Environment Variables: Email](../../reference/env-variables.md#email).
+`DJANGO_EMAIL_APP_BASE_URL`, such as `https://meet.example.com`, builds the invitation link. `DJANGO_EMAIL_DOMAIN`, such as `meet.example.com`, is the domain every email shows. The recording link comes from [`RECORDING_DOWNLOAD_BASE_URL`](../../reference/env-variables.md#recording) instead.
 
 With [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence)`=True`, the Celery worker sends the recording emails and retries a failed delivery, so a slow SMTP server never holds up the backend. Otherwise the backend sends them itself.
 
@@ -37,7 +28,14 @@ docker compose up -d --force-recreate backend celery
 
 ## Kubernetes setup
 
-Set them under `backend.envVars` in your `values.yaml`, the password from a Secret rather than in plain text:
+Put the SMTP password in a Secret, so it stays out of `values.yaml`:
+
+```bash
+kubectl -n meet create secret generic meet-smtp \
+  --from-literal=password="<your SMTP password>"
+```
+
+Then set the variables under `backend.envVars` in your `values.yaml`:
 
 ```yaml
 backend:
@@ -47,8 +45,8 @@ backend:
     DJANGO_EMAIL_HOST_USER: "meet@example.com"
     DJANGO_EMAIL_HOST_PASSWORD:
       secretKeyRef:
-        name: meet-secrets
-        key: smtp-password
+        name: meet-smtp
+        key: password
     DJANGO_EMAIL_USE_TLS: "True"
     DJANGO_EMAIL_FROM: "meet@example.com"
     DJANGO_EMAIL_APP_BASE_URL: "https://meet.example.com"

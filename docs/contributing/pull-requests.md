@@ -59,7 +59,7 @@ With an AI coding assistant, point it at these pages: [Develop locally](develop.
 ✨(frontend) add a shortcut to copy the room link
 
 Copying the link took three clicks through the information panel. Bind
-Ctrl+Shift+L to copy it, and announce the result to screen readers.
+Ctrl+Shift+K to copy it, and announce the result to screen readers.
 ```
 
 The title is a [gitmoji](https://gitmoji.dev/), a scope in parentheses, a space and a lowercase subject. CI checks every commit with gitlint, using [`.gitlint`](https://github.com/suitenumerique/meet/blob/main/.gitlint) and the rule in [`gitlint/gitlint_emoji.py`](https://github.com/suitenumerique/meet/blob/main/gitlint/gitlint_emoji.py):
@@ -70,7 +70,7 @@ The title is a [gitmoji](https://gitmoji.dev/), a scope in parentheses, a space 
 | Title length | More than 72 characters |
 | Title ending | A full stop or other punctuation at the end |
 | Work in progress | The word `wip` anywhere in the title |
-| Body | No body, or one shorter than 20 characters. Dependency upgrades (title starting with ⬆️) need neither a body nor the title shape; releases (🔖) need no body |
+| Body | No body, or one shorter than 20 characters. A dependency upgrade, titled with ⬆️, needs neither a body nor the title shape, and a release, titled with 🔖, needs no body |
 | Body width | A body line longer than 80 characters |
 
 Run the same check before pushing, from the repository root. It needs network access: the gitmoji rule downloads the gitmoji list.
@@ -79,7 +79,7 @@ Run the same check before pushing, from the repository root. It needs network ac
 uvx --from gitlint-core gitlint --commits upstream/main..HEAD
 ```
 
-The [devenv shell](develop.md#prerequisites) installs gitlint as a commit-message hook, so it runs on every commit.
+The [devenv shell](develop.md#nix-with-devenv) installs gitlint as a commit-message hook, so it runs on every commit.
 
 ### Scopes
 
@@ -97,7 +97,7 @@ The scope names the part of the repository the commit changes. gitlint accepts a
 | `ci` | `.github/workflows` |
 | `dev`, `devx` | Development tooling, such as the `Makefile`, `bin/` or devenv |
 | `docs` | `docs/`, `UPGRADE.md` and the other Markdown files |
-| `all` | A change spanning several of the above |
+| `all` | A change spanning several of these parts |
 
 ### Gitmojis
 
@@ -140,11 +140,11 @@ CI fails the pull request when:
 
 ## What CI checks
 
-Every job below runs on each pull request to `main`, most through shared workflows from [suitenumerique/ci](https://github.com/suitenumerique/ci). Wait for all of them to pass before asking for a review, as `CONTRIBUTING.md` asks.
+These jobs run on each pull request to `main`, most through shared workflows from [suitenumerique/ci](https://github.com/suitenumerique/ci). Wait for all of them to pass before asking for a review, as `CONTRIBUTING.md` asks.
 
 | Workflow | What fails it | Run it locally |
 |---|---|---|
-| [Project quality](https://github.com/suitenumerique/meet/blob/main/.github/workflows/code-quality.yml), commits | An added line containing `print(` in `src/backend`, `src/summary` or `src/agents`; a commit whose subject starts with `fixup!` or `squash!`; a commit message gitlint rejects | `git diff upstream/main..HEAD -- src/backend src/summary src/agents \| grep -E '^\+.*\bprint\('` must print nothing, then the gitlint command above |
+| [Project quality](https://github.com/suitenumerique/meet/blob/main/.github/workflows/code-quality.yml), commits | An added line containing `print(` in `src/backend`, `src/summary` or `src/agents`; a commit whose subject starts with `fixup!` or `squash!`; a commit message gitlint rejects | `git diff upstream/main..HEAD -- src/backend src/summary src/agents \| grep -E '^\+.*\bprint\('` must print nothing, then the gitlint command of [Commit messages](#commit-messages) |
 | Project quality, spelling | A word [codespell](https://github.com/codespell-project/codespell) knows as a typo, in a file or a file name, docs included | `uvx codespell`, which reads [`.codespellrc`](https://github.com/suitenumerique/meet/blob/main/.codespellrc) |
 | Project quality, shell scripts | A [shellcheck](https://www.shellcheck.net/) warning in any `.sh` file | `shellcheck --external-sources <file>.sh` |
 | [Changelog](https://github.com/suitenumerique/meet/blob/main/.github/workflows/changelog.yml) | No change to `CHANGELOG.md`, or a line too wide, see [Changelog](#changelog) | `grep -Ev '^\[.*\]: https://github.com' CHANGELOG.md \| wc -L` must print less than 80 |
@@ -153,19 +153,17 @@ Every job below runs on each pull request to `main`, most through shared workflo
 | CI, summary tests | A failing summary service test | `make test-summary` |
 | CI, frontend lint and tests | An ESLint warning, a file Prettier would change, or a failing Vitest test | `make frontend-lint`, `make frontend-format`, `make test-frontend` |
 | CI, SDK | A lint or format problem in `src/sdk/library`, or a build failure | The SDK command in [Lint and format](develop.md#lint-and-format) |
-| [Docker Hub](https://github.com/suitenumerique/meet/blob/main/.github/workflows/docker-hub.yml) | A backend, frontend, DINUM frontend, summary or agents image that does not build, a TypeScript error included, or a HIGH or CRITICAL vulnerability [Trivy](https://trivy.dev/) finds in it. Nothing is published, except from a branch named `integration/…` | `npm run build` in `src/frontend` for the type errors, `docker build --build-arg DOCKER_USER=$(id -u):$(id -g) --target backend-production .` for the backend image |
+| [Docker Hub](https://github.com/suitenumerique/meet/blob/main/.github/workflows/docker-hub.yml) | A backend, frontend, DINUM frontend, summary or agents image that does not build, a TypeScript error included, or a HIGH or CRITICAL vulnerability [Trivy](https://trivy.dev/) finds in it | `npm run build` in `src/frontend` for the type errors, `docker build --build-arg DOCKER_USER=$(id -u):$(id -g) --target backend-production .` for the backend image |
 | [Security analysis](https://github.com/suitenumerique/meet/blob/main/.github/workflows/security.yml) | A [zizmor](https://docs.zizmor.sh/) finding in `.github/workflows/` | `uvx zizmor .github/workflows` |
 
 ## Checklist
 
 Before asking for a review:
 
-- [ ] Each commit passes gitlint, and none is a `fixup!` or `squash!` commit.
-- [ ] `CHANGELOG.md` has a line for the change, narrower than 80 columns.
-- [ ] The change has tests, and `make test` passes.
-- [ ] `make lint`, `make frontend-lint` and `make frontend-format` leave nothing new to commit.
+- [ ] Every job in [What CI checks](#what-ci-checks) passes locally.
+- [ ] The change has tests.
 - [ ] A model change comes with its migration, from `make makemigrations`.
-- [ ] An API change is reflected in the [API reference](../reference/api.md).
+- [ ] An API change is reflected in the [Backend API](../reference/api.md).
 - [ ] Every new or changed string is translated in the five frontend languages, and in the backend catalogues when it is a backend string, see [Translations](develop.md#translations).
 - [ ] An interface change works with the keyboard alone, every control has a name a screen reader reads, and the description shows it with screenshots.
 - [ ] A new or changed setting is documented in [Environment variables](../reference/env-variables.md), and a user-visible change on the page that describes the feature.

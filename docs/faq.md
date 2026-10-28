@@ -75,7 +75,7 @@ In **See everyone**, open the menu beside their name and click **Make co-host**.
 
 ### How do I remove someone, and keep them out?
 
-**Remove from the call**, in the same menu, disconnects them but does not stop them coming back. To keep them out, set the room to **Restricted** and deny their request, see [Hosting a large meeting](user/guides/large-meeting-host.md#remove-someone).
+In **See everyone**, open the menu beside their name and click **Remove from the call**: it disconnects them but does not stop them coming back. To keep them out, set the room to **Restricted** and deny their request; a current or former co-host still gets in. See [Hosting a large meeting](user/guides/large-meeting-host.md#remove-someone).
 
 ## Recording and transcription
 
@@ -87,17 +87,17 @@ In **See everyone**, open the menu beside their name and click **Make co-host**.
 ### Why don't I see the recording or transcription buttons?
 
 - Not in **More tools**: your Meet server has not set them up.
-- Shown but you cannot start them: you lack the right in this room, see [Permissions](user/features-controls.md#permissions). Signing in is often enough; otherwise click **Request**: everyone in the meeting is notified, and someone allowed to start it can do so.
+- Shown but you cannot start them: signing in is often enough; otherwise click **Request** and someone allowed can start it. [Permissions](user/features-controls.md#permissions) lists who can.
 
 ## Security and privacy
 
 ### Are meetings encrypted?
 
-Every stream is encrypted between your browser and the media server ([DTLS-SRTP](https://datatracker.ietf.org/doc/html/rfc5764), the [WebRTC](https://webrtc.org/) standard). Meet has no end-to-end encryption: the media server can read the streams it forwards.
+Every stream is encrypted between your browser and the media server with [DTLS-SRTP](https://datatracker.ietf.org/doc/html/rfc5764), the [WebRTC](https://webrtc.org/) standard. Meet has no end-to-end encryption: the media server can read the streams it forwards.
 
 ### Is chat history stored?
 
-No, unless a transcription is running and your Meet server collects its metadata, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
+No, unless a transcription is running and your Meet server saves the chat with it, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
 
 ## Hosting and contributing
 

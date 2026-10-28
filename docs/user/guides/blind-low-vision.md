@@ -24,11 +24,12 @@ On a Mac, use `⌘` instead of `Ctrl`. The full list is in [Accessibility & Shor
 
 Meet announces:
 
-- your microphone going on or off
+- your microphone or camera going on or off
 - people joining
 - a recording starting or stopping
 - chat messages, while the chat is closed
-- whose video you pinned
+- whose video you pinned or unpinned
+- a shared screen's zoom level
 
 To hear reactions too, turn on **Announce reactions aloud** in **More Options** → **Settings** → **Accessibility**.
 

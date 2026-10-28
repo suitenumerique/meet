@@ -1,7 +1,7 @@
 # nginx-proxy override for Keycloak
 #
 # Usage:
-#   cp docker-compose.override.yml.nginx docker-compose.override.yml
+#   saved as docker-compose.override.yml, see the Deployment Guide
 
 services:
   keycloak:

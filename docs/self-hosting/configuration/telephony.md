@@ -11,12 +11,12 @@ Participants can join a meeting by phone through LiveKit's SIP bridge. SIP is th
 Phone ──► PSTN ──► SIP Trunk ──► LiveKit SIP Bridge ──► LiveKit Room
 ```
 
-The PSTN is the public phone network. LiveKit's SIP component handles SIP signalling and converts audio between the phone network, usually G.711 (8 kHz), and WebRTC (Opus, 48 kHz). Recordings include phone participants' audio.
+The PSTN is the public phone network. Recordings include phone participants' audio.
 
 ## Prerequisites
 
-- A SIP trunk from a VoIP provider (Twilio, Vonage, Infobip), or a self-hosted Asterisk or FreeSWITCH.
-- A phone number (DID) from that provider.
+- A SIP trunk from a VoIP provider such as Twilio, Vonage or Infobip, or a self-hosted Asterisk or FreeSWITCH.
+- A phone number from that provider.
 - The ports of the [firewall table](firewall.md) marked for telephony.
 - The LiveKit webhook to Meet, which the base setup already configures: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
 
@@ -99,7 +99,7 @@ lk sip inbound create \
 
 ## Dispatch rules
 
-Meet manages dispatch rules itself: on LiveKit's `room_started` it creates a rule routing the room's PIN to the room, and on `room_finished` deletes it. Callers other than [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices can therefore join only while someone is connected from a browser.
+Meet creates and deletes each room's dispatch rule itself, as [How do phone calls join?](../../overview/how-meet-works.md#agents-and-phone-calls) shows. Callers other than [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices can therefore join only while someone is connected from a browser.
 
 ## SIP provider setup (Twilio example)
 
@@ -118,4 +118,4 @@ Join a room from a browser, call `ROOM_TELEPHONY_PHONE_NUMBER`, and enter the PI
 ## Limitations
 
 - Dial-in only: Meet does not implement calling out.
-- Meet displays a single dial-in number (`ROOM_TELEPHONY_PHONE_NUMBER`).
+- Meet displays a single dial-in number, `ROOM_TELEPHONY_PHONE_NUMBER`.

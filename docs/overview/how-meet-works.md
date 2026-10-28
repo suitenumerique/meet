@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Meet is a Django backend and a React frontend built around [LiveKit](https://livekit.io/), the media server that carries every call's audio and video. The backend decides who may join a room and hands the browser a pass; from then on, the browser talks to LiveKit directly. Recording, transcription, live subtitles and phone dial-in are optional services that sit beside that core.
+Meet is a [Django](https://www.djangoproject.com/) backend and a [React](https://react.dev/) frontend built around [LiveKit](https://livekit.io/), the media server that carries every call's audio and video. The backend decides who may join a room and hands the browser a pass; from then on, the browser talks to LiveKit directly. Recording, transcription, live subtitles and phone dial-in are optional services beside that core.
 
 ```mermaid
 graph LR
@@ -38,32 +38,76 @@ graph LR
 
 ## What runs where? { #the-pieces }
 
-The pieces marked optional run only when you turn on their feature. How each request travels between them is in [Networking](../reference/networking.md).
+Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firewall.md), and how each request travels between them in [Networking](../reference/networking.md). The code of each piece is in the [Code tour](../contributing/code-tour.md).
 
-| Piece | What it does | Ports |
+| Piece | What it does |
+|---|---|
+| 🖥️ Frontend | The interface in your browser. Talks to the backend over REST and to LiveKit directly for audio and video. |
+| ⚙️ Backend | Signs users in, creates rooms, decides who joins, mints the LiveKit pass, starts and stops recordings, receives LiveKit's webhooks, writes the audit log. An optional [Celery](https://docs.celeryq.dev/) worker runs its background tasks, see [`CELERY_ENABLED`](../reference/env-variables.md#redis-celery-and-presence) |
+| 🎥 LiveKit Server | Forwards each participant's audio and video to the others, carries the signalling, and has a TURN relay built in |
+| ⏺️ LiveKit Egress, optional | Records a meeting to a file in S3 storage, when the backend asks |
+| 📞 LiveKit SIP, optional | Bridges phone calls into meetings through a SIP trunk |
+| 🤖 LiveKit Agents, optional | Two programs that join meetings: the subtitles transcriber and the metadata collector |
+| 📝 Summary service, optional | Transcribes recordings and writes summaries, on three Celery queues |
+| 🐘 [PostgreSQL](https://www.postgresql.org/) | Users, rooms, roles, recordings |
+| ⚡ [Redis](https://redis.io/) | Cache, sessions, the waiting room, Celery's queues, LiveKit's state |
+| 🪣 S3-compatible storage | Recordings, transcripts, uploaded backgrounds, transcription metadata |
+
+## Key concepts { #key-concepts }
+
+- **SFU, Selective Forwarding Unit.** LiveKit is an [SFU](https://bloggeek.me/webrtcglossary/sfu/): it receives each participant's streams once and forwards them to everyone else without decoding them, so a browser's upload does not grow with the number of viewers.
+- **WebRTC.** [WebRTC](https://webrtc.org/) is the browser standard for live audio and video, and it encrypts every stream between the browser and LiveKit. See [Is it secure?](#security)
+- **Signalling and media.** Signalling is the control talk of a call, such as joining or who publishes what, over a WebSocket on port 443. Media is the audio and video, over UDP, or TCP when UDP is blocked. See [Getting through firewalls](#firewalls).
+- **[Simulcast](https://bloggeek.me/webrtcglossary/simulcast/) and [SVC](https://bloggeek.me/webrtcglossary/svc/).** Each camera sends its video at up to three qualities, and LiveKit forwards to each viewer the one that fits their connection and the size their video is shown at.
+- **The LiveKit pass.** What the browser shows LiveKit to join a meeting: a signed [JWT](https://datatracker.ietf.org/doc/html/rfc7519) the backend issues. See [What happens when someone joins?](#joining-a-meeting)
+- **Room and meeting.** A room is the lasting record, its code, settings and roles, kept in PostgreSQL. A meeting is the live session LiveKit opens when the first person joins the room and closes when the last one leaves. See [What happens when a meeting ends?](#when-the-meeting-ends)
+- **Roles and access levels.** A role ties a user to a room: owner, co-host or member. The access level decides who walks straight in and who waits. See [Who can do what?](#who-gets-in)
+- **The waiting room.** **Lobby** in the app: where a visitor waits until a host admits them. See [Who can do what?](#who-gets-in)
+- **Webhooks.** LiveKit calls the backend over HTTP when a meeting starts or ends, someone leaves, or a recording changes state. These calls feed recordings, phone dial-in, the clean-up after a meeting and the [room purge](../self-hosting/configuration/room-purge.md#how-a-room-becomes-purgeable); see [Webhook](../self-hosting/configuration/livekit.md#webhook).
+- **SIP.** The protocol phone networks and meeting-room video systems use to set up calls. LiveKit SIP turns a call into an audio-only participant. See [How do phone calls join?](#agents-and-phone-calls)
+- **STUN and TURN.** [STUN](https://bloggeek.me/webrtcglossary/stun/) tells a machine the public address it is seen from; LiveKit uses it at startup to [find its own](../self-hosting/configuration/livekit.md#use_external_ip). [TURN](https://bloggeek.me/webrtcglossary/turn/) relays the media of a participant whose network blocks every direct path. See [Getting through firewalls](#firewalls).
+
+## What is stored, and for how long? { #what-is-stored-where }
+
+| Data | Where | How long |
 |---|---|---|
-| 🖥️ Frontend (React, TypeScript, Vite, React Aria) | The browser UI. Talks to the backend over REST for sign-in, rooms and recordings, and to LiveKit directly for media | 3000 in development, 8080 in the production container |
-| ⚙️ Backend (Django, Django REST Framework) | Signs users in, creates rooms, decides who joins, mints the LiveKit pass, starts and stops recordings, handles LiveKit's webhooks, writes the audit log | 8000 |
-| 🎥 LiveKit Server | The media server: forwards each participant's streams to the others, handles signalling and TURN/STUN | 7880 (HTTP/WebSocket), 7881/TCP, 7882/UDP |
-| ⏺️ LiveKit Egress (optional) | Records a room to a file in S3, started by the backend | none public |
-| 📞 LiveKit SIP (optional) | Bridges phone calls into rooms through a SIP trunk | 5060/UDP and an RTP port range, 10000–20000/UDP by default |
-| 🤖 LiveKit Agents (optional) | Two workers: the subtitles transcriber and the metadata collector | none public |
-| 📝 Summary service (optional, FastAPI) | Transcribes recordings and writes summaries, on three Celery queues | 8000, internal |
-| 🐘 PostgreSQL | Users, rooms, roles, recordings | 5432 |
-| ⚡ Redis | Cache, sessions, waiting room state, Celery broker, LiveKit state | 6379 |
-| 🪣 S3-compatible storage | Recordings, uploaded backgrounds, transcription metadata | The store's own |
+| Accounts, rooms and their roles, recording entries, uploaded-file entries, registered applications | PostgreSQL | Until deleted. Deleted rooms, and rooms nobody starts any more, go when the [room purge](../self-hosting/configuration/room-purge.md) removes them; it is off by default |
+| Sessions, waiting-room requests, which signed-in participants are in a meeting | Redis | They expire on their own: a session after 12 hours, an admission after 6 hours, presence after an hour |
+| Audio, video, screen shares, reactions, and chat outside a transcription | Nowhere: LiveKit forwards them live and keeps nothing | Gone when sent |
+| Recordings | S3 storage, under `recordings/` | Meet never deletes them. [`RECORDING_EXPIRATION_DAYS`](../reference/env-variables.md#recording) only marks them expired; a lifecycle rule on the bucket deletes the files |
+| Transcripts, as JSON | S3 storage, under `transcripts/` | Meet never deletes them; set a bucket rule |
+| Who spoke when, connections and chat during a transcription, from the metadata collector | S3 storage, under `metadata/` | Meet never deletes them; set a bucket rule |
+| Uploaded background images | S3 storage, under `files/` | A deleted image is removed 7 days later by the `purge_deleted_files` command, which the Helm chart runs nightly; on Docker Compose, schedule it yourself |
+| Transcripts and summaries as documents | [LaSuite Docs](https://github.com/suitenumerique/docs), when connected | Like any document there |
+| Audit events, one JSON line each | The backend's standard output by default, for your log collector. What they cover is in [Audit logging](../self-hosting/configuration/audit-logging.md#catalogue) | Meet keeps none: as long as your log store keeps them |
+
+What Meet sends by email is in [Email](../self-hosting/configuration/email.md).
+
+## Is it secure? { #security }
+
+Every stream is encrypted between your browser and LiveKit, as WebRTC requires. Meet has no end-to-end encryption, though: LiveKit decrypts the streams to forward them, so whoever runs the server could reach the media.
+
+On the backend:
+
+- Every request is checked against your role on the room.
+- Some actions are rate-limited, as [Rate limiting](../reference/security.md#rate-limiting) lists.
+- Sensitive actions leave a trace in the audit log.
+
+How to harden a server is in [Security](../reference/security.md).
 
 ## What happens when someone joins? { #joining-a-meeting }
 
-A meeting lives at a room code, such as `meet.example.com/abc-defg-hij`. When someone opens that link, the browser first asks the backend about the room. If the visitor is allowed straight in, the answer carries a LiveKit pass: a token, signed with the LiveKit API secret, that names the person, the room and what they may publish. It stays valid for 6 hours by default.
+A meeting lives at a room code, such as `meet.example.com/abc-defg-hij`. When you open that link, the browser asks the backend about the room. If you may walk straight in, the answer carries your LiveKit pass:
 
-If the visitor is not allowed straight in, the browser asks to enter and keeps asking while it waits in the waiting room. The backend tells everyone in the meeting that someone is waiting, and once a host admits them, the next request returns the pass.
+- It is signed with LiveKit's API secret, so LiveKit trusts it without ever seeing a user account.
+- It names you, the room and what you may publish: microphone, camera, screen share.
+- It stays valid for 6 hours.
 
-With the pass in hand, the browser opens a WebSocket to LiveKit and starts sending and receiving audio and video over [WebRTC](https://webrtc.org/). LiveKit never sees a user account: it simply trusts the pass the backend signed. Sign-in decides who someone *is*; the pass decides what they may *do* in the room.
+If you may not walk straight in, you go through the [waiting room](#who-gets-in) first. With the pass, the browser opens a WebSocket to LiveKit and starts sending and receiving audio and video. Sign-in decides who you *are*; the pass decides what you may *do* in the room.
 
-### Signing in
+### Signing in { #signing-in }
 
-Meet has no passwords of its own. It hands sign-in to any [OpenID Connect](https://openid.net/developers/how-connect-works/) provider, such as [Keycloak](https://www.keycloak.org/), [Authentik](https://goauthentik.io/), Google or [ProConnect](https://www.proconnect.gouv.fr/), and keeps a session cookie once the provider confirms who the user is. Setup is in [SSO & Authentication](../self-hosting/configuration/sso.md).
+Users have no password in Meet; only the Django admin accounts do. Meet hands sign-in to any [OpenID Connect](https://openid.net/developers/how-connect-works/) provider, such as [Keycloak](https://www.keycloak.org/), [Authentik](https://goauthentik.io/), Google or [ProConnect](https://www.proconnect.gouv.fr/), and keeps a session cookie once the provider confirms who you are. Setup is in [SSO & Authentication](../self-hosting/configuration/sso.md).
 
 ```mermaid
 sequenceDiagram
@@ -79,65 +123,63 @@ sequenceDiagram
     BE->>KC: Exchange the code for tokens
     KC-->>BE: ID token + access token
     BE->>BE: Create or update the user
-    BE-->>B: Session cookie, redirect → Meet
+    BE-->>B: Session cookie, back to the page the user started from
 ```
 
-## How do audio and video travel?
+## How do audio and video travel? { #media }
 
-LiveKit is a Selective Forwarding Unit: it receives each participant's streams and forwards them to the others without re-encoding them, which costs far less CPU than mixing them into one. Each sender sends its video at several qualities at once, so LiveKit can give every receiver the quality its connection can handle. With VP9, the default, and AV1, those qualities are layers of a single stream; with VP8 or H.264 they are separate streams.
+Once you are in, each kind of traffic takes its own road:
 
-Chat messages and reactions take the same road, as LiveKit data messages between browsers, which is why Meet keeps no chat history. Everything that changes the meeting itself, such as muting someone, raising a hand or making someone co-host, goes through the backend instead: it checks that the caller is allowed, then asks LiveKit to apply the change.
+- **Audio and video** go to LiveKit, which forwards them to everyone else.
+- **Chat and reactions** go the same way, as LiveKit data messages between browsers. Nothing stores them outside a transcription, so Meet has no chat history.
+- **Changes to the meeting**, such as muting someone, raising a hand or making someone co-host, go to the backend. It checks that you are allowed, then asks LiveKit to apply the change.
 
-### Getting through firewalls
+### Getting through firewalls { #firewalls }
 
-The browser reaches LiveKit's WebSocket through the reverse proxy on port 443, like any web page. The audio and video then take the first path the participant's network allows:
-
-1. **UDP on port 7882**, the normal path, with the lowest delay.
-2. **TCP on port 7881**, when that UDP port is blocked. It works, with more delay.
-3. **A TURN relay**, when both are blocked, as on some corporate networks. It carries the media over port 443 or inside TLS on 5349, and is off until you enable it.
-
-A room that loads but never connects almost always means none of these paths is open. Which ports to open is in [Firewall & Ports](../self-hosting/configuration/firewall.md), and when TURN is worth it in [LiveKit & TURN](../self-hosting/configuration/livekit.md#turn).
+Signalling reaches LiveKit through your reverse proxy on port 443, like any web page. Media then takes the best path the participant's network allows, in the order that [How media connects](../self-hosting/configuration/livekit.md#how-media-connects) lists. [TURN](../self-hosting/configuration/livekit.md#turn) says when a relay is worth it.
 
 ## Who can do what? { #who-gets-in }
 
-Each room has an access level that decides who joins directly and who waits to be admitted. People with a role on the room, its owner, co-hosts (*administrator* in the API) and members, always join directly.
+Two things decide who gets in: your role on the room and the room's access level.
 
-| Access level | Joins directly | Waits in the waiting room |
-|---|---|---|
-| **Open** (`public`) | Anyone with the link | No one |
-| **Open to trusted people** (`trusted`) | Signed-in users | Visitors who are not signed in |
-| **Restricted** (`restricted`) | People with a role on the room | Everyone else |
+- **Roles** are owner, co-host and member. Co-host is *administrator* in the API. Anyone with a role joins directly; who holds which is in [Roles](../user/features-controls.md#roles).
+- **Access levels** are **Open**, **Open to trusted people** and **Restricted**, written `public`, `trusted` and `restricted` in the API. Who joins directly at each is in [Room access levels](../user/features-controls.md#access-levels).
 
-Inside the meeting, the host settings decide whether participants may turn on their microphone, camera or screen share, and whether they may mute each other. The owner and co-hosts change them, and they reach LiveKit as part of the room's settings. The full list of who may do what is in [Permissions](../user/features-controls.md#permissions).
+Everyone else waits in the waiting room, which lives in Redis rather than in the database:
 
-A room code that matches no room opens a meeting with no owner by default. An instance can turn that off, so that only a signed-in visitor can create the room, and own it; see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
+```mermaid
+sequenceDiagram
+    participant V as Visitor's browser
+    participant BE as Backend
+    participant LK as LiveKit Server
+    participant H as Host's browser
 
-## What is stored, and for how long? { #what-is-stored-where }
+    V->>BE: Ask to enter
+    BE->>BE: Add the visitor to the waiting room
+    BE->>LK: Tell the meeting someone is waiting
+    LK-->>H: Data message: sound and pop-up
+    loop Every 3 seconds
+        V->>BE: Ask again
+        BE-->>V: Still waiting
+    end
+    H->>BE: Admit the visitor
+    V->>BE: Ask again
+    BE-->>V: Admitted, with the LiveKit pass
+    V->>LK: Join the meeting
+```
 
-The calls themselves leave nothing behind: LiveKit forwards audio, video and chat live and keeps none of it. What Meet does keep is below.
+- The backend checks the access level on every request, so opening the room lets in people already waiting.
+- A request not renewed within 6 seconds expires, so closing the tab leaves the queue.
+- The browser gives up after 10 minutes without an answer.
+- Who may admit is in [Permissions](../user/features-controls.md#permissions).
 
-| Data | Where | How long |
-|---|---|---|
-| Accounts, rooms and their roles, recording entries, uploaded-file entries, registered applications | PostgreSQL | Until deleted. Deleted rooms, and rooms nobody starts any more, go when the [room purge](../self-hosting/configuration/room-purge.md) removes them; it is off by default |
-| Sessions, waiting-room requests, who is in each room | Redis | They expire on their own: a session after 12 hours, an admission after 6, presence an hour after its last refresh |
-| Audio, video, screen shares, reactions, and chat outside a transcription | Nowhere: LiveKit forwards them live and keeps nothing | Gone when sent |
-| Recordings | S3 storage, under `recordings/` | Meet never deletes them. [`RECORDING_EXPIRATION_DAYS`](../reference/env-variables.md#recording) only marks them expired; a lifecycle rule on the bucket deletes the files |
-| Who spoke when, connections and chat during a transcription, from the metadata collector | S3 storage, under `metadata/` | Meet never deletes them; set a bucket rule |
-| Uploaded background images | S3 storage, under `files/` | A deleted image is removed 7 days later by the `purge_deleted_files` command, which the Helm chart runs nightly; on Docker Compose, schedule it yourself |
-| Transcripts and summaries | [LaSuite Docs](https://github.com/suitenumerique/docs), when connected | Like any document there |
-| Audit events: room reads and changes; recording starts, stops, ends and deletions; transcript requests and their outcomes; user provisioning; Django admin writes; tokens and one-time sign-in codes issued through the external API | The backend's standard output by default, one JSON line each, for your log collector, see [Audit logging](../self-hosting/configuration/audit-logging.md) | Meet keeps none: as long as your log store keeps them |
+Inside the meeting, the host settings can stop participants from using their microphone, camera or screen share, or from muting others. Those that limit publishing reach LiveKit as each person's publishing rights: in the pass for newcomers, and as an update for people already in.
 
-Meet sends email for two things only: a screen recording's download link, and an invitation sent through the API. Sign-in never uses it; see [Email](../self-hosting/configuration/email.md).
-
-## Is it secure?
-
-Every stream is encrypted between the browser and the media server, as WebRTC requires. Meet has no end-to-end encryption, though: LiveKit decrypts the streams to forward them, so whoever runs the server could reach the media.
-
-On the backend, every request is checked against the caller's role on the room, and the actions open to abuse, such as creating rooms, starting recordings or asking to enter a waiting room, are rate-limited. Sensitive actions also leave a trace in the audit log. The details, and how to harden a server, are in [Security](../reference/security.md).
+A room code that matches no room still opens a meeting, with no owner and open to anyone, unless your server turns that off; see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
 ## How does recording work? { #recording }
 
-When a host starts a recording, the backend asks LiveKit Egress to join the room as a hidden participant and capture it. Egress waits until someone has a microphone, camera or screen share on, then records until the recording is stopped or reaches its time limit. It uploads the file to object storage, LiveKit tells the backend the recording ended, and the backend emails a download link to whoever started it and the room's hosts. If Egress fails, the backend marks the recording failed and tells the participants.
+The backend asks LiveKit Egress to record the meeting, and Egress joins it as a hidden participant. If Egress fails, the backend marks the recording failed and tells the participants.
 
 ```mermaid
 sequenceDiagram
@@ -161,11 +203,17 @@ sequenceDiagram
     Mail-->>U: Email with the link
 ```
 
-Who may start a recording depends on the room's access level; see [Who can record](../self-hosting/configuration/recording.md#who-can-record). Setup is in [Recording](../self-hosting/configuration/recording.md).
+What the person recording sees is in [Recording & Transcription](../user/recording.md#recording), who may start one in [Who can record](../self-hosting/configuration/recording.md#who-can-record), and setup in [Recording](../self-hosting/configuration/recording.md).
 
 ## How do transcription and the summary work? { #transcription-and-summary }
 
-A transcription starts the same way as a recording, except that Egress records only the audio, unless **Also start a video recording** is ticked. Once the file is in storage, the backend hands it to the summary service, which works through it in the background: one worker turns the speech into text and matches the voices to the participants, a second asks a language model for a summary, and a third reports back to the backend. The transcript and the summary then appear as documents in LaSuite Docs.
+A transcription starts like a recording, and Egress records only the audio unless **Also start a video recording** is ticked. Once the file is in storage, the backend hands it to the summary service, whose workers take it from there:
+
+- The first turns the speech into text through a [WhisperX](https://github.com/suitenumerique/meet-whisperx) API, names the speakers where the metadata collector ran, and writes the transcript to LaSuite Docs.
+- The second asks a language model for a summary, where your server turns summaries on.
+- The third tells the backend how the job went.
+
+The metadata collector, a LiveKit agent, joins a transcription when your server enables it. It notes who speaks when, who connects and leaves, and the chat, so the summary service can put names on the voices.
 
 ```mermaid
 sequenceDiagram
@@ -190,26 +238,48 @@ sequenceDiagram
 
 Setup is in [AI Transcription](../self-hosting/configuration/transcription.md).
 
-## How do live subtitles work?
+## How do live subtitles work? { #subtitles }
 
-Live subtitles come from an agent: a small program that joins the room as a silent participant. When someone clicks **Show subtitles**, the backend asks LiveKit to send the subtitles agent into that room. The agent listens to each speaker, sends the audio to a speech-to-text provider ([Deepgram](https://deepgram.com/), [Kyutai](https://kyutai.org/) or [Voxtral](https://mistral.ai/news/voxtral)), and publishes the text back into the room as captions. Nothing is stored. Setup is in [Real-time Subtitles](../self-hosting/configuration/subtitles.md).
+Live subtitles come from an agent. When someone clicks **Show subtitles**, the backend asks LiveKit to send the subtitles agent into the meeting. The agent then:
 
-A second agent, the metadata collector, only runs during a transcription where it is enabled. It notes who speaks when, who connects and the chat, so the summary service can name the speakers.
+- listens to each speaker separately;
+- sends their audio to a speech-to-text provider: [Deepgram](https://deepgram.com/), [Kyutai](https://kyutai.org/) or [Voxtral](https://mistral.ai/news/voxtral);
+- publishes the text back into the meeting as captions, and keeps none of it.
+
+Setup is in [Real-time Subtitles](../self-hosting/configuration/subtitles.md).
 
 ## How do phone calls join? { #agents-and-phone-calls }
 
-LiveKit SIP bridges the phone network into rooms. A caller dials the instance's number and types the room's PIN; LiveKit then connects them to the room as an audio-only participant. The backend creates the rule linking a PIN to its room when the meeting starts and deletes it when the meeting ends, so a caller can only join while someone is in the meeting from a browser.
+LiveKit SIP bridges the phone network into meetings. A caller dials your server's number and types the room's PIN, then joins as an audio-only participant. The PIN works only while a meeting is running:
 
-Meeting-room video devices can also dial in over SIP through Roomkit. For them, LiveKit asks the backend directly whether the PIN matches a room, so they can join an empty meeting. Setup is in [Telephony](../self-hosting/configuration/telephony.md).
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant LK as LiveKit Server
+    participant BE as Backend
+    participant SIP as LiveKit SIP
+    participant P as Phone
+
+    B->>LK: First person joins
+    LK-->>BE: Webhook: room started
+    BE->>LK: Create the rule: this PIN → this room
+    P->>SIP: Call the number, type the PIN
+    SIP->>LK: Join the meeting, audio only
+    Note over B,P: The last person leaves
+    LK-->>BE: Webhook: room finished
+    BE->>LK: Delete the rule
+```
+
+Meeting-room video systems dial in over SIP the same way, through Roomkit. For them, LiveKit SIP asks the backend which room the PIN belongs to, and the backend creates the rule on the spot, so they can open an empty meeting. Setup is in [Telephony](../self-hosting/configuration/telephony.md).
 
 ## What happens when a meeting ends? { #when-the-meeting-ends }
 
-Leaving never ends the meeting for the others: there is no "end for all". When the last person leaves, LiveKit closes the room and tells the backend, which clears the waiting room and the list of who was present. The room itself, its code, settings and roles, stays in the database and can be used again.
+Leaving never ends the meeting for the others: Meet has no "end for all". Shortly after the last person leaves, LiveKit closes the meeting and tells the backend, which clears the waiting room, its record of who was present, and the phone PIN rule.
 
-Deleting a room is different: only its owner can, through the API, and that ends any meeting in it. The room then answers that it was deleted until it is purged for good; see [Room purge](../self-hosting/configuration/room-purge.md).
+Deleting a room is different: only its owner can, through the API, and that ends any meeting in it at once. Its link then says the room was deleted, until the [room purge](../self-hosting/configuration/room-purge.md) removes it for good.
 
 ## How do other applications connect? { #integrating }
 
-Other applications create and manage rooms through the [external API](../reference/external-api.md). They can act for their users with credentials registered in Meet, accept a token from the user's own sign-in provider, run as an add-in inside another product, such as the [Outlook add-in](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook), or exchange a La Suite token through [Menshen](../reference/external-api.md#menshen-token-exchange), which so far can only create rooms.
+Other applications create and manage rooms through the [external API](../reference/external-api.md). [Getting a token](../reference/external-api.md#getting-a-token) lists the ways to get a token for it, from an application's own credentials to an add-in such as the [Outlook add-in](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook).
 
-An application can also show Meet inside its own page. Because Meet's cookies do not reach an embedded frame, the application gets a one-time code for its user from the external API, and Meet trades that code for a sign-in.
+An application can also show Meet inside its own page and [sign the user in there](../reference/external-api.md#signing-a-user-in-to-an-iframe).

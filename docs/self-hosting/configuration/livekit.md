@@ -53,11 +53,11 @@ On Kubernetes, the chart serves the media ports from the node itself, see [Helm:
 `use_external_ip: true`, set in the example file, makes LiveKit learn its public IP at startup and announce that address to browsers.
 
 - It is needed whenever the public IP is not on the server's network interface: AWS, GCP, Azure, any host behind NAT. Elsewhere it does no harm.
-- LiveKit learns the IP from a public STUN server, a service that tells a machine the address it is seen from. Unless `stun_servers` under `rtc:` names others, it [asks](https://github.com/livekit/mediatransportutil/blob/master/pkg/rtcconfig/ip.go#L35-L40) Twilio's and Google's, so the server needs outbound UDP to `global.stun.twilio.com:3478` and `stun.l.google.com:19302`.
+- LiveKit learns the IP from a public [STUN](../../overview/how-meet-works.md#key-concepts) server. Unless `stun_servers` under `rtc:` names others, it [asks](https://github.com/livekit/mediatransportutil/blob/master/pkg/rtcconfig/ip.go#L35-L40) Twilio's and Google's, so the server needs outbound UDP to `global.stun.twilio.com:3478` and `stun.l.google.com:19302`.
 
 ## TURN
 
-TURN relays media for participants whose network blocks both 7882/UDP and 7881/TCP, as some corporate networks and VPNs do. LiveKit has a TURN server built in. Only clients that already hold a signalling connection can use it.
+TURN relays media for participants whose network blocks both 7882/UDP and 7881/TCP, as some corporate networks and VPNs do. LiveKit has a TURN server built in.
 
 | Your users | TURN |
 |---|---|
@@ -92,7 +92,7 @@ To test it, block both 7882/UDP and 7881/TCP on a client machine, join a meeting
 
 A network that blocks all UDP needs TURN over TLS, on 5349/TCP, which looks like ordinary HTTPS to a firewall.
 
-- Running it on 443/TCP instead needs either a second IP address, since the reverse proxy holds that port, or a layer-4 load balancer in front that forwards TCP without decrypting it.
+- The reverse proxy holds 443/TCP, so running TURN there instead needs a second IP address or a layer-4 load balancer in front that forwards TCP without decrypting it.
 - A firewall that decrypts and inspects TLS can block every form of TURN.
 
 LiveKit terminates this TLS itself, so it needs the certificate and key for `livekit.example.com` as files:
@@ -122,7 +122,7 @@ LiveKit terminates this TLS itself, so it needs the certificate and key for `liv
 
 === "Traefik"
 
-    Traefik keeps its certificates inside `~/docker/traefik/acme.json`. Extract the certificate and key for `livekit.example.com` to files, for example with [traefik-certs-dumper](https://github.com/ldez/traefik-certs-dumper), on a schedule so the files follow each renewal, and mount their directory into LiveKit at `/certs`. Point `cert_file` and `key_file` below at the names the tool writes.
+    Traefik keeps its certificates inside `~/docker/traefik/acme.json`. Extract the certificate and key for `livekit.example.com` to files, for example with [traefik-certs-dumper](https://github.com/ldez/traefik-certs-dumper), on a schedule so the files follow each renewal, and mount their directory into LiveKit at `/certs`. Point `cert_file` and `key_file` of the `turn:` block at the names the tool writes.
 
 Then add the TLS settings to the `turn:` block, open 5349/TCP, and apply with `docker compose up -d livekit`:
 
@@ -158,7 +158,7 @@ rtc:
 
 ## Webhook
 
-LiveKit calls Meet back over HTTP for each room event: room started and finished, participant left, recording progress. The waiting room, presence, telephony and recordings rely on these calls.
+LiveKit reports each room event to Meet over the [webhook](../../overview/how-meet-works.md#key-concepts).
 
 The `webhook:` block of `livekit-server.yaml` points them at `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`. Its `api_key` must equal [`LIVEKIT_API_KEY`](../../reference/env-variables.md#livekit).
 

@@ -1,28 +1,23 @@
 # Deployment Guide
 
-This guide is the manual version of the [Quick Start](quick-start.md): the same three Docker Compose stacks, from the same files, built by hand. Follow it when you already run a reverse proxy or sign-in provider, use Traefik, or want to control each step. Each stack has its own directory:
+Already run a reverse proxy or a sign-in provider? Here you build the [Quick Start](quick-start.md) stacks by hand, from the same files. Each stack has its own directory:
 
 ```
 ~/docker/
-  nginx-proxy/   ← reverse proxy + TLS   (skip if you have one)
+  nginx-proxy/   ← reverse proxy + TLS, or traefik/   (skip if you have one)
   keycloak/      ← identity provider     (skip if you have one)
   meet/          ← Meet core
 ```
 
-The stacks talk to each other through two Docker networks:
+The Meet backend reaches the identity provider and LiveKit at their public addresses, see [Internal DNS resolution](../../reference/networking.md#internal-dns-resolution).
 
-- `proxy` - external, shared between all stacks, used by the reverse proxy for routing
-- `internal` - created per-stack, for service-to-service communication within each stack
-
-The Meet backend (Stack 3) joins `internal` only and reaches the identity provider and LiveKit at their public addresses, see [Networking](../../reference/networking.md).
-
-Complete the [Prerequisites](prerequisites.md) checklist first, [DNS records](prerequisites.md#domain-name) included.
+Complete the [Prerequisites](prerequisites.md) checklist first.
 
 ---
 
 ## Before you start: configure your domains
 
-Every stack needs your domains, so write them once in a `hosts` file; each stack copies it in as its `.env`, along with your Let's Encrypt email:
+Write your domains once in a `hosts` file; each stack copies it in as its `.env`:
 
 ```bash
 RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
@@ -101,28 +96,25 @@ The downloaded files hold placeholders, not passwords. Generate secrets and writ
 KC_ADMIN_PASSWORD=$(openssl rand -hex 16)
 KC_DB_PASSWORD=$(openssl rand -hex 16)
 KC_CLIENT_SECRET=$(openssl rand -hex 16)
-# Only this one is typed into a browser by a human, so keep it short.
+# Typed by hand at the first Meet login, before Keycloak asks for a new one, so keep it short.
 MEET_ADMIN_PASSWORD=$(openssl rand -base64 12)
 
 sed -i "s|KC_BOOTSTRAP_ADMIN_PASSWORD=.*|KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_ADMIN_PASSWORD}|" env.d/keycloak
 sed -i "s|POSTGRES_PASSWORD=<generate postgres password>|POSTGRES_PASSWORD=${KC_DB_PASSWORD}|" env.d/kc_postgresql
 ```
 
-`env.d/kc_postgresql` sets `KC_DB_PASSWORD=${POSTGRES_PASSWORD}`, so `KC_DB_PASSWORD` needs no `sed` of its own.
-
 !!!tip "Shortcut"
-    [`generate-secrets.sh`](https://github.com/suitenumerique/meet/blob/main/docs/generate-secrets.sh) automates the two `sed` lines above:
+    [`generate-secrets.sh`](https://github.com/suitenumerique/meet/blob/main/docs/generate-secrets.sh) writes the Keycloak admin and database passwords into `env.d/` for you:
     ```bash
     curl -fsSL -o generate-secrets.sh ${RAW}/docs/generate-secrets.sh
     chmod +x generate-secrets.sh
     ./generate-secrets.sh env.d/
     ```
-    It doesn't touch `keycloak-realm.json`, so still generate `KC_CLIENT_SECRET` and `MEET_ADMIN_PASSWORD` yourself: both go into that file below.
+    It doesn't touch `keycloak-realm.json`, so still generate `KC_CLIENT_SECRET` and `MEET_ADMIN_PASSWORD` yourself for it.
 
 !!! warning
-    The realm ships with a placeholder password for the `meet-admin` user. Keycloak is on a public
-    URL, so whoever reaches the login page first can claim the account with the placeholder: the
-    "temporary" flag only forces a password change at *first* login. Always randomize it below.
+    The realm ships `meet-admin` with a placeholder password, and Keycloak is public: whoever
+    logs in with it first claims the account. Always replace it with `MEET_ADMIN_PASSWORD`.
 
 Fill the four placeholders of `keycloak-realm.json`. The first line loads `MEET_HOST` from `.env`; `ADMIN_EMAIL` is the `meet-admin` account's email:
 
@@ -149,9 +141,8 @@ docker compose ps   # keycloak should show 'healthy'
 ```
 
 !!! info
-    The admin console is at `https://${IDP_HOST}/admin/`. Log in with `admin` and the `KC_BOOTSTRAP_ADMIN_PASSWORD` value in `env.d/keycloak`.
-    The Meet user is `meet-admin` / `${MEET_ADMIN_PASSWORD}` (the value you generated above). Keycloak
-    will prompt for a new password on first login.
+    The admin console is at `https://${IDP_HOST}/admin/`: log in with `admin` and the `KC_BOOTSTRAP_ADMIN_PASSWORD` value in `env.d/keycloak`.
+    The Meet user is `meet-admin` with `MEET_ADMIN_PASSWORD`; Keycloak asks for a new password at first login.
 
 ---
 
@@ -204,8 +195,6 @@ sed -i "s|OIDC_RP_CLIENT_SECRET=.*|OIDC_RP_CLIENT_SECRET=${KC_CLIENT_SECRET}|" e
 
 With another provider, set `OIDC_RP_CLIENT_SECRET` and the OIDC endpoints in `env.d/common` instead, per [SSO & Authentication](../configuration/sso.md).
 
-The `celery` service receives tasks only once `CELERY_ENABLED=True` is set in `env.d/common`; without it, the backend runs them itself.
-
 `env.d/common` sets `NUM_PROXIES=2`, for the reverse proxy and the frontend's nginx. A different proxy chain needs its own count, see [`NUM_PROXIES`](../../reference/env-variables.md#core).
 
 ### Generate secrets
@@ -221,16 +210,16 @@ sed -i "s|DB_PASSWORD=<generate a secure password>|DB_PASSWORD=${DB_PASSWORD}|" 
 sed -i "s|<your livekit secret key>|${LIVEKIT_API_SECRET}|" livekit-server.yaml
 ```
 
-`env.d/postgresql` sets `POSTGRES_PASSWORD=${DB_PASSWORD}`, so `POSTGRES_PASSWORD` needs no `sed` of its own. `LIVEKIT_API_SECRET` goes into both `env.d/common` and `livekit-server.yaml`: the backend and LiveKit authenticate each other with it.
+`LIVEKIT_API_SECRET` goes into both `env.d/common` and `livekit-server.yaml`: the backend and LiveKit authenticate each other with it.
 
 !!!tip "Shortcut"
-    [`generate-secrets.sh`](https://github.com/suitenumerique/meet/blob/main/docs/generate-secrets.sh) automates the block above, including the `livekit-server.yaml` patch:
+    [`generate-secrets.sh`](https://github.com/suitenumerique/meet/blob/main/docs/generate-secrets.sh) writes the Django, LiveKit and database secrets for you, `livekit-server.yaml` included:
     ```bash
     curl -fsSL -o generate-secrets.sh ${RAW}/docs/generate-secrets.sh
     chmod +x generate-secrets.sh
     ./generate-secrets.sh env.d/ livekit-server.yaml
     ```
-    Set the client secret above first: while `OIDC_RP_CLIENT_SECRET` still holds its placeholder, the script fills it with a random value that your identity provider does not know.
+    Set `OIDC_RP_CLIENT_SECRET` in `env.d/common` first: while it still holds its placeholder, the script fills it with a random value that your identity provider does not know.
 
 ### Start
 
@@ -253,7 +242,7 @@ All migrations should complete with `OK`.
 
 ### Create an admin account
 
-Accounts created by logging in through your identity provider cannot open the admin panel at `https://meet.example.com/admin/`. Create one that can:
+Your identity provider's accounts cannot open the admin panel at `https://meet.example.com/admin/`. Create one that can:
 
 ```bash
 docker compose exec backend python manage.py createsuperuser \
@@ -268,7 +257,7 @@ Check every service before opening Meet in a browser:
 docker compose ps
 ```
 
-Every service shows `Up`. `backend` and `postgresql`, the two services with a health check, also show `(healthy)`.
+Every service shows `Up`, and `backend` and `postgresql` also show `(healthy)`.
 
 Then check that each hostname responds over HTTPS with a valid certificate. Any HTTP status means the certificate works; the second command applies only to the Keycloak stack:
 
@@ -280,7 +269,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://livekit.example.com/
 
 A `000` means curl could not connect or rejected the certificate, often because the certificate is not issued yet. See [TLS certificate not being issued](../../reference/troubleshooting.md#tls-certificate-not-being-issued).
 
-Open `https://meet.example.com`. You should be redirected to your identity provider and, after login, land on the Meet home page.
+Open `https://meet.example.com` and click **Login**: you reach your identity provider's login page and, after signing in, land back on the Meet home page.
 
 ---
 
@@ -290,7 +279,7 @@ Work through these steps before using Meet in production.
 
 **1. Test end-to-end**
 
-Open `https://meet.example.com`, log in, create a meeting, and confirm audio and video work from a second browser tab or device. If media is missing, see [Troubleshooting](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).
+Create a meeting and confirm audio and video work from a second browser tab or device. If media is missing, see [Troubleshooting](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).
 
 **2. Configure email**
 
@@ -324,7 +313,7 @@ docker compose up -d
 Check the [changelog](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) for the latest stable version.
 
 - Keycloak: set `KEYCLOAK_VERSION` in `~/docker/keycloak/.env` to a tag from the [Keycloak releases](https://github.com/keycloak/keycloak/releases), then run `docker compose up -d` there.
-- The proxy: its `compose.yml` has no version variable, so set a full tag on each `image:` line. nginx-proxy's two images have none, and Traefik's `traefik:v3` follows every v3 release.
+- The proxy: its `compose.yml` has no version variable, so set a full tag on each `image:` line.
 
 **6. Set up database backups**
 
@@ -332,11 +321,4 @@ Back up the database as in [Upgrading](../configuration/upgrade.md#before-upgrad
 
 **7. Add features**
 
-- [Recording](../configuration/recording.md) - LiveKit Egress + Garage
-- [AI Transcription](../configuration/transcription.md)
-
----
-
-## Next
-
-To keep Meet current, see [Upgrading](../configuration/upgrade.md). Common problems and their fixes are in [Troubleshooting](../../reference/troubleshooting.md).
+Each optional feature links its setup guide in [Set up by your administrator](../../user/features-controls.md#set-up-by-your-administrator).

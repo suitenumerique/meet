@@ -1,6 +1,6 @@
 # Getting Started
 
-Your first meeting in four steps: start it, invite people, use the basic controls, and join someone else's meeting. You need a recent Chrome, Firefox, Safari or Edge, see [Browser support](features-controls.md#browser-support), and a microphone.
+You need a microphone and a recent Chrome, Firefox, Safari or Edge, see [Browser support](features-controls.md#browser-support).
 
 !!! tip "No instance yet?"
 
@@ -19,7 +19,7 @@ Your first meeting in four steps: start it, invite people, use the basic control
 
 ## Invite people
 
-Click **Copy link** in **Your meeting is ready** and send it. To copy it again later, click the info button (ⓘ) → **Copy information**.
+Click **Copy link** in **Your meeting is ready** and send it. To copy it again later, click the ⓘ info button → **Copy information**.
 
 <figure markdown="span">
   ![Info button](../assets/info-button.png)
@@ -33,7 +33,7 @@ Click **Copy link** in **Your meeting is ready** and send it. To copy it again l
   <figcaption>The control bar: your own controls in the middle, the panels on the right</figcaption>
 </figure>
 
-The controls you need most, and their shortcuts, are in [The basics](features-controls.md#the-basics). In a meeting, `Ctrl+Shift+/` lists every shortcut.
+The controls you need most are in [The basics](features-controls.md#the-basics).
 
 ## Join a meeting
 

@@ -15,7 +15,7 @@ Create the app with the `scalingo` CLI or the [Scalingo dashboard](https://dashb
 
 ## Step 2: Provision Addons
 
-Meet keeps its data in PostgreSQL and uses Redis for caching and sessions. Add both as addons; they set their connection strings, `SCALINGO_POSTGRESQL_URL` and `SCALINGO_REDIS_URL`, automatically.
+Add the PostgreSQL and Redis addons; they set `SCALINGO_POSTGRESQL_URL` and `SCALINGO_REDIS_URL` automatically.
 
 ## Step 3: Configure Environment Variables
 
@@ -55,7 +55,7 @@ scalingo env-set DJANGO_ALLOWED_HOSTS="my-meet-app.osc-fr1.scalingo.io"
 
 ### OIDC Authentication
 
-Point Meet at your OIDC provider and its client for Meet. The endpoints below follow Keycloak's layout; [SSO & Authentication](configuration/sso.md) has them for other providers:
+Point Meet at your OIDC provider and its client for Meet. The example uses Keycloak's endpoints; [SSO & Authentication](configuration/sso.md) has them for other providers:
 
 ```bash
 scalingo env-set OIDC_OP_JWKS_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/certs"
@@ -92,8 +92,6 @@ git push scalingo main
 
 The `postdeploy` line of `Procfile` runs the database migrations on each deployment.
 
-At runtime, `bin/buildpack_start.sh` runs Nginx and Gunicorn in the `web` container: Nginx serves the built frontend and proxies `/api/` and `/admin/` to Gunicorn, which runs Django.
-
 ## Step 5: Create superuser
 
 After the first deployment, create an admin user:
@@ -115,7 +113,7 @@ Then point your DNS to Scalingo.
 
 ## Custom Logo (Optional)
 
-Set `CUSTOM_LOGO_URL` to the HTTPS URL of an SVG file, 5 MB at most. The build downloads it, so it applies at the next deploy, and a URL that fails these checks fails the build:
+Set `CUSTOM_LOGO_URL` to the HTTPS URL of an SVG file, 5 MB at most. The build downloads the logo, so it changes at the next deploy. A URL that fails these checks fails the build:
 
 ```bash
 scalingo env-set CUSTOM_LOGO_URL="https://cdn.yourdomain.com/logo.svg"
@@ -140,4 +138,4 @@ Common problems and their fixes are in [Troubleshooting](../reference/troublesho
 
 ## Next
 
-Add email, recording or hardening from the overview's [Next steps](index.md#next-steps).
+Continue with [Next steps](index.md#next-steps).

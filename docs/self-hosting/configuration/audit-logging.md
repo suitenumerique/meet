@@ -68,7 +68,7 @@ When an action is refused, the event keeps the name of the action that was attem
 
 ## Collecting the events
 
-Each event is one compact line on the backend's output. A log shipper tells it from the application logs by `data_stream.dataset: meet.audit`.
+A log shipper tells the audit events from the application logs by `data_stream.dataset: meet.audit`.
 
 === "Docker Compose"
 
@@ -90,11 +90,10 @@ Each event is one compact line on the backend's output. A log shipper tells it f
 
 ## Configuration
 
-Every audit variable and its default is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging), and `NUM_PROXIES` in [Core](../../reference/env-variables.md#core). These depend on your deployment:
+Every audit variable and its default is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging). Two depend on your deployment:
 
-- **`NUM_PROXIES`** counts the proxies in front of the backend that append to `X-Forwarded-For`; the rate limits use it too. The backend takes the client address that many entries from the right, so an address a client injects is ignored. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. The Docker Compose template sets `2`, for the reverse proxy and the frontend's nginx: with `1` there, every event would record the reverse proxy as the client. Add one for a load balancer that also appends.
-- **`REQUEST_ID_TRUST_HEADER`** reuses the request id the proxy sends, so the proxy, Gunicorn and the audit events share one id. Set it only when the proxy overwrites the header, for example on nginx with `proxy_set_header X-Request-ID $request_id;`. Otherwise nginx forwards the client's header, and a client could pick the id of someone else's request. `DOCKERFLOW_REQUEST_ID_HEADER_NAME` names that header.
-- **`AUDIT_LOG_SERVICE_NAME`** and **`AUDIT_LOG_DATA_STREAM_NAMESPACE`** set the data stream events are meant for, `logs-<service name>.audit-<namespace>`. The backend lower-cases the service name and turns any `-` in it into `_`, and refuses to start when the namespace contains a `-`.
+- **[`NUM_PROXIES`](../../reference/env-variables.md#core)** decides which address an event records as the client. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. Add one for a load balancer that also appends to `X-Forwarded-For`.
+- **[`REQUEST_ID_TRUST_HEADER`](../../reference/env-variables.md#audit-logging)** needs a proxy that overwrites the request id header. On nginx, that is `proxy_set_header X-Request-ID $request_id;`.
 
 ## Answering common questions
 
@@ -115,7 +114,7 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | Field | Meaning |
 |---|---|
 | `@timestamp` | When the event was emitted: ISO 8601, in UTC, with millisecond precision |
-| `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` as [Configuration](#configuration) builds it, and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
+| `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` built from [`AUDIT_LOG_SERVICE_NAME`](../../reference/env-variables.md#audit-logging), and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
 | `service.name`, `service.environment`, `service.version`, `service.node.name` | The backend instance that wrote the event: `AUDIT_LOG_SERVICE_NAME`, the current environment, the release and the host name, which is the pod on Kubernetes. Never the caller |
 | `service.origin.name` | The internal service that called the backend, when the actor is a `service`: `summary` or `livekit` |
 | `service.target.name` | The service the backend called, such as `summary` for `recording.transcript.request` |
@@ -179,7 +178,7 @@ The backend picks the actor type by applying these rules in order:
 How an application acts for a user:
 
 - Directly, with the delegated token it obtained through `application.token.issue`.
-- Through an embedded frontend, which runs in an iframe where session cookies are blocked. The application mints a single-use, short-lived transit code for its delegated user, and the frontend exchanges the code for a user access token. Only the code's SHA-256 is ever logged.
+- Through an embedded frontend, with the transit code of [Signing a user in to an iframe](../../reference/external-api.md#signing-a-user-in-to-an-iframe). Only the code's SHA-256 is ever logged.
 
 A La Suite application may call the external API with a token exchanged through Menshen, La Suite's token exchange server:
 
@@ -242,7 +241,7 @@ A recording's target says what was recorded:
 - `requested_mode` is what the user asked for;
 - `is_transcribed` says whether it is sent to the summary service.
 
-`mode` and `requested_mode` differ for a transcript started with a screen capture: `mode` is then `screen_recording`, and `requested_mode` is `transcript`.
+`mode` and `requested_mode` differ for a transcript started with **Also start a video recording** ticked: `mode` is then `screen_recording`, and `requested_mode` is `transcript`.
 
 ### Sign-in and the admin
 

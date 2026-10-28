@@ -1,25 +1,20 @@
 # Room purge
 
-The `purge_inactive_rooms` management command permanently deletes rooms after one of two periods, and deletes nothing until you set one. Both variables are in [Environment Variables: Room purge](../../reference/env-variables.md#room-purge):
-
-| Variable | A room is purged once it is |
-|---|---|
-| `ROOM_INACTIVITY_DELETION_DAYS` | Not started for that many days |
-| `ROOM_DELETED_RETENTION_DAYS` | Deleted by its owner that many days ago, whether started since or not |
+The `purge_inactive_rooms` management command permanently deletes rooms after one of two periods, and deletes nothing until you set one. `ROOM_INACTIVITY_DELETION_DAYS` sets the period for rooms not started, and `ROOM_DELETED_RETENTION_DAYS` the one for rooms their owner deleted. Both are in [Environment Variables: Room purge](../../reference/env-variables.md#room-purge).
 
 ## How a room becomes purgeable
 
-Each time LiveKit tells the backend that a room has started, through its `room_started` webhook, the backend records the date on the room. A room is inactive when it was last started more than `ROOM_INACTIVITY_DELETION_DAYS` days ago, or was never started and was created more than that many days ago.
+The backend records the date each time LiveKit's `room_started` webhook says a room has started. A room is inactive when it was last started more than `ROOM_INACTIVITY_DELETION_DAYS` days ago, or was never started and was created more than that many days ago.
 
 !!! warning
     Inactivity is measured from that webhook alone. If LiveKit's webhook does not reach the backend, rooms in daily use look inactive and get purged. The [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core) sets the webhook URL in `livekit-server.yaml`.
 
-The upgrade to v1.33.0 marked every room that existed then as started on the day of the upgrade, so none of them can be purged before a full inactivity period has passed after it.
+The upgrade to v1.33.0 marked every existing room as started that day. None of them can be purged until a full inactivity period after the upgrade.
 
 Deleting a room only soft-deletes it:
 
 - The room is hidden, and its link tells visitors the meeting was deleted.
-- It keeps its slug and PIN code, so no other room can take them.
+- It keeps its room code and PIN code, so no other room can take them.
 - Its recordings stay available to the people holding a role on them.
 - It is never started again, so it is purged at whichever of the two periods ends first.
 
@@ -34,11 +29,11 @@ The backend warns at startup when a purge period is set and `RECORDING_EXPIRATIO
 
 ## What happens to a purged room
 
-The backend deletes the room from the database, with its accesses, its telephony PIN code, and the recording entries it still holds, which are the expired ones and the ones never saved. The accesses to those recordings go with them.
+The backend deletes the room from the database, with its accesses, its telephony PIN code, and the recording entries it still holds, which are the expired ones and the ones never saved.
 
-The recording **files stay in the bucket**: the backend never deletes anything from the storage. Add a lifecycle rule on the bucket that expires objects after `RECORDING_EXPIRATION_DAYS`. Without one, the purge leaves files that take up storage and that nobody can open, since serving a recording needs its database entry.
+The recording **files stay in the bucket**: the backend never deletes a recording file from the storage. Add a lifecycle rule on the bucket that expires objects after `RECORDING_EXPIRATION_DAYS`. Without one, the purge leaves files that take up storage and that nobody can open, since serving a recording needs its database entry.
 
-Once a room is purged, its slug is free again. A soft-deleted room's link then no longer says the meeting was deleted, and its PIN code can go to another room. What opening the old link does depends on `ALLOW_UNREGISTERED_ROOMS`:
+Once a room is purged, its room code is free again. A soft-deleted room's link then no longer says the meeting was deleted, and its PIN code can go to another room. What opening the old link does depends on `ALLOW_UNREGISTERED_ROOMS`:
 
 | `ALLOW_UNREGISTERED_ROOMS` | Opening the old link |
 |---|---|

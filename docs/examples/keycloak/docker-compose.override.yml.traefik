@@ -1,7 +1,7 @@
 # Traefik override for Keycloak
 #
 # Usage:
-#   cp docker-compose.override.yml.traefik docker-compose.override.yml
+#   saved as docker-compose.override.yml, see the Deployment Guide
 
 services:
   keycloak:

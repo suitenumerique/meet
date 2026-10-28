@@ -6,14 +6,15 @@
 #
 # Usage:
 #   cd ~/docker/garage
-#   cp .env.example .env && nano .env   # fill in your values
+#   # fetch garage.toml and .env, then fill its secrets, as the Recording guide's Step 1 shows
 #   docker compose up -d
 #
-# On its first start, Garage creates its layout, the access key and the bucket
-# named in .env. It leaves them untouched on later starts.
+# On its first start, Garage creates its layout, the access key named in .env
+# and the meet-media-storage bucket. It leaves them untouched on later starts.
 #
 # External network expected:
-#   internal - must match the network name used by your Meet stack
+#   meet_internal - the Meet stack's internal network; set MEET_INTERNAL_NETWORK
+#   in .env if yours has another name
 
 services:
 

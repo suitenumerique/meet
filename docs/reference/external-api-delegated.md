@@ -1,13 +1,13 @@
-# External API - Application-Delegated Auth
+# Application-delegated token
 
-In this mode, your backend exchanges an application's client ID and secret for a short-lived token that acts for one user, named by email. [External API](external-api.md) lists the endpoints, scopes and room object the token then gives access to.
+In this mode, your backend exchanges an application's client ID and secret for a short-lived token that acts for one user, named by email.
 
-The token endpoint needs both `EXTERNAL_API_ENABLED=True` and `APPLICATION_ENABLED=True` on the backend. If either is missing, it returns 404 without saying which one is off.
+The token endpoint needs both `EXTERNAL_API_ENABLED=True` and [`APPLICATION_ENABLED=True`](env-variables.md#external-api-applications) on the backend. If either is missing, it returns 404 without saying which one is off.
 
 ## When to use this mode
 
 - Your backend creates or manages rooms for your users, and the user never signs in during the call.
-- The user has already signed in to Meet once. Meet creates no account for an unknown email unless both `APPLICATION_ALLOW_USER_CREATION` and `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` are on.
+- The user has already signed in to Meet once. Meet creates no account for an unknown email unless `APPLICATION_ALLOW_USER_CREATION` and `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` are on and `OIDC_USER_SUB_FIELD_IMMUTABLE` is off.
 
 When the user signs in at your OIDC provider anyway, the [Resource server mode](external-api-resource-server.md) uses their own token instead.
 
@@ -60,7 +60,3 @@ Content-Type: application/json
 | 403 | `{"error": "This application is not authorized for this email domain."}` | The email's domain is not among the application's domains |
 | 404 | `{"detail": "User not found."}` | No user has that email, and Meet may not create one |
 | 409 | `{"error": "Failed to create or retrieve provisional user."}` | Creating the user for that email failed on a conflict |
-
-## Backend configuration
-
-Every variable, with its default: [Environment Variables: External API (applications)](env-variables.md#external-api-applications).
