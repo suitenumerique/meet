@@ -165,6 +165,8 @@ const RateQuality = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'rating' })
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
   const questionId = useId()
+  const minLabelId = useId()
+  const maxLabelId = useId()
 
   const onSubmit = () => {
     try {
@@ -196,6 +198,13 @@ const RateQuality = ({
             key={index}
             value={String(index + 1)}
             aria-label={t('option', { value: index + 1, max: maxRating })}
+            aria-describedby={
+              index === 0
+                ? minLabelId
+                : index === maxRating - 1
+                  ? maxLabelId
+                  : undefined
+            }
             className={ratingButtonRecipe({
               selected: selectedRating === index + 1,
               borderLeft: index != 0,
@@ -212,10 +221,10 @@ const RateQuality = ({
           marginBottom: '1rem',
         }}
       >
-        <Text variant="sm" className={labelRecipe()}>
+        <Text variant="sm" className={labelRecipe()} id={minLabelId}>
           {t('levels.min')}
         </Text>
-        <Text variant="sm" className={labelRecipe()}>
+        <Text variant="sm" className={labelRecipe()} id={maxLabelId}>
           {t('levels.max')}
         </Text>
       </div>
