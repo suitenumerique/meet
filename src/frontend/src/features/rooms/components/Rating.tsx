@@ -1,9 +1,12 @@
 import { Button, H, Text, TextArea } from '@/primitives'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
-import { Button as RACButton } from 'react-aria-components'
+import {
+  Radio as RACRadio,
+  RadioGroup as RACRadioGroup,
+} from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { captureEvent } from '@/features/analytics/telemetry'
 
@@ -21,7 +24,7 @@ const Card = styled('div', {
   },
 })
 
-const Bar = styled('div', {
+const Bar = styled(RACRadioGroup, {
   base: {
     display: 'flex',
     border: '2px solid',
@@ -34,6 +37,8 @@ const Bar = styled('div', {
 
 const ratingButtonRecipe = cva({
   base: {
+    // anchor the visually hidden input, so it scrolls with the radio
+    position: 'relative',
     backgroundColor: 'white',
     color: 'initial',
     border: 'none',
@@ -159,10 +164,7 @@ const RateQuality = ({
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'rating' })
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
-
-  const handleRatingClick = (rating: number) => {
-    setSelectedRating((prevRating) => (prevRating === rating ? null : rating))
-  }
+  const questionId = useId()
 
   const onSubmit = () => {
     try {
@@ -180,21 +182,26 @@ const RateQuality = ({
 
   return (
     <Card>
-      <H lvl={3} centered>
+      <H lvl={3} centered id={questionId}>
         {t('question')}
       </H>
-      <Bar>
+      <Bar
+        aria-labelledby={questionId}
+        orientation="horizontal"
+        value={selectedRating?.toString() ?? null}
+        onChange={(value) => setSelectedRating(Number(value))}
+      >
         {[...Array(maxRating)].map((_, index) => (
-          <RACButton
+          <RACRadio
             key={index}
-            onPress={() => handleRatingClick(index + 1)}
+            value={String(index + 1)}
             className={ratingButtonRecipe({
               selected: selectedRating === index + 1,
               borderLeft: index != 0,
             })}
           >
             {index + 1}
-          </RACButton>
+          </RACRadio>
         ))}
       </Bar>
       <div
