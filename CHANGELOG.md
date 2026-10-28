@@ -72,6 +72,7 @@ and this project adheres to
 - ♿️(frontend) keep floating reactions in place under reduced motion
 - 🔒️(backend) refuse delegated tokens for inactive users
 - ⚡️(frontend) serve sounds as content-hashed, long-term cached assets
+- ♿️(frontend) improve the feedback page accessibility #1918
 
 ## [1.37.0] - 2026-11-01
 
