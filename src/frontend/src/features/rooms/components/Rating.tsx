@@ -98,6 +98,7 @@ const OpenFeedback = ({
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'openFeedback' })
   const [feedback, setFeedback] = useState('')
+  const questionId = useId()
 
   const onContinue = () => {
     setFeedback('')
@@ -119,13 +120,15 @@ const OpenFeedback = ({
 
   return (
     <Card>
-      <H lvl={3} centered>
+      <H lvl={3} centered id={questionId}>
         {t('question')}
       </H>
       <TextArea
         id="feedbackInput"
+        aria-labelledby={questionId}
         name="feedback"
         placeholder={t('placeholder')}
+        css={{ _placeholder: { color: 'default.subtle-text' } }}
         required
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
