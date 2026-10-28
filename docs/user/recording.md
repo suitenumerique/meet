@@ -18,7 +18,7 @@ Saves a video of the meeting. Open **More tools** → **Record** and click **Sta
 
 ## Transcription *(beta)* { #transcription }
 
-Turns what people say into a document in LaSuite Docs, with a summary where your Meet server writes one. Open **More tools** → **Transcribe**, check the meeting language, since the right one gives a better transcript, and click **Start transcribing the meeting**. Tick **Also start a video recording** to get a video too.
+Turns what people say into a document in [LaSuite Docs](https://github.com/suitenumerique/docs), with a summary where your Meet server writes one. Open **More tools** → **Transcribe**, check the meeting language, since the right one gives a better transcript, and click **Start transcribing the meeting**. Tick **Also start a video recording** to get a video too.
 
 ## Real-time subtitles *(beta)* { #real-time-subtitles }
 

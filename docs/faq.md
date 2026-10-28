@@ -11,6 +11,18 @@ No. Meet runs in a recent Chrome, Firefox, Safari or Edge, on a computer or a ph
 - Not to join an **Open** room through its link. Other rooms may make you wait until someone admits you, see [Access levels](user/features-controls.md#access-levels).
 - Where your Meet server allows it, you can also start a meeting without signing in, though no one will own it, see [Start a meeting](user/getting-started.md#start-a-meeting).
 
+### Can I join from my phone?
+
+Yes, in the phone's browser. What works there is in [Joining from a phone](user/guides/phone-or-weak-connection.md), dial-in by phone included.
+
+### Can I plan a meeting for later?
+
+Yes: **Create a meeting** → **Create a meeting for a later date**, then send the link. Where your Meet server has it, the [Outlook add-in](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook) adds the link to calendar invitations.
+
+### Is Meet accessible?
+
+It works with a keyboard alone and with screen readers, see [Accessibility & Shortcuts](user/accessibility.md). There are guides for [deaf or hard-of-hearing](user/guides/deaf-hard-of-hearing.md) and [blind or low-vision](user/guides/blind-low-vision.md) participants, and for [sign-language interpreters](user/guides/sign-language-interpreter.md).
+
 ### Why does the link say the meeting has been deleted?
 
 Its owner deleted the room, see [Deleted rooms](user/features-controls.md#deleted-rooms). Ask them for a new link.
@@ -51,6 +63,20 @@ Click **Test your configuration** in the page footer, where your Meet server off
 
 Phones cannot share their screen, see [Browser support](user/features-controls.md#browser-support). On macOS, allow your browser to record the screen in **System Settings → Privacy & Security**.
 
+## During a meeting
+
+### How do I change my name, or blur my background?
+
+Your name is in **More Options** → **Settings** → **Profile**. Blur and background images are under [Backgrounds and effects](user/features-controls.md#more-in-the-call).
+
+### How do I make someone else host?
+
+In **See everyone**, open the menu beside their name and click **Make co-host**. Only a signed-in participant can be made co-host, see [Roles](user/features-controls.md#roles).
+
+### How do I remove someone, and keep them out?
+
+**Remove from the call**, in the same menu, disconnects them but does not stop them coming back. To keep them out, set the room to **Restricted** and deny their request, see [Hosting a large meeting](user/guides/large-meeting-host.md#remove-someone).
+
 ## Recording and transcription
 
 ### Who gets the recording, and for how long?
@@ -67,7 +93,7 @@ Phones cannot share their screen, see [Browser support](user/features-controls.m
 
 ### Are meetings encrypted?
 
-Every stream is encrypted between your browser and the media server (DTLS-SRTP, the WebRTC standard). Meet has no end-to-end encryption: the media server can read the streams it forwards.
+Every stream is encrypted between your browser and the media server ([DTLS-SRTP](https://datatracker.ietf.org/doc/html/rfc5764), the [WebRTC](https://webrtc.org/) standard). Meet has no end-to-end encryption: the media server can read the streams it forwards.
 
 ### Is chat history stored?
 
@@ -77,7 +103,7 @@ No, unless a transcription is running and your Meet server collects its metadata
 
 ### Can I run my own instance?
 
-Yes, with your own LiveKit media server beside it and any standard OpenID Connect provider for sign-in. See [Self-Hosting](self-hosting/index.md).
+Yes, with your own LiveKit media server beside it and any standard [OpenID Connect](https://openid.net/developers/how-connect-works/) provider for sign-in. See [Self-Hosting](self-hosting/index.md).
 
 ### How do I contribute or report a bug?
 

@@ -1,7 +1,5 @@
 # Features & Controls
 
-Joining is in [Getting Started](getting-started.md), and recording, transcription and live subtitles in [Recording & Transcription](recording.md).
-
 <figure markdown="span">
   ![Features Tour](../assets/feature-tour.gif)
   <figcaption>A tour of the meeting controls</figcaption>
@@ -211,5 +209,5 @@ A feature missing from your meeting may be off on your Meet server.
 | Phone dial-in | Needs setup | [Telephony](../self-hosting/configuration/telephony.md) |
 | Uploaded backgrounds | Off | [Environment Variables](../reference/env-variables.md#custom-backgrounds) |
 | Meeting-room devices (Roomkit) *(beta)* | Off | [Environment Variables](../reference/env-variables.md#roomkit-meeting-room-sip-devices) |
-| Outlook add-in, other applications | Needs setup | [External API](../reference/external-api.md) |
+| [Outlook add-in](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook), other applications | Needs setup | [External API](../reference/external-api.md) |
 | **Test your configuration**, in the page footer | Off | [Environment Variables](../reference/env-variables.md#connection-test) |

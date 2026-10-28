@@ -1,6 +1,6 @@
 # Accessibility & Shortcuts
 
-Meet works with a keyboard alone and with screen readers. It follows the recommendations of RGAA, France's accessibility standard, but has not been audited yet.
+Meet works with a keyboard alone and with screen readers. It follows the recommendations of [RGAA](https://accessibilite.numerique.gouv.fr/), France's accessibility standard, but has not been audited yet.
 
 !!! tip "A guide for your case"
 
@@ -41,7 +41,7 @@ On a Mac, `Ctrl` is `⌘`.
 
 In **Settings → Accessibility**:
 
-- **Display font**: Lexend for readability, Atkinson Hyperlegible for low vision, OpenDyslexic for dyslexia
+- **Display font**: [Lexend](https://www.lexend.com/) for readability, [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/) for low vision, [OpenDyslexic](https://opendyslexic.org/) for dyslexia
 - **Captions**: text size and colours, for [real-time subtitles](recording.md#real-time-subtitles)
 
 Meet turns off its animations when your system asks for reduced motion.

@@ -546,7 +546,7 @@ AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<strong-random-secret>","webhook_ur
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `IS_LASUITE_DOCS_INTEGRATION_ENABLED` | No | `False` | Push completed transcripts to a LaSuite Docs instance, for tenants with `allowed_push_to_docs` |
+| `IS_LASUITE_DOCS_INTEGRATION_ENABLED` | No | `False` | Push completed transcripts to a [LaSuite Docs](https://github.com/suitenumerique/docs) instance, for tenants with `allowed_push_to_docs` |
 | `LASUITE_DOCS_BASE_URL` | If enabled | `https://example.com` | Base URL of the LaSuite Docs instance |
 | `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` | If enabled | `NO_API_KEY` | Server-to-server API key for authenticating with LaSuite Docs |
 

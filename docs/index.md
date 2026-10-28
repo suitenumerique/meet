@@ -22,10 +22,10 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet runs HD audio and video ca
 - **Chat, emoji reactions and raised hands**, with nothing kept after the meeting, see [What is stored where](overview/how-meet-works.md#what-is-stored-where)
 - **Waiting room** and three access levels, so the host decides who comes in
 - **Recording** to S3-compatible storage, with the download link sent by email
-- **Transcription and AI summary** *(beta)*, delivered to LaSuite Docs
+- **Transcription and AI summary** *(beta)*, delivered to [LaSuite Docs](https://github.com/suitenumerique/docs)
 - **Real-time subtitles** *(beta)*
 - **Dial-in by phone** with a PIN
-- **Sign-in through any OpenID Connect provider**
+- **Sign-in through any [OpenID Connect](https://openid.net/developers/how-connect-works/) provider**
 - **Virtual backgrounds**: blur or an image
 - **Keyboard navigation and screen reader support**
 

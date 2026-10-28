@@ -29,9 +29,9 @@ Subtitles are in beta. For a written record afterwards, the host can start a [tr
   <figcaption>A raised hand shows on your video, for everyone</figcaption>
 </figure>
 
-- **Ask for the floor:** raise your hand, `Ctrl+Shift+H`. Hands queue in the order they went up.
-- **Write:** open the chat, `Ctrl+Shift+M`. New messages pop up even with the chat closed.
-- **Answer without speaking:** send a reaction, `Ctrl+Shift+E`.
+- **Ask to speak:** <img class="off-glb" src="../../assets/icons/hand.svg" width="20" /> **Raise hand**
+- **Write:** <img class="off-glb" src="../../assets/icons/chat-1-line.svg" width="20" /> **Open the chat**
+- **Answer without speaking:** <img class="off-glb" src="../../assets/icons/emotion-line.svg" width="20" /> **Send reaction**
 
 ## What Meet cannot do
 

@@ -21,9 +21,9 @@ A pin only changes the screen of whoever set it, so say it when the meeting star
 
 ## Agree with the host beforehand
 
-- **Your name**, so they admit you from the **Lobby** if the room makes guests wait.
-- **Who reminds people to pin you**: the host, at the start and in the invitation.
-- **Becoming co-host**, if the host may turn off cameras in **Host settings**: **Enable video** off still leaves co-hosts their camera. Only a signed-in participant can be co-host, and it also gives the host controls.
+- **Your name**, so they can let you in from the **Lobby**.
+- **Who tells people to pin you**, at the start and in the invitation.
+- **Making you co-host**, so you keep your camera if they turn off everyone else's. You must be signed in.
 
 ## What Meet cannot do
 

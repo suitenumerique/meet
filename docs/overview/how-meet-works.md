@@ -59,11 +59,11 @@ A meeting lives at a room code, such as `meet.example.com/abc-defg-hij`. When so
 
 If the visitor is not allowed straight in, the browser asks to enter and keeps asking while it waits in the waiting room. The backend tells everyone in the meeting that someone is waiting, and once a host admits them, the next request returns the pass.
 
-With the pass in hand, the browser opens a WebSocket to LiveKit and starts sending and receiving audio and video over WebRTC. LiveKit never sees a user account: it simply trusts the pass the backend signed. Sign-in decides who someone *is*; the pass decides what they may *do* in the room.
+With the pass in hand, the browser opens a WebSocket to LiveKit and starts sending and receiving audio and video over [WebRTC](https://webrtc.org/). LiveKit never sees a user account: it simply trusts the pass the backend signed. Sign-in decides who someone *is*; the pass decides what they may *do* in the room.
 
 ### Signing in
 
-Meet has no passwords of its own. It hands sign-in to any OpenID Connect provider, such as Keycloak, Authentik, Google or ProConnect, and keeps a session cookie once the provider confirms who the user is. Setup is in [SSO & Authentication](../self-hosting/configuration/sso.md).
+Meet has no passwords of its own. It hands sign-in to any [OpenID Connect](https://openid.net/developers/how-connect-works/) provider, such as [Keycloak](https://www.keycloak.org/), [Authentik](https://goauthentik.io/), Google or [ProConnect](https://www.proconnect.gouv.fr/), and keeps a session cookie once the provider confirms who the user is. Setup is in [SSO & Authentication](../self-hosting/configuration/sso.md).
 
 ```mermaid
 sequenceDiagram
@@ -124,7 +124,7 @@ The calls themselves leave nothing behind: LiveKit forwards audio, video and cha
 | Recordings | S3 storage, under `recordings/` | Meet never deletes them. [`RECORDING_EXPIRATION_DAYS`](../reference/env-variables.md#recording) only marks them expired; a lifecycle rule on the bucket deletes the files |
 | Who spoke when, connections and chat during a transcription, from the metadata collector | S3 storage, under `metadata/` | Meet never deletes them; set a bucket rule |
 | Uploaded background images | S3 storage, under `files/` | A deleted image is removed 7 days later by the `purge_deleted_files` command, which the Helm chart runs nightly; on Docker Compose, schedule it yourself |
-| Transcripts and summaries | LaSuite Docs, when connected | Like any document there |
+| Transcripts and summaries | [LaSuite Docs](https://github.com/suitenumerique/docs), when connected | Like any document there |
 | Audit events: room reads and changes; recording starts, stops, ends and deletions; transcript requests and their outcomes; user provisioning; Django admin writes; tokens and one-time sign-in codes issued through the external API | The backend's standard output by default, one JSON line each, for your log collector, see [Audit logging](../self-hosting/configuration/audit-logging.md) | Meet keeps none: as long as your log store keeps them |
 
 Meet sends email for two things only: a screen recording's download link, and an invitation sent through the API. Sign-in never uses it; see [Email](../self-hosting/configuration/email.md).
@@ -192,7 +192,7 @@ Setup is in [AI Transcription](../self-hosting/configuration/transcription.md).
 
 ## How do live subtitles work?
 
-Live subtitles come from an agent: a small program that joins the room as a silent participant. When someone clicks **Show subtitles**, the backend asks LiveKit to send the subtitles agent into that room. The agent listens to each speaker, sends the audio to a speech-to-text provider (Deepgram, Kyutai or Voxtral), and publishes the text back into the room as captions. Nothing is stored. Setup is in [Real-time Subtitles](../self-hosting/configuration/subtitles.md).
+Live subtitles come from an agent: a small program that joins the room as a silent participant. When someone clicks **Show subtitles**, the backend asks LiveKit to send the subtitles agent into that room. The agent listens to each speaker, sends the audio to a speech-to-text provider ([Deepgram](https://deepgram.com/), [Kyutai](https://kyutai.org/) or [Voxtral](https://mistral.ai/news/voxtral)), and publishes the text back into the room as captions. Nothing is stored. Setup is in [Real-time Subtitles](../self-hosting/configuration/subtitles.md).
 
 A second agent, the metadata collector, only runs during a transcription where it is enabled. It notes who speaks when, who connects and the chat, so the summary service can name the speakers.
 
@@ -210,6 +210,6 @@ Deleting a room is different: only its owner can, through the API, and that ends
 
 ## How do other applications connect? { #integrating }
 
-Other applications create and manage rooms through the [external API](../reference/external-api.md). They can act for their users with credentials registered in Meet, accept a token from the user's own sign-in provider, run as an add-in inside another product, such as the Outlook add-in, or exchange a La Suite token through Menshen, which so far can only create rooms.
+Other applications create and manage rooms through the [external API](../reference/external-api.md). They can act for their users with credentials registered in Meet, accept a token from the user's own sign-in provider, run as an add-in inside another product, such as the [Outlook add-in](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook), or exchange a La Suite token through [Menshen](../reference/external-api.md#menshen-token-exchange), which so far can only create rooms.
 
 An application can also show Meet inside its own page. Because Meet's cookies do not reach an embedded frame, the application gets a one-time code for its user from the external API, and Meet trades that code for a sign-in.
