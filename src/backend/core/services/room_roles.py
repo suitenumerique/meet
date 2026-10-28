@@ -11,6 +11,8 @@ participant attribute is only a projection of it, synced best-effort.
 from logging import getLogger
 from uuid import UUID
 
+from django.conf import settings
+
 from core import models
 from core.services.participants_management import (
     ParticipantNotFoundException,
@@ -154,10 +156,28 @@ class RoomRoleService:
         can report a partial success. Re-running the action re-syncs.
         """
         try:
+            room = models.Room.objects.filter(pk=room_name).first()
+            if role == models.RoleChoices.ADMIN:
+                sources = settings.LIVEKIT_DEFAULT_SOURCES
+            else:
+                configuration = room.configuration if room else None
+                if configuration is None:
+                    sources = settings.LIVEKIT_DEFAULT_SOURCES
+                else:
+                    sources = configuration.get(
+                        "can_publish_sources", settings.LIVEKIT_DEFAULT_SOURCES
+                    )
+                    if sources is None:
+                        sources = settings.LIVEKIT_DEFAULT_SOURCES
+
             ParticipantsManagement().update(
                 room_name=room_name,
                 identity=participant_identity,
                 attributes={"room_role": role},
+                permission={
+                    "can_publish": bool(sources),
+                    "can_publish_sources": sources,
+                },
             )
         except ParticipantNotFoundException:
             # The participant left between the presence check and the update:
