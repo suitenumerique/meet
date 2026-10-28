@@ -10,6 +10,7 @@ import {
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { captureEvent } from '@/features/analytics/telemetry'
 import { RiCheckLine } from '@remixicon/react'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 const Card = styled('div', {
   base: {
@@ -255,6 +256,12 @@ const RateQuality = ({
 
 const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'confirmationMessage' })
+  const announce = useScreenReaderAnnounce()
+
+  useEffect(() => {
+    announce(`${t('heading')}. ${t('body')}`)
+  }, [announce, t])
+
   useEffect(() => {
     const timer = setTimeout(() => {
       onNext()
