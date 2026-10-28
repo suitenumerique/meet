@@ -9,6 +9,7 @@ import {
 } from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { captureEvent } from '@/features/analytics/telemetry'
+import { RiCheckLine } from '@remixicon/react'
 
 const Card = styled('div', {
   base: {
@@ -47,6 +48,10 @@ const ratingButtonRecipe = cva({
     flexGrow: '1',
     flexBasis: 0,
     minWidth: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.25rem',
     textAlign: 'center',
     cursor: 'pointer',
     // Inset, so the Bar's overflow does not clip the focus ring
@@ -210,7 +215,12 @@ const RateQuality = ({
               borderLeft: index != 0,
             })}
           >
-            {index + 1}
+            {({ isSelected }) => (
+              <>
+                {isSelected && <RiCheckLine size={16} aria-hidden="true" />}
+                {index + 1}
+              </>
+            )}
           </RACRadio>
         ))}
       </Bar>
