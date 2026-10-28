@@ -44,6 +44,12 @@ const ratingButtonRecipe = cva({
     minWidth: 0,
     textAlign: 'center',
     cursor: 'pointer',
+    // Inset, so the Bar's overflow does not clip the focus ring
+    '&[data-focus-visible]': {
+      outline: '2px solid!',
+      outlineColor: 'focusRing!',
+      outlineOffset: '-4px!',
+    },
   },
   variants: {
     selected: {

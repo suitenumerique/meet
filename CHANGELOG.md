@@ -12,6 +12,10 @@ and this project adheres to
 
 - ⬆️(summary) update ffmpeg to 8.1.3-r0
 
+### Fixed
+
+- ♿️(frontend) improve the feedback page accessibility #1918
+
 ## [1.36.3] - 2026-10-23
 
 ### Fixed
