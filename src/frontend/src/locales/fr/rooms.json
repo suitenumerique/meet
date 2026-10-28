@@ -674,6 +674,7 @@
   "rating": {
     "submit": "Envoyer",
     "question": "Que pensez-vous de la qualité de votre appel ?",
+    "option": "Note {{value}} sur {{max}}",
     "levels": {
       "min": "très mauvaise",
       "max": "excellente"

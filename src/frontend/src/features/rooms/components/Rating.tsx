@@ -195,6 +195,7 @@ const RateQuality = ({
           <RACRadio
             key={index}
             value={String(index + 1)}
+            aria-label={t('option', { value: index + 1, max: maxRating })}
             className={ratingButtonRecipe({
               selected: selectedRating === index + 1,
               borderLeft: index != 0,

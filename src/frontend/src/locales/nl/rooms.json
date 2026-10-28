@@ -674,6 +674,7 @@
   "rating": {
     "submit": "Indienen",
     "question": "Wat vindt u van de kwaliteit van het gesprek?",
+    "option": "Beoordeling {{value}} van {{max}}",
     "levels": {
       "min": "erg slecht",
       "max": "uitstekend"
