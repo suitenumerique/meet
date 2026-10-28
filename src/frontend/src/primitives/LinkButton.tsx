@@ -18,10 +18,14 @@ export const LinkButton = ({
   ...props
 }: LinkButtonProps) => {
   const [variantProps, componentProps] = buttonRecipe.splitVariantProps(props)
+  const { className, ...remainingComponentProps } = componentProps
 
   return (
     <TooltipWrapper tooltip={tooltip} tooltipType={tooltipType}>
-      <Link className={buttonRecipe(variantProps)} {...componentProps}>
+      <Link
+        className={[buttonRecipe(variantProps), className].join(' ')}
+        {...remainingComponentProps}
+      >
         <>
           {componentProps.children as ReactNode}
           {props.description && <span>{tooltip}</span>}

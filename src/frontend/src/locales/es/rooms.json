@@ -673,6 +673,7 @@
   "rating": {
     "submit": "Enviar",
     "question": "¿Qué te ha parecido la calidad de tu llamada?",
+    "option": "Puntuación {{value}} de {{max}}",
     "levels": {
       "min": "muy mala",
       "max": "excelente"

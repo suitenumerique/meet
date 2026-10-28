@@ -674,6 +674,7 @@
   "rating": {
     "submit": "Absenden",
     "question": "Wie bewertest du die Qualität dieses Meetings?",
+    "option": "Bewertung {{value}} von {{max}}",
     "levels": {
       "min": "sehr schlecht",
       "max": "hervorragend"

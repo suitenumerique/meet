@@ -674,6 +674,7 @@
   "rating": {
     "submit": "Submit",
     "question": "What do you think about the quality of your call?",
+    "option": "Rating {{value}} out of {{max}}",
     "levels": {
       "min": "very poor",
       "max": "excellent"
