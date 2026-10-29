@@ -4,7 +4,7 @@ One script installs Meet on a fresh Linux server, with HTTPS and sign-in ready.
 
 Recording and transcription are left out. Already have a reverse proxy or a sign-in provider? Use the [Deployment Guide](deployment-guide.md) instead.
 
-Before you run it, tick the [Prerequisites checklist](prerequisites.md#checklist). The script brings Keycloak, so skip the OIDC provider line.
+Before you run it, read the [Prerequisites](prerequisites.md). The script brings Keycloak, so you need no sign-in provider of your own.
 
 ---
 
@@ -41,4 +41,4 @@ Note the two printed passwords: they are saved nowhere else. The URLs use your o
 
 ## Next
 
-To understand or change a piece the script set up, read the [Deployment Guide](deployment-guide.md): same stacks, same files. Before production, work through its [After installation](deployment-guide.md#after-installation) steps. To change the look, see [Theming](../configuration/theming.md).
+To see what the script set up, read [`install.sh`](https://github.com/suitenumerique/meet/blob/main/docs/install.sh) itself: one labelled section per stack. The [Deployment Guide](deployment-guide.md) explains each step, and how to change it. Before production, work through its [After installation](deployment-guide.md#after-installation) steps. To change the look, see [Theming](../configuration/theming.md).

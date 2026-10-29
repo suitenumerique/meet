@@ -4,10 +4,12 @@ A LiveKit agent turns speech into live captions with a speech-to-text (STT) prov
 
 ## Who sees it, and what it costs
 
-The [multi-user transcriber agent](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py) joins each room once and opens one STT stream per participant, for as long as the room runs. Any participant can start subtitles, anonymous ones in a public room included. The **Show subtitles** button shows on computers only. With `FRONTEND_ANALYTICS` set, it shows only to users with the PostHog feature flag `subtitles`. What subtitles cost:
+Any participant can start subtitles, anonymous ones in a public room included. The **Show subtitles** button shows on computers only. With `FRONTEND_ANALYTICS` set, it shows only to users with the PostHog feature flag `subtitles`.
+
+The [multi-user transcriber agent](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py) joins each room once and opens one STT stream per participant, for as long as the room runs. What subtitles cost:
 
 - **Provider:** cost grows with participants × time.
-- **Agent:** one instance serves several rooms at once, through LiveKit's dispatch. Its CPU, memory and network use grow with the number of participants in rooms with subtitles on.
+- **Agent:** one instance serves several rooms at once, through LiveKit's dispatch. Its CPU, memory and network use grow with the participants in rooms with subtitles on.
 
 ## Setup
 
@@ -55,12 +57,12 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
     # Choose STT provider: deepgram, kyutai or voxtral-vllm
     STT_PROVIDER=deepgram
 
-    # Deepgram configuration (if using Deepgram)
+    # With STT_PROVIDER=deepgram
     DEEPGRAM_API_KEY=your-deepgram-api-key
     DEEPGRAM_STT_MODEL=nova-3
     DEEPGRAM_STT_LANGUAGE=multi
 
-    # Kyutai configuration (if using Kyutai)
+    # With STT_PROVIDER=kyutai
     KYUTAI_STT_BASE_URL=http://kyutai-stt:8000
     KYUTAI_API_KEY=your-kyutai-api-key
 
@@ -136,16 +138,14 @@ Set `STT_PROVIDER` in the agent's environment, then the provider's variables in 
 | Audio | Sent to Deepgram | Stays on your servers | Stays on your servers |
 | Notes | Many languages, high accuracy | | Keep `ENABLE_SILERO_VAD=true`: voxtral-vllm has no server-side endpointing, the detection of when a speaker stops |
 
-## Testing
+## Test it
 
 1. Join a room from a browser.
 2. Click **Show subtitles** in the meeting controls.
 3. Speak: captions appear.
 
-Check the agent logs for errors:
+When they do not, see [Subtitles issues](../../reference/troubleshooting.md#subtitles-issues), and check the agent's logs for errors:
 
 ```bash
 docker compose logs -f multi-user-transcriber
 ```
-
-When captions do not appear, see [Subtitles issues](../../reference/troubleshooting.md#subtitles-issues).

@@ -1,6 +1,6 @@
 # Room purge
 
-The `purge_inactive_rooms` management command permanently deletes rooms after one of two periods, and deletes nothing until you set one. `ROOM_INACTIVITY_DELETION_DAYS` sets the period for rooms not started, and `ROOM_DELETED_RETENTION_DAYS` the one for rooms their owner deleted. Both are in [Environment Variables: Room purge](../../reference/env-variables.md#room-purge).
+The `purge_inactive_rooms` command permanently deletes rooms not started for `ROOM_INACTIVITY_DELETION_DAYS` days, and rooms their owner deleted more than `ROOM_DELETED_RETENTION_DAYS` days ago. With neither set, it deletes nothing. Both are in [Environment Variables: Room purge](../../reference/env-variables.md#room-purge).
 
 ## How a room becomes purgeable
 
@@ -9,7 +9,7 @@ The backend records the date each time LiveKit's `room_started` webhook says a r
 !!! warning
     Inactivity is measured from that webhook alone. If LiveKit's webhook does not reach the backend, rooms in daily use look inactive and get purged. The [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core) sets the webhook URL in `livekit-server.yaml`.
 
-The upgrade to v1.33.0 marked every existing room as started that day. None of them can be purged until a full inactivity period after the upgrade.
+The upgrade to v1.33.0 marked every existing room as started that day, so none is purged before a full inactivity period has passed since.
 
 Deleting a room only soft-deletes it:
 
@@ -20,7 +20,7 @@ Deleting a room only soft-deletes it:
 
 ## Rooms that are kept
 
-A recording can only be reached through its room. A room is kept past either period as long as it holds a saved recording its users may still open:
+A recording is reached only through its room, so a room outlives either period while it holds a saved recording its users may still open:
 
 - with `RECORDING_EXPIRATION_DAYS` set, a saved recording created less than that many days ago,
 - with `RECORDING_EXPIRATION_DAYS` unset, any saved recording, so such a room is never purged.
@@ -31,7 +31,7 @@ The backend warns at startup when a purge period is set and `RECORDING_EXPIRATIO
 
 The backend deletes the room from the database, with its accesses, its telephony PIN code, and the recording entries it still holds, which are the expired ones and the ones never saved.
 
-The recording **files stay in the bucket**: the backend never deletes a recording file from the storage. Add a lifecycle rule on the bucket that expires objects after `RECORDING_EXPIRATION_DAYS`. Without one, the purge leaves files that take up storage and that nobody can open, since serving a recording needs its database entry.
+The recording **files stay in the bucket**: the backend never deletes one. Add a lifecycle rule that expires the bucket's objects after `RECORDING_EXPIRATION_DAYS`, or the purge leaves files that take up storage and nobody can open, since serving a recording needs its database entry.
 
 Once a room is purged, its room code is free again. A soft-deleted room's link then no longer says the meeting was deleted, and its PIN code can go to another room. What opening the old link does depends on `ALLOW_UNREGISTERED_ROOMS`:
 
@@ -42,7 +42,7 @@ Once a room is purged, its room code is free again. A soft-deleted room's link t
 
 ## Scheduling the purge
 
-Run the command once a day. With `--dry-run`, it lists the rooms it would delete, marking the soft-deleted ones, and deletes nothing. Try it first:
+Run the command once a day. Try it first with `--dry-run`, which lists the rooms it would delete, marking the soft-deleted ones, and deletes nothing:
 
 === "Docker Compose"
 
@@ -52,9 +52,10 @@ Run the command once a day. With `--dry-run`, it lists the rooms it would delete
     docker compose exec backend python manage.py purge_inactive_rooms --dry-run
     ```
 
-    Compose has no scheduler, so add a line to the host's crontab with `crontab -e`. This one runs the purge every day at 01:00. `-T` disables the pseudo-terminal, which cron does not provide:
+    Compose has no scheduler: add this line to the host's crontab with `crontab -e`:
 
     ```bash
+    # Every day at 01:00; -T because cron runs without a terminal
     0 1 * * * cd $HOME/docker/meet && docker compose exec -T backend python manage.py purge_inactive_rooms
     ```
 
@@ -66,7 +67,7 @@ Run the command once a day. With `--dry-run`, it lists the rooms it would delete
     kubectl -n meet exec deployment/meet-backend -- python manage.py purge_inactive_rooms --dry-run
     ```
 
-    The chart already runs the purge every day at 01:00, as the `purge-inactive-rooms` entry of `backend.cronjobs`. Setting `backend.cronjobs` in your `values.yaml` replaces the whole list, so keep that entry in it:
+    The chart already runs the purge every day at 01:00, from `backend.cronjobs`. Setting that list in your `values.yaml` replaces it whole: keep this entry, and copy the chart's `clean-pending-files` and `purge-deleted-files` from its [`values.yaml`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/values.yaml) too:
 
     ```yaml
     backend:
@@ -78,5 +79,3 @@ Run the command once a day. With `--dry-run`, it lists the rooms it would delete
             - "-c"
             - "python manage.py purge_inactive_rooms"
     ```
-
-    The list the chart ships also holds `clean-pending-files` and `purge-deleted-files`: copy them from [`values.yaml`](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/values.yaml) too when you replace the list.

@@ -15,17 +15,11 @@ docker compose logs --tail=50 livekit
 docker compose -f ~/docker/keycloak/compose.yml logs --tail=50 keycloak
 ```
 
-
 ## Reverse proxy issues
 
 ### Traefik refuses to start
 
-**Cause**: `acme.json` has wrong permissions or does not exist.
-
-```bash
-ls -la ~/docker/traefik/acme.json
-# Must show: -rw------- (600)
-```
+**Cause**: `acme.json` is missing, or `ls -la ~/docker/traefik/acme.json` does not show `-rw-------`, mode `600`.
 
 **Fix**:
 ```bash
@@ -33,7 +27,6 @@ touch ~/docker/traefik/acme.json
 chmod 600 ~/docker/traefik/acme.json
 docker restart traefik
 ```
-
 
 ### Service returns 502 / Traefik can't reach a container
 
@@ -47,7 +40,6 @@ networks:
 ```
 Then recreate: `docker compose up -d --force-recreate <service>`
 
-
 ### Route not appearing / service returns 404
 
 **Cause**: The `traefik.enable=true` label is missing. Traefik runs with `--providers.docker.exposedByDefault=false`, so each container must opt in.
@@ -57,7 +49,6 @@ Then recreate: `docker compose up -d --force-recreate <service>`
 docker compose up -d --force-recreate <service>
 ```
 
-
 ### TLS certificate not being issued
 
 1. Verify port 80 is publicly reachable: the HTTP-01 ACME challenge needs it
@@ -65,7 +56,6 @@ docker compose up -d --force-recreate <service>
 3. Check the certificate logs:
     - nginx-proxy: `docker compose -f ~/docker/nginx-proxy/compose.yml logs acme-companion`
     - Traefik: `docker logs traefik | grep -i "acme\|certificate\|error"`
-
 
 ### Port conflict on 80 or 443
 
@@ -75,7 +65,6 @@ docker compose up -d --force-recreate <service>
 ```bash
 sudo ss -tlpn 'sport = :80 or sport = :443'
 ```
-
 
 ## Application issues
 
@@ -87,7 +76,6 @@ The proxy returns 502 while the backend is down.
 
 **Fix**: Set `DJANGO_CONFIGURATION=Production` in `env.d/common` and recreate the backend.
 
-
 ### 502 Bad Gateway on all routes
 
 **Cause**: The nginx in the `frontend` container is not listening on port 8083, or the backend is unreachable.
@@ -96,7 +84,6 @@ The proxy returns 502 while the backend is down.
 1. Check `docker compose logs frontend` for nginx errors
 2. Verify `nginx-routing.conf` is mounted to `/etc/nginx/conf.d/routing.conf:ro` in the frontend container
 3. Verify the backend is running: `docker compose ps backend`
-
 
 ### API returns 301 in a loop / site keeps loading
 
@@ -107,7 +94,6 @@ The proxy returns 502 while the backend is down.
 proxy_set_header X-Forwarded-Proto https;  # NOT $scheme
 ```
 Then restart the frontend container: `docker compose restart frontend`.
-
 
 ## Login issues
 
@@ -124,21 +110,19 @@ docker compose exec backend python -c "import urllib.request; print(urllib.reque
 
 ## Audio/Video issues
 
-### Disconnected from meeting immediately / "You left the meeting"
+### Disconnected from meeting immediately / "You have left the meeting"
 
-**Cause**, most often: `LIVEKIT_API_URL` is the Docker-internal address, `http://livekit:7880`, which browsers cannot reach. [`LIVEKIT_API_URL`](env-variables.md#livekit) says why it must be public.
+**Cause**, most often: [`LIVEKIT_API_URL`](env-variables.md#livekit) is the Docker-internal address, `http://livekit:7880`, which browsers cannot reach.
 
-**Fix**: `LIVEKIT_API_URL` must be the public HTTPS URL:
+**Fix**: Set it to the public HTTPS URL:
 ```dotenv
 LIVEKIT_API_URL=https://livekit.example.com
 ```
 
 Check that the LiveKit subdomain responds:
 ```bash
-curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/
-# Expected: a status code below 400
+curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/   # a status code below 400
 ```
-
 
 ### Can join the room but no audio/video
 
@@ -176,7 +160,6 @@ The button shows only when all of these hold:
 
 The storage variables do not affect the button; they decide whether the file is saved, see [Recording starts but file never appears](#recording-starts-but-file-never-appears).
 
-
 ### Recording button clicked but UI stays on "starting"
 
 **Cause**: The backend never receives LiveKit's webhook, and the recording leaves "starting" only when an `egress_updated` event arrives.
@@ -188,20 +171,17 @@ The storage variables do not affect the button; they decide whether the file is 
 
 Then recreate LiveKit, `docker compose up -d livekit`, and watch the requests arrive with `docker compose logs -f backend | grep webhooks-livekit`; each one should get a `200` response.
 
-
 ### Recording fails immediately / "no response from servers"
 
 **Cause**: LiveKit Egress refuses to start: the server reports fewer CPUs than the default `room_composite_cpu_cost`, the CPU Egress reserves for a room recording. This is common on a VPS or shared hosting.
 
 **Fix**: Add the `cpu_cost` block of [Step 2: LiveKit Egress](../self-hosting/configuration/recording.md#step-2-livekit-egress) to `livekit-egress.yaml`, then restart the egress container: `docker compose restart livekit-egress`
 
-
 ### Recording starts but file never appears
 
 1. Check Egress logs: `docker compose logs livekit-egress`
 2. Check your bucket
 3. Check that LiveKit's webhook reaches the backend, since its `egress_ended` event finalizes the recording: `docker compose logs backend | grep webhooks-livekit`
-
 
 ### Recording download link shows "Verify your meeting code"
 
@@ -217,7 +197,6 @@ Then recreate the backend and Celery: `docker compose up -d --force-recreate bac
 
 **Fix**: Add the object storage proxy to it; see [Recording](../self-hosting/configuration/recording.md#step-4-route-recording-downloads). Restart the frontend after updating: `docker compose restart frontend`
 
-
 ## Subtitles issues
 
 ### No captions appear
@@ -226,13 +205,11 @@ Then recreate the backend and Celery: `docker compose up -d --force-recreate bac
 - Check that the agent is running: `docker compose ps multi-user-transcriber`.
 - Check the agent logs for connection errors: `docker compose logs multi-user-transcriber`.
 
-
 ### Captions are delayed or choppy
 
 **Cause**: Network latency to a cloud STT provider such as Deepgram, or an agent short of CPU or memory.
 
 **Fix**: Give the agent more CPU and memory, or pick a provider closer to the server, see [STT providers](../self-hosting/configuration/subtitles.md#stt-providers).
-
 
 ### Subtitles agent fails to start
 
@@ -240,15 +217,13 @@ Then recreate the backend and Celery: `docker compose up -d --force-recreate bac
 
 **Fix**: Read `docker compose logs multi-user-transcriber`, then check the agent's variables against [Environment Variables: Agents](env-variables.md#agents).
 
-
 ## Telephony issues
 
 ### No audio from a phone participant
 
-**Cause**: The telephony audio ports that [Firewall & Ports](../self-hosting/configuration/firewall.md#ports-to-open) lists are blocked.
+**Cause**: A firewall blocks 10000-20000/UDP, the phone audio ports of [Firewall & Ports](../self-hosting/configuration/firewall.md#ports-to-open).
 
-**Fix**: Open 10000-20000/UDP, the phone audio ports.
-
+**Fix**: Open them.
 
 ### SIP call fails to connect
 
@@ -256,13 +231,11 @@ Then recreate the backend and Celery: `docker compose up -d --force-recreate bac
 
 **Fix**: Point the origination URI at the SIP service on 5060, see [SIP provider setup](../self-hosting/configuration/telephony.md#sip-provider-setup-twilio-example), and open 5060/UDP.
 
-
 ### Calls are rejected: no dispatch rule matched
 
 **Cause**: A room has no dispatch rule until its first browser participant joins, as [How do phone calls join?](../overview/how-meet-works.md#agents-and-phone-calls) explains. It also has none while LiveKit's webhook does not reach the backend.
 
 **Fix**: Have someone join the room from a browser before phone participants dial in, and check the webhook arrives: `docker compose logs backend | grep webhooks-livekit`.
-
 
 ## Docker and container issues
 
@@ -277,7 +250,6 @@ Common causes:
 - Port already in use on the host
 - Permission error on a mounted volume
 
-
 ### Out of disk space
 
 !!!warning
@@ -288,7 +260,6 @@ df -h                    # how full each disk is
 docker system prune -f   # removes unused Docker data, host-wide
 docker volume prune -f   # removes unused volumes, other projects' included
 ```
-
 
 ## Getting more help
 

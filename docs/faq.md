@@ -56,8 +56,7 @@ Usually a network problem on one side. Close bandwidth-heavy tabs and apps, move
 
 Click **Test your configuration** in the page footer, where your Meet server offers it, then **Run test**.
 
-- **Suboptimal connection**: your network blocks the direct route. You can join, but quality may drop.
-- Your IT department can open the ports that fix it, see [Firewall & Ports](self-hosting/configuration/firewall.md).
+**Suboptimal connection** means your network blocks the direct route: you can join, but quality may drop. Your IT department can open the [ports](self-hosting/configuration/firewall.md) that fix it.
 
 ### I cannot share my screen
 

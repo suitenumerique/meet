@@ -1,24 +1,22 @@
 # Telephony Integration
 
-Participants can join a meeting by phone through LiveKit's SIP bridge. SIP is the protocol phone providers use to set up calls. A caller dials the number, enters the room's PIN and joins as an audio-only participant.
+Callers join a meeting by phone through LiveKit's SIP bridge: they dial your number, enter the room's PIN and join with audio only. Recordings include their audio.
 
 !!!info
-    Only Docker Compose is covered; the Helm chart does not deploy LiveKit SIP.
-
-## Architecture
+    Only Docker Compose is covered: the Helm chart does not deploy LiveKit SIP.
 
 ```
 Phone ──► PSTN ──► SIP Trunk ──► LiveKit SIP Bridge ──► LiveKit Room
 ```
 
-The PSTN is the public phone network. Recordings include phone participants' audio.
+The PSTN is the public phone network, and SIP the protocol phone providers use to set up calls.
 
 ## Prerequisites
 
 - A SIP trunk from a VoIP provider such as Twilio, Vonage or Infobip, or a self-hosted Asterisk or FreeSWITCH.
 - A phone number from that provider.
 - The ports of the [firewall table](firewall.md) marked for telephony.
-- The LiveKit webhook to Meet, which the base setup already configures: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
+- LiveKit's [webhook](livekit.md#webhook) to Meet, which the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core) already sets.
 
 ## Meet backend
 
@@ -30,7 +28,7 @@ ROOM_TELEPHONY_PHONE_NUMBER=+33123456789
 ROOM_TELEPHONY_DEFAULT_COUNTRY=FR
 ```
 
-If `ROOM_TELEPHONY_PHONE_NUMBER` is missing or cannot be parsed with `ROOM_TELEPHONY_DEFAULT_COUNTRY`, `/api/v1.0/config/` reports telephony disabled and the backend logs a warning. The other variables and every default are in [Environment Variables: Telephony](../../reference/env-variables.md#telephony).
+If `ROOM_TELEPHONY_PHONE_NUMBER` is missing or cannot be parsed with `ROOM_TELEPHONY_DEFAULT_COUNTRY`, Meet shows no dial-in number and the backend logs a warning. Every other variable and default is in [Environment Variables: Telephony](../../reference/env-variables.md#telephony).
 
 ```bash
 docker compose up -d --force-recreate backend
@@ -49,7 +47,7 @@ redis:
   address: redis:6379
 ```
 
-Add the service to `compose.yml`, under `services:`. Its `ports:` publish LiveKit SIP's [default](https://github.com/livekit/sip#config) `sip_port` and `rtp_port`, the telephony rows of the [firewall table](firewall.md):
+Add the service under `services:` in `compose.yml`. Its `ports:` are LiveKit SIP's [default](https://github.com/livekit/sip#config) `sip_port` and `rtp_port`, the telephony rows of the [firewall table](firewall.md):
 
 ```yaml
   livekit-sip:
@@ -75,7 +73,7 @@ docker compose up -d livekit-sip
 
 ## Inbound SIP trunk
 
-The trunk tells LiveKit SIP which calls to accept. Create it once with the [LiveKit CLI](https://github.com/livekit/livekit-cli), `lk`. Save this as `inbound-trunk.json`, with the number of `ROOM_TELEPHONY_PHONE_NUMBER`:
+The trunk tells LiveKit SIP which calls to accept. Save it as `inbound-trunk.json`, with the number of `ROOM_TELEPHONY_PHONE_NUMBER`:
 
 ```json
 {
@@ -89,6 +87,8 @@ The trunk tells LiveKit SIP which calls to accept. Create it once with the [Live
 
 `allowed_addresses` takes IP addresses or CIDR ranges, not hostnames; an empty list accepts calls from any address.
 
+Create the trunk once with the [LiveKit CLI](https://github.com/livekit/livekit-cli), `lk`:
+
 ```bash
 lk sip inbound create \
   --url https://livekit.example.com \
@@ -97,7 +97,7 @@ lk sip inbound create \
   inbound-trunk.json
 ```
 
-## Dispatch rules
+## No dispatch rule to create
 
 Meet creates and deletes each room's dispatch rule itself, as [How do phone calls join?](../../overview/how-meet-works.md#agents-and-phone-calls) shows. Callers other than [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices can therefore join only while someone is connected from a browser.
 
@@ -109,9 +109,9 @@ Meet creates and deletes each room's dispatch rule itself, as [How do phone call
 
 ## Audio prompt language
 
-LiveKit SIP speaks its prompts, the PIN prompt among them, in English. For another language, mount that language's audio files as a volume on the `livekit-sip` service. The audio files are in [github.com/livekit/sip/tree/main/res](https://github.com/livekit/sip/tree/main/res).
+LiveKit SIP speaks its prompts, the PIN prompt among them, in English. For another language, mount that language's audio files from its [`res` directory](https://github.com/livekit/sip/tree/main/res) as a volume on the `livekit-sip` service.
 
-## Testing telephony
+## Test a call
 
 Join a room from a browser, call `ROOM_TELEPHONY_PHONE_NUMBER`, and enter the PIN shown after **Code:** in the **Meeting information** panel. When the call fails, see [Telephony issues](../../reference/troubleshooting.md#telephony-issues).
 

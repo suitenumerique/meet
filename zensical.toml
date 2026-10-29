@@ -26,8 +26,8 @@ nav = [
     {"Quick Start" = "self-hosting/compose/quick-start.md"},
     {"Docker Compose" = [
       {"Prerequisites" = "self-hosting/compose/prerequisites.md"},
-      {"Reverse Proxy" = "self-hosting/compose/reverse-proxy.md"},
-      {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"}
+      {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"},
+      {"Reverse Proxy" = "self-hosting/compose/reverse-proxy.md"}
     ]},
     {"Kubernetes / Helm" = [
       {"Prerequisites" = "self-hosting/kubernetes/prerequisites.md"},

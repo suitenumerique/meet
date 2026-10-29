@@ -22,7 +22,7 @@ make stop
 | Tool | What it is for |
 |---|---|
 | Git | Cloning the repository and committing |
-| Docker Engine with the Compose v2 plugin | Every service of the stack. The commands call `docker compose`, not the old `docker-compose` |
+| Docker Engine with the Compose plugin | Every service of the stack. The commands call `docker compose`, not the old `docker-compose` |
 | GNU Make | The `make` targets on this page |
 | Node.js 22 and npm | The frontend dev server, linters and tests, which run on your machine. The frontend image builds on [Node 22](https://github.com/suitenumerique/meet/blob/main/src/frontend/Dockerfile) |
 | [uv](https://docs.astral.sh/uv/), optional | Adding or upgrading a Python dependency from your machine |
@@ -36,10 +36,10 @@ The stack publishes these ports, so they must be free: 3000, 8071, 8080, 8083, 8
 ### First run
 
 ```bash
-make bootstrap FLUSH_ARGS='--no-input'
+make bootstrap FLUSH_ARGS='--no-input'   # once after cloning, and again to start over
 ```
 
-Run it once after cloning, and again to start over: it empties the database, then creates the Django admin and 100 demo users. It keeps the files you already have in `env.d/development/`, and does not install the frontend's npm dependencies on your machine: `make frontend-development-install` does.
+It empties the database, then creates the Django admin and 100 demo users. It keeps the files you already have in `env.d/development/`, and does not install the frontend's npm dependencies on your machine: `make frontend-development-install` does.
 
 ### Where everything answers
 

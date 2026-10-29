@@ -1,10 +1,10 @@
 # Networking
 
-[Firewall & Ports](../self-hosting/configuration/firewall.md) lists which ports to open, which never to expose, and the firewall rules for every configuration.
+Each kind of traffic takes its own path between the browser, the reverse proxy and Meet's containers. The ports to open, and those never to expose, are in [Firewall & Ports](../self-hosting/configuration/firewall.md).
 
 ## Traffic flow
 
-### Web request (browser → Meet UI)
+### Web request
 
 ```
 Browser :443
@@ -14,13 +14,13 @@ Browser :443
     → everything else → frontend :8080 (React SPA)
 ```
 
-The routing nginx reads [`nginx-routing.conf`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/nginx-routing.conf), which sends the backend paths that [What the proxy must route](../self-hosting/compose/reverse-proxy.md#what-the-proxy-must-route) lists. A custom nginx config needs its own location block for `/external-api`: the `/api` rule does not cover it.
+The routing nginx, [`nginx-routing.conf`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/nginx-routing.conf), sends the paths of [What the proxy must route](../self-hosting/compose/reverse-proxy.md#what-the-proxy-must-route) to the backend. A custom nginx config needs its own location block for `/external-api`: the `/api` rule does not cover it.
 
 ### OIDC login
 
-The backend, on `:8000`, sends the redirects that [Signing in](../overview/how-meet-works.md#signing-in) shows. It exchanges the code with the provider at its public address, such as `auth.example.com:443`.
+The backend sends the redirects that [Signing in](../overview/how-meet-works.md#signing-in) shows, and exchanges the code with the provider at its public address, such as `auth.example.com:443`.
 
-### LiveKit WebSocket (signaling)
+### LiveKit signaling
 
 ```
 Browser → https://livekit.example.com :443 /rtc
@@ -30,9 +30,9 @@ Browser → https://livekit.example.com :443 /rtc
 
 The LiveKit client appends `/rtc`, the signaling path, by itself.
 
-### LiveKit media (audio/video)
+### LiveKit media
 
-Media goes straight between each browser and LiveKit, without the reverse proxy:
+Audio and video go straight between each browser and LiveKit, without the reverse proxy:
 
 ```
 Participant A browser
@@ -47,20 +47,20 @@ LiveKit server (SFU: forwards each stream, does not transcode)
 - When a participant's network blocks that UDP port, the browser falls back as [How media connects](../self-hosting/configuration/livekit.md#how-media-connects) lists. Every port is in [Firewall & Ports](../self-hosting/configuration/firewall.md).
 - On a cloud server whose public IP is not on its network interface, LiveKit needs [`use_external_ip`](../self-hosting/configuration/livekit.md#use_external_ip) to announce that IP.
 
-### LiveKit webhook (room, egress, and recording events)
+### LiveKit webhook
 
-LiveKit Server posts each event to the backend, at the URL that [Webhook](../self-hosting/configuration/livekit.md#webhook) sets.
+LiveKit posts each room and recording event to the backend, at the URL that [Webhook](../self-hosting/configuration/livekit.md#webhook) sets.
 
 ## Docker networks
 
 | Network | Type | Members | Purpose |
 |---|---|---|---|
-| `proxy` | Bridge (external) | reverse proxy, frontend, livekit, keycloak | reverse proxy routing and TLS |
+| `proxy` | External bridge | reverse proxy, frontend, livekit, keycloak | reverse proxy routing and TLS |
 | `internal` | Bridge, one per stack | Meet stack: backend, frontend, celery, postgresql, redis, livekit; Keycloak stack: keycloak, postgresql | Service-to-service communication |
 
-Object storage is not part of the Meet stack. The Garage example, [`docs/examples/garage/compose.yml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/garage/compose.yml), joins the Meet stack's `internal` network, as [Step 1: Object storage](../self-hosting/configuration/recording.md#step-1-object-storage) sets up.
+Object storage runs outside the Meet stack: the [Garage example](https://github.com/suitenumerique/meet/blob/main/docs/examples/garage/compose.yml) joins the Meet stack's `internal` network, as [Step 1: Object storage](../self-hosting/configuration/recording.md#step-1-object-storage) sets up.
 
-## Internal DNS resolution
+## Service addresses
 
 Services reach each other by service name, except the backend, which calls LiveKit and the identity provider at their public URLs.
 

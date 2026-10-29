@@ -73,9 +73,10 @@ The title is a [gitmoji](https://gitmoji.dev/), a scope in parentheses, a space 
 | Body | No body, or one shorter than 20 characters. A dependency upgrade, titled with ⬆️, needs neither a body nor the title shape, and a release, titled with 🔖, needs no body |
 | Body width | A body line longer than 80 characters |
 
-Run the same check before pushing, from the repository root. It needs network access: the gitmoji rule downloads the gitmoji list.
+Run the same check before pushing:
 
 ```bash
+# From the repository root, with network access: the gitmoji rule downloads the gitmoji list
 uvx --from gitlint-core gitlint --commits upstream/main..HEAD
 ```
 

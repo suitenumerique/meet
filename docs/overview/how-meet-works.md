@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Meet is a [Django](https://www.djangoproject.com/) backend and a [React](https://react.dev/) frontend built around [LiveKit](https://livekit.io/), the media server that carries every call's audio and video. The backend decides who may join a room and hands the browser a pass; from then on, the browser talks to LiveKit directly. Recording, transcription, live subtitles and phone dial-in are optional services beside that core.
+Meet is a [Django](https://www.djangoproject.com/) backend and a [React](https://react.dev/) frontend built around [LiveKit](https://livekit.io/), an [SFU](#key-concepts): a media server that receives each participant's audio and video once, over [WebRTC](https://webrtc.org/), and forwards it to everyone else without mixing it, at the quality each viewer's connection holds. The backend decides who may join a room and hands the browser a signed pass; from then on, the browser talks to LiveKit directly. Recording, transcription, live subtitles and phone dial-in are optional services beside that core.
 
 ```mermaid
 graph LR
@@ -38,7 +38,7 @@ graph LR
 
 ## What runs where? { #the-pieces }
 
-Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firewall.md), and how each request travels between them in [Networking](../reference/networking.md). The code of each piece is in the [Code tour](../contributing/code-tour.md).
+Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firewall.md), the requests between the pieces in [Networking](../reference/networking.md), and their code in the [Code tour](../contributing/code-tour.md).
 
 | Piece | What it does |
 |---|---|

@@ -1,6 +1,6 @@
 # Helm Deployment
 
-On a cluster that meets the [Prerequisites](prerequisites.md), you install the Meet chart here, then LiveKit beside it.
+On a cluster that meets the [Prerequisites](prerequisites.md), install the Meet chart, then LiveKit beside it.
 
 Working configurations for the official chart are in the repository's [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/src/helm):
 
@@ -16,17 +16,10 @@ Add the chart repository so Helm can find `meet/meet`:
 ```bash
 helm repo add meet https://suitenumerique.github.io/meet/
 helm repo update
+helm search repo meet   # lists meet/meet
 ```
 
-Check the chart is listed:
-
-```bash
-helm search repo meet
-```
-
-## Chart overview
-
-The chart runs these components, at these default replica counts:
+## What the chart runs
 
 | Component | Helm key | Default replicas |
 |---|---|---|
@@ -44,11 +37,11 @@ The chart deploys neither the [external services](prerequisites.md#external-serv
 
 ## Base values.yaml
 
-Put each of these blocks in one `values.yaml`; Helm reads it at install.
+Put each of these blocks in one `values.yaml`.
 
 ### Backend
 
-The backend reads its configuration from environment variables, a flat dictionary under `backend.envVars`. Replace every example host and secret; [Secrets management](#secrets-management) keeps secrets out of the file.
+The backend's environment variables go under `backend.envVars`. Replace every example host and secret; [Secrets management](#secrets-management) keeps secrets out of the file.
 
 ```yaml
 backend:
@@ -99,7 +92,7 @@ backend:
     OIDC_OP_LOGOUT_ENDPOINT: "https://auth.example.com/realms/meet/protocol/openid-connect/logout"
 ```
 
-See [Environment Variables](../../reference/env-variables.md) for what each one does and which are required. The SMTP variables go in the same block, see [Email (SMTP)](../configuration/email.md#kubernetes-setup).
+[Environment Variables](../../reference/env-variables.md) says what each one does and which are required. The SMTP variables go in the same block, per [Email (SMTP)](../configuration/email.md#kubernetes-setup).
 
 ### Frontend
 
@@ -116,7 +109,7 @@ frontend:
       memory: 128Mi
 ```
 
-### Ingress (nginx-ingress + cert-manager)
+### Ingress
 
 Two ingresses publish Meet and its `/admin` path, with cert-manager certificates:
 
@@ -146,9 +139,9 @@ ingressAdmin:
 
 ### Disable optional services
 
-Optional services have no `enabled` flag: they deploy by default. Set `replicas: 0`, or `instances: []` for `celeryTranscribe`, to disable one.
+Optional services deploy by default, with no `enabled` flag. Disable one with `replicas: 0`, or `instances: []` for `celeryTranscribe`.
 
-`celeryBackend` runs tasks only when [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence) is `"True"` in `backend.envVars`. Otherwise the backend deletes files and sends emails itself, and `celeryBackend` can go to 0. The others serve transcription, summaries and agents: disable those you do not use.
+`celeryBackend` runs tasks only when [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence) is `"True"` in `backend.envVars`. Otherwise the backend deletes files and sends emails itself, so `celeryBackend` can go to 0. The others serve transcription, summaries and agents: disable those you do not use.
 
 ```yaml
 celeryBackend:
@@ -204,28 +197,23 @@ backend:
 # agentSubtitles.
 ```
 
-## Deploying
-
-### Install
+## Install
 
 ```bash
 helm install meet meet/meet \
   --namespace meet \
   --create-namespace \
   --values values.yaml
-```
 
-### Check status
-
-```bash
+# Check status
 kubectl -n meet get pods
 kubectl -n meet get ingress
 kubectl -n meet logs deployment/meet-backend
 ```
 
-### Create a superuser
+### Add another admin account
 
-The chart's `createsuperuser` Job already creates an admin account from `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD`. To add another account that can open `/admin/`:
+The chart's `createsuperuser` Job already creates one from `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD`. To add another account that can open `/admin/`:
 
 ```bash
 kubectl -n meet exec deployment/meet-backend -- \
@@ -243,7 +231,7 @@ helm repo add livekit https://helm.livekit.io
 helm repo update
 ```
 
-Create `livekit-values.yaml`. LiveKit's own chart has no `ingress:` block; its `loadBalancer` key sets how LiveKit is exposed, here through the same nginx-ingress and cert-manager as the Meet ingress:
+Create `livekit-values.yaml`. LiveKit's chart has no `ingress:` block: its `loadBalancer` key exposes LiveKit, here through the same nginx-ingress and cert-manager as Meet:
 
 ```yaml
 livekit:
@@ -285,10 +273,7 @@ Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Por
 
 ## Recording and transcription
 
-Both are optional:
-
-- [Recording: Kubernetes setup](../configuration/recording.md#setup)
-- [AI Transcription: Kubernetes setup](../configuration/transcription.md#setup), once recording works
+Both are optional. Set up [Recording](../configuration/recording.md#setup), then [AI Transcription](../configuration/transcription.md#setup) once recording works.
 
 ## Rebranding the favicon
 
@@ -396,9 +381,9 @@ backend:
 
 `backend.envFrom` also reaches the `celeryBackend` worker, the migration and superuser Jobs, and the CronJobs. The other components each read their own `envFrom`, and each `celeryTranscribe` instance can add `extraEnvFrom`. A variable set in `envVars` wins over the same name loaded through `envFrom`.
 
-### SOPS (GitOps-friendly encrypted secrets)
+### Encrypted values files with SOPS
 
-The DINUM team uses [SOPS](https://github.com/getsops/sops) to encrypt values files for version control:
+DINUM encrypts its values files with [SOPS](https://github.com/getsops/sops) to keep them in version control:
 
 ```bash
 # Encrypt secrets values file
@@ -411,9 +396,9 @@ sops --decrypt values/production-secrets.enc.yaml | helm upgrade meet meet/meet 
   --values /dev/stdin
 ```
 
-## Helmfile (multi-environment)
+## Several environments with helmfile
 
-For several environments, use [helmfile](https://helmfile.readthedocs.io/), as DINUM does for its own dev environments in [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl).
+Use [helmfile](https://helmfile.readthedocs.io/), as DINUM does for its dev environments in [`helmfile.yaml.gotmpl`](https://github.com/suitenumerique/meet/blob/main/src/helm/helmfile.yaml.gotmpl):
 
 ```bash
 helmfile -e <environment> sync   # apply the environment's releases

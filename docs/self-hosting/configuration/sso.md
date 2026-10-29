@@ -1,6 +1,6 @@
 # SSO & Authentication
 
-Meet signs users in through any standards-compliant **OpenID Connect (OIDC)** provider, in the flow that [Signing in](../../overview/how-meet-works.md#signing-in) shows. A production instance needs one. Users have no password in Meet: only the Django admin accounts created with `createsuperuser` do.
+Meet signs users in through any [OpenID Connect](https://openid.net/developers/how-connect-works/) (OIDC) provider, in the flow that [Signing in](../../overview/how-meet-works.md#signing-in) shows. Users have no password in Meet: only the Django admin accounts created with `createsuperuser` do.
 
 When a page loads without a Meet session, Meet first tries a silent login, `prompt=none`: a user already signed in at the provider is signed in to Meet without seeing a form. A provider that does not support `prompt=none` needs [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../../reference/env-variables.md#frontend)`=False`.
 
@@ -18,7 +18,7 @@ Then give Meet the client ID and secret, and the provider's endpoints.
 
 ## Keycloak
 
-The [Deployment Guide](../compose/deployment-guide.md) runs Keycloak with a realm that already holds this client, and `env.d/common` ships with its endpoints filled in from your hosts file. Only `OIDC_RP_CLIENT_SECRET` needs setting. The Keycloak admin console is at `https://auth.example.com/admin/`.
+The [Deployment Guide](../compose/deployment-guide.md) runs Keycloak with a realm that already holds this client, and `env.d/common` ships its endpoints, built from your `hosts` file: set only `OIDC_RP_CLIENT_SECRET`. The admin console is at `https://auth.example.com/admin/`.
 
 ## Authentik
 
@@ -51,10 +51,11 @@ OIDC_OP_JWKS_ENDPOINT=https://www.googleapis.com/oauth2/v3/certs
 OIDC_OP_AUTHORIZATION_ENDPOINT=https://accounts.google.com/o/oauth2/v2/auth
 OIDC_OP_TOKEN_ENDPOINT=https://oauth2.googleapis.com/token
 OIDC_OP_USER_ENDPOINT=https://openidconnect.googleapis.com/v1/userinfo
+# profile makes Google send given_name
 OIDC_RP_SCOPES=openid email profile
 ```
 
-Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULLNAME_FIELDS`](../../reference/env-variables.md#authentication-oidc), `given_name` and `usual_name` by default. Google sends `given_name` only with the `profile` scope, and never `usual_name`; set `OIDC_USERINFO_FULLNAME_FIELDS=given_name,family_name` to show the full name. Google has no logout endpoint for third parties, so logging out ends the Meet session only.
+Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULLNAME_FIELDS`](../../reference/env-variables.md#authentication-oidc), `given_name` and `usual_name` by default. Google never sends `usual_name`: set `OIDC_USERINFO_FULLNAME_FIELDS=given_name,family_name` to show the full name. Google has no logout endpoint for third parties, so logging out ends the Meet session only.
 
 ## Unauthenticated access
 

@@ -1,66 +1,51 @@
 # Prerequisites (Kubernetes)
 
-Once everything here is in place, [Helm Deployment](helm.md) installs Meet on your production cluster with the official Helm chart.
+For a single server, see the [Docker Compose prerequisites](../compose/prerequisites.md).
 
-## Required tools
+## A cluster
 
-- [kubectl](https://kubernetes.io/docs/tasks/tools/), configured for your cluster
-- [Helm 3](https://helm.sh/docs/intro/install/)
-- [helmfile](https://github.com/helmfile/helmfile/releases), optional, for several environments
+Any Kubernetes cluster, with the [ports](../configuration/firewall.md) open on the ingress and on each node that runs LiveKit. Start from these sizes, then watch the load:
 
-## Cluster requirements
-
-| Resource | Minimum | Recommended production |
+| Resource | Minimum | Recommended |
 |---|---|---|
 | Nodes | 2 | 3+ |
 | CPU per node | 2 cores | 4+ cores |
 | RAM per node | 4 GB | 8+ GB |
 
-### Required cluster components
+The chart does not install these:
 
-The Meet chart relies on these but does not install them:
+- **An ingress controller.** Any works for calls; recording and uploaded backgrounds need nginx-ingress, whose annotations their ingresses use.
+- **cert-manager**, with a Let's Encrypt `ClusterIssuer`.
+- **A public IP on each LiveKit node**: call media goes straight to the node, not through the ingress.
 
-- **An ingress controller**: any works for calls. Recording and uploaded background images need nginx-ingress, since their ingresses rely on its annotations.
-- **cert-manager**: with a Let's Encrypt `ClusterIssuer` for automatic TLS
-- **Public IPs on the LiveKit nodes**: LiveKit's Helm chart serves its media ports from the node itself through host networking
+## Tools
+
+- [kubectl](https://kubernetes.io/docs/tasks/tools/), configured for your cluster
+- [Helm 3](https://helm.sh/docs/intro/install/)
+- [helmfile](https://github.com/helmfile/helmfile/releases), optional, for several environments
 
 ## External services
 
-The chart does not deploy these. Prefer managed services in production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: use your service's address instead.
+The chart deploys none of these, and managed services suit production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: put yours instead.
 
-| Service | Purpose | Options |
+| Service | Holds | Options |
 |---|---|---|
-| PostgreSQL | Meet database | OVH DBaaS, AWS RDS, Cloud SQL, Neon |
-| Redis | Celery broker and LiveKit state | ElastiCache, Upstash, Aiven |
-| S3-compatible storage | Recording file storage | AWS S3, Scaleway Object Storage, OVH Object Storage |
-| SMTP | Recording download emails | Any SMTP relay |
-| OIDC provider | User authentication | Keycloak, Dex, Auth0, ProConnect |
+| PostgreSQL | Meet's database | OVH DBaaS, AWS RDS, Cloud SQL, Neon |
+| Redis | Celery's queues and LiveKit's state | ElastiCache, Upstash, Aiven |
+| S3-compatible storage | Recordings and uploaded backgrounds | AWS S3, Scaleway Object Storage, OVH Object Storage |
+| SMTP | Sends invitations and recording links | Any SMTP relay |
+| OIDC provider | Signs users in | Keycloak, Dex, Auth0, ProConnect |
 
-## Network requirements
+## Three domain names
 
-Call media reaches LiveKit on its nodes directly, bypassing the ingress. The ports to open, on the ingress and on each node that runs LiveKit, are listed in [Firewall & Ports](../configuration/firewall.md).
+Point three subdomains at the ingress load balancer's IP before you install: cert-manager checks them to issue the HTTPS certificates.
 
-## DNS records
-
-| Record | Points to |
+| Subdomain | Serves |
 |---|---|
-| `meet.example.com` | Ingress load balancer IP |
-| `livekit.example.com` | Ingress load balancer IP: the [LiveKit values](helm.md#livekit-on-kubernetes) expose it through the same nginx-ingress |
-| `auth.example.com` | Ingress load balancer IP (OIDC provider) |
-
-## Checklist
-
-- [ ] kubectl configured for your cluster
-- [ ] Helm 3 installed
-- [ ] An ingress controller deployed, nginx-ingress if you use recording or uploaded backgrounds
-- [ ] cert-manager deployed with a ClusterIssuer configured
-- [ ] PostgreSQL reachable
-- [ ] Redis reachable
-- [ ] OIDC provider configured
-- [ ] Domain names with DNS pointing to your ingress load balancer
-- [ ] The ports in [Firewall & Ports](../configuration/firewall.md) open
-- [ ] With recording: S3-compatible storage available and an SMTP relay configured
+| `meet.example.com` | Meet |
+| `livekit.example.com` | LiveKit, through the same ingress, see [LiveKit on Kubernetes](helm.md#livekit-on-kubernetes) |
+| `auth.example.com` | Your OIDC provider, if it runs in the cluster |
 
 ## Next
 
-With every box ticked, continue to [Helm Deployment](helm.md).
+Continue to [Helm Deployment](helm.md).

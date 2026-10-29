@@ -1,17 +1,17 @@
 # AI Transcription
 
-AI transcription is in beta. The people who [can record](recording.md#who-can-record) can also start a transcription, or add one to a screen recording. Meet sends the recording to the summary service, which transcribes it, as [How do transcription and the summary work?](../../overview/how-meet-works.md#transcription-and-summary) shows. With `FRONTEND_ANALYTICS` set, only users with the PostHog feature flag `transcription-summary` can start one.
+AI transcription, in beta, turns a meeting's speech into a [LaSuite Docs](https://github.com/suitenumerique/docs) document owned by the person who started the transcription. Meet sends the recording to the summary service, which transcribes it, as [How do transcription and the summary work?](../../overview/how-meet-works.md#transcription-and-summary) shows.
 
-Meet delivers the transcript only by pushing it to [LaSuite Docs](https://github.com/suitenumerique/docs), as a document owned by the person who started the transcription. Without `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, the transcript stays under `transcripts/` in the bucket and reaches no user.
+The people who [can record](recording.md#who-can-record) can also start a transcription, or add one to a screen recording. With `FRONTEND_ANALYTICS` set, only users with the PostHog feature flag `transcription-summary` can start one.
 
 Every variable and its default is in the Environment Variables reference: the backend side under [Transcription](../../reference/env-variables.md#transcription), the summary service under [Summary service](../../reference/env-variables.md#summary-service).
 
 ## Requirements
 
 - **[Recording](recording.md), set up and working.** Transcription uses the same LiveKit Egress, object storage and LiveKit webhook.
-- **A WhisperX API.** The summary service calls `POST {WHISPERX_BASE_URL}/audio/transcriptions` with `response_format=diarized_json` and needs speaker labels and word segments back. [meet-whisperx](https://github.com/suitenumerique/meet-whisperx) provides them, under the `/v1` prefix, so `WHISPERX_BASE_URL` ends in `/v1`. Run it on a GPU: transcription on CPU is very slow for anything beyond short recordings.
+- **A WhisperX API.** The summary service calls `POST {WHISPERX_BASE_URL}/audio/transcriptions` with `response_format=diarized_json` and needs speaker labels and word segments back. [meet-whisperx](https://github.com/suitenumerique/meet-whisperx) serves them under `/v1`, so `WHISPERX_BASE_URL` ends in `/v1`. Run it on a GPU: transcription on CPU is very slow for anything beyond short recordings.
 - **An LLM API.** The summary service needs `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` to start, even with summaries off.
-- **LaSuite Docs, to deliver the transcript.** Set `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` in the summary service's environment, see [LaSuite Docs](../../reference/env-variables.md#lasuite-docs).
+- **LaSuite Docs, to deliver the transcript.** Set `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` in the summary service's environment, see [LaSuite Docs](../../reference/env-variables.md#lasuite-docs). Without `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, the transcript stays under `transcripts/` in the bucket and reaches no user.
 - **`"allowed_push_to_docs": true` on each tenant** in `AUTHORIZED_TENANTS`, even with the push off: Meet always sends its Docs settings, and the summary service returns 400 to a tenant without the flag.
 
 The summary service rejects a transcription whose language is outside [`WHISPERX_ALLOWED_LANGUAGES`](../../reference/env-variables.md#speech-to-text-whisperx).
@@ -20,9 +20,7 @@ The summary service rejects a transcription whose language is outside [`WHISPERX
 
 ### Step 1: Summary service environment
 
-The summary service's Celery workers run the same code, so they need the same environment.
-
-The summary service fetches each recording through a link the backend signs, and writes transcripts and summaries to the backend's bucket, with the backend's keys and region:
+The summary service and its Celery workers take the same environment. The summary service fetches each recording through a link the backend signs, and writes transcripts and summaries to the backend's bucket, with the backend's keys and region:
 
 - It picks HTTP or HTTPS from [`AWS_S3_SECURE_ACCESS`](../../reference/env-variables.md#storage): set it to `False` for the plain-HTTP Garage of the Recording guide.
 - It signs every request for `AWS_S3_REGION_NAME`. Its signed links to transcripts and summaries are path-style, `<endpoint>/<bucket>/<key>`, so the storage must serve that form.
@@ -35,7 +33,7 @@ The summary service fetches each recording through a link the backend signs, and
     Create `env.d/summary`:
 
     ```dotenv
-    # Celery broker (dedicated Redis instance for the summary service)
+    # Celery broker: the summary service's own Redis
     CELERY_BROKER_URL=redis://redis-summary:6379/0
     CELERY_RESULT_BACKEND=redis://redis-summary:6379/0
 
@@ -96,16 +94,16 @@ The summary service fetches each recording through a link the backend signs, and
 
 === "Docker Compose"
 
-    The summary service needs its own Redis as the Celery broker, its API, and one worker per queue: `transcribe-queue-v2` transcribes, `call-webhook-queue-v2` sends the result back to Meet. Add them to the Meet stack's `compose.yml`, under `services:`:
+    Add the summary service's own Redis, its API and one worker per queue to the Meet stack's `compose.yml`, under `services:`:
 
     ```yaml
-      redis-summary:
+      redis-summary:              # the Celery broker
         image: redis:7
         restart: unless-stopped
         networks:
           - internal
 
-      app-summary:
+      app-summary:                # the API
         image: lasuite/meet-summary:${MEET_VERSION:-latest}
         restart: unless-stopped
         env_file:
@@ -115,7 +113,7 @@ The summary service fetches each recording through a link the backend signs, and
         networks:
           - internal
 
-      celery-summary-transcribe:
+      celery-summary-transcribe:  # transcribes
         image: lasuite/meet-summary:${MEET_VERSION:-latest}
         restart: unless-stopped
         command: celery -A summary.core.celery_worker worker --pool=solo -Q transcribe-queue-v2
@@ -126,7 +124,7 @@ The summary service fetches each recording through a link the backend signs, and
         networks:
           - internal
 
-      celery-summary-webhook:
+      celery-summary-webhook:     # sends the result back to Meet
         image: lasuite/meet-summary:${MEET_VERSION:-latest}
         restart: unless-stopped
         command: celery -A summary.core.celery_worker worker --pool=solo -Q call-webhook-queue-v2
@@ -197,7 +195,7 @@ The summary service fetches each recording through a link the backend signs, and
     helm upgrade meet meet/meet --namespace meet --values values.yaml
     ```
 
-### Step 4: Speaker names (optional)
+### Step 4: Name the speakers
 
 Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. With `METADATA_COLLECTOR_ENABLED=True`, the metadata collector agent records who speaks when, and the summary service matches that against WhisperX's speakers to name them. With `FRONTEND_ANALYTICS` set, the agent joins only transcriptions started by a user with the PostHog feature flag `metadata-collector`. Every agent variable is in [Metadata collector agent](../../reference/env-variables.md#metadata-collector-agent).
 
@@ -271,7 +269,7 @@ Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. 
     helm upgrade meet meet/meet --namespace meet --values values.yaml
     ```
 
-## LLM summarization (optional)
+## LLM summaries
 
 Summarization writes a summary of the transcript with an LLM and pushes it to LaSuite Docs as a second document. Summaries run only when all of these hold:
 

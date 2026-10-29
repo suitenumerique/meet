@@ -8,7 +8,7 @@ A Swagger UI is served at `/api/v1.0/swagger/` under the `Development` and `Test
 
 ## Authentication
 
-### Session authentication (browser)
+### Browser session
 
 Every endpoint uses the Django session the browser gets after signing in, unless its section names another token. These endpoints open and close the session:
 
@@ -236,7 +236,7 @@ Requires being signed in and allowed to record, as [Who can record](../self-host
 | 429 | `{"detail": "..."}` | The user started too many recordings, see [Rate limiting](security.md#rate-limiting) |
 | 502 | `{"error": "..."}` | The recording service failed to start it |
 
-The recording's roles are set when it starts. Who gets which is in [Who can record](../self-hosting/configuration/recording.md#who-can-record).
+The recording's roles are set when it starts, as [Who can record](../self-hosting/configuration/recording.md#who-can-record) lists.
 
 ### Other recording endpoints
 
@@ -273,7 +273,7 @@ Both lobby management endpoints refuse a LiveKit room token.
 | `POST` | `/api/v1.0/rooms/{id}/rename/` | `{"name": "Alice"}` | The holder of a LiveKit room token, for their own name. A participant with a Meet account gets 403 unless `AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME` is on. |
 | `POST` | `/api/v1.0/rooms/{id}/start-subtitle/` | None | The holder of a LiveKit room token. Answers 404 unless `ROOM_SUBTITLE_ENABLED` is on. |
 
-## Files (custom virtual background)
+## Custom backgrounds
 
 Every file endpoint answers 404 unless `FILE_UPLOAD_ENABLED=True`, and each user sees only their own files. An upload takes three steps:
 
@@ -345,8 +345,4 @@ The other errors come in three shapes:
 - Room actions on recording, participants and subtitles return `{"error": "..."}`.
 - The lobby returns `{"message": "..."}`.
 
-The status codes keep their standard meaning. `410` means the room has been deleted.
-
-## Rate limiting
-
-The throttled actions and their settings are in [Security: Rate limiting](security.md#rate-limiting). Rate limit errors return HTTP 429 with a `Retry-After` header.
+The status codes keep their standard meaning. `410` means the room has been deleted. `429` means a [rate limit](security.md#rate-limiting) was hit, and carries a `Retry-After` header.

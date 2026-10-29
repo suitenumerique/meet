@@ -1,14 +1,14 @@
 # Audit logging
 
-Meet keeps an **audit log**: a record of the notable things that happen in the product, such as a room created through the external API, a recording started, a sign-in, or a change made in the Django admin. Every entry answers the same questions: who did what, to what, on whose behalf, from where, and whether it worked.
+The **audit log** records who did what in Meet, to what, on whose behalf, from where, and whether it worked: a room created through the external API, a recording started, a sign-in, a change in the Django admin.
 
 - Each event is one line of JSON that a dedicated logger, `audit`, writes to the backend's standard output, separate from the application logs.
-- Events follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs) (ECS) 9.5.0, which most SIEMs read without extra setup.
+- Events follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs) (ECS) 9.5.0.
 - Audit logging is always on and needs no setting.
 
 How the code emits events is in the [Code tour](../../contributing/code-tour.md#the-audit-log).
 
-Personal data is kept to a minimum. A person is identified by their account id, their OIDC `sub` and the domain of their email address. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
+Personal data is kept to a minimum: a person is identified by their account id, their OIDC `sub` and their email's domain. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
 
 ## What an event looks like
 
@@ -72,9 +72,10 @@ A log shipper tells the audit events from the application logs by `data_stream.d
 
 === "Docker Compose"
 
-    From `~/docker/meet`, print the backend's audit events. `--no-log-prefix` drops the container name Compose adds in front of each line, so every line stays valid JSON:
+    From `~/docker/meet`, print the backend's audit events:
 
     ```bash
+    # --no-log-prefix drops the container name, so each line stays valid JSON
     docker compose logs --no-log-prefix backend | grep '"dataset":"meet.audit"'
     ```
 
@@ -85,8 +86,6 @@ A log shipper tells the audit events from the application logs by `data_stream.d
     ```bash
     kubectl -n meet logs deployment/meet-backend | grep '"dataset":"meet.audit"'
     ```
-
-    In production, a log shipper on each node collects the containers' output and routes the lines whose `data_stream.dataset` is `meet.audit` to the audit data stream.
 
 ## Configuration
 
@@ -150,7 +149,7 @@ The resource an action was performed on is described in ECS `entity.target`, a r
 | Field | Meaning |
 |---|---|
 | `entity.target.id` | Its primary key |
-| `entity.target.sub_type` | Its model, such as `room`, `recording`, `user`, `application`, `resourceaccess` or `transit_code`, identified by its SHA-256 |
+| `entity.target.sub_type` | Its model, such as `room`, `recording`, `user`, `application`, `resourceaccess` or `transit_code`, whose `id` is the code's SHA-256 |
 | `entity.target.type` | Its ECS entity type, when one fits: `user` for an account, `application` for an application |
 | `entity.target.name` | Its name, when its model registers one |
 | `entity.target.raw.*` | The other fields its model registers, such as a room's `slug` and `access_level`, or the OIDC `sub` of a user |
@@ -223,7 +222,7 @@ Action names are dotted and lower-case, in the form `<target>.<verb>`. The code 
 
 ### Recordings, transcripts and summaries
 
-Transcripts and summaries are not recordings, but what the summary service derives from one. Their actions sit under `recording.transcript.*` and `recording.summary.*`, with the recording as their target.
+The summary service derives transcripts and summaries from a recording, so their actions sit under `recording.transcript.*` and `recording.summary.*`, with the recording as their target.
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
@@ -254,7 +253,7 @@ A recording's target says what was recorded:
 
 ## Django admin
 
-The admin is the most sensitive part of the product, so every write made through it produces an audit event. Django's own history entry is still written.
+Every write made through the Django admin produces an audit event, and Django still writes its own history entry.
 
 The action name follows a template, `admin.<target>.<verb>`, where `<target>` is the model name and `<verb>` one of:
 

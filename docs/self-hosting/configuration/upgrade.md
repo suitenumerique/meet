@@ -8,16 +8,15 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
 2. **Back up the database**, from `~/docker/meet`:
 
     ```bash
+    # -T disables the pseudo-terminal, so nothing but the dump reaches the file
     docker compose exec -T postgresql pg_dump -U meet meet > meet_backup_$(date +%Y%m%d).sql
     ```
-
-    `-T` disables the pseudo-terminal, so nothing but the dump reaches the file.
 
 3. **Note the version you run now**, to roll back to: `docker compose images backend` shows its tag.
 
 ## Upgrade
 
-1. Set `MEET_VERSION` in `.env` to the target release, for example `MEET_VERSION=v1.36.3`. Every Meet service reads this one variable, so they all move together. With no `MEET_VERSION` set, Compose uses `latest`.
+1. Set `MEET_VERSION` in `.env` to the target release, for example `MEET_VERSION=v1.36.3`. Every Meet service reads it, and Compose uses `latest` while it is unset.
 2. Download the images, without stopping anything yet:
 
     ```bash
@@ -31,7 +30,7 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
     docker compose up -d
     ```
 
-5. Run the database migrations. They are safe to run even when the release changes no schema, so always run them:
+5. Run the database migrations, which are safe even when the release changes no schema:
 
     ```bash
     docker compose exec backend python manage.py migrate
@@ -68,15 +67,16 @@ docker compose exec -T postgresql psql -U meet -d postgres \
 
 ## LiveKit and Egress
 
-LiveKit is versioned independently of Meet: check the [LiveKit releases](https://github.com/livekit/livekit/releases) before moving it. In `.env`, set the new tag in `LIVEKIT_VERSION`, and in `EGRESS_VERSION` if you run recording. Then:
+LiveKit is versioned independently of Meet: check the [LiveKit releases](https://github.com/livekit/livekit/releases) before moving it. A restart of LiveKit drops the calls in progress, so pick a quiet hour.
+
+In `.env`, set the new tag in `LIVEKIT_VERSION`, and in `EGRESS_VERSION` if you run recording. Then:
 
 ```bash
+# Without recording, leave out livekit-egress
 docker compose pull livekit livekit-egress
 docker compose up -d livekit livekit-egress
 ```
 
-Leave out `livekit-egress` if you do not run recording. A restart of LiveKit drops the calls in progress, so pick a quiet hour.
-
 ## Getting help
 
-Look for known upgrade problems in [GitHub Issues](https://github.com/suitenumerique/meet/issues), or ask the community, see [Community and support](../../index.md#community-and-support). A new issue needs your current version, the target version and the error logs.
+Search [GitHub Issues](https://github.com/suitenumerique/meet/issues) for known upgrade problems, or ask the [community](../../index.md#community-and-support). A new issue needs your current version, the target version and the error logs.

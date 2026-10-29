@@ -2,13 +2,11 @@
 
 Colors, fonts, logos and images change without a rebuild. Only the application title needs a rebuilt image.
 
-## Runtime theming
+## Colors and fonts
 
 ### Load your CSS file
 
-Set `FRONTEND_CUSTOM_CSS_URL` on the **backend** container to the URL of your CSS file.
-
-The frontend container can serve the file itself: mount it into the frontend's web root, `/usr/share/nginx/html`, and point the variable at its path:
+Set `FRONTEND_CUSTOM_CSS_URL` on the **backend** container to your CSS file's URL, such as `https://cdn.example.com/custom.css`. To serve the file from the frontend container instead, mount it into its web root, `/usr/share/nginx/html`, and set the variable to the file's path:
 
 === "Docker Compose"
 
@@ -55,18 +53,16 @@ The frontend container can serve the file itself: mount it into the frontend's w
         FRONTEND_CUSTOM_CSS_URL: "/custom.css"
     ```
 
-A file on another host works too, with its full URL, for example `https://cdn.example.com/custom.css`.
-
 ### What to override
 
-The compiled CSS uses two kinds of CSS variables:
+Components read two kinds of CSS variables:
 
-- **Semantic tokens**, such as `--colors-primary`, used by some component styles. They are defined at build time inside `@layer tokens` and resolve to the preset blue palette: `--colors-primary` is `--colors-blue-700`.
-- **Raw palette tokens**, such as `--colors-primary-800`, used directly by many component styles.
+- **Semantic tokens**, such as `--colors-primary`, used by some component styles.
+- **Raw palette tokens**, such as `--colors-primary-800`, used directly by many.
 
-To rebrand the primary color fully, override the semantic tokens **and** the whole palette scale. Overriding only `--colors-primary` leaves every component that uses the scale in the default color. Meet is light outside a meeting and dark inside a room, where it uses its own scale, `--colors-primary-dark-*`: override that scale too.
+To rebrand the primary color fully, override the semantic tokens **and** the whole palette scale, as the [example](#example-full-primary-color-override) does: overriding only `--colors-primary` leaves every component that uses the scale in the default color. Inside a room Meet turns dark and uses its own scale, `--colors-primary-dark-*`: override that scale too.
 
-### Key semantic tokens
+The main semantic tokens, all defined in [`src/frontend/panda.config.ts`](https://github.com/suitenumerique/meet/blob/main/src/frontend/panda.config.ts):
 
 | Category | Purpose | Example token |
 |---|---|---|
@@ -78,11 +74,8 @@ To rebrand the primary color fully, override the semantic tokens **and** the who
 | Warning | Warnings and alerts | `--colors-warning` |
 | Alert | Notification backgrounds | `--colors-alert` |
 | Font sans | Main UI font | `--fonts-sans` |
-| Font serif | Alternate / reading font | `--fonts-serif` |
+| Font serif | Alternate or reading font | `--fonts-serif` |
 | Font mono | Code or technical font | `--fonts-mono` |
-
-!!! info
-    Every semantic token is defined in [`src/frontend/panda.config.ts`](https://github.com/suitenumerique/meet/blob/main/src/frontend/panda.config.ts).
 
 ### Example: full primary color override
 
@@ -97,7 +90,7 @@ To rebrand the primary color fully, override the semantic tokens **and** the who
   --colors-primary-subtle-text: #00695C;
   --colors-primary-warm: #80CBC4;
 
-  /* Raw palette scale - components reference these directly */
+  /* Raw palette scale, which components read directly */
   --colors-primary-50:  #E0F2F1;
   --colors-primary-100: #B2DFDB;
   --colors-primary-200: #80CBC4;
@@ -135,7 +128,7 @@ To replace a built-in asset, such as the logo or a landing page image, mount you
         └── 4.png
 ```
 
-Mount each file individually. Mounting the whole `assets/` directory would hide the compiled JS and CSS bundles and break the app.
+Mount each file, never the whole `assets/` directory: that would hide the compiled JS and CSS bundles and break the app.
 
 === "Docker Compose"
 
@@ -180,7 +173,7 @@ Mount each file individually. Mounting the whole `assets/` directory would hide 
 
 ## Build-time theming
 
-The `VITE_APP_TITLE` build argument sets the title in the browser tab and the installed app's name. Always pass it to `docker build`, which otherwise leaves the title empty. To change it, build the frontend image from the repository root:
+The `VITE_APP_TITLE` build argument sets the browser tab's title and the installed app's name, and the title is empty without it. Build the frontend image from the repository root:
 
 ```bash
 docker build \
@@ -194,4 +187,4 @@ docker build \
 
 ## Footer
 
-The footer cannot be fully customized. `FRONTEND_USE_FRENCH_GOV_FOOTER=True` shows the official French government footer, see [Environment Variables: Frontend](../../reference/env-variables.md#frontend).
+Meet shows a footer only with `FRONTEND_USE_FRENCH_GOV_FOOTER=True`, and it is the official French government one, see [Environment Variables: Frontend](../../reference/env-variables.md#frontend). No other footer can be set.

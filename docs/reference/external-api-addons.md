@@ -41,7 +41,7 @@ sequenceDiagram
 POST /api/v1.0/addons/sessions/init/
 ```
 
-**Response (201):**
+**Response, 201:**
 ```json
 {
   "transit_token": "abc123...",
@@ -66,7 +66,7 @@ Content-Type: application/json
 }
 ```
 
-**Response (200):**
+**Response, 200:**
 ```json
 {"status": "ok"}
 ```
@@ -81,12 +81,12 @@ X-CSRFToken: def456...
 Cookie: addonsSid=...
 ```
 
-**While pending (202):**
+**While pending, 202:**
 ```json
 {"state": "pending"}
 ```
 
-**When ready (200):**
+**When ready, 200:**
 ```json
 {
   "state": "authenticated",
@@ -101,5 +101,4 @@ The session is deleted and the cookie cleared after this final read.
 
 ## Implementation reference
 
-- Working example, the Outlook add-in: [`src/addons/outlook/`](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook)
-- Its calls to the session endpoints: [`src/addons/outlook/src/common/api.js`](https://github.com/suitenumerique/meet/blob/main/src/addons/outlook/src/common/api.js)
+The [Outlook add-in](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook) is a working example: [`api.js`](https://github.com/suitenumerique/meet/blob/main/src/addons/outlook/src/common/api.js) holds its calls to the session endpoints.

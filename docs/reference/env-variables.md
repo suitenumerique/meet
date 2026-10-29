@@ -3,8 +3,8 @@
 | Service | Where the variables go |
 |---|---|
 | [Backend](#backend) | `env.d/common` with Docker Compose, `backend.envVars` in the Helm chart |
-| [Summary service](#summary-service) | `env.d/summary`, only if you run transcription |
-| [Agents](#agents) | each agent container's environment, only if you run real-time subtitles or the metadata collector |
+| [Summary service](#summary-service) | `env.d/summary`, with transcription only |
+| [Agents](#agents) | Each agent container's environment, with real-time subtitles or the metadata collector only |
 
 Set `<NAME>_FILE` to a file's path to read a backend secret from that file, the way Docker and Kubernetes mount secrets. It works for every variable holding a single secret, such as `DJANGO_SECRET_KEY`, `DB_PASSWORD` or `OIDC_RP_CLIENT_SECRET`, and the file wins over `<NAME>`.
 
@@ -26,8 +26,6 @@ their switch is set:
 - Meet in another application's iframe: `USER_ACCESS_TOKEN_ENABLED` and the external API
 - the room purge: `ROOM_INACTIVITY_DELETION_DAYS` or `ROOM_DELETED_RETENTION_DAYS`
 
----
-
 ## Backend
 
 ### Core
@@ -35,7 +33,7 @@ their switch is set:
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `DJANGO_SETTINGS_MODULE` | No | `meet.settings` | The only value. `wsgi.py`, `manage.py` and the Celery app set it when it is missing. |
-| `DJANGO_CONFIGURATION` | **Yes** | `Development` | `Production` on a server, `Development` or `Test` locally. If it is unset, the backend falls back to `Development`, which needs development-only packages the published image does not include. |
+| `DJANGO_CONFIGURATION` | **Yes** | `Development` | `Production` on a server, `Development` or `Test` locally. The default needs development-only packages the published image does not include. |
 | `DJANGO_SECRET_KEY` | **Yes** | -- | 50+ character random string for cryptographic signing; [Security](security.md#django-secret-key) shows how to generate it |
 | `DJANGO_ALLOWED_HOSTS` | **Yes** | -- | Comma-separated list of allowed hostnames |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | No | -- | Comma-separated HTTPS origins allowed to send form posts from another domain. Requests from Meet's own domain, through the reverse proxy, need nothing here |
@@ -72,7 +70,7 @@ production.
 | `REDIS_URL` | No | `redis://redis:6379/1` | Full Redis URL used for the Django cache backend |
 | `SESSION_ENGINE` | No | `django.contrib.sessions.backends.cache` | Django session storage backend |
 | `CELERY_ENABLED` | No | `False` | Run async tasks on a Celery worker, which retries a failed email up to five times. Without it, file deletion and recording emails run inline with no retry, and nothing closes a connection-test room whose participant stays past the token TTL. |
-| `CELERY_BROKER_URL` | No | `redis://redis:6379/0` | Redis URL used as Celery message broker. Defaults to the same Redis instance as the session cache. |
+| `CELERY_BROKER_URL` | No | `redis://redis:6379/0` | Redis URL of Celery's message broker |
 | `CELERY_TASK_DEFAULT_QUEUE` | No | `meet-backend` | Default Celery queue name |
 | `CELERY_BROKER_TRANSPORT_OPTIONS` | No | `{}` | Extra options passed to the Celery broker transport, as a JSON dict |
 | `PRESENCE_CACHE_TIMEOUT` | No | `3600` | Seconds a presence entry, which records who is connected to a room, is kept without a refresh |
@@ -96,10 +94,10 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 | `OIDC_RP_SCOPES` | No | `openid email` | Requested OIDC scopes |
 | `OIDC_REDIRECT_REQUIRE_HTTPS` | No | `False` | Require HTTPS for OIDC redirect URIs. **Recommended in production.** |
 | `OIDC_USE_PKCE` | No | `False` | Enable PKCE, Proof Key for Code Exchange. **Recommended in production.** |
-| `OIDC_PKCE_CODE_CHALLENGE_METHOD` | No | `S256` | PKCE challenge method -- `S256` is recommended |
+| `OIDC_PKCE_CODE_CHALLENGE_METHOD` | No | `S256` | PKCE challenge method. Keep the default |
 | `OIDC_PKCE_CODE_VERIFIER_SIZE` | No | `64` | Length of the random PKCE code verifier, from 43 to 128 characters |
 | `OIDC_CREATE_USER` | No | `True` | Automatically create a local user if none exists on first login |
-| `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` | No | `False` | Fallback to matching users by email if `sub` claim doesn't match. Enable only if emails are unique across your provider. |
+| `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` | No | `False` | Fall back to matching users by email when no user has the `sub` the provider sent. Enable only if emails are unique across your provider. |
 | `OIDC_USER_SUB_FIELD_IMMUTABLE` | No | `True` | Prevent the `sub` claim from being changed once set on a user. Disable with care: this exists to stop account takeover via `sub` reassignment. |
 | `OIDC_OP_USER_ENDPOINT_FORMAT` | No | `AUTO` | Format of the userinfo response: `AUTO` to detect it, `JWT` or `JSON` |
 | `OIDC_OP_INTROSPECTION_ENDPOINT` | No | -- | OIDC token introspection URL |
@@ -117,7 +115,7 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 | `OIDC_STORE_ID_TOKEN` | No | `True` | Store the ID token returned by the OIDC provider |
 | `OIDC_REDIRECT_FIELD_NAME` | No | `returnTo` | Query parameter name used for redirect after login |
 | `OIDC_TIMEOUT` | No | `5` | Timeout in seconds for HTTP requests to the OIDC provider |
-| `OIDC_PROXY` | No | -- | Proxy URL used for requests to the OIDC provider, if any |
+| `OIDC_PROXY` | No | -- | Proxy URL used for requests to the OIDC provider |
 
 ### LiveKit
 
@@ -129,7 +127,7 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 | `LIVEKIT_DEFAULT_VIDEO_CODEC` | No | `vp9` | Default video codec. One of `vp8`, `h264`, `vp9`, `av1`. |
 | `LIVEKIT_DEFAULT_SOURCES` | No | `["camera","microphone","screen_share","screen_share_audio"]` | Media sources participants can publish by default |
 | `LIVEKIT_FORCE_WSS_PROTOCOL` | No | `False` | Force WSS protocol in the WebSocket URL returned to clients. Enable for Firefox before 124 and Chrome before 125, where HTTPS URLs in `WebSocket()` may fail. |
-| `LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND` | No | `False` | Workaround for Firefox clients behind proxies that fail to establish WebSocket connections. Pre-establishes a dummy connection to prime the WebSocket. |
+| `LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND` | No | `False` | For Firefox behind proxies where the WebSocket fails to open: opens a throwaway WebSocket first. |
 | `LIVEKIT_VERIFY_SSL` | No | `True` | Verify SSL certificate for LiveKit API calls |
 | `LIVEKIT_API_TIMEOUT_SECONDS` | No | `10` | Seconds the backend waits for a LiveKit API call, including its response, before giving up |
 | `LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX` | No | -- | Regex to filter LiveKit webhook events by room name. Only matching events are processed. |
@@ -137,8 +135,6 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 | `PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS` | No | `["hidden", "recorder", "agent"]` | LiveKit participant permission fields that can never be granted through the API |
 
 ### Rooms and waiting room
-
-Who may join a room is explained in [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -165,7 +161,7 @@ The `purge_inactive_rooms` command deletes rooms for good once one of these is s
 
 ### Email
 
-Needed for recording download links and room invitations. See [Email (SMTP)](../self-hosting/configuration/email.md) for setup.
+Room invitations and recording download links need it, see [Email (SMTP)](../self-hosting/configuration/email.md).
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -194,9 +190,9 @@ Any S3-compatible storage works. Required for recording and custom virtual backg
 | `AWS_S3_ACCESS_KEY_ID` | For recording | -- | S3 access key |
 | `AWS_S3_SECRET_ACCESS_KEY` | For recording | -- | S3 secret key |
 | `AWS_STORAGE_BUCKET_NAME` | No | `meet-media-storage` | S3 bucket for media files |
-| `AWS_S3_REGION_NAME` | No | -- | S3 region. Not set by default; most S3-compatible stores still require some value, e.g. `garage` for the Garage example or your provider's region. |
+| `AWS_S3_REGION_NAME` | No | -- | S3 region. Most S3-compatible stores require one: `garage` for the Garage example, or your provider's region. |
 | `AWS_S3_SIGNATURE_VERSION` | No | `s3v4` | S3 request signature version |
-| `AWS_S3_UPLOAD_POLICY_EXPIRATION` | No | `60` | Expiration, in seconds, of generated upload policies/pre-signed URLs |
+| `AWS_S3_UPLOAD_POLICY_EXPIRATION` | No | `60` | Seconds a signed upload URL stays valid |
 | `AWS_S3_DOMAIN_REPLACE` | No | -- | Replace the storage domain in generated URLs, to serve media through a CDN or a reverse-proxy path instead of the raw S3 endpoint |
 
 ### Recording
@@ -318,7 +314,7 @@ Lets participants upload their own virtual background images, the only kind of u
 
 ### Connection test
 
-Lets participants run a pre-join connectivity check against LiveKit before a real meeting.
+Lets participants check their connection to LiveKit before a meeting.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -358,7 +354,7 @@ These settings control the transit code that signs a user in to Meet inside anot
 
 ### External API (OIDC resource server)
 
-Lets external applications call Meet's [OAuth2 Resource Server API](external-api-resource-server.md) with their own OIDC-issued tokens, separate from the browser login. What the mode needs is in [Resource server](external-api-resource-server.md).
+Lets an application call the external API with the access token its user got from your OIDC provider, separate from the browser login. What the mode needs is in [Resource server](external-api-resource-server.md).
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -392,7 +388,7 @@ Backend support for add-ins embedded in other applications, the Outlook add-in f
 | `ADDONS_TOKEN_SCOPE` | No | `rooms:create` | Scope granted to add-on tokens |
 | `ADDONS_TOKEN_TTL` | No | `7200` | Add-on token lifetime, in seconds |
 | `ADDONS_SESSION_TTL` | No | `3600` | Add-on session lifetime, in seconds |
-| `ADDONS_TRANSIT_TOKEN_TTL` | No | `120` | Lifetime of the short-lived transit token used during the add-on handshake |
+| `ADDONS_TRANSIT_TOKEN_TTL` | No | `120` | Seconds the transit token of the add-on sign-in stays valid |
 
 ### CORS
 
@@ -400,8 +396,8 @@ Standard `django-cors-headers` settings. They govern JavaScript on another domai
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `DJANGO_CORS_ALLOWED_ORIGINS` | No | `[]` | List of origins allowed to make cross-origin requests. Example: `["https://app.example.com"]` |
-| `DJANGO_CORS_ALLOWED_ORIGIN_REGEXES` | No | `[]` | List of regex patterns matching allowed origins |
+| `DJANGO_CORS_ALLOWED_ORIGINS` | No | `[]` | Origins allowed to make cross-origin requests, such as `["https://app.example.com"]` |
+| `DJANGO_CORS_ALLOWED_ORIGIN_REGEXES` | No | `[]` | Regex patterns matching allowed origins |
 | `DJANGO_CORS_ALLOW_ALL_ORIGINS` | No | `False` | Allow all origins. **Do not enable in production**: use `DJANGO_CORS_ALLOWED_ORIGINS` instead. |
 
 ### Logging and monitoring
@@ -449,7 +445,7 @@ Rarely changed: internal names, token claims and lengths. None is required.
 | `DJANGO_STORAGES_STATICFILES_BACKEND` | [Core](#core) | `whitenoise.storage.CompressedManifestStaticFilesStorage` | Django storage class for static files |
 | `DJANGO_SILENCED_SYSTEM_CHECKS` | [Core](#core) | `[]` | Django system check IDs to silence |
 | `DJANGO_SPECTACULAR_SETTINGS_ENABLE_DJANGO_DEPLOY_CHECK` | [Core](#core) | `False` | Run Django's deploy checks while generating the API schema |
-| `CELERY_TASK_ALWAYS_EAGER` | [Celery](#redis-celery-and-presence) | `False` | Run Celery tasks synchronously in-process instead of dispatching them to a worker. Useful for local development without a running worker; do not enable in production. |
+| `CELERY_TASK_ALWAYS_EAGER` | [Celery](#redis-celery-and-presence) | `False` | Run Celery tasks in-process instead of on a worker, for local development without one. Do not enable in production. |
 | `PRESENCE_KEY_PREFIX` | [Presence](#redis-celery-and-presence) | `room_presence` | Redis key prefix for presence state |
 | `LOBBY_KEY_PREFIX` | [Waiting room](#rooms-and-waiting-room) | `room_lobby` | Redis key prefix for lobby state |
 | `LOBBY_NOTIFICATION_TYPE` | [Waiting room](#rooms-and-waiting-room) | `participantWaiting` | LiveKit data channel notification type sent to the room when someone is waiting |
@@ -480,21 +476,15 @@ Rarely changed: internal names, token claims and lengths. None is required.
 | `ADDONS_CACHE_PREFIX_SESSION` | [Add-ons](#add-ons) | `sid` | Redis key prefix for add-on sessions |
 | `ADDONS_CACHE_PREFIX_TRANSIT` | [Add-ons](#add-ons) | `transit` | Redis key prefix for add-on transit tokens |
 
----
-
 ## Summary service
 
 Runs transcription and summaries. See [AI Transcription](../self-hosting/configuration/transcription.md) for setup. Every variable marked **Yes** must be set for the service to start, even with summaries turned off.
 
 ### Tenants
 
-`AUTHORIZED_TENANTS` defines every Meet backend allowed to submit tasks and receive results.
-
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `AUTHORIZED_TENANTS` | **Yes** | -- | JSON array of tenant configs, one per Meet backend. Keep `allowed_push_to_docs` true even with the Docs push off: Meet always sends its Docs settings, and the service answers 400 to a tenant without it. |
-
-A full example is in [Step 1: Summary service environment](../self-hosting/configuration/transcription.md#step-1-summary-service-environment).
+| `AUTHORIZED_TENANTS` | **Yes** | -- | JSON array, one entry per Meet backend allowed to submit tasks and receive results, as in [Step 1: Summary service environment](../self-hosting/configuration/transcription.md#step-1-summary-service-environment). Keep `allowed_push_to_docs` true even with the Docs push off: Meet always sends its Docs settings, and the service answers 400 to a tenant without it. |
 
 ### Storage
 
@@ -575,8 +565,6 @@ A full example is in [Step 1: Summary service environment](../self-hosting/confi
 | `LANGFUSE_PUBLIC_KEY` | If enabled | -- | Langfuse public key |
 | `LANGFUSE_SECRET_KEY` | If enabled | -- | Langfuse secret key |
 | `LANGFUSE_ENVIRONMENT` | No | `development` | Environment name reported to Langfuse |
-
----
 
 ## Agents
 

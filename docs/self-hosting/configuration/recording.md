@@ -2,12 +2,7 @@
 
 Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When a screen recording is complete, the person who started it and the room's owners and co-hosts each receive an email with a download link. How a recording travels from the button to that email is in [How does recording work?](../../overview/how-meet-works.md#recording).
 
-Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). [`RECORDING_MAX_DURATION`](../../reference/env-variables.md#recording) is only the limit users see: set the same limit in LiveKit Egress, which stops the recording. When Egress stops a recording at its limit, Meet saves the file as usual.
-
-**Known limitations:**
-
-- Layout is fixed to LiveKit's `speaker-light`.
-- Shareable links with an embedded video player are not yet supported.
+Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). [`RECORDING_MAX_DURATION`](../../reference/env-variables.md#recording) is only the limit users see: set the same limit in LiveKit Egress, which stops the recording. Meet still saves a recording Egress stopped at its limit.
 
 ## Who can record
 
@@ -27,20 +22,15 @@ Meet copies the room's roles onto the recording when it starts, and later change
 
 Starting a recording is rate-limited per user, as [Rate limiting](../../reference/security.md#rate-limiting) lists.
 
-## Requirements
-
-- A running LiveKit Egress server.
-- S3-compatible object storage. This guide self-hosts [Garage](https://garagehq.deuxfleurs.fr/), but any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVHcloud Object Storage.
-- SMTP, since the download link reaches users by email. See [Email (SMTP)](email.md).
-- The LiveKit webhook to Meet, which tells Meet a recording has finished. The base setup already configures it: see the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core).
-
 ## Setup
+
+Set up [Email (SMTP)](email.md) first: the download link reaches users by email. Meet learns that a recording has finished from the LiveKit [webhook](livekit.md#webhook), which the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core) already configures.
 
 ### Step 1: Object storage
 
-To use an external S3-compatible provider instead of Garage, skip this step and use the provider's endpoint, keys and region in the `AWS_S3_*` variables of Step 3. The bucket stays private: the backend authorizes each download, as Step 4 sets up.
+Any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVHcloud Object Storage. To use one, skip this step and put its endpoint, keys and region in the `AWS_S3_*` variables of Step 3. Keep the bucket private: the backend authorizes each download, as Step 4 sets up.
 
-Garage runs here as a single node with no replication. On its first start it creates its access key and the `meet-media-storage` bucket, and it leaves both untouched on later starts. Garage refuses to start with an access key shorter than 8 characters or a secret key shorter than 16.
+[Garage](https://garagehq.deuxfleurs.fr/) runs here as a single node with no replication. Its first start creates the access key and the `meet-media-storage` bucket, and later starts leave both untouched. Garage refuses to start with an access key under 8 characters or a secret key under 16.
 
 === "Docker Compose"
 
@@ -56,24 +46,19 @@ Garage runs here as a single node with no replication. On its first start it cre
     curl -fsSL -o .env         ${RAW}/docs/examples/garage/.env.example
     ```
 
-    Generate the three secrets and write them into `.env`. Meet uses the access key and the secret key as its S3 keys in Step 3, so note both down:
+    Generate the three secrets and write them into `.env`:
 
     ```bash
     sed -i "s|GARAGE_RPC_SECRET=.*|GARAGE_RPC_SECRET=$(openssl rand -hex 32)|" .env
     sed -i "s|GARAGE_ACCESS_KEY=.*|GARAGE_ACCESS_KEY=$(openssl rand -hex 12)|" .env
     sed -i "s|GARAGE_SECRET_KEY=.*|GARAGE_SECRET_KEY=$(openssl rand -hex 32)|" .env
-    grep -E "GARAGE_(ACCESS|SECRET)_KEY" .env
+    grep -E "GARAGE_(ACCESS|SECRET)_KEY" .env   # note both: Step 3 uses them as Meet's S3 keys
     ```
 
-    The stack joins the Meet stack's `internal` network, named `meet_internal` when the Meet stack is in `~/docker/meet`. If yours has another name, set it as `MEET_INTERNAL_NETWORK` in `.env`. Start Garage:
+    The stack joins the Meet stack's `internal` network, `meet_internal` when Meet runs from `~/docker/meet`. For another name, set `MEET_INTERNAL_NETWORK` in `.env`. Start Garage and check that it created the bucket:
 
     ```bash
     docker compose up -d
-    ```
-
-    Check that Garage created the bucket:
-
-    ```bash
     docker compose exec garage /garage bucket info meet-media-storage
     ```
 
@@ -184,14 +169,14 @@ Garage runs here as a single node with no replication. On its first start it cre
 
 ### Step 2: LiveKit Egress
 
-Create `livekit-egress.yaml`. On Docker Compose, create it in `~/docker/meet`, beside the Meet stack's `compose.yml`:
+Create `livekit-egress.yaml`, in `~/docker/meet` on Docker Compose:
 
 ```yaml
 api_key: meet
 api_secret: <your LiveKit API secret>
 ws_url: ws://livekit:7880
 
-redis:
+redis:                  # required: Egress crashes at start without it
   address: redis:6379
 
 cpu_cost:
@@ -200,10 +185,7 @@ cpu_cost:
   track_cpu_cost: 0.5
 ```
 
-- The `redis` section is mandatory. Egress talks to LiveKit server through Redis, and crashes at start without it.
-- `cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores. See [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers).
-- The file needs no `s3` section. Meet sends the storage settings with every recording request, built from the backend's `AWS_S3_*` variables of Step 3.
-- On Kubernetes, point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`, and set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `myapikey` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes).
+`cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores, see [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers). The file needs no `s3` section: Meet sends the storage settings with every recording request, built from the backend's `AWS_S3_*` variables of Step 3.
 
 === "Docker Compose"
 
@@ -231,7 +213,7 @@ cpu_cost:
 
 === "Kubernetes"
 
-    Egress is not part of the Meet Helm chart. Store the file in a ConfigMap:
+    Egress is not part of the Meet Helm chart. In the file, point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`, and set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `myapikey` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes). Then store it in a ConfigMap:
 
     ```bash
     kubectl -n meet create configmap livekit-egress-config --from-file=livekit-egress.yaml
@@ -336,9 +318,7 @@ Check that recording is enabled: `curl -s https://meet.example.com/api/v1.0/conf
 
 ### Step 4: Route recording downloads
 
-The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy asks the backend's `/api/v1.0/recordings/media-auth/` whether the user may retrieve it, then fetches the file from the storage with the signed headers the backend returns.
-
-The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header the proxy sends to the storage must equal that URL's `host:port`.
+The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy asks the backend's `/api/v1.0/recordings/media-auth/` whether the user may retrieve it, then fetches the file from the storage with the signed headers the backend returns. The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header the proxy sends to the storage must equal that URL's `host:port`.
 
 === "Docker Compose"
 
@@ -386,9 +366,7 @@ The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header th
 
 === "Kubernetes"
 
-    The chart's `ingressMedia` does the same with nginx-ingress auth subrequests. Its annotations work with nginx-ingress only, not with other ingress controllers. `rewrite-target` sends `/media/<path>` to `/<bucket>/<path>` on the storage. `upstream-vhost` sets the `Host` header to the storage's `host:port`, and `serviceMedia` names the same storage.
-
-    The chart's defaults for `serviceMedia.host` and `upstream-vhost` already point at `garage.meet.svc.cluster.local`, the Service of Step 1. With another storage, set both to its address. Add to `values.yaml`:
+    The chart's `ingressMedia` does the same with nginx-ingress auth subrequests, and works with nginx-ingress only. With a storage other than the Garage of Step 1, set `upstream-vhost` and `serviceMedia` to its address. Add to `values.yaml`:
 
     ```yaml
     ingressMedia:
@@ -399,7 +377,9 @@ The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header th
         cert-manager.io/cluster-issuer: letsencrypt-prod
         nginx.ingress.kubernetes.io/auth-url: "https://meet.example.com/api/v1.0/recordings/media-auth/"
         nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
+        # The Host header sent to the storage: its host:port
         nginx.ingress.kubernetes.io/upstream-vhost: "garage.meet.svc.cluster.local:9000"
+        # Sends /media/<path> to /<bucket>/<path> on the storage
         nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/$1
         nginx.ingress.kubernetes.io/configuration-snippet: |
           add_header Content-Security-Policy "default-src 'none'" always;
@@ -439,10 +419,11 @@ Change the default for every recording with `RECORDING_ENCODING_DEFAULT_RESOLUTI
 RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
 RECORDING_ENCODING_DEFAULT_PROFILE=talking_heads
 RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64
+# How finely a player can seek. The default, 0.0, leaves it to the encoder
 RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
 ```
 
-The keyframe interval sets how finely a player can seek in the file. Its default, `0.0`, leaves the choice to the encoder. To let LiveKit pick the whole encoding instead, set either default to an empty value, as [`RECORDING_ENCODING_DEFAULT_RESOLUTION`](../../reference/env-variables.md#recording) describes.
+To let LiveKit pick the whole encoding instead, set either default to an empty value, as [`RECORDING_ENCODING_DEFAULT_RESOLUTION`](../../reference/env-variables.md#recording) describes.
 
 **Letting users choose.** With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, room owners and co-hosts pick the profile and resolution of each recording in the settings dialog's **Recording** tab.
 
@@ -461,7 +442,7 @@ Each profile must have a bitrate for exactly the available resolutions, as [`REC
 - **Screen-share readability.** At 720p, text blurs below about 40 kbit per frame, the bitrate divided by the framerate: `talking_heads` gives 47, `text` 67. For slide-heavy meetings use `text`, and lower the framerate before the bitrate.
 - **Audio.** AAC at 64 kbps stereo is transparent for voice but compresses music noticeably. Keep 128 kbps if meetings include music playback.
 
-## Testing the full recording flow
+## Test it
 
 1. Start a meeting, open **More tools** → **Record**, and click **Start recording the meeting**.
 2. Speak for 30 seconds, then click **Stop recording the meeting**.
@@ -470,3 +451,8 @@ Each profile must have a bitrate for exactly the available resolutions, as [`REC
 5. Check that the email with the download link arrived.
 
 While a recording runs, the [LiveKit CLI](https://github.com/livekit/livekit-cli) lists the active Egress jobs and their state: `lk egress list --url https://livekit.example.com --api-key meet --api-secret <your LiveKit API secret>`.
+
+## What it cannot do
+
+- The video layout is fixed to LiveKit's `speaker-light`.
+- No shareable link with an embedded video player.

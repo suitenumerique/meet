@@ -12,7 +12,7 @@ To reach a recording whose email never left:
 
 ## What to set
 
-Set your SMTP server's host, port, login and sender address with the variables of [Environment Variables: Email](../../reference/env-variables.md#email). On port 587, set `DJANGO_EMAIL_USE_TLS=True` for STARTTLS. On port 465, set `DJANGO_EMAIL_USE_SSL=True` instead.
+Set your SMTP server's host, port, login and sender address with the variables of [Environment Variables: Email](../../reference/env-variables.md#email). On port 587, set `DJANGO_EMAIL_USE_TLS=True` for STARTTLS; on port 465, `DJANGO_EMAIL_USE_SSL=True` instead.
 
 `DJANGO_EMAIL_APP_BASE_URL`, such as `https://meet.example.com`, builds the invitation link. `DJANGO_EMAIL_DOMAIN`, such as `meet.example.com`, is the domain every email shows. The recording link comes from [`RECORDING_DOWNLOAD_BASE_URL`](../../reference/env-variables.md#recording) instead.
 
@@ -20,7 +20,7 @@ With [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presen
 
 ## Docker Compose setup
 
-Set the variables in `env.d/common`, which already holds a commented-out Mail block. Do not set them in `.env`: Compose reads `env.d/common` after it, so a value set in both comes from `env.d/common`. Then recreate the backend and the Celery worker:
+Set the variables in `env.d/common`, which already holds a commented-out Mail block, not in `.env`: Compose reads `env.d/common` last, so its value wins. Then recreate the backend and the Celery worker:
 
 ```bash
 docker compose up -d --force-recreate backend celery
@@ -67,14 +67,11 @@ Send a test email from the backend, with your own address:
 docker compose exec backend python manage.py shell -c "from django.conf import settings; from django.core.mail import send_mail; send_mail('Meet test', 'It works.', settings.EMAIL_FROM, ['you@example.com'])"
 ```
 
-Meet's own failures appear in the backend log as `could not be sent` for recording links, or `were not sent` for invitations:
+Then look for Meet's own failures:
 
 ```bash
+# "could not be sent" is a recording link, "were not sent" an invitation
 docker compose logs backend | grep -E "could not be sent|were not sent"
-```
-
-With `CELERY_ENABLED=True`, a recording email that fails in the worker appears in the worker's log instead, where Celery reports the retries:
-
-```bash
+# With CELERY_ENABLED=True, a recording email fails in the worker, with its retries
 docker compose logs celery | grep -i -E "send_email|retry"
 ```

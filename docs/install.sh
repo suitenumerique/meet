@@ -49,7 +49,7 @@ replace_in() {
 # ── Dependency checks ─────────────────────────────────────────────────────────
 
 check_dep docker
-docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is not available."
+docker compose version >/dev/null 2>&1 || die "The docker compose plugin is not available."
 check_dep openssl
 check_dep curl
 

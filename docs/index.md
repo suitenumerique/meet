@@ -16,14 +16,14 @@ Built on [LiveKit](https://livekit.io/), LaSuite Meet runs HD audio and video ca
 
 ## Features
 
-- **HD audio and video** in the browser, with noise suppression and quality that adapts to each connection
+- **HD audio and video**, with noise suppression and quality that adapts to each connection
 - **Large meetings**, built for more than 100 participants
 - **Several screen shares at once**, each one zoomable
 - **Chat, emoji reactions and raised hands**, kept only with a transcription, see [What is stored where](overview/how-meet-works.md#what-is-stored-where)
 - **Waiting room** and three access levels, so the host decides who comes in
 - **Recording** to S3-compatible storage, with the download link sent by email
-- **Transcription and AI summary** *(beta)*, delivered to [LaSuite Docs](https://github.com/suitenumerique/docs)
-- **Real-time subtitles** *(beta)*
+- **Transcription and AI summary**, in beta, delivered to [LaSuite Docs](https://github.com/suitenumerique/docs)
+- **Real-time subtitles**, in beta
 - **Dial-in by phone** with a PIN
 - **Sign-in through any [OpenID Connect](https://openid.net/developers/how-connect-works/) provider**
 - **Virtual backgrounds**: blur or an image
@@ -70,8 +70,8 @@ Every feature is in the open source code.
 
 | URL | Operator | Access |
 |---|---|---|
-| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/) | DINUM | French central administration (ProConnect required) |
-| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT | French territorial administration (ProConnect required) |
+| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/) | DINUM | French central administration, ProConnect required |
+| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT | French territorial administration, ProConnect required |
 | [visio.lasuite.coop](https://visio.lasuite.coop/) | lasuite.coop | Demo: test accounts from [lasuite.coop](https://lasuite.coop/applications/demo/), deleted after a month |
 | [mosa.cloud](https://mosa.cloud/) | mosa.cloud | Dutch commercial instance |
 | [Clever Cloud](https://www.clever.cloud/product/visio/) | Clever Cloud | Commercial offer, Openvisio |

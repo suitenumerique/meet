@@ -24,8 +24,8 @@ Keep it at 32 characters or more. Anyone holding it can forge tokens for your Li
 
 ### TLS
 
-- The `Production` configuration already sends `Strict-Transport-Security: max-age=60; includeSubDomains; preload`. A reverse proxy adding its own HSTS header on top makes browsers receive two.
-- Disable TLS 1.0/1.1. With nginx-proxy, set `ssl_protocols TLSv1.2 TLSv1.3;` in a custom nginx config. With Traefik, add to your Traefik configuration:
+- Add no HSTS header at the reverse proxy: the `Production` configuration already sends `Strict-Transport-Security: max-age=60; includeSubDomains; preload`, and browsers would receive two.
+- Disable TLS 1.0 and 1.1. With nginx-proxy, set `ssl_protocols TLSv1.2 TLSv1.3;` in a custom nginx config. With Traefik, add to your Traefik configuration:
   ```yaml
   tls:
     options:
@@ -53,7 +53,6 @@ Keep it at 32 characters or more. Anyone holding it can forge tokens for your Li
 
 The Helm chart can meet the `restricted` Pod Security Standard, but sets nothing by default: set it for each component, see [Helm: Security context](../self-hosting/kubernetes/helm.md#security-context-recommended).
 
-
 ## API security
 
 ### CSRF protection
@@ -64,19 +63,16 @@ The Django backend checks CSRF tokens on browser requests that change data. [`DJ
 
 - Who may read, change or delete a room is in the [Backend API](api.md#rooms).
 - A deleted room keeps its link until the [room purge](../self-hosting/configuration/room-purge.md) removes it, so nobody can take it over meanwhile.
-
-`ALLOW_UNREGISTERED_ROOMS` decides what a room code that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
+- `ALLOW_UNREGISTERED_ROOMS` decides what a room code that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
 ### Rate limiting
 
-Only these actions are throttled. Every other endpoint has no limit: set one at your reverse proxy.
+Meet throttles only these actions; limit every other endpoint at your reverse proxy.
 
 | Action | Setting |
 |---|---|
-| Creating a room through `/api/v1.0/rooms/` | [`ROOM_CREATION_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
-| The same, over a day | [`ROOM_CREATION_DAILY_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
-| Starting a recording | [`START_RECORDING_THROTTLE_RATES`](env-variables.md#recording) |
-| The same, over a day | [`START_RECORDING_DAILY_THROTTLE_RATES`](env-variables.md#recording) |
+| Creating a room through `/api/v1.0/rooms/` | [`ROOM_CREATION_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room), and [`ROOM_CREATION_DAILY_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) over a day |
+| Starting a recording | [`START_RECORDING_THROTTLE_RATES`](env-variables.md#recording), and [`START_RECORDING_DAILY_THROTTLE_RATES`](env-variables.md#recording) over a day |
 | Requesting entry from the waiting room | [`REQUEST_ENTRY_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
 | Reading a room creation callback | [`CREATION_CALLBACK_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
 | Starting a connection test | [`CONNECTION_TEST_THROTTLE_RATES`](env-variables.md#connection-test) |
@@ -90,24 +86,15 @@ Only these actions are throttled. Every other endpoint has no limit: set one at 
 
 The backend writes an audit event for each sign-in, each room action made through the external API, each recording action, and each Django admin change, see [Audit logging](../self-hosting/configuration/audit-logging.md).
 
-
 ## Authentication model
-
-### No user passwords in Meet
 
 Users sign in through an external OIDC provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
 
-### LiveKit JWT tokens
-
 Clients join LiveKit with the pass that [What happens when someone joins?](../overview/how-meet-works.md#joining-a-meeting) describes. The backend signs it with `LIVEKIT_API_SECRET`.
-
 
 ## Media encryption
 
-### Transport encryption (DTLS-SRTP)
-
 Media is encrypted in transit with DTLS-SRTP, never end to end, so whoever runs LiveKit can reach it, as [Is it secure?](../overview/how-meet-works.md#security) explains.
-
 
 ## Vulnerabilities
 

@@ -2,7 +2,7 @@
 
 In this mode, your backend exchanges an application's client ID and secret for a short-lived token that acts for one user, named by email.
 
-The token endpoint needs both `EXTERNAL_API_ENABLED=True` and [`APPLICATION_ENABLED=True`](env-variables.md#external-api-applications) on the backend. If either is missing, it returns 404 without saying which one is off.
+The token endpoint needs both `EXTERNAL_API_ENABLED=True` and [`APPLICATION_ENABLED=True`](env-variables.md#external-api-applications) on the backend. If either is missing, it returns 404 without saying which.
 
 ## When to use this mode
 

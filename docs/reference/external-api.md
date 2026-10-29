@@ -91,8 +91,7 @@ A browser blocking third-party cookies drops Meet's session cookie inside the if
 ```
 
 - Append `#transit_code=<code>` to the iframe's URL, within `expires_in` seconds. A code works once.
-- Meet's frontend exchanges it for a token acting as the user for `USER_ACCESS_TOKEN_TTL` seconds.
-- The settings are in [Environment Variables: User access tokens](env-variables.md#user-access-tokens).
+- Meet's frontend exchanges it for a token acting as the user for [`USER_ACCESS_TOKEN_TTL`](env-variables.md#user-access-tokens) seconds.
 
 ## The room object
 

@@ -1,6 +1,6 @@
 # Code tour
 
-[How Meet works](../overview/how-meet-works.md) explains how the parts work together, from joining a meeting to transcription, and [Develop locally](develop.md) how to run them.
+[How Meet works](../overview/how-meet-works.md) explains how the parts work together, and [Develop locally](develop.md) how to run them.
 
 ## TL;DR
 
@@ -173,7 +173,7 @@ LiveKit posts its events to `/api/v1.0/rooms/webhooks-livekit/`, the `webhooks_l
 | `room_finished` | Deletes that rule and clears the room's presence and waiting-room state |
 | `participant_left` | Removes the participant from the presence cache, unless [`PRESENCE_CLEAR_ON_PARTICIPANT_LEFT`](../reference/env-variables.md#redis-celery-and-presence) is off |
 
-Any other event is acknowledged and ignored, and so is every event of a connection-test room or of a room whose name [`LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX`](../reference/env-variables.md#livekit) does not match. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml). The server-side settings are in [Environment variables](../reference/env-variables.md#livekit).
+Any other event is acknowledged and ignored, and so is every event of a connection-test room or of a room whose name [`LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX`](../reference/env-variables.md#livekit) does not match. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml).
 
 ### The frontend side
 
