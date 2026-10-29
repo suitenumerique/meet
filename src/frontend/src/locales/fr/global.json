@@ -27,6 +27,15 @@
   },
   "selected": "sélectionné",
   "submit": "OK",
+  "support": {
+    "buttonLabel": "Contacter l'aide",
+    "openError": "Impossible d'ouvrir le formulaire de contact. Réessayez plus tard.",
+    "sent": {
+      "title": "Message envoyé",
+      "body": "L'équipe support a bien reçu votre message.",
+      "close": "Fermer"
+    }
+  },
   "footer": {
     "links": {
       "legifrance": "legifrance.gouv.fr",

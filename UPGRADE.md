@@ -16,6 +16,13 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Crisp support chat replaced by the La Suite support form
+
+The Crisp chat is gone, the support button, now open the La Suite support form. They are hidden unless these `FRONTEND_SUPPORT` keys are all set.
+The former help links for recording/transcription are now redirecting to the adhoc page in the official documentation
+
+## [v1.35.0]
+
 ### Purging deleted rooms
 
 Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/features/room-purge.md).

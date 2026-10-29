@@ -4,6 +4,7 @@ import { HStack, Stack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
 import { Button, Text } from '@/primitives'
 import { SettingsButton } from '@/features/settings'
+import { SupportButton } from '@/features/support/components/SupportButton'
 import { useUser } from '@/features/auth/api/useUser'
 import { useMatchesRoute } from '@/navigation/useMatchesRoute'
 import { FeedbackBanner } from '@/components/FeedbackBanner'
@@ -153,6 +154,7 @@ export const Header = () => {
           </header>
           <nav>
             <Stack gap={1} direction="row" align="center">
+              <SupportButton />
               {isLoggedIn === false &&
                 !isHome &&
                 !isLegalTerms &&
