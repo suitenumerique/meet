@@ -11,6 +11,7 @@ and this project adheres to
 ### Changed
 
 - ⬆️(summary) update ffmpeg to 8.1.3-r0
+- ✨(frontend) replace the Crisp chat with the La Suite support form
 
 ## [1.36.3] - 2026-10-23
 

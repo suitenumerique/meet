@@ -37,7 +37,7 @@ $ make help
 ---
 
 ## Need Help?
-If you need any assistance or have questions while getting started, feel free to reach out to @lebaudantoine anytime! Antoine is available to help you onboard and guide you through the process. Chat with him @antoine.lebaud:matrix.org, or from the [support hotline](https://go.crisp.chat/chat/embed/?website_id=58ea6697-8eba-4492-bc59-ad6562585041).
+If you need any assistance or have questions while getting started, feel free to reach out to @lebaudantoine anytime! Antoine is available to help you onboard and guide you through the process. Chat with him @antoine.lebaud:matrix.org, or by email at [support-visio@numerique.gouv.fr](mailto:support-visio@numerique.gouv.fr).
 
 ---
 

@@ -26,6 +26,15 @@
   },
   "selected": "geselecteerd",
   "submit": "OK",
+  "support": {
+    "buttonLabel": "Contact ondersteuning",
+    "openError": "Het contactformulier kon niet worden geopend. Probeer het later opnieuw.",
+    "sent": {
+      "title": "Bericht verzonden",
+      "body": "Het supportteam heeft je bericht ontvangen.",
+      "close": "Sluiten"
+    }
+  },
   "footer": {
     "links": {
       "legifrance": "legifrance.gouv.fr",
