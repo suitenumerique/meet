@@ -4,7 +4,9 @@ Meet works with a keyboard alone and with screen readers. It follows the recomme
 
 !!! tip "A guide for your case"
 
-    [Deaf or hard of hearing](guides/deaf-hard-of-hearing.md) · [Blind or low vision](guides/blind-low-vision.md) · [Sign-language interpreter](guides/sign-language-interpreter.md)
+    - [Deaf or hard of hearing](guides/deaf-hard-of-hearing.md)
+    - [Blind or low vision](guides/blind-low-vision.md)
+    - [Sign-language interpreter](guides/sign-language-interpreter.md)
 
 ## Keyboard
 

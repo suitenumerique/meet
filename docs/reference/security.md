@@ -4,7 +4,7 @@
 
 ### Django secret key
 
-Generate [`DJANGO_SECRET_KEY`](env-variables.md#core):
+Generate [`DJANGO_SECRET_KEY`](env-variables.md#DJANGO_SECRET_KEY):
 
 ```bash
 openssl rand -hex 32
@@ -14,7 +14,7 @@ Rotate it immediately if it leaks; rotating it invalidates every active session.
 
 ### LiveKit API secret
 
-Generate [`LIVEKIT_API_SECRET`](env-variables.md#livekit):
+Generate [`LIVEKIT_API_SECRET`](env-variables.md#LIVEKIT_API_SECRET):
 
 ```bash
 openssl rand -hex 32
@@ -57,7 +57,7 @@ The Helm chart can meet the `restricted` Pod Security Standard, but sets nothing
 
 ### CSRF protection
 
-The Django backend checks CSRF tokens on browser requests that change data. [`DJANGO_CSRF_TRUSTED_ORIGINS`](env-variables.md#core) lists the other domains allowed to post.
+The Django backend checks CSRF tokens on browser requests that change data. [`DJANGO_CSRF_TRUSTED_ORIGINS`](env-variables.md#DJANGO_CSRF_TRUSTED_ORIGINS) lists the other domains allowed to post.
 
 ### Object-level permissions
 
@@ -71,15 +71,15 @@ Meet throttles only these actions; limit every other endpoint at your reverse pr
 
 | Action | Setting |
 |---|---|
-| Creating a room through `/api/v1.0/rooms/` | [`ROOM_CREATION_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room), and [`ROOM_CREATION_DAILY_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) over a day |
-| Starting a recording | [`START_RECORDING_THROTTLE_RATES`](env-variables.md#recording), and [`START_RECORDING_DAILY_THROTTLE_RATES`](env-variables.md#recording) over a day |
-| Requesting entry from the waiting room | [`REQUEST_ENTRY_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
-| Reading a room creation callback | [`CREATION_CALLBACK_THROTTLE_RATES`](env-variables.md#rooms-and-waiting-room) |
-| Starting a connection test | [`CONNECTION_TEST_THROTTLE_RATES`](env-variables.md#connection-test) |
-| A Roomkit join | [`ROOMKIT_JOIN_THROTTLE_RATES`](env-variables.md#roomkit-meeting-room-sip-devices) |
-| Exchanging a transit code for a user access token | [`EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES`](env-variables.md#user-access-tokens) |
+| Creating a room through `/api/v1.0/rooms/` | [`ROOM_CREATION_THROTTLE_RATES`](env-variables.md#ROOM_CREATION_THROTTLE_RATES), and [`ROOM_CREATION_DAILY_THROTTLE_RATES`](env-variables.md#ROOM_CREATION_DAILY_THROTTLE_RATES) over a day |
+| Starting a recording | [`START_RECORDING_THROTTLE_RATES`](env-variables.md#START_RECORDING_THROTTLE_RATES), and [`START_RECORDING_DAILY_THROTTLE_RATES`](env-variables.md#START_RECORDING_DAILY_THROTTLE_RATES) over a day |
+| Requesting entry from the waiting room | [`REQUEST_ENTRY_THROTTLE_RATES`](env-variables.md#REQUEST_ENTRY_THROTTLE_RATES) |
+| Reading a room creation callback | [`CREATION_CALLBACK_THROTTLE_RATES`](env-variables.md#CREATION_CALLBACK_THROTTLE_RATES) |
+| Starting a connection test | [`CONNECTION_TEST_THROTTLE_RATES`](env-variables.md#CONNECTION_TEST_THROTTLE_RATES) |
+| A Roomkit join | [`ROOMKIT_JOIN_THROTTLE_RATES`](env-variables.md#ROOMKIT_JOIN_THROTTLE_RATES) |
+| Exchanging a transit code for a user access token | [`EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES`](env-variables.md#EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES) |
 
-- A signed-in caller is counted by account, anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#core) sets. Reading a room creation callback and exchanging a transit code count anonymous callers only.
+- A signed-in caller is counted by account, anyone else by client address, read from `X-Forwarded-For` as [`NUM_PROXIES`](env-variables.md#NUM_PROXIES) sets. Reading a room creation callback and exchanging a transit code count anonymous callers only.
 - An anonymous waiting-room request is counted by participant, not by address, from its second request on.
 
 ### Audit logging
@@ -88,7 +88,7 @@ The backend writes an audit event for each sign-in, each room action made throug
 
 ## Authentication model
 
-Users sign in through an external OIDC provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
+Users sign in through an external [OIDC](https://openid.net/developers/how-connect-works/) provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
 
 Clients join LiveKit with the pass that [What happens when someone joins?](../overview/how-meet-works.md#joining-a-meeting) describes. The backend signs it with `LIVEKIT_API_SECRET`.
 

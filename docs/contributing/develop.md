@@ -9,7 +9,8 @@ The whole stack runs on your machine in Docker Compose, driven by the [`Makefile
 git clone https://github.com/suitenumerique/meet.git && cd meet
 # 2. Build the images, create the database and the demo data, start the stack
 make bootstrap FLUSH_ARGS='--no-input'
-# 3. Run the frontend with hot reload, then open http://localhost:3000 and sign in as meet / meet
+# 3. Run the frontend with hot reload,
+#    then open http://localhost:3000 and sign in as meet / meet
 make frontend-development-install && make run-frontend-development
 # 4. Run every test suite, then every linter
 make test && make lint && make frontend-lint && make frontend-format
@@ -36,7 +37,8 @@ The stack publishes these ports, so they must be free: 3000, 8071, 8080, 8083, 8
 ### First run
 
 ```bash
-make bootstrap FLUSH_ARGS='--no-input'   # once after cloning, and again to start over
+# Once after cloning, and again to start over
+make bootstrap FLUSH_ARGS='--no-input'
 ```
 
 It empties the database, then creates the Django admin and 100 demo users. It keeps the files you already have in `env.d/development/`, and does not install the frontend's npm dependencies on your machine: `make frontend-development-install` does.
@@ -78,8 +80,8 @@ It empties the database, then creates the Django admin and 100 demo users. It ke
 
 | Command | What it does |
 |---|---|
-| `make run-agent-multi-user-transcriber` | Starts the subtitles agent. Enable it with [`ROOM_SUBTITLE_ENABLED`](../reference/env-variables.md#subtitles) in `env.d/development/common`, and give it a speech-to-text provider in `env.d/development/multi_user_transcriber`, see [Subtitles agent](../reference/env-variables.md#subtitles-agent) |
-| `make run-agent-metadata-collector` | Starts the metadata collector, which records who speaks when during a transcription. Enable it with [`METADATA_COLLECTOR_ENABLED`](../reference/env-variables.md#metadata-collector) in `env.d/development/common` |
+| `make run-agent-multi-user-transcriber` | Starts the subtitles agent. Enable it with [`ROOM_SUBTITLE_ENABLED`](../reference/env-variables.md#ROOM_SUBTITLE_ENABLED) in `env.d/development/common`, and give it a speech-to-text provider in `env.d/development/multi_user_transcriber`, see [Subtitles agent](../reference/env-variables.md#subtitles-agent) |
+| `make run-agent-metadata-collector` | Starts the metadata collector, which records who speaks when during a transcription. Enable it with [`METADATA_COLLECTOR_ENABLED`](../reference/env-variables.md#METADATA_COLLECTOR_ENABLED) in `env.d/development/common` |
 | `make run-agents` | Starts both |
 
 After changing either setting, run `make run-backend` so the backend reads the new value.
@@ -112,7 +114,9 @@ Garage keeps recordings, transcripts and summaries in its own format under `data
 
 ## Work on the frontend
 
-The `frontend` container on port 3000 serves a production build of [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend): it shows a change only after `make build-frontend` and `make run`. The settings it reads at runtime come from the backend, under [Frontend](../reference/env-variables.md#frontend). For daily work, start the backend with `make run-backend`, then run the Vite dev server on your machine, which reloads on every save:
+The `frontend` container on port 3000 serves a production build of [`src/frontend`](https://github.com/suitenumerique/meet/tree/main/src/frontend): it shows a change only after `make build-frontend` and `make run`. The settings it reads at runtime come from the backend, under [Frontend](../reference/env-variables.md#frontend).
+
+For daily work, start the backend with `make run-backend`, then run the Vite dev server on your machine, which reloads on every save:
 
 | Command | What it does |
 |---|---|

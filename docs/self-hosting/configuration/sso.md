@@ -2,7 +2,9 @@
 
 Meet signs users in through any [OpenID Connect](https://openid.net/developers/how-connect-works/) (OIDC) provider, in the flow that [Signing in](../../overview/how-meet-works.md#signing-in) shows. Users have no password in Meet: only the Django admin accounts created with `createsuperuser` do.
 
-When a page loads without a Meet session, Meet first tries a silent login, `prompt=none`: a user already signed in at the provider is signed in to Meet without seeing a form. A provider that does not support `prompt=none` needs [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../../reference/env-variables.md#frontend)`=False`.
+When a page loads without a Meet session, Meet first tries a silent login, `prompt=none`: a user already signed in at the provider is signed in to Meet without seeing a form.
+
+A provider that does not support `prompt=none` needs [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../../reference/env-variables.md#FRONTEND_IS_SILENT_LOGIN_ENABLED)`=False`.
 
 Every variable is in [Environment Variables: Authentication](../../reference/env-variables.md#authentication-oidc).
 
@@ -18,7 +20,9 @@ Then give Meet the client ID and secret, and the provider's endpoints.
 
 ## Keycloak
 
-The [Deployment Guide](../compose/deployment-guide.md) runs Keycloak with a realm that already holds this client, and `env.d/common` ships its endpoints, built from your `hosts` file: set only `OIDC_RP_CLIENT_SECRET`. The admin console is at `https://auth.example.com/admin/`.
+The [Deployment Guide](../compose/deployment-guide.md) runs Keycloak with a realm that already holds this client, and `env.d/common` ships its endpoints, built from your `hosts` file.
+
+Its secrets script copies the realm's client secret into `OIDC_RP_CLIENT_SECRET`. The admin console is at `https://auth.example.com/admin/`.
 
 ## Authentik
 
@@ -55,11 +59,13 @@ OIDC_OP_USER_ENDPOINT=https://openidconnect.googleapis.com/v1/userinfo
 OIDC_RP_SCOPES=openid email profile
 ```
 
-Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULLNAME_FIELDS`](../../reference/env-variables.md#authentication-oidc), `given_name` and `usual_name` by default. Google never sends `usual_name`: set `OIDC_USERINFO_FULLNAME_FIELDS=given_name,family_name` to show the full name. Google has no logout endpoint for third parties, so logging out ends the Meet session only.
+Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULLNAME_FIELDS`](../../reference/env-variables.md#OIDC_USERINFO_FULLNAME_FIELDS), `given_name` and `usual_name` by default. Google never sends `usual_name`: set `OIDC_USERINFO_FULLNAME_FIELDS=given_name,family_name` to show the full name.
+
+Google has no logout endpoint for third parties, so logging out ends the Meet session only.
 
 ## Unauthenticated access
 
-[`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#rooms-and-waiting-room) decides what happens when someone opens a room code that no room uses yet:
+[`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#ALLOW_UNREGISTERED_ROOMS) decides what happens when someone opens a room code that no room uses yet:
 
 | `ALLOW_UNREGISTERED_ROOMS` | Opening an unused room code |
 |---|---|
@@ -68,8 +74,8 @@ Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULL
 
 A new room's [access level](../../overview/how-meet-works.md#who-gets-in) comes from its creator or the server:
 
-- A room created in Meet takes the level its creator picked under **Settings → Rooms**; one created through the [external API](../../reference/external-api.md#creating-and-updating-a-room) takes `EXTERNAL_API_DEFAULT_ACCESS_LEVEL`.
-- A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#rooms-and-waiting-room). To make it `trusted`:
+- A room created in Meet takes the level its creator picked under **Settings → Rooms**; one created through the [external API](../../reference/external-api.md#creating-and-updating-a-room) takes [`EXTERNAL_API_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#EXTERNAL_API_DEFAULT_ACCESS_LEVEL).
+- A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#RESOURCE_DEFAULT_ACCESS_LEVEL). To make it `trusted`:
 
 ```dotenv
 RESOURCE_DEFAULT_ACCESS_LEVEL=trusted

@@ -2,7 +2,7 @@
 site_name = "LaSuite Meet Documentation"
 site_url = "https://documentation-meet.beta.numerique.gouv.fr/"
 extra_css = ["stylesheets/extra.css"]
-extra_javascript = ["javascripts/mermaid-zoom.js"]
+extra_javascript = ["javascripts/mermaid-zoom.js", "javascripts/console-copy.js"]
 
 nav = [
   {"Home" = "index.md"},
@@ -69,5 +69,8 @@ nav = [
     {"Pull requests" = "contributing/pull-requests.md"}
   ]}
 ]
+
+[project.theme]
+features = ["content.code.copy"]
 
 [project.plugins.glightbox]

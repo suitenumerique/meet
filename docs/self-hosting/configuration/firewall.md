@@ -44,9 +44,12 @@ The host firewall matters for the ports Docker does not publish, such as LiveKit
 
     ```bash
     sudo ufw allow 7881/tcp
-    sudo ufw allow 7882/udp    # or your port range
-    sudo ufw allow 443/udp     # with TURN over UDP
-    sudo ufw allow 5349/tcp    # with TURN over TLS
+    # 7882/udp, or your port range
+    sudo ufw allow 7882/udp
+    # With TURN over UDP
+    sudo ufw allow 443/udp
+    # With TURN over TLS
+    sudo ufw allow 5349/tcp
     sudo ufw reload
     ```
 
@@ -54,9 +57,12 @@ The host firewall matters for the ports Docker does not publish, such as LiveKit
 
     ```bash
     sudo firewall-cmd --permanent --add-port=7881/tcp
-    sudo firewall-cmd --permanent --add-port=7882/udp    # or your port range
-    sudo firewall-cmd --permanent --add-port=443/udp     # with TURN over UDP
-    sudo firewall-cmd --permanent --add-port=5349/tcp    # with TURN over TLS
+    # 7882/udp, or your port range
+    sudo firewall-cmd --permanent --add-port=7882/udp
+    # With TURN over UDP
+    sudo firewall-cmd --permanent --add-port=443/udp
+    # With TURN over TLS
+    sudo firewall-cmd --permanent --add-port=5349/tcp
     sudo firewall-cmd --reload
     ```
 

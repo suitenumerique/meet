@@ -16,14 +16,18 @@ A proxy outside Docker cannot reach the containers by name: publish each port of
 
 LiveKit's media ports bypass the proxy, see [Firewall & Ports](../configuration/firewall.md).
 
----
-
 ## nginx-proxy or Traefik
 
-Each of these two runs as a small Docker stack of its own: it watches Docker, routes every Meet container that asks for it and gets a Let's Encrypt certificate for each hostname, so you write no proxy configuration. The Quick Start uses nginx-proxy.
+Each of these two runs as a small Docker stack of its own, so you write no proxy configuration. It:
+
+- watches Docker;
+- routes every Meet container that asks for it;
+- gets a Let's Encrypt certificate for each hostname.
+
+The Quick Start uses nginx-proxy.
 
 !!! warning
-    Both read the Docker socket to see the containers. To restrict that access, see [nginx-proxy](https://github.com/nginx-proxy/nginx-proxy/tree/main/docs), [acme-companion](https://github.com/nginx-proxy/acme-companion/tree/main/docs) or [Traefik](https://doc.traefik.io/traefik/).
+    Both read the Docker socket to see the containers. To restrict that access, see [nginx-proxy: Separate Containers](https://github.com/nginx-proxy/nginx-proxy/tree/main/docs#separate-containers) or [Traefik: Docker API Access](https://doc.traefik.io/traefik/reference/install-configuration/providers/docker/#docker-api-access).
 
 ### Step 1: Start the proxy
 
@@ -36,7 +40,7 @@ Create the shared `proxy` network first, as [Before you start](deployment-guide.
 
     RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-    curl -fsSL -o compose.yml  ${RAW}/docs/examples/nginx-proxy/compose.yml
+    curl -fsSL -o compose.yml $RAW/docs/examples/nginx-proxy/compose.yml
     cp ~/docker/hosts .env
     ```
 
@@ -48,7 +52,7 @@ Create the shared `proxy` network first, as [Before you start](deployment-guide.
 
     RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-    curl -fsSL -o compose.yml  ${RAW}/docs/examples/traefik/compose.yml
+    curl -fsSL -o compose.yml $RAW/docs/examples/traefik/compose.yml
     cp ~/docker/hosts .env
     ```
 
@@ -62,7 +66,10 @@ docker compose up -d
 
 ### Step 2: Nothing to edit on Meet's side
 
-Each Meet stack's `docker-compose.override.yml`, which the Deployment Guide downloads, asks the proxy to route it: a `VIRTUAL_HOST` variable for nginx-proxy, a `traefik.enable=true` label for Traefik. With a Traefik of your own, name its entrypoint `websecure` and its certificate resolver `letsencrypt`, as those files expect.
+Each Meet stack's `docker-compose.override.yml`, which the Deployment Guide downloads, asks the proxy to route it: a `VIRTUAL_HOST` variable for nginx-proxy, a `traefik.enable=true` label for Traefik.
+
+!!! note "A Traefik of your own"
+    Name its entrypoint `websecure` and its certificate resolver `letsencrypt`, as those files expect.
 
 Once every stack runs, check the certificates as in the Deployment Guide's [Verify](deployment-guide.md#verify) step.
 

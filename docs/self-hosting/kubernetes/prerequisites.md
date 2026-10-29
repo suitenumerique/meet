@@ -28,13 +28,11 @@ The chart does not install these:
 
 The chart deploys none of these, and managed services suit production. The [Helm Deployment](helm.md) examples use in-cluster hostnames such as `postgresql.meet.svc.cluster.local`: put yours instead.
 
-| Service | Holds | Options |
-|---|---|---|
-| PostgreSQL | Meet's database | OVH DBaaS, AWS RDS, Cloud SQL, Neon |
-| Redis | Celery's queues and LiveKit's state | ElastiCache, Upstash, Aiven |
-| S3-compatible storage | Recordings and uploaded backgrounds | AWS S3, Scaleway Object Storage, OVH Object Storage |
-| SMTP | Sends invitations and recording links | Any SMTP relay |
-| OIDC provider | Signs users in | Keycloak, Dex, Auth0, ProConnect |
+- [PostgreSQL](https://www.postgresql.org/): Meet's database.
+- [Redis](https://redis.io/): Celery's queues and LiveKit's state.
+- [S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html)-compatible storage: [recordings](../configuration/recording.md) and uploaded backgrounds.
+- An [SMTP](https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol) relay: [invitations and recording links](../configuration/email.md).
+- An [OIDC](https://openid.net/developers/how-connect-works/) provider, such as Keycloak: signs users in.
 
 ## Three domain names
 

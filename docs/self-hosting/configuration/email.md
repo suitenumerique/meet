@@ -1,6 +1,6 @@
 # Email (SMTP)
 
-Meet sends email for two things only. Sign-in goes through your OIDC provider and sends none.
+Meet sends email for two things only. Sign-in goes through your [OIDC](https://openid.net/developers/how-connect-works/) provider and sends none.
 
 - **Room invitations**, sent through the API's `POST /api/v1.0/rooms/<id>/invite/`; the interface has no button for them. Without SMTP, the request fails.
 - **A screen recording's download link**, emailed to whoever started the recording and to the room's owners and co-hosts. Without SMTP, the recording is still saved.
@@ -14,9 +14,11 @@ To reach a recording whose email never left:
 
 Set your SMTP server's host, port, login and sender address with the variables of [Environment Variables: Email](../../reference/env-variables.md#email). On port 587, set `DJANGO_EMAIL_USE_TLS=True` for STARTTLS; on port 465, `DJANGO_EMAIL_USE_SSL=True` instead.
 
-`DJANGO_EMAIL_APP_BASE_URL`, such as `https://meet.example.com`, builds the invitation link. `DJANGO_EMAIL_DOMAIN`, such as `meet.example.com`, is the domain every email shows. The recording link comes from [`RECORDING_DOWNLOAD_BASE_URL`](../../reference/env-variables.md#recording) instead.
+- `DJANGO_EMAIL_APP_BASE_URL`, such as `https://meet.example.com`, builds the invitation link.
+- `DJANGO_EMAIL_DOMAIN`, such as `meet.example.com`, is the domain every email shows.
+- The recording link comes from [`RECORDING_DOWNLOAD_BASE_URL`](../../reference/env-variables.md#RECORDING_DOWNLOAD_BASE_URL) instead.
 
-With [`CELERY_ENABLED`](../../reference/env-variables.md#redis-celery-and-presence)`=True`, the Celery worker sends the recording emails and retries a failed delivery, so a slow SMTP server never holds up the backend. Otherwise the backend sends them itself.
+With [`CELERY_ENABLED`](../../reference/env-variables.md#CELERY_ENABLED)`=True`, the Celery worker sends the recording emails and retries a failed delivery, so a slow SMTP server never holds up the backend. Otherwise the backend sends them itself.
 
 ## Docker Compose setup
 
@@ -64,7 +66,11 @@ Set each variable with `scalingo env-set NAME="value"`. [Scalingo's email docume
 Send a test email from the backend, with your own address:
 
 ```bash
-docker compose exec backend python manage.py shell -c "from django.conf import settings; from django.core.mail import send_mail; send_mail('Meet test', 'It works.', settings.EMAIL_FROM, ['you@example.com'])"
+docker compose exec -T backend python manage.py shell <<'EOF'
+from django.conf import settings
+from django.core.mail import send_mail
+send_mail("Meet test", "It works.", settings.EMAIL_FROM, ["you@example.com"])
+EOF
 ```
 
 Then look for Meet's own failures:

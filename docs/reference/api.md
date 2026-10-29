@@ -1,6 +1,8 @@
 # Backend API
 
-The Meet backend exposes a REST API at `/api/v1.0/`, which Meet's own frontend uses. All endpoints use JSON. Another application creating or managing rooms uses the [External API](external-api.md) instead.
+The Meet backend exposes a REST API at `/api/v1.0/`, which Meet's own frontend uses. All endpoints use JSON.
+
+Another application creating or managing rooms uses the [External API](external-api.md) instead.
 
 ## Interactive API Explorer
 
@@ -34,7 +36,9 @@ The token is the `livekit.token` returned by `GET /api/v1.0/rooms/{id}/`. It is 
 Authorization: Bearer <user access token>
 ```
 
-Inside another application's iframe, Meet's frontend uses this token instead of the session, and gets it from `POST /api/v1.0/users/exchange-access-token/`. Every endpoint then acts as the user, with the user's roles. [External API: Signing a user in to an iframe](external-api.md#signing-a-user-in-to-an-iframe) explains how the application starts this.
+Inside another application's iframe, Meet's frontend uses this token instead of the session, and gets it from `POST /api/v1.0/users/exchange-access-token/`. Every endpoint then acts as the user, with the user's roles.
+
+[External API: Signing a user in to an iframe](external-api.md#signing-a-user-in-to-an-iframe) explains how the application starts this.
 
 ## Users
 
@@ -255,7 +259,9 @@ The recording's roles are set when it starts, as [Who can record](../self-hostin
 | `GET` | `/api/v1.0/rooms/{id}/waiting-participants/` | None | A signed-in administrator or owner of the room. In a `trusted` room, also any signed-in user connected to the meeting. A `public` room returns an empty list. |
 | `POST` | `/api/v1.0/rooms/{id}/enter/` | `{"participant_id": "...", "allow_entry": true}` | The same people. A `public` room has no lobby and returns 404. |
 
-Each poll of `request-entry` sends the signed `id` of the first response as `participant_id`, to keep its place in the queue. An id with an invalid signature returns 400. Once a host admits the participant, the response carries a `livekit` token.
+Each poll of `request-entry` sends the signed `id` of the first response as `participant_id`, to keep its place in the queue. An id with an invalid signature returns 400.
+
+Once a host admits the participant, the response carries a `livekit` token.
 
 Both lobby management endpoints refuse a LiveKit room token.
 
@@ -289,7 +295,9 @@ Every file endpoint answers 404 unless `FILE_UPLOAD_ENABLED=True`, and each user
 POST /api/v1.0/diagnostics/connection/
 ```
 
-Open to anyone, signed in or not. Returns a short-lived LiveKit token for a throwaway room, so the browser can test its connection to the media server. Answers 404 unless `CONNECTION_TEST_ENABLED=True`.
+Open to anyone, signed in or not. Returns a short-lived LiveKit token for a throwaway room, so the browser can test its connection to the media server.
+
+Answers 404 unless `CONNECTION_TEST_ENABLED=True`.
 
 ## Internal endpoints
 
@@ -345,4 +353,7 @@ The other errors come in three shapes:
 - Room actions on recording, participants and subtitles return `{"error": "..."}`.
 - The lobby returns `{"message": "..."}`.
 
-The status codes keep their standard meaning. `410` means the room has been deleted. `429` means a [rate limit](security.md#rate-limiting) was hit, and carries a `Retry-After` header.
+The status codes keep their standard meaning. Two to watch for:
+
+- `410`: the room has been deleted.
+- `429`: a [rate limit](security.md#rate-limiting) was hit; the response carries a `Retry-After` header.

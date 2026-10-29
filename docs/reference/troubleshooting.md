@@ -99,11 +99,15 @@ Then restart the frontend container: `docker compose restart frontend`.
 
 ### Login redirects but loops back, or the provider says `Invalid parameter: redirect_uri`
 
-**Cause A**: The redirect URI registered at your OIDC provider differs from the one [Client configuration](../self-hosting/configuration/sso.md#client-configuration) gives, trailing slash included. On Keycloak, fix it under Clients → meet → Settings → Valid redirect URIs.
+**Cause A**: The redirect URI registered at your [OIDC](https://openid.net/developers/how-connect-works/) provider differs from the one [Client configuration](../self-hosting/configuration/sso.md#client-configuration) gives, trailing slash included. On Keycloak, fix it under Clients → meet → Settings → Valid redirect URIs.
 
-**Cause B**: The backend cannot reach the provider for the token exchange: wrong `OIDC_OP_*` URLs, or the provider is down. Check from `~/docker/meet`; it must print `200`:
-```bash
-docker compose exec backend python -c "import urllib.request; print(urllib.request.urlopen('https://auth.example.com/realms/meet').status)"
+**Cause B**: The backend cannot reach the provider for the token exchange: wrong `OIDC_OP_*` URLs, or the provider is down. Check from `~/docker/meet`:
+
+```console
+$ IDP=https://auth.example.com/realms/meet
+$ PY="import urllib.request as u; print(u.urlopen('$IDP').status)"
+$ docker compose exec backend python -c "$PY"
+200
 ```
 
 **Cause C**: `OIDC_RP_CLIENT_SECRET` does not match the client's secret at the provider; the backend log then shows the token exchange refused.
@@ -112,16 +116,18 @@ docker compose exec backend python -c "import urllib.request; print(urllib.reque
 
 ### Disconnected from meeting immediately / "You have left the meeting"
 
-**Cause**, most often: [`LIVEKIT_API_URL`](env-variables.md#livekit) is the Docker-internal address, `http://livekit:7880`, which browsers cannot reach.
+**Cause**, most often: [`LIVEKIT_API_URL`](env-variables.md#LIVEKIT_API_URL) is the Docker-internal address, `http://livekit:7880`, which browsers cannot reach.
 
 **Fix**: Set it to the public HTTPS URL:
 ```dotenv
 LIVEKIT_API_URL=https://livekit.example.com
 ```
 
-Check that the LiveKit subdomain responds:
-```bash
-curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/   # a status code below 400
+Check that the LiveKit subdomain responds; any status below 400 is fine:
+
+```console
+$ curl -s -o /dev/null -w "%{http_code}\n" https://livekit.example.com/
+200
 ```
 
 ### Can join the room but no audio/video
@@ -154,7 +160,13 @@ docker compose exec livekit ls -l /certs/
 
 The button shows only when all of these hold:
 
-- `RECORDING_ENABLE=True` on the backend; `curl https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled` must print `true`.
+- `RECORDING_ENABLE=True` on the backend. Check it, with [jq](https://jqlang.org/):
+
+    ```console
+    $ curl -s https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled
+    true
+    ```
+
 - You may record in this room, as [Who can record](../self-hosting/configuration/recording.md#who-can-record) lists. Anyone else sees **Record** under **More tools** with a **Request** button.
 - Where frontend analytics is configured, the PostHog feature flag for recording is on for you.
 
@@ -167,7 +179,7 @@ The storage variables do not affect the button; they decide whether the file is 
 **Fix**: Check the [`webhook:` block](../self-hosting/configuration/livekit.md#webhook) of `livekit-server.yaml`, which the base install writes:
 
 - its URL is the **public HTTPS** address `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, never an internal one such as `http://backend:8000/...`, which the Production configuration refuses;
-- its `api_key` equals [`LIVEKIT_API_KEY`](env-variables.md#livekit).
+- its `api_key` equals [`LIVEKIT_API_KEY`](env-variables.md#LIVEKIT_API_KEY).
 
 Then recreate LiveKit, `docker compose up -d livekit`, and watch the requests arrive with `docker compose logs -f backend | grep webhooks-livekit`; each one should get a `200` response.
 
@@ -252,13 +264,16 @@ Common causes:
 
 ### Out of disk space
 
-!!!warning
-    `docker system prune` and `docker volume prune` act on the whole Docker host: every project's unused containers, images, volumes and networks go too. Drop `-f` to review the list before confirming.
+!!! warning
+    `docker system prune` and `docker volume prune` act on the whole Docker host: every project's unused containers, images, networks and anonymous volumes go too. Each lists what it removes and asks before deleting.
 
 ```bash
-df -h                    # how full each disk is
-docker system prune -f   # removes unused Docker data, host-wide
-docker volume prune -f   # removes unused volumes, other projects' included
+# How full each disk is
+df -h
+
+# Unused Docker data, host-wide; each asks before deleting
+docker system prune
+docker volume prune
 ```
 
 ## Getting more help

@@ -1,6 +1,8 @@
 # LiveKit & TURN
 
-LiveKit is the media server: every participant sends it their audio and video, and it forwards each stream to the others. The [Deployment Guide](../compose/deployment-guide.md) sets it up from [`livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-server.yaml), which works as shipped. [Firewall & Ports](firewall.md) lists the ports each choice opens.
+LiveKit is the media server: every participant sends it their audio and video, and it forwards each stream to the others.
+
+The [Deployment Guide](../compose/deployment-guide.md) sets it up from [`livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-server.yaml), which works as shipped. [Firewall & Ports](firewall.md) lists the ports each choice opens.
 
 ## How media connects
 
@@ -21,14 +23,17 @@ A participant whose network allows none of these still joins, since signalling w
 
 ## The media port
 
-`udp_port: 7882` in `livekit-server.yaml` sends every participant's media through that one UDP port. The other form is a wide port range. Set one, never both: once a range is set, `udp_port` has no effect.
+`udp_port: 7882` in `livekit-server.yaml` sends every participant's media through that one UDP port. The other form is a wide port range.
+
+Set one, never both: once a range is set, `udp_port` has no effect.
 
 === "One port, or a few (default)"
 
     ```yaml
     rtc:
       tcp_port: 7881
-      udp_port: 7882        # or a small range, e.g. 7882-7885
+      # Or a small range, e.g. 7882-7885
+      udp_port: 7882
       use_external_ip: true
     ```
 
@@ -44,15 +49,19 @@ A participant whose network allows none of these still joins, since signalling w
       use_external_ip: true
     ```
 
-    LiveKit gives each connection its own port from the range. A range opens far more ports to the internet, so use it only when several LiveKit processes share one host. In `compose.yml`, replace `"7882:7882/udp"` with `"50000-60000:50000-60000/udp"`.
+    LiveKit gives each connection its own port from the range. A range opens far more ports to the internet, so use it only when several LiveKit processes share one host.
+
+    In `compose.yml`, replace `"7882:7882/udp"` with `"50000-60000:50000-60000/udp"`.
 
 On Kubernetes, the chart serves the media ports from the node itself, see [Helm: LiveKit media ports](../kubernetes/helm.md#livekit-media-ports).
 
 ## `use_external_ip`
 
-`use_external_ip: true`, set in the example file, makes LiveKit learn its public IP at startup from a public [STUN](../../overview/how-meet-works.md#key-concepts) server, and announce it to browsers. A host whose public IP is not on its network interface needs it: AWS, GCP, Azure, any host behind NAT. Elsewhere it does no harm.
+`use_external_ip: true`, set in the example file, makes LiveKit learn its public IP at startup from a public [STUN](../../overview/how-meet-works.md#key-concepts) server, and announce it to browsers.
 
-Unless `stun_servers` under `rtc:` names others, LiveKit [asks](https://github.com/livekit/mediatransportutil/blob/master/pkg/rtcconfig/ip.go#L35-L40) Twilio's and Google's STUN servers, so the server needs outbound UDP to `global.stun.twilio.com:3478` and `stun.l.google.com:19302`.
+A host whose public IP is not on its network interface needs it: AWS, GCP, Azure, any host behind NAT. Elsewhere it does no harm.
+
+Unless `stun_servers` under `rtc:` names others, LiveKit [asks](https://github.com/livekit/mediatransportutil/blob/725c5cc4266dbe7e69a01adbaba5a884c7fc09c9/pkg/rtcconfig/config.go#L38-L40) Twilio's and Google's STUN servers, so the server needs outbound UDP to `global.stun.twilio.com:3478` and `stun.l.google.com:19302`.
 
 ## TURN
 
@@ -76,7 +85,8 @@ Many networks let UDP through on 443, because HTTP/3 uses it. LiveKit takes 443/
     turn:
       enabled: true
       udp_port: 443
-      domain: livekit.example.com   # the relay address LiveKit gives browsers
+      # The relay address LiveKit gives browsers
+      domain: livekit.example.com
     ```
 
 2. In the `livekit` service of `compose.yml`, add `- "443:443/udp"` under `ports:`.
@@ -110,14 +120,19 @@ LiveKit terminates this TLS itself, so it needs the certificate and key for `liv
           - ./livekit-server.yaml:/config.yaml:ro
           - nginx-proxy_certs:/certs:ro
 
-    volumes:                # merge with the file's existing top-level volumes
+    # Merge with the file's existing top-level volumes
+    volumes:
       nginx-proxy_certs:
         external: true
     ```
 
 === "Traefik"
 
-    Traefik keeps its certificates inside `~/docker/traefik/acme.json`. Extract the `livekit.example.com` certificate and key to files on a schedule, so they follow each renewal, for example with [traefik-certs-dumper](https://github.com/ldez/traefik-certs-dumper). Mount their directory into LiveKit at `/certs`, and point `cert_file` and `key_file` of the `turn:` block at the names the tool writes.
+    Traefik keeps its certificates inside `~/docker/traefik/acme.json`. To use them:
+
+    1. Extract the `livekit.example.com` certificate and key to files on a schedule, so they follow each renewal, for example with [traefik-certs-dumper](https://github.com/ldez/traefik-certs-dumper).
+    2. Mount their directory into LiveKit at `/certs`.
+    3. Point `cert_file` and `key_file` of the `turn:` block at the names the tool writes.
 
 Then add the TLS settings to the `turn:` block, open 5349/TCP, and apply with `docker compose up -d livekit`:
 
@@ -131,7 +146,9 @@ turn:
   key_file: /certs/livekit.example.com.key
 ```
 
-LiveKit reads the certificate only at startup, so restart it after each Let's Encrypt renewal, about every 60 days. A restart drops the calls in progress, so run it at a quiet hour, from a weekly cron job for instance:
+LiveKit reads the certificate only at startup, so restart it after each Let's Encrypt renewal, about every 60 days.
+
+A restart drops the calls in progress, so run it at a quiet hour, from a weekly cron job for instance:
 
 ```bash
 0 3 * * 0 docker compose -f ~/docker/meet/compose.yml restart livekit
@@ -153,16 +170,18 @@ rtc:
 
 ## Webhook
 
-LiveKit reports each room event to Meet over the [webhook](../../overview/how-meet-works.md#key-concepts). The `webhook:` block of `livekit-server.yaml` sends them to `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, and its `api_key` must equal [`LIVEKIT_API_KEY`](../../reference/env-variables.md#livekit).
+LiveKit reports each room event to Meet over the [webhook](../../overview/how-meet-works.md#key-concepts). The `webhook:` block of `livekit-server.yaml` sends them to `https://meet.example.com/api/v1.0/rooms/webhooks-livekit/`, and its `api_key` must equal [`LIVEKIT_API_KEY`](../../reference/env-variables.md#LIVEKIT_API_KEY).
 
 ## Check it works
 
 Once the stack is up:
 
-```bash
-curl -s -o /dev/null -w "%{http_code}" https://livekit.example.com/   # prints 200
-docker compose logs livekit --tail=30                                 # shows no error
+```console
+$ curl -s -o /dev/null -w "%{http_code}\n" https://livekit.example.com/
+200
 ```
+
+The logs, `docker compose logs livekit --tail=30`, should show no `ERROR` line.
 
 Then join a meeting from two devices and check that both hear and see each other. If they cannot, see [No audio or video](../../reference/troubleshooting.md#can-join-the-room-but-no-audiovideo).
 

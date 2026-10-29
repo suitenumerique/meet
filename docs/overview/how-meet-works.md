@@ -2,7 +2,11 @@
 
 ## TL;DR
 
-Meet is a [Django](https://www.djangoproject.com/) backend and a [React](https://react.dev/) frontend built around [LiveKit](https://livekit.io/), an [SFU](#key-concepts): a media server that receives each participant's audio and video once, over [WebRTC](https://webrtc.org/), and forwards it to everyone else without mixing it, at the quality each viewer's connection holds. The backend decides who may join a room and hands the browser a signed pass; from then on, the browser talks to LiveKit directly. Recording, transcription, live subtitles and phone dial-in are optional services beside that core.
+Meet is a [Django](https://www.djangoproject.com/) backend and a [React](https://react.dev/) frontend built around [LiveKit](https://livekit.io/), an [SFU](#key-concepts): a media server that receives each participant's audio and video once, over [WebRTC](https://webrtc.org/), and forwards it to everyone else without mixing it, at the quality each viewer's connection holds.
+
+The backend decides who may join a room and hands the browser a signed pass; from then on, the browser talks to LiveKit directly.
+
+Recording, transcription, live subtitles and phone dial-in are optional services beside that core.
 
 ```mermaid
 graph LR
@@ -43,7 +47,7 @@ Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firew
 | Piece | What it does |
 |---|---|
 | 🖥️ Frontend | The interface in your browser. Talks to the backend over REST and to LiveKit directly for audio and video. |
-| ⚙️ Backend | Signs users in, creates rooms, decides who joins, mints the LiveKit pass, starts and stops recordings, receives LiveKit's webhooks, writes the audit log. An optional [Celery](https://docs.celeryq.dev/) worker runs its background tasks, see [`CELERY_ENABLED`](../reference/env-variables.md#redis-celery-and-presence) |
+| ⚙️ Backend | Signs users in, creates rooms, decides who joins, mints the LiveKit pass, starts and stops recordings, receives LiveKit's webhooks, writes the audit log. An optional [Celery](https://docs.celeryq.dev/) worker runs its background tasks, see [`CELERY_ENABLED`](../reference/env-variables.md#CELERY_ENABLED) |
 | 🎥 LiveKit Server | Forwards each participant's audio and video to the others, carries the signalling, and has a TURN relay built in |
 | ⏺️ LiveKit Egress, optional | Records a meeting to a file in S3 storage, when the backend asks |
 | 📞 LiveKit SIP, optional | Bridges phone calls into meetings through a SIP trunk |
@@ -74,7 +78,7 @@ Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firew
 | Accounts, rooms and their roles, recording entries, uploaded-file entries, registered applications | PostgreSQL | Until deleted. Deleted rooms, and rooms nobody starts any more, go when the [room purge](../self-hosting/configuration/room-purge.md) removes them; it is off by default |
 | Sessions, waiting-room requests, which signed-in participants are in a meeting | Redis | They expire on their own: a session after 12 hours, an admission after 6 hours, presence after an hour |
 | Audio, video, screen shares, reactions, and chat outside a transcription | Nowhere: LiveKit forwards them live and keeps nothing | Gone when sent |
-| Recordings | S3 storage, under `recordings/` | Meet never deletes them. [`RECORDING_EXPIRATION_DAYS`](../reference/env-variables.md#recording) only marks them expired; a lifecycle rule on the bucket deletes the files |
+| Recordings | S3 storage, under `recordings/` | Meet never deletes them. [`RECORDING_EXPIRATION_DAYS`](../reference/env-variables.md#RECORDING_EXPIRATION_DAYS) only marks them expired; a lifecycle rule on the bucket deletes the files |
 | Transcripts, as JSON | S3 storage, under `transcripts/` | Meet never deletes them; set a bucket rule |
 | Who spoke when, connections and chat during a transcription, from the metadata collector | S3 storage, under `metadata/` | Meet never deletes them; set a bucket rule |
 | Uploaded background images | S3 storage, under `files/` | A deleted image is removed 7 days later by the `purge_deleted_files` command, which the Helm chart runs nightly; on Docker Compose, schedule it yourself |
@@ -103,11 +107,15 @@ A meeting lives at a room code, such as `meet.example.com/abc-defg-hij`. When yo
 - It names you, the room and what you may publish: microphone, camera, screen share.
 - It stays valid for 6 hours.
 
-If you may not walk straight in, you go through the [waiting room](#who-gets-in) first. With the pass, the browser opens a WebSocket to LiveKit and starts sending and receiving audio and video. Sign-in decides who you *are*; the pass decides what you may *do* in the room.
+If you may not walk straight in, you go through the [waiting room](#who-gets-in) first. With the pass, the browser opens a WebSocket to LiveKit and starts sending and receiving audio and video.
+
+Sign-in decides who you *are*; the pass decides what you may *do* in the room.
 
 ### Signing in { #signing-in }
 
-Users have no password in Meet; only the Django admin accounts do. Meet hands sign-in to any [OpenID Connect](https://openid.net/developers/how-connect-works/) provider, such as [Keycloak](https://www.keycloak.org/), [Authentik](https://goauthentik.io/), Google or [ProConnect](https://www.proconnect.gouv.fr/), and keeps a session cookie once the provider confirms who you are. Setup is in [SSO & Authentication](../self-hosting/configuration/sso.md).
+Users have no password in Meet; only the Django admin accounts do.
+
+Meet hands sign-in to any [OpenID Connect](https://openid.net/developers/how-connect-works/) provider, such as [Keycloak](https://www.keycloak.org/), [Authentik](https://goauthentik.io/), Google or [ProConnect](https://www.proconnect.gouv.fr/), and keeps a session cookie once the provider confirms who you are. Setup is in [SSO & Authentication](../self-hosting/configuration/sso.md).
 
 ```mermaid
 sequenceDiagram
@@ -136,7 +144,9 @@ Once you are in, each kind of traffic takes its own road:
 
 ### Getting through firewalls { #firewalls }
 
-Signalling reaches LiveKit through your reverse proxy on port 443, like any web page. Media then takes the best path the participant's network allows, in the order that [How media connects](../self-hosting/configuration/livekit.md#how-media-connects) lists. [TURN](../self-hosting/configuration/livekit.md#turn) says when a relay is worth it.
+Signalling reaches LiveKit through your reverse proxy on port 443, like any web page.
+
+Media then takes the best path the participant's network allows, in the order that [How media connects](../self-hosting/configuration/livekit.md#how-media-connects) lists. [TURN](../self-hosting/configuration/livekit.md#turn) says when a relay is worth it.
 
 ## Who can do what? { #who-gets-in }
 
@@ -173,7 +183,9 @@ sequenceDiagram
 - The browser gives up after 10 minutes without an answer.
 - Who may admit is in [Permissions](../user/features-controls.md#permissions).
 
-Inside the meeting, the host settings can stop participants from using their microphone, camera or screen share, or from muting others. Those that limit publishing reach LiveKit as each person's publishing rights: in the pass for newcomers, and as an update for people already in.
+Inside the meeting, the host settings can stop participants from using their microphone, camera or screen share, or from muting others.
+
+Those that limit publishing reach LiveKit as each person's publishing rights: in the pass for newcomers, and as an update for people already in.
 
 A room code that matches no room still opens a meeting, with no owner and open to anyone, unless your server turns that off; see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
@@ -207,7 +219,9 @@ What the person recording sees is in [Recording & Transcription](../user/recordi
 
 ## How do transcription and the summary work? { #transcription-and-summary }
 
-A transcription starts like a recording, and Egress records only the audio unless **Also start a video recording** is ticked. Once the file is in storage, the backend hands it to the summary service, whose workers take it from there:
+A transcription starts like a recording, and Egress records only the audio unless **Also start a video recording** is ticked.
+
+Once the file is in storage, the backend hands it to the summary service, whose workers take it from there:
 
 - The first turns the speech into text through a [WhisperX](https://github.com/suitenumerique/meet-whisperx) API, names the speakers where the metadata collector ran, and writes the transcript to LaSuite Docs.
 - The second asks a language model for a summary, where your server turns summaries on.
@@ -270,11 +284,19 @@ sequenceDiagram
     BE->>LK: Delete the rule
 ```
 
-Meeting-room video systems dial in over SIP the same way, through Roomkit. For them, LiveKit SIP asks the backend which room the PIN belongs to, and the backend creates the rule on the spot, so they can open an empty meeting. Setup is in [Telephony](../self-hosting/configuration/telephony.md).
+Meeting-room video systems dial in over SIP the same way, through Roomkit. For them, LiveKit SIP asks the backend which room the PIN belongs to, and the backend creates the rule on the spot, so they can open an empty meeting.
+
+Setup is in [Telephony](../self-hosting/configuration/telephony.md).
 
 ## What happens when a meeting ends? { #when-the-meeting-ends }
 
-Leaving never ends the meeting for the others: Meet has no "end for all". Shortly after the last person leaves, LiveKit closes the meeting and tells the backend, which clears the waiting room, its record of who was present, and the phone PIN rule.
+Leaving never ends the meeting for the others: Meet has no "end for all".
+
+Shortly after the last person leaves, LiveKit closes the meeting and tells the backend, which clears:
+
+- the waiting room;
+- its record of who was present;
+- the phone PIN rule.
 
 Deleting a room is different: only its owner can, through the API, and that ends any meeting in it at once. Its link then says the room was deleted, until the [room purge](../self-hosting/configuration/room-purge.md) removes it for good.
 

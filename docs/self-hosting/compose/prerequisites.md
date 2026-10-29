@@ -15,11 +15,12 @@ Any Linux that runs Docker Engine, with the [ports](../configuration/firewall.md
 
 ## Docker
 
-Install Docker Engine, not Docker Desktop:
+[Install Docker Engine](https://docs.docker.com/engine/install/), not Docker Desktop, for example with its install script:
 
 ```bash
 curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER   # run docker without sudo
+# Run docker without sudo
+sudo usermod -aG docker $USER
 # Log out and back in, then check that Compose answers
 docker compose version
 ```

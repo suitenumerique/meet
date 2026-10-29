@@ -4,7 +4,9 @@
 
 ### Do I need to install anything?
 
-No. Meet runs in a recent Chrome, Firefox, Safari or Edge, on a computer or a phone, with the differences listed in [Browser support](user/features-controls.md#browser-support). A mobile app in beta, not officially supported, is at [github.com/mmaudet/visio-mobile](https://github.com/mmaudet/visio-mobile).
+No. Meet runs in a recent Chrome, Firefox, Safari or Edge, on a computer or a phone, with the differences listed in [Browser support](user/features-controls.md#browser-support).
+
+A mobile app in beta, not officially supported, is at [github.com/mmaudet/visio-mobile](https://github.com/mmaudet/visio-mobile).
 
 ### Do I need an account?
 
@@ -21,11 +23,15 @@ Yes: **Create a meeting** → **Create a meeting for a later date**, then send t
 
 ### Is Meet accessible?
 
-It works with a keyboard alone and with screen readers, see [Accessibility & Shortcuts](user/accessibility.md). There are guides for [deaf or hard-of-hearing](user/guides/deaf-hard-of-hearing.md) and [blind or low-vision](user/guides/blind-low-vision.md) participants, and for [sign-language interpreters](user/guides/sign-language-interpreter.md).
+It works with a keyboard alone and with screen readers, see [Accessibility & Shortcuts](user/accessibility.md). Guides:
+
+- [Deaf or hard of hearing](user/guides/deaf-hard-of-hearing.md)
+- [Blind or low vision](user/guides/blind-low-vision.md)
+- [Sign-language interpreter](user/guides/sign-language-interpreter.md)
 
 ### Why does the link say the meeting has been deleted?
 
-Its owner deleted the room, see [Deleted rooms](user/features-controls.md#deleted-rooms). Ask them for a new link.
+Its host deleted the room, see [Deleted rooms](user/features-controls.md#deleted-rooms). Ask them for a new link.
 
 ### Why am I stuck in the waiting room?
 
@@ -41,7 +47,7 @@ Someone already in the meeting has to admit you. [Permissions](user/features-con
 ### My microphone or camera does not work
 
 1. Allow the browser to use them, from the site settings in its address bar
-2. Pick the right device in **Settings → Audio** or **Settings → Video**
+2. Pick the right device in **More Options** → **Settings** → **Audio** or **Video**
 3. Close any other application using the device, then reload the page
 
 ### My audio echoes
@@ -68,19 +74,21 @@ Phones cannot share their screen, see [Browser support](user/features-controls.m
 
 Your name is in **More Options** → **Settings** → **Profile**. Blur and background images are under [Backgrounds and effects](user/features-controls.md#more-in-the-call).
 
-### How do I make someone else host?
+### How do I make someone a co-host?
 
 In **See everyone**, open the menu beside their name and click **Make co-host**. Only a signed-in participant can be made co-host, see [Roles](user/features-controls.md#roles).
 
 ### How do I remove someone, and keep them out?
 
-In **See everyone**, open the menu beside their name and click **Remove from the call**: it disconnects them but does not stop them coming back. To keep them out, set the room to **Restricted** and deny their request; a current or former co-host still gets in. See [Hosting a large meeting](user/guides/large-meeting-host.md#remove-someone).
+In **See everyone**, open the menu beside their name and click **Remove from the call**: it disconnects them but does not stop them coming back.
+
+To keep them out, set the room to **Restricted** and deny their request; a current or former co-host still gets in. See [Hosting a large meeting](user/guides/large-meeting-host.md#remove-someone).
 
 ## Recording and transcription
 
 ### Who gets the recording, and for how long?
 
-- Whoever started it, and the room's owner and co-hosts, see [Recording](user/recording.md#recording). Whoever runs your Meet server can also reach the file.
+- Whoever started it, and the room's host and co-hosts, see [Recording](user/recording.md#recording). Whoever runs your Meet server can also reach the file.
 - How long it is kept is up to whoever runs your Meet server, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
 
 ### Why don't I see the recording or transcription buttons?
@@ -102,7 +110,7 @@ No, unless a transcription is running and your Meet server saves the chat with i
 
 ### Can I run my own instance?
 
-Yes, with your own LiveKit media server beside it and any standard [OpenID Connect](https://openid.net/developers/how-connect-works/) provider for sign-in. See [Self-Hosting](self-hosting/index.md).
+Yes, with your own [LiveKit](https://livekit.io/) media server beside it and any standard [OpenID Connect](https://openid.net/developers/how-connect-works/) provider for sign-in. See [Self-Hosting](self-hosting/index.md).
 
 ### How do I contribute or report a bug?
 

@@ -1,8 +1,10 @@
 # AI Transcription
 
-AI transcription, in beta, turns a meeting's speech into a [LaSuite Docs](https://github.com/suitenumerique/docs) document owned by the person who started the transcription. Meet sends the recording to the summary service, which transcribes it, as [How do transcription and the summary work?](../../overview/how-meet-works.md#transcription-and-summary) shows.
+AI transcription, in beta, turns a meeting's speech into a [LaSuite Docs](https://github.com/suitenumerique/docs) document owned by the person who started the transcription.
 
-The people who [can record](recording.md#who-can-record) can also start a transcription, or add one to a screen recording. With `FRONTEND_ANALYTICS` set, only users with the PostHog feature flag `transcription-summary` can start one.
+Meet sends the recording to the summary service, which transcribes it, as [How do transcription and the summary work?](../../overview/how-meet-works.md#transcription-and-summary) shows.
+
+The people who [can record](recording.md#who-can-record) can also start a transcription, or add one to a screen recording. With `FRONTEND_ANALYTICS` set, only users with the [PostHog](https://posthog.com/docs/feature-flags) feature flag `transcription-summary` can start one.
 
 Every variable and its default is in the Environment Variables reference: the backend side under [Transcription](../../reference/env-variables.md#transcription), the summary service under [Summary service](../../reference/env-variables.md#summary-service).
 
@@ -14,7 +16,7 @@ Every variable and its default is in the Environment Variables reference: the ba
 - **LaSuite Docs, to deliver the transcript.** Set `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, `LASUITE_DOCS_BASE_URL` and `LASUITE_DOCS_SERVER_TO_SERVER_API_KEY` in the summary service's environment, see [LaSuite Docs](../../reference/env-variables.md#lasuite-docs). Without `IS_LASUITE_DOCS_INTEGRATION_ENABLED`, the transcript stays under `transcripts/` in the bucket and reaches no user.
 - **`"allowed_push_to_docs": true` on each tenant** in `AUTHORIZED_TENANTS`, even with the push off: Meet always sends its Docs settings, and the summary service returns 400 to a tenant without the flag.
 
-The summary service rejects a transcription whose language is outside [`WHISPERX_ALLOWED_LANGUAGES`](../../reference/env-variables.md#speech-to-text-whisperx).
+The summary service rejects a transcription whose language is outside [`WHISPERX_ALLOWED_LANGUAGES`](../../reference/env-variables.md#WHISPERX_ALLOWED_LANGUAGES).
 
 ## Setup
 
@@ -22,11 +24,13 @@ The summary service rejects a transcription whose language is outside [`WHISPERX
 
 The summary service and its Celery workers take the same environment. The summary service fetches each recording through a link the backend signs, and writes transcripts and summaries to the backend's bucket, with the backend's keys and region:
 
-- It picks HTTP or HTTPS from [`AWS_S3_SECURE_ACCESS`](../../reference/env-variables.md#storage): set it to `False` for the plain-HTTP Garage of the Recording guide.
+- It picks HTTP or HTTPS from [`AWS_S3_SECURE_ACCESS`](../../reference/env-variables.md#AWS_S3_SECURE_ACCESS): set it to `False` for the plain-HTTP Garage of the Recording guide.
 - It signs every request for `AWS_S3_REGION_NAME`. Its signed links to transcripts and summaries are path-style, `<endpoint>/<bucket>/<key>`, so the storage must serve that form.
 - Storage built on Google Cloud Storage refuses the checksums that boto3, the AWS SDK for Python, sends by default. There, set `AWS_S3_REQUEST_CHECKSUM_CALCULATION` and `AWS_S3_RESPONSE_CHECKSUM_VALIDATION` to `when_required`.
 
-`AUTHORIZED_TENANTS` is a JSON array with one entry per Meet backend allowed to submit tasks. The `api_key` authenticates the backend's requests to the summary service, and the `webhook_api_key` authenticates the summary service's callbacks to Meet. Use a separate strong secret for each, for example from `openssl rand -hex 32`.
+`AUTHORIZED_TENANTS` is a JSON array with one entry per Meet backend allowed to submit tasks.
+
+The `api_key` authenticates the backend's requests to the summary service, and the `webhook_api_key` authenticates the summary service's callbacks to Meet. Use a separate strong secret for each, for example from `openssl rand -hex 32`.
 
 === "Docker Compose"
 
@@ -46,7 +50,13 @@ The summary service and its Celery workers take the same environment. The summar
     AWS_S3_SECURE_ACCESS=False
 
     # Meet backends allowed to submit tasks
-    AUTHORIZED_TENANTS='[{"id":"meet","api_key":"<generate-a-strong-secret>","webhook_url":"https://meet.example.com/api/v1.0/recordings/external-process-hook/","webhook_api_key":"<generate-a-strong-secret>","allowed_push_to_docs":true}]'
+    AUTHORIZED_TENANTS='[{
+      "id": "meet",
+      "api_key": "<generate-a-strong-secret>",
+      "webhook_url": "https://meet.example.com/api/v1.0/recordings/external-process-hook/",
+      "webhook_api_key": "<generate-a-strong-secret>",
+      "allowed_push_to_docs": true
+    }]'
 
     # WhisperX API
     WHISPERX_BASE_URL=http://whisperx:8000/v1
@@ -81,7 +91,14 @@ The summary service and its Celery workers take the same environment. The summar
         AWS_S3_REGION_NAME: "garage"
         AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
         AWS_S3_SECURE_ACCESS: "False"
-        AUTHORIZED_TENANTS: '[{"id":"meet","api_key":"<generate-a-strong-secret>","webhook_url":"https://meet.example.com/api/v1.0/recordings/external-process-hook/","webhook_api_key":"<generate-a-strong-secret>","allowed_push_to_docs":true}]'
+        AUTHORIZED_TENANTS: |
+          [{
+            "id": "meet",
+            "api_key": "<generate-a-strong-secret>",
+            "webhook_url": "https://meet.example.com/api/v1.0/recordings/external-process-hook/",
+            "webhook_api_key": "<generate-a-strong-secret>",
+            "allowed_push_to_docs": true
+          }]
         WHISPERX_BASE_URL: "http://whisperx:8000/v1"
         WHISPERX_ASR_MODEL: "large-v3"
         WHISPERX_API_KEY: "your-api-key"
@@ -97,13 +114,15 @@ The summary service and its Celery workers take the same environment. The summar
     Add the summary service's own Redis, its API and one worker per queue to the Meet stack's `compose.yml`, under `services:`:
 
     ```yaml
-      redis-summary:              # the Celery broker
+      # The Celery broker
+      redis-summary:
         image: redis:7
         restart: unless-stopped
         networks:
           - internal
 
-      app-summary:                # the API
+      # The API
+      app-summary:
         image: lasuite/meet-summary:${MEET_VERSION:-latest}
         restart: unless-stopped
         env_file:
@@ -113,7 +132,8 @@ The summary service and its Celery workers take the same environment. The summar
         networks:
           - internal
 
-      celery-summary-transcribe:  # transcribes
+      # Transcribes
+      celery-summary-transcribe:
         image: lasuite/meet-summary:${MEET_VERSION:-latest}
         restart: unless-stopped
         command: celery -A summary.core.celery_worker worker --pool=solo -Q transcribe-queue-v2
@@ -124,7 +144,8 @@ The summary service and its Celery workers take the same environment. The summar
         networks:
           - internal
 
-      celery-summary-webhook:     # sends the result back to Meet
+      # Sends the result back to Meet
+      celery-summary-webhook:
         image: lasuite/meet-summary:${MEET_VERSION:-latest}
         restart: unless-stopped
         command: celery -A summary.core.celery_worker worker --pool=solo -Q call-webhook-queue-v2
@@ -137,7 +158,8 @@ The summary service and its Celery workers take the same environment. The summar
     ```
 
     ```bash
-    docker compose up -d redis-summary app-summary celery-summary-transcribe celery-summary-webhook
+    docker compose up -d redis-summary app-summary \
+      celery-summary-transcribe celery-summary-webhook
     ```
 
 === "Kubernetes"
@@ -197,13 +219,15 @@ The summary service and its Celery workers take the same environment. The summar
 
 ### Step 4: Name the speakers
 
-Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. With `METADATA_COLLECTOR_ENABLED=True`, the metadata collector agent records who speaks when, and the summary service matches that against WhisperX's speakers to name them. With `FRONTEND_ANALYTICS` set, the agent joins only transcriptions started by a user with the PostHog feature flag `metadata-collector`. Every agent variable is in [Metadata collector agent](../../reference/env-variables.md#metadata-collector-agent).
+Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. With `METADATA_COLLECTOR_ENABLED=True`, the metadata collector agent records who speaks when, and the summary service matches that against WhisperX's speakers to name them.
+
+With `FRONTEND_ANALYTICS` set, the agent joins only transcriptions started by a user with the PostHog feature flag `metadata-collector`. Every agent variable is in [Metadata collector agent](../../reference/env-variables.md#metadata-collector-agent).
 
 === "Docker Compose"
 
     Add `METADATA_COLLECTOR_ENABLED=True` to `env.d/common`.
 
-    Create `env.d/metadata-collector`:
+    Create `env.d/metadata-collector`. `<your LiveKit API secret>` is `LIVEKIT_API_SECRET` from `env.d/common`.
 
     ```dotenv
     LIVEKIT_URL=ws://livekit:7880
@@ -239,7 +263,7 @@ Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. 
 
 === "Kubernetes"
 
-    The chart always deploys the agent as `agentMetadata`. Add to your `values.yaml`:
+    The chart always deploys the agent as `agentMetadata`. Add to your `values.yaml`, where `<your LiveKit API secret>` is `LIVEKIT_API_SECRET` from the `meet-backend-env` Secret.
 
     ```yaml
     backend:
@@ -250,7 +274,7 @@ Without this step, speakers stay labelled `SPEAKER_00`, `SPEAKER_01` and so on. 
       command: ["python", "metadata_collector.py", "start"]
       envVars:
         LIVEKIT_URL: "ws://livekit-server:7880"
-        LIVEKIT_API_KEY: "myapikey"
+        LIVEKIT_API_KEY: "meet"
         LIVEKIT_API_SECRET: "<your LiveKit API secret>"
         AWS_S3_ENDPOINT_URL: "garage.meet.svc.cluster.local:9000"
         AWS_S3_ACCESS_KEY_ID:
@@ -282,7 +306,9 @@ The LLM variables are in [Summaries (LLM)](../../reference/env-variables.md#summ
 
 ### Turning summaries on without an analytics backend
 
-Leave `ANALYTICS_BACKEND` unset and declare the flag in `ANALYTICS_BACKEND_SETTINGS`. It then holds for every user, and the backend sends no analytics data. The value is a Python dictionary, not JSON: write `True`, not `true`. Set it on every container running the backend image, the Celery worker included.
+Leave `ANALYTICS_BACKEND` unset and declare the flag in `ANALYTICS_BACKEND_SETTINGS`. It then holds for every user, and the backend sends no analytics data.
+
+The value is a Python dictionary, not JSON: write `True`, not `true`. Set it on every container running the backend image, the Celery worker included.
 
 === "Docker Compose"
 

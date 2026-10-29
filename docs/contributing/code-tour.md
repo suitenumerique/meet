@@ -19,10 +19,10 @@ meet/
 │   ├── addons/       Outlook add-in
 │   ├── mail/         MJML sources of the emails
 │   └── helm/         Helm chart and the helmfile used for local Kubernetes
-├── .github/          CI workflows: pull request checks, image builds, Helm chart release
-├── docker/           Development configuration: Keycloak realm, LiveKit, nginx, Garage; and the DINUM frontend image
+├── .github/          CI: pull request checks, image builds, chart release
+├── docker/           Keycloak, LiveKit, nginx, Garage dev config; DINUM frontend image
 ├── env.d/            Environment file templates, for development and production
-├── bin/              Wrappers around docker compose, the Tiltfile, release and Scalingo buildpack scripts
+├── bin/              docker compose wrappers, Tiltfile, release, Scalingo buildpack
 ├── deploy/           The nginx configuration template of the Scalingo deployment
 ├── crowdin/          The Crowdin configuration that syncs the translations
 ├── docs/             This site
@@ -36,7 +36,11 @@ meet/
 
 ## Backend
 
-A [Django](https://www.djangoproject.com/) 5.2 project, [`meet`](https://github.com/suitenumerique/meet/tree/main/src/backend/meet), holds the settings and the root URLs. One app, [`core`](https://github.com/suitenumerique/meet/tree/main/src/backend/core), holds the code. A second app, [`demo`](https://github.com/suitenumerique/meet/tree/main/src/backend/demo), holds the `create_demo` and `createsuperuser` commands that `make demo` and `make superuser` call.
+A [Django](https://www.djangoproject.com/) 5.2 project in three parts:
+
+- [`meet`](https://github.com/suitenumerique/meet/tree/main/src/backend/meet), the project, holds the settings and the root URLs.
+- [`core`](https://github.com/suitenumerique/meet/tree/main/src/backend/core), an app, holds the code.
+- [`demo`](https://github.com/suitenumerique/meet/tree/main/src/backend/demo), a second app, holds the `create_demo` and `createsuperuser` commands that `make demo` and `make superuser` call.
 
 | Path under `src/backend/` | What it holds |
 |---|---|
@@ -49,7 +53,7 @@ A [Django](https://www.djangoproject.com/) 5.2 project, [`meet`](https://github.
 | [`core/authentication/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/authentication) | Sign-in, and the authentication of requests carrying a LiveKit pass |
 | [`core/services/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/services) | The logic behind the API: the waiting room, presence, invitations, moderation, LiveKit webhooks, phone dial-in, subtitles |
 | [`core/recording/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/recording) | Starting and stopping recordings, and what happens once one ends |
-| [`core/tasks/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/tasks) | Celery tasks: deleting connection-test rooms, deleting files, sending email. They run on the Celery worker when [`CELERY_ENABLED`](../reference/env-variables.md#redis-celery-and-presence) is on. Otherwise file deletion and email run inline in the request, and the connection-test room cleanup is not scheduled |
+| [`core/tasks/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/tasks) | Celery tasks: deleting connection-test rooms, deleting files, sending email. They run on the Celery worker when [`CELERY_ENABLED`](../reference/env-variables.md#CELERY_ENABLED) is on. Otherwise file deletion and email run inline in the request, and the connection-test room cleanup is not scheduled |
 | [`core/management/commands/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/management/commands) | Maintenance commands: `purge_deleted_files`, `purge_inactive_rooms`, `clean_pending_files` and `merge_duplicate_users` |
 | [`core/audit/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/audit), [`core/auditing.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/auditing.py) | The audit log of room, token and recording operations, see [The audit log](#the-audit-log) |
 | [`core/roomkit/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/roomkit) | Meeting-room hardware joining over SIP |
@@ -125,7 +129,9 @@ Accessibility follows these patterns:
 
 The pass is the LiveKit access token the backend signs for each participant; the browser connects to LiveKit with it, as [Joining a meeting](../overview/how-meet-works.md#joining-a-meeting) describes.
 
-[`generate_token()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) in `core/utils.py` builds it. The token's name is the participant's display name, and it carries three attributes: `room_role`, `is_authenticated`, and `color`, derived from the participant's identity. Owners and administrators get LiveKit's `room_admin` grant, which lets them moderate.
+[`generate_token()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) in `core/utils.py` builds it. The token's name is the participant's display name, and it carries three attributes derived from the participant's identity: `room_role`, `is_authenticated` and `color`.
+
+Owners and administrators get LiveKit's `room_admin` grant, which lets them moderate.
 
 The pass reaches the browser two ways:
 
@@ -171,13 +177,15 @@ LiveKit posts its events to `/api/v1.0/rooms/webhooks-livekit/`, the `webhooks_l
 | `egress_ended` | Clears the recording state from the room metadata and stops the metadata collector. On success, [`core/recording/event/notification.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/recording/event/notification.py) emails a screen recording's link to the people [Email](../self-hosting/configuration/email.md) names, and sends a transcription to the summary service |
 | `room_started` | Closes the LiveKit room again if its Meet room was deleted; otherwise records the start time `purge_inactive_rooms` reads, and creates the room's phone dial-in rule when telephony or Roomkit is on |
 | `room_finished` | Deletes that rule and clears the room's presence and waiting-room state |
-| `participant_left` | Removes the participant from the presence cache, unless [`PRESENCE_CLEAR_ON_PARTICIPANT_LEFT`](../reference/env-variables.md#redis-celery-and-presence) is off |
+| `participant_left` | Removes the participant from the presence cache, unless [`PRESENCE_CLEAR_ON_PARTICIPANT_LEFT`](../reference/env-variables.md#PRESENCE_CLEAR_ON_PARTICIPANT_LEFT) is off |
 
-Any other event is acknowledged and ignored, and so is every event of a connection-test room or of a room whose name [`LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX`](../reference/env-variables.md#livekit) does not match. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml).
+Any other event is acknowledged and ignored, and so is every event of a connection-test room or of a room whose name [`LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX`](../reference/env-variables.md#LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX) does not match. In development, LiveKit finds the endpoint through the `webhook` section of [`docker/livekit/config/livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docker/livekit/config/livekit-server.yaml).
 
 ### The frontend side
 
-[`Conference.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/components/Conference.tsx) fetches the room, builds the LiveKit `Room` with Meet's options, and renders `<LiveKitRoom>` with the pass and the server URL. It also holds the browser workarounds, such as an early WebSocket that lets Firefox connect behind some proxies, when `enable_firefox_proxy_workaround` is on. The call's interface is [`VideoConference.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/livekit/prefabs/VideoConference.tsx).
+[`Conference.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/components/Conference.tsx) fetches the room, builds the LiveKit `Room` with Meet's options, and renders `<LiveKitRoom>` with the pass and the server URL. It also holds the browser workarounds, such as an early WebSocket that lets Firefox connect behind some proxies, when `enable_firefox_proxy_workaround` is on.
+
+The call's interface is [`VideoConference.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/livekit/prefabs/VideoConference.tsx).
 
 ## Agents
 
@@ -193,7 +201,12 @@ Their settings are under [Agents](../reference/env-variables.md#agents).
 
 ## Summary service
 
-[`src/summary`](https://github.com/suitenumerique/meet/tree/main/src/summary) is a [FastAPI](https://fastapi.tiangolo.com/) application with [Celery](https://docs.celeryq.dev/) workers. The backend posts a recording to its API, [`summary/api/route/tasks_v2.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/api/route/tasks_v2.py), and the workers in [`summary/core/celery_worker.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/core/celery_worker.py) transcribe it, summarise it and report back to the backend's `/api/v1.0/recordings/external-process-hook/`. The queues and the order of the steps are in [How Meet works](../overview/how-meet-works.md#transcription-and-summary), and the settings under [Summary service](../reference/env-variables.md#summary-service).
+[`src/summary`](https://github.com/suitenumerique/meet/tree/main/src/summary) is a [FastAPI](https://fastapi.tiangolo.com/) application with [Celery](https://docs.celeryq.dev/) workers:
+
+- The backend posts a recording to its API, [`summary/api/route/tasks_v2.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/api/route/tasks_v2.py).
+- The workers in [`summary/core/celery_worker.py`](https://github.com/suitenumerique/meet/blob/main/src/summary/summary/core/celery_worker.py) transcribe it, summarise it and report back to the backend's `/api/v1.0/recordings/external-process-hook/`.
+
+The queues and the order of the steps are in [How Meet works](../overview/how-meet-works.md#transcription-and-summary), and the settings under [Summary service](../reference/env-variables.md#summary-service).
 
 ## Other packages
 
@@ -235,7 +248,9 @@ ROOM_CREATE = audit.Action("room.create")
 
 ### Auditing a DRF view
 
-A DRF view only declares the actions it audits: everything else is derived from the response. CRUD actions are mapped in `audit_actions`. An extra action names its own on its route, so that renaming its method cannot silently stop auditing it:
+A DRF view only declares the actions it audits: everything else is derived from the response.
+
+CRUD actions are mapped in `audit_actions`. An extra action names its own on its route, so that renaming its method cannot silently stop auditing it:
 
 ```python
 from core import audit, auditing

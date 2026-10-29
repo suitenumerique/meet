@@ -27,7 +27,7 @@ curl -s https://meet.example.com/external-api/v1.0/rooms/ \
 |---|---|---|---|
 | [Application-delegated](external-api-delegated.md) | Your backend sends the application's client ID and secret and the user's email; the user does not sign in | The scopes ticked on the application in the Django admin | `APPLICATION_ENABLED=True` |
 | [Resource server (OAuth2)](external-api-resource-server.md) | Your application sends the access token the user got from your OIDC provider | The scopes your OIDC provider writes into the token | The `OIDC_RS_*` variables |
-| [Add-ons](external-api-addons.md) | An add-in, such as the Outlook one, signs the user in to Meet in a popup | [`ADDONS_TOKEN_SCOPE`](env-variables.md#add-ons), the same for every add-in token | `ADDONS_ENABLED=True` |
+| [Add-ons](external-api-addons.md) | An add-in, such as the Outlook one, signs the user in to Meet in a popup | [`ADDONS_TOKEN_SCOPE`](env-variables.md#ADDONS_TOKEN_SCOPE), the same for every add-in token | `ADDONS_ENABLED=True` |
 | [Menshen token exchange](#menshen-token-exchange) | Another La Suite service exchanges its user's token at Menshen | Menshen's `meet:room:create`, read as `rooms:create` | `MENSHEN_ENABLED=True` |
 
 ## Endpoints and scopes { #scopes }
@@ -60,7 +60,7 @@ The body is optional on creation: an empty one takes the defaults.
 | Field | Values | Meaning |
 |---|---|---|
 | `access_level` | `public`, `trusted`, `restricted` | Who joins without waiting, see [Room access levels](../user/features-controls.md#access-levels). Defaults to `EXTERNAL_API_DEFAULT_ACCESS_LEVEL`. `public` is refused with 400 unless `EXTERNAL_API_ALLOW_PUBLIC_ACCESS=True` or `EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public`. |
-| `configuration.can_publish_sources` | A list of `camera`, `microphone`, `screen_share`, `screen_share_audio` | The media members and guests may send. Owners and administrators get [`LIVEKIT_DEFAULT_SOURCES`](env-variables.md#livekit) when they join, and so does everyone when the field is omitted or `null` |
+| `configuration.can_publish_sources` | A list of `camera`, `microphone`, `screen_share`, `screen_share_audio` | The media members and guests may send. Owners and administrators get [`LIVEKIT_DEFAULT_SOURCES`](env-variables.md#LIVEKIT_DEFAULT_SOURCES) when they join, and so does everyone when the field is omitted or `null` |
 | `configuration.everyone_can_mute` | `true` or `false` | `true` or omitted: anyone in the room can mute others. `false`: administrators and owners only |
 
 Any other key in `configuration` is refused with 400. An update replaces the stored `configuration` whole, so send every key you want to keep.
@@ -79,7 +79,9 @@ Any other key in `configuration` is refused with 400. An update replaces the sto
         allow="camera; microphone; display-capture; fullscreen; autoplay"></iframe>
 ```
 
-The [`allow` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe#allow) lets the meeting use the camera, the microphone and screen sharing; without it the browser blocks them. Meet's frontend sends no header forbidding framing, so a reverse proxy in front of it must not add one either.
+The [`allow` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe#allow) lets the meeting use the camera, the microphone and screen sharing; without it the browser blocks them.
+
+Meet's frontend sends no header forbidding framing, so a reverse proxy in front of it must not add one either.
 
 A browser blocking third-party cookies drops Meet's session cookie inside the iframe, so the user joins signed out. To sign them in, your backend calls `POST /external-api/v1.0/users/transit-code/` with their application-delegated token, which answers:
 
@@ -91,7 +93,7 @@ A browser blocking third-party cookies drops Meet's session cookie inside the if
 ```
 
 - Append `#transit_code=<code>` to the iframe's URL, within `expires_in` seconds. A code works once.
-- Meet's frontend exchanges it for a token acting as the user for [`USER_ACCESS_TOKEN_TTL`](env-variables.md#user-access-tokens) seconds.
+- Meet's frontend exchanges it for a token acting as the user for [`USER_ACCESS_TOKEN_TTL`](env-variables.md#USER_ACCESS_TOKEN_TTL) seconds.
 
 ## The room object
 

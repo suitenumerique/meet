@@ -1,13 +1,16 @@
 # Pull requests
 
-How a change goes from your fork into `main`. [`CONTRIBUTING.md`](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md) is the project's short version, and also covers writing an issue. [Develop locally](develop.md) covers setting up the code.
+How a change goes from your fork into `main`.
+
+[`CONTRIBUTING.md`](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md) is the project's short version, and also covers writing an issue. [Develop locally](develop.md) covers setting up the code.
 
 ## TL;DR
 
 ```bash
 # 1. Branch from the latest main of the project
 git fetch upstream && git switch -c my-change upstream/main
-# 2. Commit with a gitmoji, a scope, a lowercase subject and a body, then add a CHANGELOG.md line
+# 2. Commit with a gitmoji, a scope, a lowercase subject and a body,
+#    then add a CHANGELOG.md line
 git commit
 # 3. Check the commit messages the way CI does
 uvx --from gitlint-core gitlint --commits upstream/main..HEAD
@@ -76,7 +79,8 @@ The title is a [gitmoji](https://gitmoji.dev/), a scope in parentheses, a space 
 Run the same check before pushing:
 
 ```bash
-# From the repository root, with network access: the gitmoji rule downloads the gitmoji list
+# From the repository root, with network access:
+# the gitmoji rule downloads the gitmoji list
 uvx --from gitlint-core gitlint --commits upstream/main..HEAD
 ```
 

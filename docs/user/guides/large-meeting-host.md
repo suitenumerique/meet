@@ -11,7 +11,12 @@ For teachers, speakers and anyone running a meeting with many people.
   <figcaption>Open admin → Host settings → Room access</figcaption>
 </figure>
 
-Sign in before you create the room, so you own it. Then open **Open admin** → **Host settings** and pick an [access level](../features-controls.md#access-levels). With **Open to trusted people**, people who are not signed in wait in the **Lobby**; with **Restricted**, everyone without a role on the room does. **Accept all** in **See everyone** admits them at once.
+Sign in before you create the room, so you own it. Then open **Open admin** → **Host settings** and pick an [access level](../features-controls.md#access-levels):
+
+- **Open to trusted people**: people who are not signed in wait in the **Lobby**.
+- **Restricted**: everyone without a role on the room waits there.
+
+**Accept all** in **See everyone** admits them at once.
 
 ### Add a co-host
 
@@ -58,4 +63,5 @@ Start it from **More tools**, see [Recording](../recording.md#recording).
 - A switch already off keeps a new co-host muted until they rejoin. Make co-hosts first. In progress: [#1919](https://github.com/suitenumerique/meet/issues/1919).
 - No one can unmute someone else, and there is no button to turn off a single participant's camera.
 - A removed or denied person can always ask to join again.
-- No breakout rooms and no polls. In progress: [#1765](https://github.com/suitenumerique/meet/pull/1765).
+- No breakout rooms. In progress: [#1765](https://github.com/suitenumerique/meet/pull/1765).
+- No polls.

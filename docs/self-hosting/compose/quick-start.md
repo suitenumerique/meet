@@ -2,11 +2,11 @@
 
 One script installs Meet on a fresh Linux server, with HTTPS and sign-in ready.
 
-Recording and transcription are left out. Already have a reverse proxy or a sign-in provider? Use the [Deployment Guide](deployment-guide.md) instead.
+Recording and transcription are left out.
+
+Already have a reverse proxy or a sign-in provider? Use the [Deployment Guide](deployment-guide.md) instead.
 
 Before you run it, read the [Prerequisites](prerequisites.md). The script brings Keycloak, so you need no sign-in provider of your own.
-
----
 
 ## Download and run
 
@@ -17,17 +17,27 @@ RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 curl -fsSL $RAW/docs/install.sh -o install.sh
 ```
 
-Review it, then run:
+Review it, then run it and answer its prompts with your three domains and two email addresses:
 
-```bash
-bash install.sh
+```console
+$ bash install.sh
+...
+▶ Domains
+  Meet domain       (e.g. meet.example.com):    meet.example.com
+  Keycloak domain   (e.g. auth.example.com):    auth.example.com
+  LiveKit domain    (e.g. livekit.example.com): livekit.example.com
+  Email for Let's Encrypt notifications:        you@example.com
+  Admin user email  (e.g. you@example.com):     you@example.com
+...
+╔══════════════════════════════════════════════════════════════╗
+║  Setup complete!                                             ║
+╚══════════════════════════════════════════════════════════════╝
 ```
 
-The script asks for your three domains and two email addresses, then ends with `Setup complete!`.
+It only sets up a fresh install: it stops if `~/docker/keycloak` or `~/docker/meet` exists, since new passwords would not match the existing databases.
 
-It only sets up a fresh install: it stops if `~/docker/keycloak` or `~/docker/meet` exists, since new passwords would not match the existing databases. To start over, run `docker compose down -v` in each, which deletes their data, then delete both directories.
-
----
+!!! warning
+    To start over, run `docker compose down -v` in each, which deletes their data, then delete both directories.
 
 ## After setup
 
@@ -41,4 +51,7 @@ Note the two printed passwords: they are saved nowhere else. The URLs use your o
 
 ## Next
 
-To see what the script set up, read [`install.sh`](https://github.com/suitenumerique/meet/blob/main/docs/install.sh) itself: one labelled section per stack. The [Deployment Guide](deployment-guide.md) explains each step, and how to change it. Before production, work through its [After installation](deployment-guide.md#after-installation) steps. To change the look, see [Theming](../configuration/theming.md).
+- To see what the script set up, read [`install.sh`](https://github.com/suitenumerique/meet/blob/main/docs/install.sh) itself: one labelled section per stack.
+- The [Deployment Guide](deployment-guide.md) explains each step, and how to change it.
+- Before production, work through its [After installation](deployment-guide.md#after-installation) steps.
+- To change the look, see [Theming](../configuration/theming.md).

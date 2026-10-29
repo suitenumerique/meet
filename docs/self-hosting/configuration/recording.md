@@ -1,8 +1,14 @@
 # Recording
 
-Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage. When a screen recording is complete, the person who started it and the room's owners and co-hosts each receive an email with a download link. How a recording travels from the button to that email is in [How does recording work?](../../overview/how-meet-works.md#recording).
+Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage.
 
-Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording). [`RECORDING_MAX_DURATION`](../../reference/env-variables.md#recording) is only the limit users see: set the same limit in LiveKit Egress, which stops the recording. Meet still saves a recording Egress stopped at its limit.
+When a screen recording is complete, the person who started it and the room's host and co-hosts each receive an email with a download link.
+
+How a recording travels from the button to that email is in [How does recording work?](../../overview/how-meet-works.md#recording).
+
+Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording).
+
+[`RECORDING_MAX_DURATION`](../../reference/env-variables.md#RECORDING_MAX_DURATION) is only the limit users see: set the same limit in LiveKit Egress, which stops the recording. Meet still saves a recording Egress stopped at its limit.
 
 ## Who can record
 
@@ -28,9 +34,14 @@ Set up [Email (SMTP)](email.md) first: the download link reaches users by email.
 
 ### Step 1: Object storage
 
-Any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVHcloud Object Storage. To use one, skip this step and put its endpoint, keys and region in the `AWS_S3_*` variables of Step 3. Keep the bucket private: the backend authorizes each download, as Step 4 sets up.
+!!! note "Another S3-compatible provider"
+    Any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVHcloud Object Storage. To use one, skip this step and put its endpoint, keys and region in the `AWS_S3_*` variables of Step 3.
 
-[Garage](https://garagehq.deuxfleurs.fr/) runs here as a single node with no replication. Its first start creates the access key and the `meet-media-storage` bucket, and later starts leave both untouched. Garage refuses to start with an access key under 8 characters or a secret key under 16.
+    Keep the bucket private: the backend authorizes each download, as Step 4 sets up.
+
+[Garage](https://garagehq.deuxfleurs.fr/) runs here as a single node with no replication. Its first start creates the access key and the `meet-media-storage` bucket, and later starts leave both untouched.
+
+Garage refuses to start with an access key under 8 characters or a secret key under 16.
 
 === "Docker Compose"
 
@@ -41,9 +52,8 @@ Any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVH
 
     RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-    curl -fsSL -o compose.yml  ${RAW}/docs/examples/garage/compose.yml
-    curl -fsSL -o garage.toml  ${RAW}/docs/examples/garage/garage.toml
-    curl -fsSL -o .env         ${RAW}/docs/examples/garage/.env.example
+    curl -fsSL --remote-name-all $RAW/docs/examples/garage/{compose.yml,garage.toml}
+    curl -fsSL -o .env $RAW/docs/examples/garage/.env.example
     ```
 
     Generate the three secrets and write them into `.env`:
@@ -52,7 +62,9 @@ Any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVH
     sed -i "s|GARAGE_RPC_SECRET=.*|GARAGE_RPC_SECRET=$(openssl rand -hex 32)|" .env
     sed -i "s|GARAGE_ACCESS_KEY=.*|GARAGE_ACCESS_KEY=$(openssl rand -hex 12)|" .env
     sed -i "s|GARAGE_SECRET_KEY=.*|GARAGE_SECRET_KEY=$(openssl rand -hex 32)|" .env
-    grep -E "GARAGE_(ACCESS|SECRET)_KEY" .env   # note both: Step 3 uses them as Meet's S3 keys
+
+    # Note both keys: Step 3 uses them as Meet's S3 keys
+    grep -E "GARAGE_(ACCESS|SECRET)_KEY" .env
     ```
 
     The stack joins the Meet stack's `internal` network, `meet_internal` when Meet runs from `~/docker/meet`. For another name, set `MEET_INTERNAL_NETWORK` in `.env`. Start Garage and check that it created the bucket:
@@ -169,14 +181,15 @@ Any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVH
 
 ### Step 2: LiveKit Egress
 
-Create `livekit-egress.yaml`, in `~/docker/meet` on Docker Compose:
+Create `livekit-egress.yaml`, in `~/docker/meet` on Docker Compose. `<your LiveKit API secret>` is `LIVEKIT_API_SECRET`, from `env.d/common` on Docker Compose or the `meet-backend-env` Secret on Kubernetes.
 
 ```yaml
 api_key: meet
 api_secret: <your LiveKit API secret>
 ws_url: ws://livekit:7880
 
-redis:                  # required: Egress crashes at start without it
+# Required: Egress crashes at start without it
+redis:
   address: redis:6379
 
 cpu_cost:
@@ -185,7 +198,9 @@ cpu_cost:
   track_cpu_cost: 0.5
 ```
 
-`cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores, see [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers). The file needs no `s3` section: Meet sends the storage settings with every recording request, built from the backend's `AWS_S3_*` variables of Step 3.
+`cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores, see [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers).
+
+The file needs no `s3` section: Meet sends the storage settings with every recording request, built from the backend's `AWS_S3_*` variables of Step 3.
 
 === "Docker Compose"
 
@@ -213,7 +228,12 @@ cpu_cost:
 
 === "Kubernetes"
 
-    Egress is not part of the Meet Helm chart. In the file, point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`, and set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `myapikey` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes). Then store it in a ConfigMap:
+    Egress is not part of the Meet Helm chart. In the file:
+
+    - point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`;
+    - set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `meet` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes).
+
+    Then store it in a ConfigMap:
 
     ```bash
     kubectl -n meet create configmap livekit-egress-config --from-file=livekit-egress.yaml
@@ -314,11 +334,18 @@ The backend and Egress both reach the storage at `AWS_S3_ENDPOINT_URL`, whose sc
     helm upgrade meet meet/meet --namespace meet --values values.yaml
     ```
 
-Check that recording is enabled: `curl -s https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled` prints `true`.
+Check that recording is enabled, with [jq](https://jqlang.org/):
+
+```console
+$ curl -s https://meet.example.com/api/v1.0/config/ | jq .recording.is_enabled
+true
+```
 
 ### Step 4: Route recording downloads
 
-The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy asks the backend's `/api/v1.0/recordings/media-auth/` whether the user may retrieve it, then fetches the file from the storage with the signed headers the backend returns. The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header the proxy sends to the storage must equal that URL's `host:port`.
+The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy asks the backend's `/api/v1.0/recordings/media-auth/` whether the user may retrieve it, then fetches the file from the storage with the signed headers the backend returns.
+
+The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header the proxy sends to the storage must equal that URL's `host:port`.
 
 === "Docker Compose"
 
@@ -404,7 +431,9 @@ Meet encodes every screen recording with a **resolution** and a **profile**, whi
 - Egress's codecs stay fixed: H.264 Main video and AAC audio.
 - The default, the `full` profile at `720p`, matches LiveKit's built-in `H264_720P_30` preset, and makes larger files than talking heads and screen sharing need.
 
-**Built-in profiles.** File size grows with the bitrate, and Egress CPU cost with the framerate and resolution. The size column adds the default 128 kbps audio to the 720p video bitrate:
+### Built-in profiles
+
+File size grows with the bitrate, and Egress CPU cost with the framerate and resolution. The size column adds the default 128 kbps audio to the 720p video bitrate:
 
 | Profile | FPS | 540p kbps | 720p kbps | 1080p kbps | ~size per hour at 720p | Best for |
 |---|---|---|---|---|---|---|
@@ -412,6 +441,11 @@ Meet encodes every screen recording with a **resolution** and a **profile**, whi
 | `text` | 15 | 600 | 1000 | 1800 | ~510 MB | Frequent screen sharing: slides, documents, code |
 | `mixed` | 20 | 900 | 1500 | 2500 | ~730 MB | Mixed content, moderate motion |
 | `full` | 30 | 2000 | 3000 | 4500 | ~1.4 GB | Highest fidelity, closest to LiveKit's preset |
+
+Choosing a profile:
+
+- For slide-heavy meetings, use `text`. At 720p, text blurs below about 40 kbit per frame, the bitrate divided by the framerate: `talking_heads` gives 47, `text` 67. Lower the framerate before the bitrate.
+- If meetings include music, keep audio at 128 kbps. AAC at 64 kbps stereo suits voice but compresses music noticeably.
 
 Change the default for every recording with `RECORDING_ENCODING_DEFAULT_RESOLUTION` and `RECORDING_ENCODING_DEFAULT_PROFILE`. For example, smaller files for talking-head meetings, with 64 kbps audio and a keyframe every 4 seconds:
 
@@ -423,11 +457,15 @@ RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64
 RECORDING_ENCODING_KEY_FRAME_INTERVAL_S=4.0
 ```
 
-To let LiveKit pick the whole encoding instead, set either default to an empty value, as [`RECORDING_ENCODING_DEFAULT_RESOLUTION`](../../reference/env-variables.md#recording) describes.
+To let LiveKit pick the whole encoding instead, set either default to an empty value, as [`RECORDING_ENCODING_DEFAULT_RESOLUTION`](../../reference/env-variables.md#RECORDING_ENCODING_DEFAULT_RESOLUTION) describes.
 
-**Letting users choose.** With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, room owners and co-hosts pick the profile and resolution of each recording in the settings dialog's **Recording** tab.
+### Letting users choose
 
-**Your own resolutions and profiles.** `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS` and `RECORDING_ENCODING_AVAILABLE_PROFILES` replace the built-in sets. Each is a dictionary on a single line, with double-quoted keys and no outer quotes in an env file:
+With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, the room's host and co-hosts pick the profile and resolution of each recording in the settings dialog's **Recording** tab.
+
+### Your own resolutions and profiles
+
+`RECORDING_ENCODING_AVAILABLE_RESOLUTIONS` and `RECORDING_ENCODING_AVAILABLE_PROFILES` replace the built-in sets. Each is a dictionary on a single line, with double-quoted keys and no outer quotes in an env file:
 
 ```dotenv
 RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={"540p": {"width": 960, "height": 540}, "720p": {"width": 1280, "height": 720}, "1080p": {"width": 1920, "height": 1080}}
@@ -435,12 +473,9 @@ RECORDING_ENCODING_AVAILABLE_PROFILES={"small": {"fps": 15, "kbps": {"540p": 350
 RECORDING_ENCODING_DEFAULT_PROFILE=small
 ```
 
-Each profile must have a bitrate for exactly the available resolutions, as [`RECORDING_ENCODING_AVAILABLE_PROFILES`](../../reference/env-variables.md#recording) requires, so replacing one set usually means replacing both. The two defaults must name entries of these sets. The **Recording** tab has labels for the four built-in profiles only.
-
-**Caveats:**
-
-- **Screen-share readability.** At 720p, text blurs below about 40 kbit per frame, the bitrate divided by the framerate: `talking_heads` gives 47, `text` 67. For slide-heavy meetings use `text`, and lower the framerate before the bitrate.
-- **Audio.** AAC at 64 kbps stereo is transparent for voice but compresses music noticeably. Keep 128 kbps if meetings include music playback.
+- Each profile must have a bitrate for exactly the available resolutions, as [`RECORDING_ENCODING_AVAILABLE_PROFILES`](../../reference/env-variables.md#RECORDING_ENCODING_AVAILABLE_PROFILES) requires, so replacing one set usually means replacing both.
+- The two defaults must name entries of these sets.
+- The **Recording** tab has labels for the four built-in profiles only.
 
 ## Test it
 

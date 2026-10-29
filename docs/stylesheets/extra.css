@@ -49,3 +49,15 @@ pre.mermaid {
   font-size: 0.8em;
   margin-left: 0.25em;
 }
+
+/* Terminal blocks: select only the commands, never the $ prompt or the output.
+   The copy button takes the commands from console-copy.js. */
+.highlight .gp,
+.highlight .go {
+  user-select: none;
+}
+
+/* The variable a link points to, on Environment Variables: its row is highlighted. */
+.md-typeset tr:has(> td > code:target) > td {
+  background-color: var(--md-accent-fg-color--transparent);
+}

@@ -8,7 +8,7 @@ The **audit log** records who did what in Meet, to what, on whose behalf, from w
 
 How the code emits events is in the [Code tour](../../contributing/code-tour.md#the-audit-log).
 
-Personal data is kept to a minimum: a person is identified by their account id, their OIDC `sub` and their email's domain. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
+Personal data is kept to a minimum: a person is identified by their account id, their [OIDC](https://openid.net/developers/how-connect-works/) `sub` and their email's domain. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
 
 ## What an event looks like
 
@@ -19,7 +19,10 @@ Pretty-printed, one event reads:
   "@timestamp": "2026-09-15T08:41:12.345+00:00",
   "ecs": {"version": "9.5.0"},
   "data_stream": {"type": "logs", "dataset": "meet.audit", "namespace": "default"},
-  "service": {"name": "meet", "environment": "production", "version": "1.36.3", "node": {"name": "meet-backend-6d8f7b9c4-x2x7q"}},
+  "service": {
+    "name": "meet", "environment": "production", "version": "1.36.3",
+    "node": {"name": "meet-backend-6d8f7b9c4-x2x7q"}
+  },
   "event": {
     "kind": "event",
     "id": "0b3f6a0e-5d1c-4f43-9a8e-2b7c1d0e4f5a",
@@ -31,7 +34,10 @@ Pretty-printed, one event reads:
   },
   "client": {"ip": "1.2.3.4"},
   "source": {"ip": "1.2.3.4"},
-  "http": {"request": {"id": "6f1c0d0e-2a8b-4c1d-9e7f-0a1b2c3d4e5f", "method": "POST"}, "response": {"status_code": 201}},
+  "http": {
+    "request": {"id": "6f1c0d0e-2a8b-4c1d-9e7f-0a1b2c3d4e5f", "method": "POST"},
+    "response": {"status_code": 201}
+  },
   "url": {"path": "/external-api/v1.0/rooms/"},
   "user_agent": {"original": "calendar-app/2.3"},
   "user": {"id": "beecd833-4be4-4675-b139-a196b07144a9", "domain": "gouv.fr"},
@@ -58,7 +64,10 @@ When an action is refused, the event keeps the name of the action that was attem
 
 ```json
 {
-  "event": {"action": "room.create", "outcome": "failure", "type": ["creation", "denied"], "reason": "permission_denied"},
+  "event": {
+    "action": "room.create", "outcome": "failure",
+    "type": ["creation", "denied"], "reason": "permission_denied"
+  },
   "lasuite": {"outcome": "denied"},
   "http": {"response": {"status_code": 403}},
   "error": {"message": "..."},
@@ -91,20 +100,30 @@ A log shipper tells the audit events from the application logs by `data_stream.d
 
 Every audit variable and its default is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging). Two depend on your deployment:
 
-- **[`NUM_PROXIES`](../../reference/env-variables.md#core)** decides which address an event records as the client. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. Add one for a load balancer that also appends to `X-Forwarded-For`.
-- **[`REQUEST_ID_TRUST_HEADER`](../../reference/env-variables.md#audit-logging)** needs a proxy that overwrites the request id header. On nginx, that is `proxy_set_header X-Request-ID $request_id;`.
+- **[`NUM_PROXIES`](../../reference/env-variables.md#NUM_PROXIES)** decides which address an event records as the client. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. Add one for a load balancer that also appends to `X-Forwarded-For`.
+- **[`REQUEST_ID_TRUST_HEADER`](../../reference/env-variables.md#REQUEST_ID_TRUST_HEADER)** needs a proxy that overwrites the request id header. On nginx, that is `proxy_set_header X-Request-ID $request_id;`.
 
 ## Answering common questions
 
-**Who created, changed or deleted this room?** Filter on `entity.target.sub_type: room` with the room's id in `entity.target.id`, or its slug in `entity.target.raw.slug`. `event.action` says what happened, and `user.id` or `lasuite.application.client_id` who did it. Rooms are audited when they are handled through the external API, as `room.*`, or the Django admin, as `admin.room.*`.
+### Who created, changed or deleted this room?
 
-**What has this application done?** Filter on `lasuite.application.client_id`. To include the attempts made before its credentials were verified, such as a wrong secret or an inactive application, also search `lasuite.details.claimed_client_id`.
+Filter on `entity.target.sub_type: room` with the room's id in `entity.target.id`, or its slug in `entity.target.raw.slug`. `event.action` says what happened, and `user.id` or `lasuite.application.client_id` who did it. Rooms are audited when they are handled through the external API, as `room.*`, or the Django admin, as `admin.room.*`.
 
-**What did this person do, and what was done to their account?** `user.id` is the account whose authority an action used, and `user.target.id` the account an action was about: search both. To follow someone across the other La Suite products, use their OIDC `sub`, in `lasuite.actor.sub`.
+### What has this application done?
 
-**Which requests were refused, and why?** Filter on `lasuite.outcome: denied` and group by `event.reason`. A burst of `authentication_failed` on `user.login` or `application.token.issue` from a single `source.ip` deserves a closer look.
+Filter on `lasuite.application.client_id`. To include the attempts made before its credentials were verified, such as a wrong secret or an inactive application, also search `lasuite.details.claimed_client_id`.
 
-**What else happened during this request?** Search for its `http.request.id`, on every audit event of the request and in the Gunicorn access log, where it reads `rid=`. The application logs do not carry it. A single request may produce several events: an application obtaining a token for someone who never signed in produces both `user.provision` and `application.token.issue`.
+### What did this person do, and what was done to their account?
+
+`user.id` is the account whose authority an action used, and `user.target.id` the account an action was about: search both. To follow someone across the other La Suite products, use their OIDC `sub`, in `lasuite.actor.sub`.
+
+### Which requests were refused, and why?
+
+Filter on `lasuite.outcome: denied` and group by `event.reason`. A burst of `authentication_failed` on `user.login` or `application.token.issue` from a single `source.ip` deserves a closer look.
+
+### What else happened during this request?
+
+Search for its `http.request.id`, on every audit event of the request and in the Gunicorn access log, where it reads `rid=`. The application logs do not carry it. A single request may produce several events: an application obtaining a token for someone who never signed in produces both `user.provision` and `application.token.issue`.
 
 ## Fields reference
 
@@ -113,7 +132,7 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | Field | Meaning |
 |---|---|
 | `@timestamp` | When the event was emitted: ISO 8601, in UTC, with millisecond precision |
-| `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` built from [`AUDIT_LOG_SERVICE_NAME`](../../reference/env-variables.md#audit-logging), and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
+| `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` built from [`AUDIT_LOG_SERVICE_NAME`](../../reference/env-variables.md#AUDIT_LOG_SERVICE_NAME), and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
 | `service.name`, `service.environment`, `service.version`, `service.node.name` | The backend instance that wrote the event: `AUDIT_LOG_SERVICE_NAME`, the current environment, the release and the host name, which is the pod on Kubernetes. Never the caller |
 | `service.origin.name` | The internal service that called the backend, when the actor is a `service`: `summary` or `livekit` |
 | `service.target.name` | The service the backend called, such as `summary` for `recording.transcript.request` |
@@ -264,18 +283,22 @@ The action name follows a template, `admin.<target>.<verb>`, where `<target>` is
 | `delete` | An object is deleted: one event per object, once the deletion has run. A deletion that raises is a `failure` with reason `internal_error`, and in a bulk deletion every selected object is then reported as failed | `error.message` on failure |
 | `action` | A bulk action runs | `lasuite.details.admin_action`, `count` |
 
-This gives names such as `admin.room.update`, `admin.user.delete` or `admin.recording.action`. `event.category` is `iam` for anything that grants access to the product, and `configuration` otherwise. Writes on a user or a group put `user` or `group` first in `event.type`, as in `["user", "change"]`.
+This gives names such as `admin.room.update`, `admin.user.delete` or `admin.recording.action`.
 
-**What changed.**
+`event.category` is `iam` for anything that grants access to the product, and `configuration` otherwise. Writes on a user or a group put `user` or `group` first in `event.type`, as in `["user", "change"]`.
+
+### What changed
 
 - `lasuite.details.changed_fields` always lists the names of the fields a form changed, exactly the ones Django reports in its own history.
 - `lasuite.details.changes` gives their values, as `{"from": ..., "to": ...}`, but only for the fields a model explicitly allows, see [Registering models](../../contributing/code-tour.md#registering-models-and-authentication-methods).
 - Anything that looks like a secret is left out, whatever the allow-list says: a password change is reported as a change to `password`, never with its value.
 - A JSON field on the allow-list, such as a room's `configuration`, is recorded as JSON rather than as a string, and both versions are kept whole.
 
-**Inlines.** Objects edited through an inline produce their own event, linked to the parent's by `http.request.id`. Granting a role on a room produces both `admin.room.update` and `admin.resourceaccess.create`, whose `user.target` is the account granted the role.
+### Inlines
 
-**What is not covered:**
+Objects edited through an inline produce their own event, linked to the parent's by `http.request.id`. Granting a role on a room produces both `admin.room.update` and `admin.resourceaccess.create`, whose `user.target` is the account granted the role.
+
+### What is not covered
 
 - **Reads.** Opening a change list, a change form or the history page emits nothing. Django's own history remains the record of who touched what.
 - **Custom actions that bypass the ORM hooks.** An action calling `queryset.update()` or `queryset.delete()` directly is reported as a single `admin.<target>.action`, with its name and the number of objects, not one event per object. `delete_selected` is the exception: Django reports its objects one by one, so it emits one `admin.<target>.delete` per object and no `action` event.

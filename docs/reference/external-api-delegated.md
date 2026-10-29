@@ -9,7 +9,7 @@ The token endpoint needs both `EXTERNAL_API_ENABLED=True` and [`APPLICATION_ENAB
 - Your backend creates or manages rooms for your users, and the user never signs in during the call.
 - The user has already signed in to Meet once. Meet creates no account for an unknown email unless `APPLICATION_ALLOW_USER_CREATION` and `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` are on and `OIDC_USER_SUB_FIELD_IMMUTABLE` is off.
 
-When the user signs in at your OIDC provider anyway, the [Resource server mode](external-api-resource-server.md) uses their own token instead.
+When the user signs in at your [OIDC](https://openid.net/developers/how-connect-works/) provider anyway, the [Resource server mode](external-api-resource-server.md) uses their own token instead.
 
 ## Registering an application
 

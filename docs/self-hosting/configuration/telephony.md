@@ -1,8 +1,8 @@
 # Telephony Integration
 
-Callers join a meeting by phone through LiveKit's SIP bridge: they dial your number, enter the room's PIN and join with audio only. Recordings include their audio.
+Callers join a meeting by phone through [LiveKit SIP](https://github.com/livekit/sip), LiveKit's [SIP](../../overview/how-meet-works.md#key-concepts) bridge: they dial your number, enter the room's PIN and join with audio only. Recordings include their audio.
 
-!!!info
+!!! info
     Only Docker Compose is covered: the Helm chart does not deploy LiveKit SIP.
 
 ```
@@ -13,7 +13,7 @@ The PSTN is the public phone network, and SIP the protocol phone providers use t
 
 ## Prerequisites
 
-- A SIP trunk from a VoIP provider such as Twilio, Vonage or Infobip, or a self-hosted Asterisk or FreeSWITCH.
+- A SIP trunk from a VoIP provider such as [Twilio](https://www.twilio.com/docs/sip-trunking), [Vonage](https://developer.vonage.com/en/sip/overview) or [Infobip](https://www.infobip.com/docs/voice-and-video/sip-trunking), or a self-hosted [Asterisk](https://www.asterisk.org/) or [FreeSWITCH](https://signalwire.com/freeswitch).
 - A phone number from that provider.
 - The ports of the [firewall table](firewall.md) marked for telephony.
 - LiveKit's [webhook](livekit.md#webhook) to Meet, which the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core) already sets.
@@ -36,7 +36,7 @@ docker compose up -d --force-recreate backend
 
 ## LiveKit SIP service
 
-Create `livekit-sip.yaml`:
+Create `livekit-sip.yaml`. `<your LiveKit API secret>` is `LIVEKIT_API_SECRET`, from `env.d/common` on Docker Compose or the `meet-backend-env` Secret on Kubernetes.
 
 ```yaml
 api_key: meet
@@ -87,7 +87,7 @@ The trunk tells LiveKit SIP which calls to accept. Save it as `inbound-trunk.jso
 
 `allowed_addresses` takes IP addresses or CIDR ranges, not hostnames; an empty list accepts calls from any address.
 
-Create the trunk once with the [LiveKit CLI](https://github.com/livekit/livekit-cli), `lk`:
+Create the trunk once with the [LiveKit CLI](https://github.com/livekit/livekit-cli), `lk`, with the same secret:
 
 ```bash
 lk sip inbound create \
@@ -105,7 +105,7 @@ Meet creates and deletes each room's dispatch rule itself, as [How do phone call
 
 1. Create a Twilio account and obtain a phone number.
 2. In the Twilio console, create a SIP Trunk.
-3. Point the origination URI at your LiveKit SIP service: `sip:your-server.example.com:5060`.
+3. Point the origination URI at your LiveKit SIP service: `sip:livekit.example.com:5060`, the address of the server running LiveKit SIP.
 
 ## Audio prompt language
 

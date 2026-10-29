@@ -1,13 +1,15 @@
 # Deployment on Scalingo
 
-At the end, LaSuite Meet runs as a [Scalingo](https://scalingo.com/) app built by the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack), with PostgreSQL and Redis addons. To only try Meet, run [Quick Start](compose/quick-start.md) on a single server first.
+Take this path when your apps already run on [Scalingo](https://scalingo.com/): Meet becomes one more app there, built by the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack), with PostgreSQL and Redis addons. LiveKit, the media server, still runs elsewhere.
+
+To only try Meet, run [Quick Start](compose/quick-start.md) on a single server first.
 
 ## Prerequisites
 
 - A Scalingo account
-- The Scalingo CLI
-- An OIDC provider, the identity service that signs users in, with a client for Meet
-- A LiveKit server running elsewhere, see [LiveKit](#livekit)
+- The [Scalingo CLI](https://doc.scalingo.com/tools/cli/start)
+- An [OIDC](https://openid.net/developers/how-connect-works/) provider, the identity service that signs users in, with a client for Meet
+- A [LiveKit](https://livekit.io/) server running elsewhere, see [LiveKit](#livekit)
 
 ## Step 1: Create the app and its addons
 
@@ -40,33 +42,39 @@ scalingo env-set REDIS_URL="\$SCALINGO_REDIS_URL"
 
 ### Django
 
-Run Django in production mode, with your own secret key and the app's hostname:
+Run Django in production mode. Replace `my-meet-app.osc-fr1.scalingo.io` with your app's hostname; the secret key is generated on its line:
 
 ```bash
 scalingo env-set DJANGO_SETTINGS_MODULE="meet.settings"
 scalingo env-set DJANGO_CONFIGURATION="Production"
-scalingo env-set DJANGO_SECRET_KEY="<generate-a-secure-secret-key>"
+scalingo env-set DJANGO_SECRET_KEY="$(openssl rand -hex 32)"
 scalingo env-set DJANGO_ALLOWED_HOSTS="my-meet-app.osc-fr1.scalingo.io"
 ```
 
+See [`DJANGO_CONFIGURATION`](../reference/env-variables.md#DJANGO_CONFIGURATION), [`DJANGO_SECRET_KEY`](../reference/env-variables.md#DJANGO_SECRET_KEY) and [`DJANGO_ALLOWED_HOSTS`](../reference/env-variables.md#DJANGO_ALLOWED_HOSTS).
+
 ### OIDC
 
-Point Meet at your OIDC provider and its client for Meet. The example uses Keycloak's endpoints; [SSO & Authentication](configuration/sso.md) has them for other providers:
+Point Meet at your OIDC provider and its client for Meet. Replace `auth.yourdomain.com` and `<your-client-secret>` with your provider's. The example uses Keycloak's endpoints; [SSO & Authentication](configuration/sso.md) has them for other providers:
 
 ```bash
-scalingo env-set OIDC_OP_JWKS_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/certs"
-scalingo env-set OIDC_OP_AUTHORIZATION_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/auth"
-scalingo env-set OIDC_OP_TOKEN_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/token"
-scalingo env-set OIDC_OP_USER_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/userinfo"
-scalingo env-set OIDC_OP_LOGOUT_ENDPOINT="https://auth.yourdomain.com/realms/meet/protocol/openid-connect/logout"
+OIDC="https://auth.yourdomain.com/realms/meet/protocol/openid-connect"
+
+scalingo env-set OIDC_OP_JWKS_ENDPOINT="$OIDC/certs"
+scalingo env-set OIDC_OP_AUTHORIZATION_ENDPOINT="$OIDC/auth"
+scalingo env-set OIDC_OP_TOKEN_ENDPOINT="$OIDC/token"
+scalingo env-set OIDC_OP_USER_ENDPOINT="$OIDC/userinfo"
+scalingo env-set OIDC_OP_LOGOUT_ENDPOINT="$OIDC/logout"
 scalingo env-set OIDC_RP_CLIENT_ID="meet"
 scalingo env-set OIDC_RP_CLIENT_SECRET="<your-client-secret>"
 scalingo env-set OIDC_RP_SIGN_ALGO="RS256"
 ```
 
+See [`OIDC_RP_CLIENT_SECRET`](../reference/env-variables.md#OIDC_RP_CLIENT_SECRET) and the rest of [Authentication (OIDC)](../reference/env-variables.md#authentication-oidc).
+
 ### LiveKit
 
-Run LiveKit elsewhere, with [LiveKit on Kubernetes](kubernetes/helm.md#livekit-on-kubernetes) or the `livekit` service of the [Docker Compose stack](compose/deployment-guide.md#stack-3-meet-core), then point Meet at it:
+Run LiveKit elsewhere, with [LiveKit on Kubernetes](kubernetes/helm.md#livekit-on-kubernetes) or the `livekit` service of the [Docker Compose stack](compose/deployment-guide.md#stack-3-meet-core), then point Meet at it. Replace the URL and the two `<your-livekit-…>` values with that server's:
 
 ```bash
 scalingo env-set LIVEKIT_API_URL="https://livekit.yourdomain.com"
@@ -90,19 +98,22 @@ The `postdeploy` line of `Procfile` runs the database migrations on each deploym
 
 ## Step 4: Create an admin account
 
-After the first deployment, create an account that can open `/admin/`:
+After the first deployment, create an account that can open `/admin/`, with your email and a strong password in place of the two `<…>` values:
 
 ```bash
-scalingo run python manage.py createsuperuser --email <admin email> --password '<admin password>'
+scalingo run python manage.py createsuperuser \
+  --email <admin email> --password '<admin password>'
 ```
 
 ## Custom domain
 
-Add the domain to the app, then list it in `DJANGO_ALLOWED_HOSTS` beside the Scalingo hostname:
+Add the domain to the app, then list it in [`DJANGO_ALLOWED_HOSTS`](../reference/env-variables.md#DJANGO_ALLOWED_HOSTS) beside the Scalingo hostname. Replace `meet.yourdomain.com` with yours:
 
 ```bash
-scalingo domains-add meet.yourdomain.com   # or add it in the dashboard
-scalingo env-set DJANGO_ALLOWED_HOSTS="meet.yourdomain.com,my-meet-app.osc-fr1.scalingo.io"
+# Or add it in the dashboard
+scalingo domains-add meet.yourdomain.com
+HOSTS="meet.yourdomain.com,my-meet-app.osc-fr1.scalingo.io"
+scalingo env-set DJANGO_ALLOWED_HOSTS="$HOSTS"
 ```
 
 Then point your DNS to Scalingo.

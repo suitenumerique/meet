@@ -70,7 +70,7 @@ Every feature is in the open source code.
 
 | URL | Operator | Access |
 |---|---|---|
-| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/) | DINUM | French central administration, ProConnect required |
+| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/) | DINUM | French central administration, [ProConnect](https://www.proconnect.gouv.fr/) required |
 | [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT | French territorial administration, ProConnect required |
 | [visio.lasuite.coop](https://visio.lasuite.coop/) | lasuite.coop | Demo: test accounts from [lasuite.coop](https://lasuite.coop/applications/demo/), deleted after a month |
 | [mosa.cloud](https://mosa.cloud/) | mosa.cloud | Dutch commercial instance |

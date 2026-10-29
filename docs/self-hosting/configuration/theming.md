@@ -6,7 +6,7 @@ Colors, fonts, logos and images change without a rebuild. Only the application t
 
 ### Load your CSS file
 
-Set `FRONTEND_CUSTOM_CSS_URL` on the **backend** container to your CSS file's URL, such as `https://cdn.example.com/custom.css`. To serve the file from the frontend container instead, mount it into its web root, `/usr/share/nginx/html`, and set the variable to the file's path:
+Set [`FRONTEND_CUSTOM_CSS_URL`](../../reference/env-variables.md#FRONTEND_CUSTOM_CSS_URL) on the **backend** container to your CSS file's URL, such as `https://cdn.example.com/custom.css`. To serve the file from the frontend container instead, mount it into its web root, `/usr/share/nginx/html`, and set the variable to the file's path:
 
 === "Docker Compose"
 
@@ -60,7 +60,9 @@ Components read two kinds of CSS variables:
 - **Semantic tokens**, such as `--colors-primary`, used by some component styles.
 - **Raw palette tokens**, such as `--colors-primary-800`, used directly by many.
 
-To rebrand the primary color fully, override the semantic tokens **and** the whole palette scale, as the [example](#example-full-primary-color-override) does: overriding only `--colors-primary` leaves every component that uses the scale in the default color. Inside a room Meet turns dark and uses its own scale, `--colors-primary-dark-*`: override that scale too.
+To rebrand the primary color fully, override the semantic tokens **and** the whole palette scale, as the [example](#example-full-primary-color-override) does: overriding only `--colors-primary` leaves every component that uses the scale in the default color.
+
+Inside a room Meet turns dark and uses its own scale, `--colors-primary-dark-*`: override that scale too.
 
 The main semantic tokens, all defined in [`src/frontend/panda.config.ts`](https://github.com/suitenumerique/meet/blob/main/src/frontend/panda.config.ts):
 
@@ -117,7 +119,9 @@ The main semantic tokens, all defined in [`src/frontend/panda.config.ts`](https:
 
 ## Custom assets (logo, images)
 
-To replace a built-in asset, such as the logo or a landing page image, mount your own file over it in the frontend container, under `/usr/share/nginx/html/assets`. The landing page carousel shows `1.png` to `3.png`, and the recording and transcription panels show `3.png` and `4.png`:
+To replace a built-in asset, such as the logo or a landing page image, mount your own file over it in the frontend container, under `/usr/share/nginx/html/assets`.
+
+The landing page carousel shows `1.png` to `3.png`; the recording and transcription panels show `3.png` and `4.png`, and the recording download page `4.png`:
 
 ```
 /usr/share/nginx/html/
@@ -127,6 +131,13 @@ To replace a built-in asset, such as the logo or a landing page image, mount you
         ├── 3.png
         └── 4.png
 ```
+
+The favicon is six files directly under `/usr/share/nginx/html`:
+
+- `favicon.ico`
+- `favicon-16x16.png` and `favicon-32x32.png`
+- `apple-touch-icon.png`
+- `android-chrome-192x192.png` and `android-chrome-512x512.png`
 
 Mount each file, never the whole `assets/` directory: that would hide the compiled JS and CSS bundles and break the app.
 
@@ -187,4 +198,4 @@ docker build \
 
 ## Footer
 
-Meet shows a footer only with `FRONTEND_USE_FRENCH_GOV_FOOTER=True`, and it is the official French government one, see [Environment Variables: Frontend](../../reference/env-variables.md#frontend). No other footer can be set.
+Meet shows a footer only with [`FRONTEND_USE_FRENCH_GOV_FOOTER`](../../reference/env-variables.md#FRONTEND_USE_FRENCH_GOV_FOOTER)`=True`, and it is the official French government one. No other footer can be set.
