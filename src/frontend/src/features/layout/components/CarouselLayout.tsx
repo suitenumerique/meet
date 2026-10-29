@@ -2,7 +2,10 @@ import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { getScrollBarWidth } from '@livekit/components-core'
 import * as React from 'react'
 import { TrackLoop, useVisualStableUpdate } from '@livekit/components-react'
+import { Track } from 'livekit-client'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
+import { useLastRemoteSpeaker } from '../hooks/useLastRemoteSpeaker'
+import { useSpeakerPromotionTrigger } from '../hooks/useSpeakerPromotionTrigger'
 
 const MIN_HEIGHT = 130
 const MIN_WIDTH = 140
@@ -66,7 +69,21 @@ export function CarouselLayout({
     setPrevTiles(tilesThatFit)
   }
 
-  const sortedTiles = useVisualStableUpdate(tracks, maxVisibleTiles)
+  const stableTiles = useVisualStableUpdate(tracks, maxVisibleTiles)
+  const speakerId = useLastRemoteSpeaker()
+
+  // Reordered after useVisualStableUpdate so its page size never changes,
+  // which would make it re-sort every tile.
+  const isLocalCamera = (t: TrackReferenceOrPlaceholder) =>
+    t.source === Track.Source.Camera && t.participant.isLocal
+  const isSpeakerCamera = (t: TrackReferenceOrPlaceholder) =>
+    t.source === Track.Source.Camera && t.participant.identity === speakerId
+  const sortedTiles = [
+    ...stableTiles.filter(isLocalCamera),
+    ...stableTiles.filter(isSpeakerCamera),
+    ...stableTiles.filter((t) => !isLocalCamera(t) && !isSpeakerCamera(t)),
+  ]
+  useSpeakerPromotionTrigger(sortedTiles.slice(0, maxVisibleTiles), tracks)
 
   React.useLayoutEffect(() => {
     if (asideEl.current) {
