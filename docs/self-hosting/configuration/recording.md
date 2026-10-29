@@ -1,8 +1,6 @@
 # Recording
 
-Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which uploads the file to S3-compatible storage, then emails a download link. [How does recording work?](../../overview/how-meet-works.md#recording) follows a recording end to end, and [Environment Variables: Recording](../../reference/env-variables.md#recording) lists every variable.
-
-Set the recording time limit in LiveKit Egress, as [`RECORDING_MAX_DURATION`](../../reference/env-variables.md#RECORDING_MAX_DURATION) says: Meet saves a recording Egress stopped there.
+Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which uploads the file to S3-compatible storage, then emails a download link. [How does recording work?](../../overview/how-meet-works.md#recording) follows one end to end.
 
 ## Who can record
 
@@ -63,7 +61,7 @@ Set up [Email (SMTP)](email.md) first: the download link reaches users by email.
     kept LIVEKIT_API_SECRET in livekit-server.yaml: no placeholder left
     ```
 
-    The stack joins the Meet stack's `internal` network, `meet_internal` when Meet runs from `~/docker/meet`. For another name, set `MEET_INTERNAL_NETWORK` in `.env`. Start Garage and check that it created the bucket:
+    Start Garage and check that it created the bucket. It joins the Meet stack's network, `meet_internal`; for a Meet stack outside `~/docker/meet`, set `MEET_INTERNAL_NETWORK` in `.env` first:
 
     ```bash
     cd ~/docker/garage
@@ -72,6 +70,15 @@ Set up [Email (SMTP)](email.md) first: the download link reaches users by email.
     ```
 
 === "Kubernetes"
+
+    Download the manifests of Garage and of Step 2's Egress:
+
+    ```bash
+    RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
+
+    K8S=$RAW/docs/examples/kubernetes
+    curl -fsSL --remote-name-all $K8S/{garage,livekit-egress,livekit-egress-deployment}.yaml
+    ```
 
     Store Garage's secrets in a Secret named `garage-secrets`. The backend reads the two keys from it in Step 3:
 
@@ -82,94 +89,7 @@ Set up [Email (SMTP)](email.md) first: the download link reaches users by email.
       --from-literal=GARAGE_DEFAULT_SECRET_KEY="$(openssl rand -hex 32)"
     ```
 
-    Save this manifest as `garage.yaml`:
-
-    ```yaml title="garage.yaml"
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: garage-config
-      namespace: meet
-    data:
-      garage.toml: |
-        metadata_dir = "/var/lib/garage/meta"
-        data_dir = "/var/lib/garage/data"
-        db_engine = "lmdb"
-        replication_factor = 1
-        rpc_bind_addr = "127.0.0.1:3901"
-        rpc_public_addr = "127.0.0.1:3901"
-
-        [s3_api]
-        api_bind_addr = "[::]:9000"
-        s3_region = "garage"
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: garage
-      namespace: meet
-    spec:
-      selector:
-        app: garage
-      ports:
-        - name: s3
-          port: 9000
-          targetPort: s3
-    ---
-    apiVersion: apps/v1
-    kind: StatefulSet
-    metadata:
-      name: garage
-      namespace: meet
-    spec:
-      serviceName: garage
-      replicas: 1
-      selector:
-        matchLabels:
-          app: garage
-      template:
-        metadata:
-          labels:
-            app: garage
-        spec:
-          containers:
-            - name: garage
-              image: dxflrs/garage:v2.4.1
-              command: ["/garage", "server", "--single-node", "--default-bucket"]
-              env:
-                - name: GARAGE_DEFAULT_BUCKET
-                  value: meet-media-storage
-              envFrom:
-                - secretRef:
-                    name: garage-secrets
-              ports:
-                - name: s3
-                  containerPort: 9000
-              readinessProbe:
-                exec:
-                  command: ["/garage", "health"]
-                periodSeconds: 5
-              volumeMounts:
-                - name: config
-                  mountPath: /etc/garage.toml
-                  subPath: garage.toml
-                - name: data
-                  mountPath: /var/lib/garage
-          volumes:
-            - name: config
-              configMap:
-                name: garage-config
-      volumeClaimTemplates:
-        - metadata:
-            name: data
-          spec:
-            accessModes: ["ReadWriteOnce"]
-            resources:
-              requests:
-                storage: 50Gi
-    ```
-
-    Apply it, then check that Garage created the bucket:
+    Apply [`garage.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/kubernetes/garage.yaml), one Garage node with a 50 GiB volume, then check that it created the bucket:
 
     ```bash
     kubectl apply -f garage.yaml
@@ -178,28 +98,16 @@ Set up [Email (SMTP)](email.md) first: the download link reaches users by email.
 
 ### Step 2: LiveKit Egress
 
-Create `livekit-egress.yaml`, in `~/docker/meet` on Docker Compose:
-
-```yaml title="livekit-egress.yaml"
-api_key: meet
-api_secret: <your LiveKit API secret>
-ws_url: ws://livekit:7880
-
-# Required: Egress crashes at start without it
-redis:
-  address: redis:6379
-
-cpu_cost:
-  room_composite_cpu_cost: 1.5
-  track_composite_cpu_cost: 1.0
-  track_cpu_cost: 0.5
-```
-
-`cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores, see [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers).
+Egress reads [`livekit-egress.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-egress.yaml). Its `cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores, see [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers).
 
 === "Docker Compose"
 
-    Add to the Meet stack's `compose.yml`, under `services:`:
+    Download its config into the Meet stack, then add the service under `services:` in `compose.yml`:
+
+    ```bash
+    cd ~/docker/meet
+    curl -fsSL -O $RAW/docs/examples/meet/livekit-egress.yaml
+    ```
 
     ```yaml title="compose.yml"
       livekit-egress:
@@ -220,63 +128,10 @@ cpu_cost:
 
 === "Kubernetes"
 
-    Egress is not part of the Meet Helm chart. In the file:
-
-    - point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`;
-    - set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `meet` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes);
-    - delete the `api_secret` line: the Deployment below passes [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET) from the `meet-backend-env` Secret.
-
-    Then store it in a ConfigMap:
+    Egress is not part of the Meet Helm chart. The Kubernetes [`livekit-egress.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/kubernetes/livekit-egress.yaml) of Step 1 points at the `livekit-server` and `redis-master` services, and the [Deployment](https://github.com/suitenumerique/meet/blob/main/docs/examples/kubernetes/livekit-egress-deployment.yaml) passes it [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET) from the `meet-backend-env` Secret:
 
     ```bash
     kubectl -n meet create configmap livekit-egress-config --from-file=livekit-egress.yaml
-    ```
-
-    Then deploy Egress with this manifest, saved as `livekit-egress-deployment.yaml`:
-
-    ```yaml title="livekit-egress-deployment.yaml"
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: livekit-egress
-      namespace: meet
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: livekit-egress
-      template:
-        metadata:
-          labels:
-            app: livekit-egress
-        spec:
-          containers:
-          - name: livekit-egress
-            image: livekit/egress:latest
-            env:
-            - name: EGRESS_CONFIG_FILE
-              value: /config/livekit-egress.yaml
-            - name: LIVEKIT_API_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: meet-backend-env
-                  key: LIVEKIT_API_SECRET
-            volumeMounts:
-            - name: config
-              mountPath: /config
-            resources:
-              requests:
-                cpu: 500m
-                memory: 512Mi
-              limits:
-                memory: 2Gi
-          volumes:
-          - name: config
-            configMap:
-              name: livekit-egress-config
-    ```
-
-    ```bash
     kubectl apply -f livekit-egress-deployment.yaml
     ```
 
@@ -322,10 +177,8 @@ cpu_cost:
         RECORDING_DOWNLOAD_BASE_URL: "https://meet.example.com/recording"
     ```
 
-    The SMTP variables go in the same block, see [Email (SMTP)](email.md#kubernetes-setup).
-
     ```bash
-    helm upgrade meet meet/meet --namespace meet --values values.yaml
+    helm upgrade meet meet/meet -n meet -f values.yaml
     ```
 
 Check that recording is enabled, with [jq](https://jqlang.org/):
@@ -337,19 +190,11 @@ true
 
 ### Step 4: Route recording downloads
 
-Downloads go through `https://meet.example.com/media/`: the proxy asks the backend's `/api/v1.0/recordings/media-auth/` for signed headers, then fetches the file from the storage. The backend signs for the host of [`AWS_S3_ENDPOINT_URL`](../../reference/env-variables.md#AWS_S3_ENDPOINT_URL), so the `Host` header the proxy sends must equal that URL's `host:port`.
+Downloads go through `https://meet.example.com/media/`: the proxy gets signed headers from the backend, then fetches the file from the storage, with the `Host` header of [`AWS_S3_ENDPOINT_URL`](../../reference/env-variables.md#AWS_S3_ENDPOINT_URL).
 
 === "Docker Compose"
 
-    `nginx-routing.conf` ships with a commented-out `/media/` block. Uncomment it and replace the placeholders:
-
-    | Placeholder | Value |
-    |---|---|
-    | `<OBJECT_STORAGE_HOST>` | [`AWS_S3_ENDPOINT_URL`](../../reference/env-variables.md#AWS_S3_ENDPOINT_URL), for example `http://garage:9000` |
-    | `<OBJECT_STORAGE_HOST_NO_SCHEME>` | The same without `http://` or `https://`, for the `Host` header |
-    | `<BUCKET_NAME>` | [`AWS_STORAGE_BUCKET_NAME`](../../reference/env-variables.md#AWS_STORAGE_BUCKET_NAME) |
-
-    With the Garage of Step 1, the block reads:
+    `nginx-routing.conf` ships a commented-out `/media/` block. Uncomment it and fill its placeholders, which with the Garage of Step 1 gives:
 
     ```nginx title="nginx-routing.conf"
     location /media/ {
@@ -377,7 +222,7 @@ Downloads go through `https://meet.example.com/media/`: the proxy asks the backe
     }
     ```
 
-    Restart the frontend container, which runs this nginx:
+    With another storage, put its host and bucket in place of `garage:9000` and `meet-media-storage`. Then restart the frontend, which runs this nginx:
 
     ```bash
     docker compose restart frontend
@@ -412,7 +257,7 @@ Downloads go through `https://meet.example.com/media/`: the proxy asks the backe
     ```
 
     ```bash
-    helm upgrade meet meet/meet --namespace meet --values values.yaml
+    helm upgrade meet meet/meet -n meet -f values.yaml
     ```
 
 ## Configuring recording encoding
@@ -473,7 +318,12 @@ RECORDING_ENCODING_DEFAULT_PROFILE=small
 4. Check the recording's status under `/admin/` → **Core → Recordings**.
 5. Check that the email with the download link arrived.
 
-While a recording runs, the [LiveKit CLI](https://github.com/livekit/livekit-cli) lists the active Egress jobs and their state: `lk egress list --url https://livekit.example.com --api-key meet --api-secret <your LiveKit API secret>`.
+While a recording runs, the [LiveKit CLI](https://github.com/livekit/livekit-cli) lists the active Egress jobs and their state:
+
+```bash
+SECRET=$(sed -n 's/^LIVEKIT_API_SECRET=//p' ~/docker/meet/env.d/common)
+lk egress list --url https://livekit.example.com --api-key meet --api-secret "$SECRET"
+```
 
 ## What it cannot do
 
