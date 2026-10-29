@@ -1,47 +1,37 @@
 # Recording
 
-Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which captures the room and uploads the file to S3-compatible storage.
+Meet records a meeting with [LiveKit Egress](https://github.com/livekit/egress), which uploads the file to S3-compatible storage, then emails a download link. [How does recording work?](../../overview/how-meet-works.md#recording) follows a recording end to end, and [Environment Variables: Recording](../../reference/env-variables.md#recording) lists every variable.
 
-When a screen recording is complete, the person who started it and the room's host and co-hosts each receive an email with a download link.
-
-How a recording travels from the button to that email is in [How does recording work?](../../overview/how-meet-works.md#recording).
-
-Every recording variable and its default is in [Environment Variables: Recording](../../reference/env-variables.md#recording).
-
-[`RECORDING_MAX_DURATION`](../../reference/env-variables.md#RECORDING_MAX_DURATION) is only the limit users see: set the same limit in LiveKit Egress, which stops the recording. Meet still saves a recording Egress stopped at its limit.
+Set the recording time limit in LiveKit Egress, as [`RECORDING_MAX_DURATION`](../../reference/env-variables.md#RECORDING_MAX_DURATION) says: Meet saves a recording Egress stopped there.
 
 ## Who can record
 
 | Room access level | Who can start and stop a recording |
 |---|---|
-| `public` or `trusted` | The room's owners and co-hosts, and any signed-in participant connected to the meeting |
-| `restricted` | The room's owners and co-hosts only |
+| `public` or `trusted` | The room's host and co-hosts, and any signed-in participant connected to the meeting |
+| `restricted` | The room's host and co-hosts only |
 
-Set `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED=False` to restrict recording to the room's owners and co-hosts on every room. A participant who joined without signing in can never record.
+Set [`RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED=False`](../../reference/env-variables.md#RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED) to restrict recording to the room's host and co-hosts on every room.
 
-Meet copies the room's roles onto the recording when it starts, and later changes to the room do not affect it:
+A recording keeps the room's roles from when it started:
 
 | Person | Can watch and download | Can delete |
 |---|---|---|
-| The room's owners and co-hosts | Yes | Yes, once it has ended |
-| The person who started it, when not an owner or co-host | Yes | No |
-
-Starting a recording is rate-limited per user, as [Rate limiting](../../reference/security.md#rate-limiting) lists.
+| The room's host and co-hosts | Yes | Yes, once it has ended |
+| The person who started it, when not a host or co-host | Yes | No |
 
 ## Setup
 
-Set up [Email (SMTP)](email.md) first: the download link reaches users by email. Meet learns that a recording has finished from the LiveKit [webhook](livekit.md#webhook), which the [Deployment Guide](../compose/deployment-guide.md#stack-3-meet-core) already configures.
+Set up [Email (SMTP)](email.md) first: the download link reaches users by email.
 
 ### Step 1: Object storage
 
 !!! note "Another S3-compatible provider"
-    Any S3-compatible provider works, such as AWS S3, Scaleway Object Storage or OVHcloud Object Storage. To use one, skip this step and put its endpoint, keys and region in the `AWS_S3_*` variables of Step 3.
+    To use AWS S3, Scaleway Object Storage, OVHcloud Object Storage or another, skip this step and put its endpoint, keys and region in the [`AWS_S3_*` variables](../../reference/env-variables.md#object-storage-s3) of Step 3.
 
     Keep the bucket private: the backend authorizes each download, as Step 4 sets up.
 
-[Garage](https://garagehq.deuxfleurs.fr/) runs here as a single node with no replication. Its first start creates the access key and the `meet-media-storage` bucket, and later starts leave both untouched.
-
-Garage refuses to start with an access key under 8 characters or a secret key under 16.
+[Garage](https://garagehq.deuxfleurs.fr/) runs here as a single node with no replication. Its first start creates the access key and the `meet-media-storage` bucket, and later starts leave both untouched: set the keys before that start.
 
 === "Docker Compose"
 
@@ -56,20 +46,27 @@ Garage refuses to start with an access key under 8 characters or a secret key un
     curl -fsSL -o .env $RAW/docs/examples/garage/.env.example
     ```
 
-    Generate the three secrets and write them into `.env`:
+    Fill its secrets, and Meet's S3 keys, with the Meet stack's script:
 
-    ```bash
-    sed -i "s|GARAGE_RPC_SECRET=.*|GARAGE_RPC_SECRET=$(openssl rand -hex 32)|" .env
-    sed -i "s|GARAGE_ACCESS_KEY=.*|GARAGE_ACCESS_KEY=$(openssl rand -hex 12)|" .env
-    sed -i "s|GARAGE_SECRET_KEY=.*|GARAGE_SECRET_KEY=$(openssl rand -hex 32)|" .env
-
-    # Note both keys: Step 3 uses them as Meet's S3 keys
-    grep -E "GARAGE_(ACCESS|SECRET)_KEY" .env
+    ```console
+    $ cd ~/docker/meet
+    $ bash generate-secrets.sh
+    kept DJANGO_SECRET_KEY in common: already set
+    kept LIVEKIT_API_SECRET in common: already set
+    kept OIDC_RP_CLIENT_SECRET in common: already set
+    kept DB_PASSWORD in postgresql: already set
+    set GARAGE_RPC_SECRET in .env
+    set GARAGE_ACCESS_KEY in .env
+    set GARAGE_SECRET_KEY in .env
+    added AWS_S3_ACCESS_KEY_ID to common
+    added AWS_S3_SECRET_ACCESS_KEY to common
+    kept LIVEKIT_API_SECRET in livekit-server.yaml: no placeholder left
     ```
 
     The stack joins the Meet stack's `internal` network, `meet_internal` when Meet runs from `~/docker/meet`. For another name, set `MEET_INTERNAL_NETWORK` in `.env`. Start Garage and check that it created the bucket:
 
     ```bash
+    cd ~/docker/garage
     docker compose up -d
     docker compose exec garage /garage bucket info meet-media-storage
     ```
@@ -85,9 +82,9 @@ Garage refuses to start with an access key under 8 characters or a secret key un
       --from-literal=GARAGE_DEFAULT_SECRET_KEY="$(openssl rand -hex 32)"
     ```
 
-    Save this manifest as `garage.yaml`. It runs Garage as a one-replica StatefulSet with a 50 GiB volume, behind a Service named `garage`:
+    Save this manifest as `garage.yaml`:
 
-    ```yaml
+    ```yaml title="garage.yaml"
     apiVersion: v1
     kind: ConfigMap
     metadata:
@@ -181,9 +178,9 @@ Garage refuses to start with an access key under 8 characters or a secret key un
 
 ### Step 2: LiveKit Egress
 
-Create `livekit-egress.yaml`, in `~/docker/meet` on Docker Compose. `<your LiveKit API secret>` is `LIVEKIT_API_SECRET`, from `env.d/common` on Docker Compose or the `meet-backend-env` Secret on Kubernetes.
+Create `livekit-egress.yaml`, in `~/docker/meet` on Docker Compose:
 
-```yaml
+```yaml title="livekit-egress.yaml"
 api_key: meet
 api_secret: <your LiveKit API secret>
 ws_url: ws://livekit:7880
@@ -200,13 +197,11 @@ cpu_cost:
 
 `cpu_cost` lets Egress accept recordings on a server with fewer than 4 cores, see [Recording fails immediately](../../reference/troubleshooting.md#recording-fails-immediately-no-response-from-servers).
 
-The file needs no `s3` section: Meet sends the storage settings with every recording request, built from the backend's `AWS_S3_*` variables of Step 3.
-
 === "Docker Compose"
 
     Add to the Meet stack's `compose.yml`, under `services:`:
 
-    ```yaml
+    ```yaml title="compose.yml"
       livekit-egress:
         image: livekit/egress:${EGRESS_VERSION:-latest}
         restart: unless-stopped
@@ -221,17 +216,15 @@ The file needs no `s3` section: Meet sends the storage settings with every recor
           - internal
     ```
 
-    ```bash
-    cd ~/docker/meet
-    docker compose up -d livekit-egress
-    ```
+    Then run `bash generate-secrets.sh` in `~/docker/meet`: it fills `<your LiveKit API secret>`. Step 3 starts Egress.
 
 === "Kubernetes"
 
     Egress is not part of the Meet Helm chart. In the file:
 
     - point `ws_url` and `redis.address` at your LiveKit and Redis services, for example `ws://livekit-server:7880` and `redis-master:6379`;
-    - set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `meet` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes).
+    - set `api_key` to the key under `livekit.keys` in `livekit-values.yaml`, `meet` in [Helm Deployment](../kubernetes/helm.md#livekit-on-kubernetes);
+    - delete the `api_secret` line: the Deployment below passes [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET) from the `meet-backend-env` Secret.
 
     Then store it in a ConfigMap:
 
@@ -241,7 +234,7 @@ The file needs no `s3` section: Meet sends the storage settings with every recor
 
     Then deploy Egress with this manifest, saved as `livekit-egress-deployment.yaml`:
 
-    ```yaml
+    ```yaml title="livekit-egress-deployment.yaml"
     apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -263,6 +256,11 @@ The file needs no `s3` section: Meet sends the storage settings with every recor
             env:
             - name: EGRESS_CONFIG_FILE
               value: /config/livekit-egress.yaml
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: meet-backend-env
+                  key: LIVEKIT_API_SECRET
             volumeMounts:
             - name: config
               mountPath: /config
@@ -284,33 +282,29 @@ The file needs no `s3` section: Meet sends the storage settings with every recor
 
 ### Step 3: Meet backend
 
-The backend and Egress both reach the storage at `AWS_S3_ENDPOINT_URL`, whose scheme sets HTTP or HTTPS. `AWS_S3_REGION_NAME` is the region requests are signed for: `garage` for the Garage of Step 1, your provider's region otherwise.
-
 === "Docker Compose"
 
-    Add to `env.d/common`, with the two keys from Step 1:
+    Add to `env.d/common`, where Step 1 already put the two keys:
 
-    ```dotenv
+    ```dotenv title="env.d/common"
     RECORDING_ENABLE=True
     AWS_S3_ENDPOINT_URL=http://garage:9000
-    AWS_S3_ACCESS_KEY_ID=<GARAGE_ACCESS_KEY>
-    AWS_S3_SECRET_ACCESS_KEY=<GARAGE_SECRET_KEY>
     AWS_S3_REGION_NAME=garage
     AWS_STORAGE_BUCKET_NAME=meet-media-storage
     RECORDING_DOWNLOAD_BASE_URL=https://meet.example.com/recording
     ```
 
-    Recreate the backend and its worker:
+    Start Egress, and recreate every container reading `env.d/common`:
 
     ```bash
-    docker compose up -d --force-recreate backend celery
+    docker compose up -d
     ```
 
 === "Kubernetes"
 
     Add to `backend.envVars` in your `values.yaml`. The two keys come from the Secret of Step 1:
 
-    ```yaml
+    ```yaml title="values.yaml"
     backend:
       envVars:
         RECORDING_ENABLE: "True"
@@ -343,9 +337,7 @@ true
 
 ### Step 4: Route recording downloads
 
-The download button points to `https://meet.example.com/media/recordings/<id>.mp4`. The proxy asks the backend's `/api/v1.0/recordings/media-auth/` whether the user may retrieve it, then fetches the file from the storage with the signed headers the backend returns.
-
-The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header the proxy sends to the storage must equal that URL's `host:port`.
+Downloads go through `https://meet.example.com/media/`: the proxy asks the backend's `/api/v1.0/recordings/media-auth/` for signed headers, then fetches the file from the storage. The backend signs for the host of [`AWS_S3_ENDPOINT_URL`](../../reference/env-variables.md#AWS_S3_ENDPOINT_URL), so the `Host` header the proxy sends must equal that URL's `host:port`.
 
 === "Docker Compose"
 
@@ -353,13 +345,13 @@ The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header th
 
     | Placeholder | Value |
     |---|---|
-    | `<OBJECT_STORAGE_HOST>` | `AWS_S3_ENDPOINT_URL`, for example `http://garage:9000` |
+    | `<OBJECT_STORAGE_HOST>` | [`AWS_S3_ENDPOINT_URL`](../../reference/env-variables.md#AWS_S3_ENDPOINT_URL), for example `http://garage:9000` |
     | `<OBJECT_STORAGE_HOST_NO_SCHEME>` | The same without `http://` or `https://`, for the `Host` header |
-    | `<BUCKET_NAME>` | `AWS_STORAGE_BUCKET_NAME` |
+    | `<BUCKET_NAME>` | [`AWS_STORAGE_BUCKET_NAME`](../../reference/env-variables.md#AWS_STORAGE_BUCKET_NAME) |
 
     With the Garage of Step 1, the block reads:
 
-    ```nginx
+    ```nginx title="nginx-routing.conf"
     location /media/ {
         auth_request /media-auth;
         auth_request_set $authHeader $upstream_http_authorization;
@@ -393,9 +385,9 @@ The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header th
 
 === "Kubernetes"
 
-    The chart's `ingressMedia` does the same with nginx-ingress auth subrequests, and works with nginx-ingress only. With a storage other than the Garage of Step 1, set `upstream-vhost` and `serviceMedia` to its address. Add to `values.yaml`:
+    The chart's `ingressMedia` does the same, with nginx-ingress only. With a storage other than the Garage of Step 1, set `upstream-vhost` and `serviceMedia` to its address. Add to `values.yaml`:
 
-    ```yaml
+    ```yaml title="values.yaml"
     ingressMedia:
       enabled: true
       className: nginx
@@ -425,15 +417,11 @@ The backend signs for the host of `AWS_S3_ENDPOINT_URL`, so the `Host` header th
 
 ## Configuring recording encoding
 
-Meet encodes every screen recording with a **resolution** and a **profile**, which sets the framerate and the video bitrate for each resolution.
-
-- Transcript recordings are audio-only `.ogg` files: Meet ignores any encoding sent for them.
-- Egress's codecs stay fixed: H.264 Main video and AAC audio.
-- The default, the `full` profile at `720p`, matches LiveKit's built-in `H264_720P_30` preset, and makes larger files than talking heads and screen sharing need.
+Meet encodes every screen recording with a **resolution** and a **profile**, which sets the framerate and the video bitrate for each resolution. The default, the `full` profile at `720p`, makes larger files than talking heads and screen sharing need.
 
 ### Built-in profiles
 
-File size grows with the bitrate, and Egress CPU cost with the framerate and resolution. The size column adds the default 128 kbps audio to the 720p video bitrate:
+Egress CPU cost grows with the framerate and resolution. The size column adds the default 128 kbps audio to the 720p video bitrate:
 
 | Profile | FPS | 540p kbps | 720p kbps | 1080p kbps | ~size per hour at 720p | Best for |
 |---|---|---|---|---|---|---|
@@ -447,9 +435,9 @@ Choosing a profile:
 - For slide-heavy meetings, use `text`. At 720p, text blurs below about 40 kbit per frame, the bitrate divided by the framerate: `talking_heads` gives 47, `text` 67. Lower the framerate before the bitrate.
 - If meetings include music, keep audio at 128 kbps. AAC at 64 kbps stereo suits voice but compresses music noticeably.
 
-Change the default for every recording with `RECORDING_ENCODING_DEFAULT_RESOLUTION` and `RECORDING_ENCODING_DEFAULT_PROFILE`. For example, smaller files for talking-head meetings, with 64 kbps audio and a keyframe every 4 seconds:
+Change the default for every recording with [`RECORDING_ENCODING_DEFAULT_RESOLUTION`](../../reference/env-variables.md#RECORDING_ENCODING_DEFAULT_RESOLUTION) and [`RECORDING_ENCODING_DEFAULT_PROFILE`](../../reference/env-variables.md#RECORDING_ENCODING_DEFAULT_PROFILE). For example, for smaller files:
 
-```dotenv
+```dotenv title="env.d/common"
 RECORDING_ENCODING_DEFAULT_RESOLUTION=720p
 RECORDING_ENCODING_DEFAULT_PROFILE=talking_heads
 RECORDING_ENCODING_AUDIO_BITRATE_KBPS=64
@@ -461,13 +449,13 @@ To let LiveKit pick the whole encoding instead, set either default to an empty v
 
 ### Letting users choose
 
-With `RECORDING_CUSTOM_ENCODING_ENABLED=True`, the room's host and co-hosts pick the profile and resolution of each recording in the settings dialog's **Recording** tab.
+With [`RECORDING_CUSTOM_ENCODING_ENABLED=True`](../../reference/env-variables.md#RECORDING_CUSTOM_ENCODING_ENABLED), the room's host and co-hosts pick the profile and resolution of each recording in the settings dialog's **Recording** tab.
 
 ### Your own resolutions and profiles
 
-`RECORDING_ENCODING_AVAILABLE_RESOLUTIONS` and `RECORDING_ENCODING_AVAILABLE_PROFILES` replace the built-in sets. Each is a dictionary on a single line, with double-quoted keys and no outer quotes in an env file:
+[`RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`](../../reference/env-variables.md#RECORDING_ENCODING_AVAILABLE_RESOLUTIONS) and [`RECORDING_ENCODING_AVAILABLE_PROFILES`](../../reference/env-variables.md#RECORDING_ENCODING_AVAILABLE_PROFILES) replace the built-in sets. Each is a dictionary on a single line, with double-quoted keys and no outer quotes in an env file:
 
-```dotenv
+```dotenv title="env.d/common"
 RECORDING_ENCODING_AVAILABLE_RESOLUTIONS={"540p": {"width": 960, "height": 540}, "720p": {"width": 1280, "height": 720}, "1080p": {"width": 1920, "height": 1080}}
 RECORDING_ENCODING_AVAILABLE_PROFILES={"small": {"fps": 15, "kbps": {"540p": 350, "720p": 600, "1080p": 1100}}}
 RECORDING_ENCODING_DEFAULT_PROFILE=small

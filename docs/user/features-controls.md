@@ -185,9 +185,7 @@ Everything there stays in the browser you set it in, your name included. Only th
 
 A signed-in user can change their name only where the Meet server allows it.
 
-On the home page, the settings button sets the language.
-
-Once you are signed in, it also sets who can join the rooms you create and what participants may publish there. These choices do not apply to a room the Outlook add-in or another application creates for you.
+On the home page, the settings button sets the language. Once you are signed in, it also sets who can join the rooms you create and what participants may publish there. These choices do not apply to a room the Outlook add-in or another application creates for you.
 
 ## Set up by your administrator
 

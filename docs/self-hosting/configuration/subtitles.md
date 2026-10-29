@@ -6,37 +6,30 @@ A LiveKit agent turns speech into live captions with a speech-to-text (STT) prov
 
 - Any participant can start subtitles, anonymous ones in a public room included.
 - The **Show subtitles** button shows on computers only.
-- With `FRONTEND_ANALYTICS` set, it shows only to users with the [PostHog](https://posthog.com/docs/feature-flags) feature flag `subtitles`.
+- With [`FRONTEND_ANALYTICS`](../../reference/env-variables.md#FRONTEND_ANALYTICS) set, it shows only to users with the [PostHog](https://posthog.com/docs/feature-flags) feature flag `subtitles`.
 
-The [multi-user transcriber agent](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py) joins each room once and opens one STT stream per participant, for as long as the room runs. What subtitles cost:
-
-- **Provider:** cost grows with participants × time.
-- **Agent:** one instance serves several rooms at once, through LiveKit's dispatch. Its CPU, memory and network use grow with the participants in rooms with subtitles on.
+The [multi-user transcriber agent](https://github.com/suitenumerique/meet/blob/main/src/agents/multi_user_transcriber.py) opens one STT stream per participant, for as long as the room runs. So the provider's bill grows with participants × time, and the agent's CPU, memory and network with participants, though one agent serves several rooms.
 
 ## Setup
 
 ### Step 1: Backend
 
-`ROOM_SUBTITLE_AGENT_NAME` must match the agent's `TRANSCRIBER_AGENT_NAME`, see [Environment Variables: Subtitles](../../reference/env-variables.md#subtitles).
+[`ROOM_SUBTITLE_AGENT_NAME`](../../reference/env-variables.md#ROOM_SUBTITLE_AGENT_NAME) must match the agent's [`TRANSCRIBER_AGENT_NAME`](../../reference/env-variables.md#TRANSCRIBER_AGENT_NAME), see [Environment Variables: Subtitles](../../reference/env-variables.md#subtitles).
 
 === "Docker Compose"
 
     Add to `env.d/common`:
 
-    ```dotenv
+    ```dotenv title="env.d/common"
     ROOM_SUBTITLE_ENABLED=True
     ROOM_SUBTITLE_AGENT_NAME=multi-user-transcriber
-    ```
-
-    ```bash
-    docker compose up -d --force-recreate backend
     ```
 
 === "Kubernetes"
 
     Add to `backend.envVars` in your `values.yaml`:
 
-    ```yaml
+    ```yaml title="values.yaml"
     backend:
       envVars:
         ROOM_SUBTITLE_ENABLED: "True"
@@ -49,36 +42,32 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
 
 === "Docker Compose"
 
-    Create `env.d/multi-user-transcriber`. `<your LiveKit API secret>` is `LIVEKIT_API_SECRET` from `env.d/common`.
+    Download the agent's environment, then fill its LiveKit secret with the Meet stack's script:
 
-    ```dotenv
-    LIVEKIT_URL=ws://livekit:7880
-    LIVEKIT_API_KEY=meet
-    LIVEKIT_API_SECRET=<your LiveKit API secret>
+    ```bash
+    cd ~/docker/meet
+    RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
+    curl -fsSL --output-dir env.d --remote-name-all \
+      $RAW/env.d/production.dist/multi-user-transcriber
+    ```
 
-    # Choose STT provider: deepgram, kyutai or voxtral-vllm
+    ```console
+    $ bash generate-secrets.sh
+    ...
+    set LIVEKIT_API_SECRET in multi-user-transcriber
+    kept LIVEKIT_API_SECRET in livekit-server.yaml: no placeholder left
+    ```
+
+    Then put your provider's key in place of `your-deepgram-api-key` in `env.d/multi-user-transcriber`, or set `STT_PROVIDER` and the lines of another provider there:
+
+    ```dotenv title="env.d/multi-user-transcriber"
     STT_PROVIDER=deepgram
-
-    # With STT_PROVIDER=deepgram
     DEEPGRAM_API_KEY=your-deepgram-api-key
-    DEEPGRAM_STT_MODEL=nova-3
-    DEEPGRAM_STT_LANGUAGE=multi
-
-    # With STT_PROVIDER=kyutai
-    KYUTAI_STT_BASE_URL=http://kyutai-stt:8000
-    KYUTAI_API_KEY=your-kyutai-api-key
-
-    # Voice activity detection, on by default
-    ENABLE_SILERO_VAD=true
-
-    # Optional: Sentry error tracking
-    SENTRY_DSN=
-    SENTRY_ENVIRONMENT=production
     ```
 
     Add the agent to `compose.yml`, under `services:`:
 
-    ```yaml
+    ```yaml title="compose.yml"
       multi-user-transcriber:
         image: lasuite/meet-agents:${MEET_VERSION:-latest}
         command: python multi_user_transcriber.py start
@@ -91,28 +80,33 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
           - internal
     ```
 
+    Start the agent, and recreate the backend with Step 1's settings:
+
     ```bash
-    docker compose up -d multi-user-transcriber
+    docker compose up -d
     ```
 
 === "Kubernetes"
 
-    The chart always deploys the agent as `agentSubtitles`. Put the Deepgram API key in a Secret:
+    The chart runs the agent as `agentSubtitles`, which the [Helm Deployment](../kubernetes/helm.md#download-the-values) values turn off. Put the Deepgram API key in a Secret:
 
     ```bash
     kubectl -n meet create secret generic meet-deepgram \
       --from-literal=api-key="<your Deepgram API key>"
     ```
 
-    Then configure the agent in your `values.yaml`. `<your LiveKit API secret>` is `LIVEKIT_API_SECRET` from the `meet-backend-env` Secret.
+    Then turn the agent on in your `values.yaml`:
 
-    ```yaml
+    ```yaml title="values.yaml"
     agentSubtitles:
       replicas: 1
       envVars:
         LIVEKIT_URL: "ws://livekit-server:7880"
         LIVEKIT_API_KEY: "meet"
-        LIVEKIT_API_SECRET: "<your LiveKit API secret>"
+        LIVEKIT_API_SECRET:
+          secretKeyRef:
+            name: meet-backend-env
+            key: LIVEKIT_API_SECRET
         STT_PROVIDER: "deepgram"
         DEEPGRAM_STT_MODEL: "nova-3"
         DEEPGRAM_STT_LANGUAGE: "multi"
@@ -129,16 +123,14 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
 
 ## STT providers
 
-Set `STT_PROVIDER` in the agent's environment, then the provider's variables in [Subtitles agent](../../reference/env-variables.md#subtitles-agent):
-
 | | Deepgram | Kyutai Moshi | Voxtral via vLLM |
 |---|---|---|---|
-| `STT_PROVIDER` | `deepgram` | `kyutai` | `voxtral-vllm` |
+| [`STT_PROVIDER`](../../reference/env-variables.md#STT_PROVIDER) | `deepgram` | `kyutai` | `voxtral-vllm` |
 | Runs | In Deepgram's cloud | Self-hosted, on a GPU | Self-hosted, on a GPU |
 | Setup | Sign up at [deepgram.com](https://deepgram.com/) and create an API key | Deploy a [Kyutai STT](https://github.com/kyutai-labs/delayed-streams-modeling) service | Deploy [vLLM](https://docs.vllm.ai/) serving [Voxtral](https://mistral.ai/news/voxtral), `mistralai/Voxtral-Mini-4B-Realtime-2602` or a compatible model, with a realtime WebSocket endpoint |
 | Cost | Per minute | Your infrastructure only | Your infrastructure only |
 | Audio | Sent to Deepgram | Stays on your servers | Stays on your servers |
-| Notes | Many languages, high accuracy | | Keep `ENABLE_SILERO_VAD=true`: voxtral-vllm has no server-side endpointing, the detection of when a speaker stops |
+| Notes | Many languages | | Keep [`ENABLE_SILERO_VAD=true`](../../reference/env-variables.md#ENABLE_SILERO_VAD): voxtral-vllm has no server-side endpointing, the detection of when a speaker stops |
 
 ## Test it
 

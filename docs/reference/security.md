@@ -63,7 +63,7 @@ The Django backend checks CSRF tokens on browser requests that change data. [`DJ
 
 - Who may read, change or delete a room is in the [Backend API](api.md#rooms).
 - A deleted room keeps its link until the [room purge](../self-hosting/configuration/room-purge.md) removes it, so nobody can take it over meanwhile.
-- `ALLOW_UNREGISTERED_ROOMS` decides what a room code that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
+- [`ALLOW_UNREGISTERED_ROOMS`](env-variables.md#ALLOW_UNREGISTERED_ROOMS) decides what a room code that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
 ### Rate limiting
 
@@ -90,7 +90,7 @@ The backend writes an audit event for each sign-in, each room action made throug
 
 Users sign in through an external [OIDC](https://openid.net/developers/how-connect-works/) provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
 
-Clients join LiveKit with the pass that [What happens when someone joins?](../overview/how-meet-works.md#joining-a-meeting) describes. The backend signs it with `LIVEKIT_API_SECRET`.
+Clients join LiveKit with the pass that [What happens when someone joins?](../overview/how-meet-works.md#joining-a-meeting) describes. The backend signs it with [`LIVEKIT_API_SECRET`](env-variables.md#LIVEKIT_API_SECRET).
 
 ## Media encryption
 

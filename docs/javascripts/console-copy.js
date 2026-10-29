@@ -14,10 +14,8 @@ document.addEventListener(
     const button = event.target.closest("[data-clipboard-target]")
     if (!button) return
     const code = document.querySelector(button.getAttribute("data-clipboard-target"))
-    if (!code) return
-    const pre = code.closest("pre")
-    if (code.querySelector(".gp")) pre.setAttribute("data-copy", consoleCommands(code))
-    else pre.removeAttribute("data-copy")
+    const commands = code?.querySelector(".gp") && consoleCommands(code)
+    if (commands) code.closest("pre").setAttribute("data-copy", commands)
   },
   true,
 )

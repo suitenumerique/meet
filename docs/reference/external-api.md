@@ -17,7 +17,7 @@ curl -s https://meet.example.com/external-api/v1.0/rooms/ \
   -d '{"access_level": "trusted"}' | jq -r .url
 ```
 
-- The API needs `EXTERNAL_API_ENABLED=True` on the backend: without it, every path under `/external-api/` answers 404.
+- The API needs [`EXTERNAL_API_ENABLED=True`](env-variables.md#EXTERNAL_API_ENABLED) on the backend: without it, every path under `/external-api/` answers 404.
 - Every call carries `Authorization: Bearer <token>`. A token stands for one Meet user and can do only what that user's roles allow.
 - Every route, with its request and response schemas, is in the OpenAPI files: [application-delegated](openapi.yaml) and [resource server](resource_server.yaml).
 
@@ -25,10 +25,10 @@ curl -s https://meet.example.com/external-api/v1.0/rooms/ \
 
 | Way | How the token is obtained | Its scopes come from | Also needs |
 |---|---|---|---|
-| [Application-delegated](external-api-delegated.md) | Your backend sends the application's client ID and secret and the user's email; the user does not sign in | The scopes ticked on the application in the Django admin | `APPLICATION_ENABLED=True` |
+| [Application-delegated](external-api-delegated.md) | Your backend sends the application's client ID and secret and the user's email; the user does not sign in | The scopes ticked on the application in the Django admin | [`APPLICATION_ENABLED=True`](env-variables.md#APPLICATION_ENABLED) |
 | [Resource server (OAuth2)](external-api-resource-server.md) | Your application sends the access token the user got from your OIDC provider | The scopes your OIDC provider writes into the token | The `OIDC_RS_*` variables |
-| [Add-ons](external-api-addons.md) | An add-in, such as the Outlook one, signs the user in to Meet in a popup | [`ADDONS_TOKEN_SCOPE`](env-variables.md#ADDONS_TOKEN_SCOPE), the same for every add-in token | `ADDONS_ENABLED=True` |
-| [Menshen token exchange](#menshen-token-exchange) | Another La Suite service exchanges its user's token at Menshen | Menshen's `meet:room:create`, read as `rooms:create` | `MENSHEN_ENABLED=True` |
+| [Add-ons](external-api-addons.md) | An add-in, such as the Outlook one, signs the user in to Meet in a popup | [`ADDONS_TOKEN_SCOPE`](env-variables.md#ADDONS_TOKEN_SCOPE), the same for every add-in token | [`ADDONS_ENABLED=True`](env-variables.md#ADDONS_ENABLED) |
+| [Menshen token exchange](#menshen-token-exchange) | Another La Suite service exchanges its user's token at Menshen | Menshen's `meet:room:create`, read as `rooms:create` | [`MENSHEN_ENABLED=True`](env-variables.md#MENSHEN_ENABLED) |
 
 ## Endpoints and scopes { #scopes }
 
@@ -39,7 +39,7 @@ curl -s https://meet.example.com/external-api/v1.0/rooms/ \
 | `GET` | `/external-api/v1.0/rooms/{id}/` | `rooms:retrieve` | Any role on the room |
 | `PATCH` | `/external-api/v1.0/rooms/{id}/` | `rooms:update` | An administrator or owner of the room |
 | `DELETE` | `/external-api/v1.0/rooms/{id}/` | `rooms:delete` | An owner of the room. Answers 204 |
-| `POST` | `/external-api/v1.0/users/transit-code/` | `users:session` | Any user, with an application-delegated token. Answers 404 unless `USER_ACCESS_TOKEN_ENABLED=True` |
+| `POST` | `/external-api/v1.0/users/transit-code/` | `users:session` | Any user, with an application-delegated token. Answers 404 unless [`USER_ACCESS_TOKEN_ENABLED=True`](env-variables.md#USER_ACCESS_TOKEN_ENABLED) |
 
 - `{id}` is the room's id: passing a slug returns 404.
 - Unticking `users:session` on an application also revokes the transit codes and sign-ins already given.
@@ -59,7 +59,7 @@ The body is optional on creation: an empty one takes the defaults.
 
 | Field | Values | Meaning |
 |---|---|---|
-| `access_level` | `public`, `trusted`, `restricted` | Who joins without waiting, see [Room access levels](../user/features-controls.md#access-levels). Defaults to `EXTERNAL_API_DEFAULT_ACCESS_LEVEL`. `public` is refused with 400 unless `EXTERNAL_API_ALLOW_PUBLIC_ACCESS=True` or `EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public`. |
+| `access_level` | `public`, `trusted`, `restricted` | Who joins without waiting, see [Room access levels](../user/features-controls.md#access-levels). Defaults to [`EXTERNAL_API_DEFAULT_ACCESS_LEVEL`](env-variables.md#EXTERNAL_API_DEFAULT_ACCESS_LEVEL). `public` is refused with 400 unless [`EXTERNAL_API_ALLOW_PUBLIC_ACCESS=True`](env-variables.md#EXTERNAL_API_ALLOW_PUBLIC_ACCESS) or [`EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public`](env-variables.md#EXTERNAL_API_DEFAULT_ACCESS_LEVEL). |
 | `configuration.can_publish_sources` | A list of `camera`, `microphone`, `screen_share`, `screen_share_audio` | The media members and guests may send. Owners and administrators get [`LIVEKIT_DEFAULT_SOURCES`](env-variables.md#LIVEKIT_DEFAULT_SOURCES) when they join, and so does everyone when the field is omitted or `null` |
 | `configuration.everyone_can_mute` | `true` or `false` | `true` or omitted: anyone in the room can mute others. `false`: administrators and owners only |
 
@@ -122,8 +122,8 @@ Every room endpoint but `DELETE` answers with this object, and the list wraps it
 | `name` | Always | Generated by Meet; a request cannot set it |
 | `slug` | Always | Derived from `name`; the last part of the room's link |
 | `access_level`, `configuration` | Always | As sent, or the defaults |
-| `url` | When `APPLICATION_BASE_URL` is set | `APPLICATION_BASE_URL/<slug>`, the link to share |
-| `telephony` | When `ROOM_TELEPHONY_ENABLED=True` | The number to dial and the room's PIN |
+| `url` | When [`APPLICATION_BASE_URL`](env-variables.md#APPLICATION_BASE_URL) is set | `APPLICATION_BASE_URL/<slug>`, the link to share |
+| `telephony` | When [`ROOM_TELEPHONY_ENABLED=True`](env-variables.md#ROOM_TELEPHONY_ENABLED) | The number to dial and the room's PIN |
 
 ## Errors
 
@@ -134,7 +134,7 @@ Errors on the room endpoints return `{"detail": "..."}`, and a rejected body map
 | 400 | The body is invalid |
 | 401 | The token is missing, invalid or expired |
 | 403 | The token lacks the endpoint's scope, or the user's role on the room does not allow the call |
-| 404 | No room has that id, or `EXTERNAL_API_ENABLED` is off |
+| 404 | No room has that id, or [`EXTERNAL_API_ENABLED`](env-variables.md#EXTERNAL_API_ENABLED) is off |
 | 405 | The method is `PUT`, from a token holding `rooms:update` |
 | 410 | The room has been deleted |
 | 500 | A deletion failed, see [Deleting a room](#deleting-a-room) |
@@ -145,7 +145,7 @@ The application-delegated token endpoint returns its own errors, listed on [its 
 
 Menshen is La Suite's OAuth 2.0 token exchange server. A La Suite service exchanges its user's access token there for one whose audience includes Meet, and sends it as `Authorization: Bearer <token>`.
 
-- Meet finds the user by the token's `sub`, or creates one with the token's email when `OIDC_CREATE_USER` is on. With `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` on, an email another account holds is refused with 401.
+- Meet finds the user by the token's `sub`, or creates one with the token's email when [`OIDC_CREATE_USER`](env-variables.md#OIDC_CREATE_USER) is on. With [`OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION`](env-variables.md#OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION) on, an email another account holds is refused with 401.
 - Meet ignores every Menshen scope except `meet:room:create`, so a Menshen token can only create rooms.
 
 The settings are in [Environment Variables: Menshen](env-variables.md#external-api-menshen-token-exchange).

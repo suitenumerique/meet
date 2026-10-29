@@ -1,12 +1,8 @@
 # SSO & Authentication
 
-Meet signs users in through any [OpenID Connect](https://openid.net/developers/how-connect-works/) (OIDC) provider, in the flow that [Signing in](../../overview/how-meet-works.md#signing-in) shows. Users have no password in Meet: only the Django admin accounts created with `createsuperuser` do.
+Meet signs users in through any [OpenID Connect](https://openid.net/developers/how-connect-works/) (OIDC) provider, as [Signing in](../../overview/how-meet-works.md#signing-in) shows. Every variable is in [Environment Variables: Authentication](../../reference/env-variables.md#authentication-oidc).
 
-When a page loads without a Meet session, Meet first tries a silent login, `prompt=none`: a user already signed in at the provider is signed in to Meet without seeing a form.
-
-A provider that does not support `prompt=none` needs [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../../reference/env-variables.md#FRONTEND_IS_SILENT_LOGIN_ENABLED)`=False`.
-
-Every variable is in [Environment Variables: Authentication](../../reference/env-variables.md#authentication-oidc).
+A provider that does not support `prompt=none`, the silent login Meet tries first, needs [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../../reference/env-variables.md#FRONTEND_IS_SILENT_LOGIN_ENABLED)`=False`.
 
 ## Client configuration
 
@@ -20,9 +16,7 @@ Then give Meet the client ID and secret, and the provider's endpoints.
 
 ## Keycloak
 
-The [Deployment Guide](../compose/deployment-guide.md) runs Keycloak with a realm that already holds this client, and `env.d/common` ships its endpoints, built from your `hosts` file.
-
-Its secrets script copies the realm's client secret into `OIDC_RP_CLIENT_SECRET`. The admin console is at `https://auth.example.com/admin/`.
+The [Deployment Guide](../compose/deployment-guide.md#stack-2-identity-provider) runs Keycloak with this client already registered, and its Stack 3 fills in Meet's side.
 
 ## Authentik
 
@@ -30,7 +24,7 @@ Its secrets script copies the realm's client secret into `OIDC_RP_CLIENT_SECRET`
 2. In **Applications → Applications → Create**, create an application bound to that provider. Its slug fills `<slug>` in step 3.
 3. Read the endpoints from `https://authentik.example.com/application/o/<slug>/.well-known/openid-configuration`, then set:
 
-```dotenv
+```dotenv title="env.d/common"
 OIDC_RP_CLIENT_ID=<client-id>
 OIDC_RP_CLIENT_SECRET=<client-secret>
 OIDC_OP_JWKS_ENDPOINT=https://authentik.example.com/application/o/<slug>/jwks/
@@ -40,7 +34,7 @@ OIDC_OP_USER_ENDPOINT=https://authentik.example.com/application/o/userinfo/
 OIDC_OP_LOGOUT_ENDPOINT=<end_session_endpoint from the well-known document>
 ```
 
-Without `OIDC_OP_LOGOUT_ENDPOINT`, logging out ends the Meet session only: the provider's session survives, and the next visit signs the user straight back in.
+Without [`OIDC_OP_LOGOUT_ENDPOINT`](../../reference/env-variables.md#OIDC_OP_LOGOUT_ENDPOINT), logging out ends the Meet session only: the provider's session survives, and the next visit signs the user straight back in.
 
 ## Google Workspace
 
@@ -48,7 +42,7 @@ Without `OIDC_OP_LOGOUT_ENDPOINT`, logging out ends the Meet session only: the p
 2. Add the redirect URI `https://meet.example.com/api/v1.0/callback/`, and note the client ID and secret.
 3. Set:
 
-```dotenv
+```dotenv title="env.d/common"
 OIDC_RP_CLIENT_ID=<client-id>.apps.googleusercontent.com
 OIDC_RP_CLIENT_SECRET=<client-secret>
 OIDC_OP_JWKS_ENDPOINT=https://www.googleapis.com/oauth2/v3/certs
@@ -59,25 +53,25 @@ OIDC_OP_USER_ENDPOINT=https://openidconnect.googleapis.com/v1/userinfo
 OIDC_RP_SCOPES=openid email profile
 ```
 
-Meet builds a user's display name from the claims listed in [`OIDC_USERINFO_FULLNAME_FIELDS`](../../reference/env-variables.md#OIDC_USERINFO_FULLNAME_FIELDS), `given_name` and `usual_name` by default. Google never sends `usual_name`: set `OIDC_USERINFO_FULLNAME_FIELDS=given_name,family_name` to show the full name.
+Google never sends `usual_name`, one of the default claims of [`OIDC_USERINFO_FULLNAME_FIELDS`](../../reference/env-variables.md#OIDC_USERINFO_FULLNAME_FIELDS): set [`OIDC_USERINFO_FULLNAME_FIELDS=given_name,family_name`](../../reference/env-variables.md#OIDC_USERINFO_FULLNAME_FIELDS) to show the full name.
 
-Google has no logout endpoint for third parties, so logging out ends the Meet session only.
+Google has no logout endpoint for third parties: logging out ends the Meet session only.
 
 ## Unauthenticated access
 
 [`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#ALLOW_UNREGISTERED_ROOMS) decides what happens when someone opens a room code that no room uses yet:
 
-| `ALLOW_UNREGISTERED_ROOMS` | Opening an unused room code |
+| [`ALLOW_UNREGISTERED_ROOMS`](../../reference/env-variables.md#ALLOW_UNREGISTERED_ROOMS) | Opening an unused room code |
 |---|---|
-| `True`, the code's default | Anyone starts a meeting without an account. It is open to anyone with the code, has no owner and creates no room |
-| `False`, as `env.d/production.dist/common` ships | Anonymous visitors get a 404. A signed-in visitor creates the room and owns it |
+| `True`, the code's default | Anyone starts a meeting without an account. It is open to anyone with the code, has no host and creates no room |
+| `False`, as `env.d/production.dist/common` ships | Anonymous visitors get a 404. A signed-in visitor creates the room and becomes its host |
 
 A new room's [access level](../../overview/how-meet-works.md#who-gets-in) comes from its creator or the server:
 
 - A room created in Meet takes the level its creator picked under **Settings → Rooms**; one created through the [external API](../../reference/external-api.md#creating-and-updating-a-room) takes [`EXTERNAL_API_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#EXTERNAL_API_DEFAULT_ACCESS_LEVEL).
 - A creator who never picked one gets [`RESOURCE_DEFAULT_ACCESS_LEVEL`](../../reference/env-variables.md#RESOURCE_DEFAULT_ACCESS_LEVEL). To make it `trusted`:
 
-```dotenv
+```dotenv title="env.d/common"
 RESOURCE_DEFAULT_ACCESS_LEVEL=trusted
 ```
 

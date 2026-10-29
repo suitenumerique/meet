@@ -23,7 +23,7 @@ Yes: **Create a meeting** → **Create a meeting for a later date**, then send t
 
 ### Is Meet accessible?
 
-It works with a keyboard alone and with screen readers, see [Accessibility & Shortcuts](user/accessibility.md). Guides:
+It works with a keyboard alone and with screen readers, see [Accessibility & Shortcuts](user/accessibility.md). Each of these readers has a guide:
 
 - [Deaf or hard of hearing](user/guides/deaf-hard-of-hearing.md)
 - [Blind or low vision](user/guides/blind-low-vision.md)

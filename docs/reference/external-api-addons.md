@@ -2,7 +2,7 @@
 
 In this mode, an add-in gets a token for the user by having them sign in to Meet in a popup. The add-in runs in an iframe inside another application, such as Outlook.
 
-The session endpoints under `/api/v1.0/addons/sessions/` need [`ADDONS_ENABLED=True`](env-variables.md#add-ons) and answer 404 without it. The room calls made with the token afterwards need `EXTERNAL_API_ENABLED=True` as well.
+The session endpoints under `/api/v1.0/addons/sessions/` need [`ADDONS_ENABLED=True`](env-variables.md#add-ons) and answer 404 without it. The room calls made with the token afterwards need [`EXTERNAL_API_ENABLED=True`](env-variables.md#EXTERNAL_API_ENABLED) as well.
 
 ## Authentication flow
 

@@ -9,8 +9,7 @@ The whole stack runs on your machine in Docker Compose, driven by the [`Makefile
 git clone https://github.com/suitenumerique/meet.git && cd meet
 # 2. Build the images, create the database and the demo data, start the stack
 make bootstrap FLUSH_ARGS='--no-input'
-# 3. Run the frontend with hot reload,
-#    then open http://localhost:3000 and sign in as meet / meet
+# 3. Run the frontend with hot reload at localhost:3000, user meet / meet
 make frontend-development-install && make run-frontend-development
 # 4. Run every test suite, then every linter
 make test && make lint && make frontend-lint && make frontend-format

@@ -1,0 +1,115 @@
+# Values for the Meet Helm chart, from the Helm Deployment guide.
+# The guide's sed puts your domain in every host below.
+
+backend:
+  replicas: 2
+  pdb:
+    enabled: true
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  # The meet-backend-env Secret of the guide, one environment variable per key
+  envFrom:
+    - secretRef:
+        name: meet-backend-env
+  envVars:
+    DJANGO_SETTINGS_MODULE: "meet.settings"
+    DJANGO_CONFIGURATION: "Production"
+    DJANGO_ALLOWED_HOSTS: "meet.example.com"
+    DJANGO_CSRF_TRUSTED_ORIGINS: "https://meet.example.com"
+    PYTHONPATH: "/app"
+    ALLOW_UNREGISTERED_ROOMS: "False"
+
+    # The admin account the chart creates, with the password from the Secret
+    DJANGO_SUPERUSER_EMAIL: "admin@example.com"
+
+    # Your PostgreSQL
+    DB_HOST: "postgresql.meet.svc.cluster.local"
+    DB_PORT: "5432"
+    DB_NAME: "meet"
+    DB_USER: "meet"
+
+    # Your Redis. Without CELERY_BROKER_URL, the celeryBackend worker looks for
+    # a host named "redis".
+    REDIS_URL: "redis://redis-master:6379/0"
+    CELERY_BROKER_URL: "redis://redis-master:6379/0"
+
+    LIVEKIT_API_KEY: "meet"
+    LIVEKIT_API_URL: "https://livekit.example.com"
+
+    # Keycloak's endpoints for a realm named meet. Another provider's are in
+    # the SSO & Authentication guide.
+    OIDC_RP_CLIENT_ID: "meet"
+    OIDC_RP_SIGN_ALGO: "RS256"
+    OIDC_RP_SCOPES: "openid email"
+    OIDC_OP_AUTHORIZATION_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/auth
+    OIDC_OP_TOKEN_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/token
+    OIDC_OP_USER_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/userinfo
+    OIDC_OP_JWKS_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/certs
+    OIDC_OP_LOGOUT_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/logout
+
+frontend:
+  replicas: 2
+  pdb:
+    enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+# Meet and its /admin path, with cert-manager certificates
+ingress:
+  enabled: true
+  className: nginx
+  host: meet.example.com
+  path: /
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: meet-tls
+
+ingressAdmin:
+  enabled: true
+  className: nginx
+  host: meet.example.com
+  path: /admin
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: meet-tls
+
+# The chart runs the optional services below by default. They are off here:
+# each guide says which to turn back on.
+
+# Background tasks, run only with CELERY_ENABLED="True" in backend.envVars;
+# without it, the backend deletes files and sends emails itself.
+celeryBackend:
+  replicas: 0
+
+# Transcription and summaries: the AI Transcription guide
+summary:
+  replicas: 0
+celeryTranscribe:
+  instances: []
+celerySummarize:
+  replicas: 0
+celerySummaryBackend:
+  replicas: 0
+
+# The metadata collector (AI Transcription) and live subtitles (Subtitles)
+agentMetadata:
+  replicas: 0
+agentSubtitles:
+  replicas: 0

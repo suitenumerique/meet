@@ -8,25 +8,25 @@
 
 Set `<NAME>_FILE` to a file's path to read a backend secret from that file, the way Docker and Kubernetes mount secrets.
 
-It works for every variable holding a single secret, such as `DJANGO_SECRET_KEY`, `DB_PASSWORD` or `OIDC_RP_CLIENT_SECRET`, and the file wins over `<NAME>`.
+It works for every variable holding a single secret, such as [`DJANGO_SECRET_KEY`](#DJANGO_SECRET_KEY), [`DB_PASSWORD`](#DB_PASSWORD) or [`OIDC_RP_CLIENT_SECRET`](#OIDC_RP_CLIENT_SECRET), and the file wins over `<NAME>`.
 
 ## Start here
 
 A production backend does not start, or no one can log in, without these:
 
-- [Core](#core): `DJANGO_CONFIGURATION`, `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`
-- [Database](#database): `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, or `DATABASE_URL` alone
-- [Authentication](#authentication-oidc): `OIDC_RP_CLIENT_SECRET`, `OIDC_OP_JWKS_ENDPOINT`, `OIDC_OP_AUTHORIZATION_ENDPOINT`, `OIDC_OP_TOKEN_ENDPOINT`, `OIDC_OP_USER_ENDPOINT`
-- [LiveKit](#livekit): `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_API_URL`
+- [Core](#core): [`DJANGO_CONFIGURATION`](#DJANGO_CONFIGURATION), [`DJANGO_SECRET_KEY`](#DJANGO_SECRET_KEY), [`DJANGO_ALLOWED_HOSTS`](#DJANGO_ALLOWED_HOSTS)
+- [Database](#database): [`DB_HOST`](#DB_HOST), [`DB_NAME`](#DB_NAME), [`DB_USER`](#DB_USER), [`DB_PASSWORD`](#DB_PASSWORD), or [`DATABASE_URL`](#DATABASE_URL) alone
+- [Authentication](#authentication-oidc): [`OIDC_RP_CLIENT_SECRET`](#OIDC_RP_CLIENT_SECRET), [`OIDC_OP_JWKS_ENDPOINT`](#OIDC_OP_JWKS_ENDPOINT), [`OIDC_OP_AUTHORIZATION_ENDPOINT`](#OIDC_OP_AUTHORIZATION_ENDPOINT), [`OIDC_OP_TOKEN_ENDPOINT`](#OIDC_OP_TOKEN_ENDPOINT), [`OIDC_OP_USER_ENDPOINT`](#OIDC_OP_USER_ENDPOINT)
+- [LiveKit](#livekit): [`LIVEKIT_API_KEY`](#LIVEKIT_API_KEY), [`LIVEKIT_API_SECRET`](#LIVEKIT_API_SECRET), [`LIVEKIT_API_URL`](#LIVEKIT_API_URL)
 
 Everything else has a working default. The optional features are off until
 their switch is set:
 
-- `RECORDING_ENABLE`, `ROOM_SUBTITLE_ENABLED`, `ROOM_TELEPHONY_ENABLED`, `FILE_UPLOAD_ENABLED`: one each
-- the external API: `EXTERNAL_API_ENABLED`, plus `APPLICATION_ENABLED` for application tokens
-- add-ons: `ADDONS_ENABLED` and `EXTERNAL_API_ENABLED`
-- Meet in another application's iframe: `USER_ACCESS_TOKEN_ENABLED` and the external API
-- the room purge: `ROOM_INACTIVITY_DELETION_DAYS` or `ROOM_DELETED_RETENTION_DAYS`
+- [`RECORDING_ENABLE`](#RECORDING_ENABLE), [`ROOM_SUBTITLE_ENABLED`](#ROOM_SUBTITLE_ENABLED), [`ROOM_TELEPHONY_ENABLED`](#ROOM_TELEPHONY_ENABLED), [`FILE_UPLOAD_ENABLED`](#FILE_UPLOAD_ENABLED): one each
+- the external API: [`EXTERNAL_API_ENABLED`](#EXTERNAL_API_ENABLED), plus [`APPLICATION_ENABLED`](#APPLICATION_ENABLED) for application tokens
+- add-ons: [`ADDONS_ENABLED`](#ADDONS_ENABLED) and [`EXTERNAL_API_ENABLED`](#EXTERNAL_API_ENABLED)
+- Meet in another application's iframe: [`USER_ACCESS_TOKEN_ENABLED`](#USER_ACCESS_TOKEN_ENABLED) and the external API
+- the room purge: [`ROOM_INACTIVITY_DELETION_DAYS`](#ROOM_INACTIVITY_DELETION_DAYS) or [`ROOM_DELETED_RETENTION_DAYS`](#ROOM_DELETED_RETENTION_DAYS)
 
 ## Backend
 
@@ -43,10 +43,12 @@ their switch is set:
 | `DJANGO_LANGUAGE_CODE`{#DJANGO_LANGUAGE_CODE} | No | `en-us` | Default language code for the Django backend |
 | `DJANGO_LANGUAGES`{#DJANGO_LANGUAGES} | No | English, French, Dutch, German, Spanish | Languages a user's profile can store, as `code,name` pairs separated by `;`, e.g. `en-us,English;fr-fr,French`. The interface's language picker keeps its own fixed list. |
 | `SESSION_COOKIE_AGE`{#SESSION_COOKIE_AGE} | No | `43200` | Session cookie lifetime in seconds, 12 hours by default |
+| `DJANGO_SUPERUSER_EMAIL`{#DJANGO_SUPERUSER_EMAIL} | Helm only | -- | Email of the admin account the Helm chart's `createsuperuser` Job creates |
+| `DJANGO_SUPERUSER_PASSWORD`{#DJANGO_SUPERUSER_PASSWORD} | Helm only | -- | That account's password |
 
 ### Database
 
-`DATABASE_URL` takes precedence over the `DB_*` variables. The `DB_*` defaults
+[`DATABASE_URL`](#DATABASE_URL) takes precedence over the `DB_*` variables. The `DB_*` defaults
 are insecure values meant for local development: override every one of them in
 production.
 
@@ -60,7 +62,7 @@ production.
 | `DB_PORT`{#DB_PORT} | No | `5432` | PostgreSQL port |
 | `DB_ENGINE`{#DB_ENGINE} | No | `django.db.backends.postgresql` | Django database backend |
 | `DB_PSYCOPG_POOL_ENABLED`{#DB_PSYCOPG_POOL_ENABLED} | No | `False` | Keep a pool of open connections in each backend process instead of opening one per request. The backend refuses to start with it on and an engine other than PostgreSQL. |
-| `DB_PSYCOPG_POOL_MIN_SIZE`{#DB_PSYCOPG_POOL_MIN_SIZE} | No | `1` | Connections each pool keeps open. Must not exceed `DB_PSYCOPG_POOL_MAX_SIZE`. |
+| `DB_PSYCOPG_POOL_MIN_SIZE`{#DB_PSYCOPG_POOL_MIN_SIZE} | No | `1` | Connections each pool keeps open. Must not exceed [`DB_PSYCOPG_POOL_MAX_SIZE`](#DB_PSYCOPG_POOL_MAX_SIZE). |
 | `DB_PSYCOPG_POOL_MAX_SIZE`{#DB_PSYCOPG_POOL_MAX_SIZE} | No | `3` | Most connections each pool opens |
 | `DB_PSYCOPG_POOL_TIMEOUT`{#DB_PSYCOPG_POOL_TIMEOUT} | No | `30.0` | Seconds a request waits for a free connection before failing |
 | `DB_PSYCOPG_POOL_MAX_IDLE`{#DB_PSYCOPG_POOL_MAX_IDLE} | No | `600.0` | Seconds an unused connection stays open before the pool closes it |
@@ -172,7 +174,7 @@ Room invitations and recording download links need it, see [Email (SMTP)](../sel
 | `DJANGO_EMAIL_HOST_USER`{#DJANGO_EMAIL_HOST_USER} | No | -- | SMTP username |
 | `DJANGO_EMAIL_HOST_PASSWORD`{#DJANGO_EMAIL_HOST_PASSWORD} | No | -- | SMTP password |
 | `DJANGO_EMAIL_USE_TLS`{#DJANGO_EMAIL_USE_TLS} | No | `False` | Enable STARTTLS |
-| `DJANGO_EMAIL_USE_SSL`{#DJANGO_EMAIL_USE_SSL} | No | `False` | Enable SSL. Set either this or `DJANGO_EMAIL_USE_TLS`, never both |
+| `DJANGO_EMAIL_USE_SSL`{#DJANGO_EMAIL_USE_SSL} | No | `False` | Enable SSL. Set either this or [`DJANGO_EMAIL_USE_TLS`](#DJANGO_EMAIL_USE_TLS), never both |
 | `DJANGO_EMAIL_TIMEOUT`{#DJANGO_EMAIL_TIMEOUT} | No | `30` | Seconds to wait for the SMTP server before giving up |
 | `DJANGO_EMAIL_FROM`{#DJANGO_EMAIL_FROM} | No | `from@example.com` | From address for outgoing emails. The default is a placeholder: override it in production so recipients and SPF and DKIM checks see your real domain. |
 | `DJANGO_EMAIL_APP_BASE_URL`{#DJANGO_EMAIL_APP_BASE_URL} | For invitations | -- | Base URL of the Meet frontend, used in email links. If it is unset, invitation links read `None/<room code>`. |
@@ -212,14 +214,14 @@ See [Recording](../self-hosting/configuration/recording.md) for setup, and [Conf
 | `MEDIA_AUTH_ORIGINAL_URL_HEADER`{#MEDIA_AUTH_ORIGINAL_URL_HEADER} | No | `HTTP_X_ORIGINAL_URL` | Request header the reverse proxy uses to pass the original download URL to the backend's media-auth check. Traefik's ForwardAuth sends `X-Forwarded-Uri`: set `HTTP_X_FORWARDED_URI`. |
 | `START_RECORDING_THROTTLE_RATES`{#START_RECORDING_THROTTLE_RATES} | No | `10/minute` | Recordings one user may start |
 | `START_RECORDING_DAILY_THROTTLE_RATES`{#START_RECORDING_DAILY_THROTTLE_RATES} | No | `100/day` | The same, over a day |
-| `RECORDING_ENCODING_DEFAULT_RESOLUTION`{#RECORDING_ENCODING_DEFAULT_RESOLUTION} | No | `720p` | Resolution used when a screen recording request names none; a key of `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`. When this or the default profile is empty, LiveKit's built-in H264_720P_30 preset applies instead, and the backend warns at start. |
-| `RECORDING_ENCODING_DEFAULT_PROFILE`{#RECORDING_ENCODING_DEFAULT_PROFILE} | No | `full` | Frame rate and bitrate used when a screen recording request names no profile; a key of `RECORDING_ENCODING_AVAILABLE_PROFILES` |
+| `RECORDING_ENCODING_DEFAULT_RESOLUTION`{#RECORDING_ENCODING_DEFAULT_RESOLUTION} | No | `720p` | Resolution used when a screen recording request names none; a key of [`RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`](#RECORDING_ENCODING_AVAILABLE_RESOLUTIONS). When this or the default profile is empty, LiveKit's built-in H264_720P_30 preset applies instead, and the backend warns at start. |
+| `RECORDING_ENCODING_DEFAULT_PROFILE`{#RECORDING_ENCODING_DEFAULT_PROFILE} | No | `full` | Frame rate and bitrate used when a screen recording request names no profile; a key of [`RECORDING_ENCODING_AVAILABLE_PROFILES`](#RECORDING_ENCODING_AVAILABLE_PROFILES) |
 | `RECORDING_CUSTOM_ENCODING_ENABLED`{#RECORDING_CUSTOM_ENCODING_ENABLED} | No | `False` | Let the start-recording request pick a resolution and profile from the available ones. With `False`, a request that names one gets 400. |
 | `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`{#RECORDING_ENCODING_AVAILABLE_RESOLUTIONS} | No | `540p`, `720p`, `1080p` | Resolutions by name, as a one-line dict: `{"540p": {"width": 960, "height": 540}, "720p": {"width": 1280, "height": 720}, "1080p": {"width": 1920, "height": 1080}}` |
-| `RECORDING_ENCODING_AVAILABLE_PROFILES`{#RECORDING_ENCODING_AVAILABLE_PROFILES} | No | `talking_heads`, `text`, `mixed`, `full` | Profiles by name, each a frame rate and a video bitrate in kbps for every resolution, as a one-line dict. The built-in values are in [Configuring recording encoding](../self-hosting/configuration/recording.md#configuring-recording-encoding). The backend refuses to start unless each profile has a bitrate for exactly the resolutions of `RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`. |
+| `RECORDING_ENCODING_AVAILABLE_PROFILES`{#RECORDING_ENCODING_AVAILABLE_PROFILES} | No | `talking_heads`, `text`, `mixed`, `full` | Profiles by name, each a frame rate and a video bitrate in kbps for every resolution, as a one-line dict. The built-in values are in [Configuring recording encoding](../self-hosting/configuration/recording.md#configuring-recording-encoding). The backend refuses to start unless each profile has a bitrate for exactly the resolutions of [`RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`](#RECORDING_ENCODING_AVAILABLE_RESOLUTIONS). |
 | `RECORDING_ENCODING_AUDIO_BITRATE_KBPS`{#RECORDING_ENCODING_AUDIO_BITRATE_KBPS} | No | `128` | AAC audio bitrate in kbps |
 | `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S`{#RECORDING_ENCODING_KEY_FRAME_INTERVAL_S} | No | `0.0` | Key frame interval in seconds. `0.0` leaves it to LiveKit Egress. |
-| `SCREEN_RECORDING_BASE_URL`{#SCREEN_RECORDING_BASE_URL} | No | -- | **Deprecated.** Use `RECORDING_DOWNLOAD_BASE_URL` instead. Still accepted but logs a warning. |
+| `SCREEN_RECORDING_BASE_URL`{#SCREEN_RECORDING_BASE_URL} | No | -- | **Deprecated.** Use [`RECORDING_DOWNLOAD_BASE_URL`](#RECORDING_DOWNLOAD_BASE_URL) instead. Still accepted but logs a warning. |
 
 ### Transcription
 
@@ -229,8 +231,8 @@ The backend's connection to the [summary service](#summary-service). See [AI Tra
 |---|---|---|---|
 | `SUMMARY_SERVICE_VERSION`{#SUMMARY_SERVICE_VERSION} | For transcription | `1` | **Must be set to `2`** when using transcription. Version `1` is deprecated and logs a warning at startup. |
 | `SUMMARY_SERVICE_ENDPOINT`{#SUMMARY_SERVICE_ENDPOINT} | For transcription | -- | URL of the summary service API endpoint. **Must use v2 API**: `http://app-summary:8000/api/v2/async-jobs/transcribe` |
-| `SUMMARY_SERVICE_API_TOKEN`{#SUMMARY_SERVICE_API_TOKEN} | For transcription | -- | API token for authenticating with the summary service. Must match the `api_key` of the corresponding tenant in the summary service's `AUTHORIZED_TENANTS`. |
-| `SUMMARY_SERVICE_WEBHOOK_API_TOKEN`{#SUMMARY_SERVICE_WEBHOOK_API_TOKEN} | For transcription | -- | Token the backend requires on incoming result callbacks from the summary service. Must match the tenant's `webhook_api_key` in `AUTHORIZED_TENANTS`. |
+| `SUMMARY_SERVICE_API_TOKEN`{#SUMMARY_SERVICE_API_TOKEN} | For transcription | -- | API token for authenticating with the summary service. Must match the `api_key` of the corresponding tenant in the summary service's [`AUTHORIZED_TENANTS`](#AUTHORIZED_TENANTS). |
+| `SUMMARY_SERVICE_WEBHOOK_API_TOKEN`{#SUMMARY_SERVICE_WEBHOOK_API_TOKEN} | For transcription | -- | Token the backend requires on incoming result callbacks from the summary service. Must match the tenant's `webhook_api_key` in [`AUTHORIZED_TENANTS`](#AUTHORIZED_TENANTS). |
 | `SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS`{#SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS} | No | `86400` | Expiration of the pre-signed URL given to the summary service to fetch the recording: 24 hours |
 | `TRANSCRIPTION_SATISFACTION_FORM_BASE_URL`{#TRANSCRIPTION_SATISFACTION_FORM_BASE_URL} | No | -- | Base URL for an optional post-transcription satisfaction survey link |
 
@@ -242,7 +244,7 @@ These variables are the backend side of the [metadata collector](../overview/how
 |---|---|---|---|
 | `METADATA_COLLECTOR_ENABLED`{#METADATA_COLLECTOR_ENABLED} | No | `False` | Enable the metadata collector agent |
 | `METADATA_COLLECTOR_AGENT_NAME`{#METADATA_COLLECTOR_AGENT_NAME} | No | `metadata-collector` | LiveKit agent name dispatched to rooms |
-| `METADATA_COLLECTOR_OUTPUT_FOLDER`{#METADATA_COLLECTOR_OUTPUT_FOLDER} | No | `metadata` | Folder/prefix the backend reads collected metadata from. Must match the agent's `AWS_S3_OUTPUT_FOLDER`. |
+| `METADATA_COLLECTOR_OUTPUT_FOLDER`{#METADATA_COLLECTOR_OUTPUT_FOLDER} | No | `metadata` | Folder/prefix the backend reads collected metadata from. Must match the agent's [`AWS_S3_OUTPUT_FOLDER`](#AWS_S3_OUTPUT_FOLDER). |
 
 ### Subtitles
 
@@ -251,7 +253,7 @@ Real-time captions, provided by the [subtitles agent](#subtitles-agent). See [Re
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `ROOM_SUBTITLE_ENABLED`{#ROOM_SUBTITLE_ENABLED} | For subtitles | `False` | Enable real-time subtitles |
-| `ROOM_SUBTITLE_AGENT_NAME`{#ROOM_SUBTITLE_AGENT_NAME} | No | `multi-user-transcriber` | LiveKit agent dispatched to provide subtitles. Must match the agent's `TRANSCRIBER_AGENT_NAME`. |
+| `ROOM_SUBTITLE_AGENT_NAME`{#ROOM_SUBTITLE_AGENT_NAME} | No | `multi-user-transcriber` | LiveKit agent dispatched to provide subtitles. Must match the agent's [`TRANSCRIBER_AGENT_NAME`](#TRANSCRIBER_AGENT_NAME). |
 
 ### Telephony
 
@@ -313,7 +315,7 @@ Lets participants upload their own virtual background images, the only kind of u
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `FILE_UPLOAD_ENABLED`{#FILE_UPLOAD_ENABLED} | No | `False` | Enable custom background image uploads: by default 10 per user, 2 MB each, JPEG or PNG only. |
-| `FILE_UPLOAD_APPLY_RESTRICTIONS`{#FILE_UPLOAD_APPLY_RESTRICTIONS} | No | `True` | Enforce the size/count/extension limits in `FILE_UPLOAD_RESTRICTIONS`. Disable only for trusted, controlled deployments. |
+| `FILE_UPLOAD_APPLY_RESTRICTIONS`{#FILE_UPLOAD_APPLY_RESTRICTIONS} | No | `True` | Enforce the size/count/extension limits in [`FILE_UPLOAD_RESTRICTIONS`](#FILE_UPLOAD_RESTRICTIONS). Disable only for trusted, controlled deployments. |
 | `FILE_UPLOAD_RESTRICTIONS`{#FILE_UPLOAD_RESTRICTIONS} | No | `{"background_image": {"max_size": 2097152, "max_count_by_user": 10, "allowed_extensions": [".jpeg", ".jpg", ".png"], "allowed_mimetypes": ["image/jpeg", "image/png"]}}` | Per-category upload limits, as a JSON dict. |
 | `MEDIA_BASE_URL`{#MEDIA_BASE_URL} | No | `""` | Prefix put in front of `/media/` in the URLs of uploaded files, for serving them from another host |
 | `FILE_UPLOAD_PATH`{#FILE_UPLOAD_PATH} | No | `files` | Folder/prefix used in object storage for uploaded files |
@@ -328,7 +330,7 @@ Lets participants check their connection to LiveKit before a meeting.
 |---|---|---|---|
 | `CONNECTION_TEST_ENABLED`{#CONNECTION_TEST_ENABLED} | No | `False` | Enable the connection test feature |
 | `CONNECTION_TEST_TOKEN_TTL_SECONDS`{#CONNECTION_TEST_TOKEN_TTL_SECONDS} | No | `300` | Validity of the connection-test LiveKit token, in seconds |
-| `CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS`{#CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS} | No | `10` | Extra time added on top of the token TTL before the cleanup worker deletes a leftover test room. Requires `CELERY_ENABLED=True`. |
+| `CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS`{#CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS} | No | `10` | Extra time added on top of the token TTL before the cleanup worker deletes a leftover test room. Requires [`CELERY_ENABLED=True`](#CELERY_ENABLED). |
 | `CONNECTION_TEST_ROOM_PREFIX`{#CONNECTION_TEST_ROOM_PREFIX} | No | `connection-test` | Prefix used to name ephemeral connection-test rooms |
 | `CONNECTION_TEST_THROTTLE_RATES`{#CONNECTION_TEST_THROTTLE_RATES} | No | `30/minute` | Rate limit for starting connection tests |
 
@@ -339,12 +341,12 @@ Lets external applications authenticate against Meet on behalf of users with app
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `EXTERNAL_API_ENABLED`{#EXTERNAL_API_ENABLED} | For the external API | `False` | Mounts the `/external-api/v1.0/` router. Without it, every path under it returns 404, regardless of the other settings. |
-| `APPLICATION_ENABLED`{#APPLICATION_ENABLED} | For application tokens | `False` | Enables the token endpoint. Without it, the token endpoint answers 404 even with `EXTERNAL_API_ENABLED=True`. |
+| `APPLICATION_ENABLED`{#APPLICATION_ENABLED} | For application tokens | `False` | Enables the token endpoint. Without it, the token endpoint answers 404 even with [`EXTERNAL_API_ENABLED=True`](#EXTERNAL_API_ENABLED). |
 | `APPLICATION_JWT_SECRET_KEY`{#APPLICATION_JWT_SECRET_KEY} | If enabled | -- | Secret key used to sign application JWTs |
 | `APPLICATION_JWT_EXPIRATION_SECONDS`{#APPLICATION_JWT_EXPIRATION_SECONDS} | No | `3600` | Application JWT lifetime |
-| `APPLICATION_ALLOW_USER_CREATION`{#APPLICATION_ALLOW_USER_CREATION} | No | `False` | Let an application create a user from an email alone. It works only with `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` on and `OIDC_USER_SUB_FIELD_IMMUTABLE` off, so the user's OIDC `sub` can be set at their first sign-in. |
+| `APPLICATION_ALLOW_USER_CREATION`{#APPLICATION_ALLOW_USER_CREATION} | No | `False` | Let an application create a user from an email alone. It works only with [`OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION`](#OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION) on and [`OIDC_USER_SUB_FIELD_IMMUTABLE`](#OIDC_USER_SUB_FIELD_IMMUTABLE) off, so the user's OIDC `sub` can be set at their first sign-in. |
 | `EXTERNAL_API_DEFAULT_ACCESS_LEVEL`{#EXTERNAL_API_DEFAULT_ACCESS_LEVEL} | No | `trusted` | Default access level for rooms created through the external API |
-| `EXTERNAL_API_ALLOW_PUBLIC_ACCESS`{#EXTERNAL_API_ALLOW_PUBLIC_ACCESS} | No | `False` | Allow the external API to create rooms with, or switch them to, `access_level=public`. Existing public rooms stay listable and editable either way. Ignored when `EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public`. |
+| `EXTERNAL_API_ALLOW_PUBLIC_ACCESS`{#EXTERNAL_API_ALLOW_PUBLIC_ACCESS} | No | `False` | Allow the external API to create rooms with, or switch them to, `access_level=public`. Existing public rooms stay listable and editable either way. Ignored when [`EXTERNAL_API_DEFAULT_ACCESS_LEVEL=public`](#EXTERNAL_API_DEFAULT_ACCESS_LEVEL). |
 | `APPLICATION_CLIENT_SECRET_LENGTH`{#APPLICATION_CLIENT_SECRET_LENGTH} | No | `50` | Length of generated application client secrets. The backend warns at start below 43, the length that gives 256 bits of randomness. |
 | `APPLICATION_BASE_URL`{#APPLICATION_BASE_URL} | No | -- | Meet's frontend URL. When set, external-API room responses include `url: <base>/<slug>` |
 
@@ -390,7 +392,7 @@ These settings connect Meet to the [Menshen token exchange](external-api.md#mens
 
 Backend support for add-ins embedded in other applications, the Outlook add-in for one. See [External API: add-ons](external-api-addons.md).
 
-Add-ons also need `EXTERNAL_API_ENABLED=True`.
+Add-ons also need [`EXTERNAL_API_ENABLED=True`](#EXTERNAL_API_ENABLED).
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -412,13 +414,13 @@ Showing Meet in an iframe depends on `X-Frame-Options` and CSP `frame-ancestors`
 |---|---|---|---|
 | `DJANGO_CORS_ALLOWED_ORIGINS`{#DJANGO_CORS_ALLOWED_ORIGINS} | No | `[]` | Origins allowed to make cross-origin requests, such as `["https://app.example.com"]` |
 | `DJANGO_CORS_ALLOWED_ORIGIN_REGEXES`{#DJANGO_CORS_ALLOWED_ORIGIN_REGEXES} | No | `[]` | Regex patterns matching allowed origins |
-| `DJANGO_CORS_ALLOW_ALL_ORIGINS`{#DJANGO_CORS_ALLOW_ALL_ORIGINS} | No | `False` | Allow all origins. **Do not enable in production**: use `DJANGO_CORS_ALLOWED_ORIGINS` instead. |
+| `DJANGO_CORS_ALLOW_ALL_ORIGINS`{#DJANGO_CORS_ALLOW_ALL_ORIGINS} | No | `False` | Allow all origins. **Do not enable in production**: use [`DJANGO_CORS_ALLOWED_ORIGINS`](#DJANGO_CORS_ALLOWED_ORIGINS) instead. |
 
 ### Logging and monitoring
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `DJANGO_SENTRY_DSN`{#DJANGO_SENTRY_DSN} | No | -- | Sentry DSN for error tracking. Sentry's `environment` tag comes from `DJANGO_CONFIGURATION`, such as `production` or `demo`; no separate variable sets it. |
+| `DJANGO_SENTRY_DSN`{#DJANGO_SENTRY_DSN} | No | -- | Sentry DSN for error tracking. Sentry's `environment` tag comes from [`DJANGO_CONFIGURATION`](#DJANGO_CONFIGURATION), such as `production` or `demo`; no separate variable sets it. |
 | `SENTRY_TRACES_SAMPLE_RATE`{#SENTRY_TRACES_SAMPLE_RATE} | No | `0.0` | Fraction of transactions sampled for Sentry performance tracing, from `0.0` to `1.0` |
 | `LOGGING_LEVEL_LOGGERS_ROOT`{#LOGGING_LEVEL_LOGGERS_ROOT} | No | `INFO` | Log level of the root logger |
 | `LOGGING_LEVEL_LOGGERS_APP`{#LOGGING_LEVEL_LOGGERS_APP} | No | `INFO` | Log level of the backend's `core` loggers |
@@ -428,14 +430,14 @@ Showing Meet in an iframe depends on `X-Frame-Options` and CSP `frame-ancestors`
 
 ### Audit logging
 
-The backend writes a JSON event to `AUDIT_LOG_STREAM` for each:
+The backend writes a JSON event to [`AUDIT_LOG_STREAM`](#AUDIT_LOG_STREAM) for each:
 
 - sign-in;
 - room action made through the external API;
 - recording action;
 - Django admin change.
 
-[Audit logging](../self-hosting/configuration/audit-logging.md) describes what an event holds. Each event's client address follows `NUM_PROXIES`, under [Core](#core).
+[Audit logging](../self-hosting/configuration/audit-logging.md) describes what an event holds. Each event's client address follows [`NUM_PROXIES`](#NUM_PROXIES), under [Core](#core).
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -444,7 +446,7 @@ The backend writes a JSON event to `AUDIT_LOG_STREAM` for each:
 | `AUDIT_LOG_SERVICE_NAME`{#AUDIT_LOG_SERVICE_NAME} | No | `meet` | `service.name` of each event, and the dataset `<name>.audit`, lower-cased, with each `-` turned into `_` |
 | `AUDIT_LOG_DATA_STREAM_NAMESPACE`{#AUDIT_LOG_DATA_STREAM_NAMESPACE} | No | `default` | Namespace of the data stream events are routed to, `logs-<service name>.audit-<namespace>`. The backend refuses to start when it contains `-`. |
 | `REQUEST_ID_TRUST_HEADER`{#REQUEST_ID_TRUST_HEADER} | No | `False` | Reuse the proxy's request id, so the proxy, Gunicorn and audit events share it. Turn it on only when your proxy overwrites that header; otherwise a client can choose the id. When it is off, the backend generates the id. |
-| `DOCKERFLOW_REQUEST_ID_HEADER_NAME`{#DOCKERFLOW_REQUEST_ID_HEADER_NAME} | No | `X-Request-ID` | Header carrying the request id. Read from requests only when `REQUEST_ID_TRUST_HEADER` is on, and always sent back on responses. |
+| `DOCKERFLOW_REQUEST_ID_HEADER_NAME`{#DOCKERFLOW_REQUEST_ID_HEADER_NAME} | No | `X-Request-ID` | Header carrying the request id. Read from requests only when [`REQUEST_ID_TRUST_HEADER`](#REQUEST_ID_TRUST_HEADER) is on, and always sent back on responses. |
 
 ### Analytics and marketing
 
@@ -486,7 +488,7 @@ Rarely changed: internal names, token claims and lengths. None is required.
 | `OIDC_RS_SIGNING_ALGO`{#OIDC_RS_SIGNING_ALGO} | [Resource server](#external-api-oidc-resource-server) | `ES256` | Read by the shared library for signed introspection responses. Meet reads introspection as plain JSON, so it has no effect today |
 | `OIDC_RS_ENCRYPTION_ALGO`{#OIDC_RS_ENCRYPTION_ALGO} | [Resource server](#external-api-oidc-resource-server) | `RSA-OAEP` | Algorithm advertised as `alg` for the key published at `/jwks`; would also decrypt encrypted introspection responses, which Meet does not request |
 | `OIDC_RS_ENCRYPTION_ENCODING`{#OIDC_RS_ENCRYPTION_ENCODING} | [Resource server](#external-api-oidc-resource-server) | `A256GCM` | For encrypted introspection responses, which Meet does not request; no effect today |
-| `OIDC_RS_ENCRYPTION_KEY_TYPE`{#OIDC_RS_ENCRYPTION_KEY_TYPE} | [Resource server](#external-api-oidc-resource-server) | `RSA` | Key type used to read `OIDC_RS_PRIVATE_KEY_STR` for `/jwks` |
+| `OIDC_RS_ENCRYPTION_KEY_TYPE`{#OIDC_RS_ENCRYPTION_KEY_TYPE} | [Resource server](#external-api-oidc-resource-server) | `RSA` | Key type used to read [`OIDC_RS_PRIVATE_KEY_STR`](#OIDC_RS_PRIVATE_KEY_STR) for `/jwks` |
 | `ADDONS_TOKEN_AUDIENCE`{#ADDONS_TOKEN_AUDIENCE} | [Add-ons](#add-ons) | `addons` | `aud` claim for add-on tokens |
 | `ADDONS_TOKEN_ISSUER`{#ADDONS_TOKEN_ISSUER} | [Add-ons](#add-ons) | `lasuite-meet` | `iss` claim for add-on tokens |
 | `ADDONS_TOKEN_ALG`{#ADDONS_TOKEN_ALG} | [Add-ons](#add-ons) | `HS256` | Add-on token signing algorithm |
@@ -513,7 +515,7 @@ Every variable marked **Yes** must be set for the service to start, even with su
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `AWS_S3_ENDPOINT_URL` | **Yes** | -- | S3-compatible endpoint, with or without a scheme. `AWS_S3_SECURE_ACCESS` picks the scheme, whatever the URL says. |
+| `AWS_S3_ENDPOINT_URL` | **Yes** | -- | S3-compatible endpoint, with or without a scheme. [`AWS_S3_SECURE_ACCESS`](#AWS_S3_SECURE_ACCESS) picks the scheme, whatever the URL says. |
 | `AWS_S3_ACCESS_KEY_ID` | **Yes** | -- | S3 access key |
 | `AWS_S3_SECRET_ACCESS_KEY` | **Yes** | -- | S3 secret key |
 | `AWS_STORAGE_BUCKET_NAME` | **Yes** | -- | S3 bucket name |
@@ -608,10 +610,10 @@ Provides real-time subtitles. See [Real-time Subtitles](../self-hosting/configur
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `STT_PROVIDER`{#STT_PROVIDER} | No | `deepgram` | Speech-to-text provider: `deepgram`, `kyutai`, or `voxtral-vllm` |
-| `TRANSCRIBER_AGENT_NAME`{#TRANSCRIBER_AGENT_NAME} | No | `multi-user-transcriber` | Agent name for dispatch. Must match the backend's `ROOM_SUBTITLE_AGENT_NAME`. |
+| `TRANSCRIBER_AGENT_NAME`{#TRANSCRIBER_AGENT_NAME} | No | `multi-user-transcriber` | Agent name for dispatch. Must match the backend's [`ROOM_SUBTITLE_AGENT_NAME`](#ROOM_SUBTITLE_AGENT_NAME). |
 | `ENABLE_SILERO_VAD`{#ENABLE_SILERO_VAD} | No | `true` | Voice activity detection, for better caption timing |
 
-Then the variables of the provider `STT_PROVIDER` names:
+Then the variables of the provider [`STT_PROVIDER`](#STT_PROVIDER) names:
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -627,15 +629,15 @@ Then the variables of the provider `STT_PROVIDER` names:
 
 ### Metadata collector agent
 
-The agent joins a transcription only when the backend's `METADATA_COLLECTOR_ENABLED` is on.
+The agent joins a transcription only when the backend's [`METADATA_COLLECTOR_ENABLED`](#METADATA_COLLECTOR_ENABLED) is on.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `AWS_S3_ENDPOINT_URL` | **Yes** | -- | S3-compatible endpoint, with or without a scheme, e.g. `garage:9000`. `AWS_S3_SECURE_ACCESS` picks the scheme, whatever the URL says. |
+| `AWS_S3_ENDPOINT_URL` | **Yes** | -- | S3-compatible endpoint, with or without a scheme, e.g. `garage:9000`. [`AWS_S3_SECURE_ACCESS`](#AWS_S3_SECURE_ACCESS) picks the scheme, whatever the URL says. |
 | `AWS_S3_ACCESS_KEY_ID` | **Yes** | -- | S3 access key |
 | `AWS_S3_SECRET_ACCESS_KEY` | **Yes** | -- | S3 secret key |
 | `AWS_STORAGE_BUCKET_NAME` | **Yes** | -- | S3 bucket the metadata is written to |
 | `AWS_S3_SECURE_ACCESS` | No | `False` | Use HTTPS for S3 requests. The default differs from the summary service's. |
 | `AWS_S3_REGION_NAME` | No | -- | S3 region |
-| `AWS_S3_OUTPUT_FOLDER`{#AWS_S3_OUTPUT_FOLDER} | No | `metadata` | Folder/prefix the metadata is written under. Must match the backend's `METADATA_COLLECTOR_OUTPUT_FOLDER`. |
+| `AWS_S3_OUTPUT_FOLDER`{#AWS_S3_OUTPUT_FOLDER} | No | `metadata` | Folder/prefix the metadata is written under. Must match the backend's [`METADATA_COLLECTOR_OUTPUT_FOLDER`](#METADATA_COLLECTOR_OUTPUT_FOLDER). |
 | `METADATA_COLLECTOR_AGENT_NAME` | No | `metadata-collector` | Agent name for dispatch. Must match the backend's `METADATA_COLLECTOR_AGENT_NAME`. |

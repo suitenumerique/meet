@@ -2,12 +2,12 @@
 
 In this mode, your backend exchanges an application's client ID and secret for a short-lived token that acts for one user, named by email.
 
-The token endpoint needs both `EXTERNAL_API_ENABLED=True` and [`APPLICATION_ENABLED=True`](env-variables.md#external-api-applications) on the backend. If either is missing, it returns 404 without saying which.
+The token endpoint needs both [`EXTERNAL_API_ENABLED=True`](env-variables.md#EXTERNAL_API_ENABLED) and [`APPLICATION_ENABLED=True`](env-variables.md#external-api-applications) on the backend. If either is missing, it returns 404 without saying which.
 
 ## When to use this mode
 
 - Your backend creates or manages rooms for your users, and the user never signs in during the call.
-- The user has already signed in to Meet once. Meet creates no account for an unknown email unless `APPLICATION_ALLOW_USER_CREATION` and `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` are on and `OIDC_USER_SUB_FIELD_IMMUTABLE` is off.
+- The user has already signed in to Meet once. Meet creates no account for an unknown email unless [`APPLICATION_ALLOW_USER_CREATION`](env-variables.md#APPLICATION_ALLOW_USER_CREATION) and [`OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION`](env-variables.md#OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION) are on and [`OIDC_USER_SUB_FIELD_IMMUTABLE`](env-variables.md#OIDC_USER_SUB_FIELD_IMMUTABLE) is off.
 
 When the user signs in at your [OIDC](https://openid.net/developers/how-connect-works/) provider anyway, the [Resource server mode](external-api-resource-server.md) uses their own token instead.
 

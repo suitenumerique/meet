@@ -1,6 +1,6 @@
 # Helm Deployment
 
-Run Meet on a [Kubernetes](https://kubernetes.io/) cluster you already operate: it is how DINUM runs Visio in production. Check the [Prerequisites](prerequisites.md) first, then install Meet with [Helm](https://helm.sh/) and LiveKit beside it.
+Run Meet on a [Kubernetes](https://kubernetes.io/) cluster you already operate: it is how [DINUM](https://www.numerique.gouv.fr/) runs [Visio](https://visio.numerique.gouv.fr/) in production. Check the [Prerequisites](prerequisites.md) first, then install Meet with [Helm](https://helm.sh/) and LiveKit beside it.
 
 ## Add the chart
 
@@ -28,149 +28,41 @@ What each one is:
 
 - [`DJANGO_SECRET_KEY`](../../reference/env-variables.md#DJANGO_SECRET_KEY): Django's signing key.
 - [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET): shared by Meet and LiveKit.
-- `DJANGO_SUPERUSER_PASSWORD`: the first [admin account](#admin-accounts)'s.
+- [`DJANGO_SUPERUSER_PASSWORD`](../../reference/env-variables.md#DJANGO_SUPERUSER_PASSWORD): the password of the first [admin account](#admin-accounts).
 - [`DB_PASSWORD`](../../reference/env-variables.md#DB_PASSWORD): Meet's database.
 - [`OIDC_RP_CLIENT_SECRET`](../../reference/env-variables.md#OIDC_RP_CLIENT_SECRET): Meet's secret at the identity provider.
 
-## Write values.yaml
+## Download the values
 
-Put the blocks below in one `values.yaml`. The chart's [README](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) lists every key.
+Meet's values and LiveKit's come as two files, [`values.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/kubernetes/values.yaml) and [`livekit-values.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/kubernetes/livekit-values.yaml):
 
-### Backend
+```bash
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-Replace every `example.com` host, and the database and Redis hosts, with yours:
-
-```yaml
-backend:
-  replicas: 2
-  pdb:
-    enabled: true
-  resources:
-    requests:
-      cpu: 200m
-      memory: 512Mi
-    limits:
-      memory: 1Gi
-  # The secrets created above, one environment variable per key
-  envFrom:
-    - secretRef:
-        name: meet-backend-env
-  envVars:
-    DJANGO_SETTINGS_MODULE: "meet.settings"
-    DJANGO_CONFIGURATION: "Production"
-    DJANGO_ALLOWED_HOSTS: "meet.example.com"
-    DJANGO_CSRF_TRUSTED_ORIGINS: "https://meet.example.com"
-    PYTHONPATH: "/app"
-    ALLOW_UNREGISTERED_ROOMS: "False"
-
-    # The chart's createsuperuser Job reads it, with the password from the Secret
-    DJANGO_SUPERUSER_EMAIL: "admin@example.com"
-
-    DB_HOST: "postgresql.meet.svc.cluster.local"
-    DB_PORT: "5432"
-    DB_NAME: "meet"
-    DB_USER: "meet"
-
-    REDIS_URL: "redis://redis-master:6379/0"
-    # Without it, the celeryBackend worker looks for a host named "redis".
-    CELERY_BROKER_URL: "redis://redis-master:6379/0"
-
-    LIVEKIT_API_KEY: "meet"
-    LIVEKIT_API_URL: "https://livekit.example.com"
-
-    OIDC_RP_CLIENT_ID: "meet"
-    OIDC_RP_SIGN_ALGO: "RS256"
-    OIDC_RP_SCOPES: "openid email"
-    OIDC_OP_AUTHORIZATION_ENDPOINT: >-
-      https://auth.example.com/realms/meet/protocol/openid-connect/auth
-    OIDC_OP_TOKEN_ENDPOINT: >-
-      https://auth.example.com/realms/meet/protocol/openid-connect/token
-    OIDC_OP_USER_ENDPOINT: >-
-      https://auth.example.com/realms/meet/protocol/openid-connect/userinfo
-    OIDC_OP_JWKS_ENDPOINT: >-
-      https://auth.example.com/realms/meet/protocol/openid-connect/certs
-    OIDC_OP_LOGOUT_ENDPOINT: >-
-      https://auth.example.com/realms/meet/protocol/openid-connect/logout
+curl -fsSL --remote-name-all \
+  $RAW/docs/examples/kubernetes/{values.yaml,livekit-values.yaml}
 ```
 
-[Environment Variables](../../reference/env-variables.md) says what each variable does. The SMTP ones go in the same block, per [Email (SMTP)](../configuration/email.md#kubernetes-setup).
+Replace `your-domain.org` with your domain. Meet, LiveKit and Keycloak then answer on its `meet.`, `livekit.` and `auth.` subdomains, the [three domain names](prerequisites.md#three-domain-names):
 
-### Frontend
-
-```yaml
-frontend:
-  replicas: 2
-  pdb:
-    enabled: true
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      memory: 128Mi
+```bash
+DOMAIN=your-domain.org
+sed -i "s/example\.com/$DOMAIN/g" values.yaml livekit-values.yaml
 ```
 
-### Ingress
+Then check, in `values.yaml`:
 
-Two ingresses publish Meet and its `/admin` path, with cert-manager certificates:
+- [`DB_HOST`](../../reference/env-variables.md#DB_HOST) and the other `DB_` lines: your PostgreSQL.
+- [`REDIS_URL`](../../reference/env-variables.md#REDIS_URL) and [`CELERY_BROKER_URL`](../../reference/env-variables.md#CELERY_BROKER_URL): your Redis, also `redis.address` in `livekit-values.yaml`.
+- The `OIDC_OP_` endpoints, such as [`OIDC_OP_AUTHORIZATION_ENDPOINT`](../../reference/env-variables.md#OIDC_OP_AUTHORIZATION_ENDPOINT): Keycloak's form, while another provider's are in [SSO & Authentication](../configuration/sso.md).
 
-```yaml
-ingress:
-  enabled: true
-  className: nginx
-  host: meet.example.com
-  path: /
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  tls:
-    enabled: true
-    secretName: meet-tls
-
-ingressAdmin:
-  enabled: true
-  className: nginx
-  host: meet.example.com
-  path: /admin
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  tls:
-    enabled: true
-    secretName: meet-tls
-```
-
-### Disable optional services
-
-The chart also runs these by default, with no `enabled` flag. Turn off those you do not use:
-
-```yaml
-# Background tasks, run only with CELERY_ENABLED="True" in backend.envVars
-celeryBackend:
-  replicas: 0
-
-# Transcription and summaries
-summary:
-  replicas: 0
-celeryTranscribe:
-  instances: []
-celerySummarize:
-  replicas: 0
-celerySummaryBackend:
-  replicas: 0
-
-# Agents: the metadata collector and live subtitles
-agentMetadata:
-  replicas: 0
-agentSubtitles:
-  replicas: 0
-```
-
-Without [`CELERY_ENABLED`](../../reference/env-variables.md#CELERY_ENABLED), the backend deletes files and sends emails itself.
+The file also turns off the optional services the chart runs by default, each comment naming the guide that turns it back on. The SMTP variables go under `backend.envVars`, per [Email (SMTP)](../configuration/email.md#kubernetes-setup), and the chart's [README](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) lists every key.
 
 ### Security context (recommended)
 
-The chart sets no security context by default. Put the settings the `restricted` Pod Security Standard requires in each component's `securityContext`. For `backend`:
+The chart sets no security context by default. Add the settings the `restricted` Pod Security Standard requires to each component's `securityContext` in `values.yaml`. For `backend`, add these keys under its `backend:` block:
 
-```yaml
+```yaml title="values.yaml"
 backend:
   podSecurityContext:
     fsGroup: 1000
@@ -207,13 +99,14 @@ helm install meet meet/meet -n meet -f values.yaml
 # Check that the pods run and the ingresses exist
 kubectl -n meet get pods
 kubectl -n meet get ingress
-```
 
-If a pod fails, read its logs, for example `kubectl -n meet logs deployment/meet-backend`.
+# If a pod fails, read its logs
+kubectl -n meet logs deployment/meet-backend
+```
 
 ### Admin accounts
 
-The chart's `createsuperuser` Job creates one from `DJANGO_SUPERUSER_EMAIL` and the password in the Secret, which this prints:
+The chart's `createsuperuser` Job creates the first admin account from [`DJANGO_SUPERUSER_EMAIL`](../../reference/env-variables.md#DJANGO_SUPERUSER_EMAIL) and the password in the Secret, which this prints:
 
 ```bash
 kubectl -n meet get secret meet-backend-env \
@@ -236,48 +129,21 @@ helm repo add livekit https://helm.livekit.io
 helm repo update
 ```
 
-Its `keys:` take the `LIVEKIT_API_SECRET` from Meet's Secret, which this prints. Put it in place of `<LIVEKIT_API_SECRET>`, and your hosts in place of the `example.com` ones:
+Its `keys:` take the [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET) of Meet's Secret. Put it in `livekit-values.yaml`:
 
 ```bash
-kubectl -n meet get secret meet-backend-env \
-  -o jsonpath='{.data.LIVEKIT_API_SECRET}' | base64 -d
+JP='{.data.LIVEKIT_API_SECRET}'
+SECRET=$(kubectl -n meet get secret meet-backend-env -o jsonpath="$JP" | base64 -d)
+sed -i "s|<LIVEKIT_API_SECRET>|$SECRET|" livekit-values.yaml
 ```
 
-```yaml
-# livekit-values.yaml
-livekit:
-  keys:
-    meet: <LIVEKIT_API_SECRET>
-  redis:
-    address: redis-master.meet.svc.cluster.local:6379
-  rtc:
-    use_external_ip: true
-    # Required for UDP media
-    udp_port: 7882
-  logging:
-    level: info
-  webhook:
-    api_key: meet
-    urls:
-      - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
-
-# The chart has no ingress: block. This exposes LiveKit through the same
-# nginx-ingress and cert-manager as Meet.
-loadBalancer:
-  type: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  tls:
-    - hosts:
-        - livekit.example.com
-      secretName: livekit-tls
-```
+Then install it:
 
 ```bash
 helm install livekit-server livekit/livekit-server -n meet -f livekit-values.yaml
 ```
 
-Other `loadBalancer` types, for a cloud load balancer, are in LiveKit's [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
+`livekit-values.yaml` exposes LiveKit through a plain Ingress, which the cluster's default IngressClass serves. Other `loadBalancer` types, for a cloud load balancer, are in LiveKit's [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
 
 ### LiveKit media ports
 
@@ -289,14 +155,14 @@ Both are optional. Set up [Recording](../configuration/recording.md#setup), then
 
 ## Secrets management
 
-`backend.envFrom` loads the Secret into the backend, the `celeryBackend` worker, the migration and superuser Jobs, and the CronJobs.
+`backend.envFrom` loads a Secret or a ConfigMap, one variable per key, into the backend, the `celeryBackend` worker, the migration and superuser Jobs, and the CronJobs.
 
 - The other components each read their own `envFrom`, and each `celeryTranscribe` instance can add `extraEnvFrom`.
 - A variable set in `envVars` wins over the same name loaded through `envFrom`.
 
-To take a single variable from a Secret of another shape, reference it under `envVars`:
+To take a single variable from a Secret of another shape, reference it under `envVars`. Replace `my-database` and `password` with that Secret's name and key:
 
-```yaml
+```yaml title="values.yaml"
 backend:
   envVars:
     DB_PASSWORD:
@@ -320,7 +186,7 @@ sops --decrypt values/production-secrets.enc.yaml | helm upgrade meet meet/meet 
 
 ## Several environments with helmfile
 
-Use [helmfile](https://helmfile.readthedocs.io/), as DINUM does:
+Use [helmfile](https://helmfile.readthedocs.io/), as DINUM does for its dev environments. Replace `<environment>` with one your `helmfile.yaml.gotmpl` defines:
 
 ```bash
 # Preview the changes

@@ -16,7 +16,7 @@ Open each port to any address, `0.0.0.0/0`, in your cloud provider's security gr
 | 5060 | UDP | With [telephony](telephony.md) | SIP signalling from your phone provider |
 | 10000–20000 | UDP | With telephony | Phone call audio |
 
-How the browser picks between 7882, 7881 and TURN is in [LiveKit & TURN](livekit.md#how-media-connects), and LiveKit's own list is in its [ports and firewall](https://docs.livekit.io/home/self-hosting/ports-firewall/) guide.
+LiveKit's own list: [ports and firewall](https://docs.livekit.io/home/self-hosting/ports-firewall/).
 
 ## Never public
 
@@ -33,12 +33,9 @@ The Docker Compose files publish none of these.
 
 ## The host firewall
 
-Docker opens every port a container publishes with firewall rules of its own, which take precedence over ufw and firewalld. With Docker Compose, every port of [Ports to open](#ports-to-open) is published, so:
+ufw and firewalld do not filter a port Docker publishes, which with Docker Compose is every port above: filter those in your cloud provider's security group, and never publish a port that must stay closed.
 
-- ufw and firewalld cannot open or close those ports: your cloud provider's security group filters them.
-- A port that must stay closed must not be published at all.
-
-The host firewall matters for the ports Docker does not publish, such as LiveKit's on Kubernetes, which listens on the node's own network. Open them as for any service:
+The host firewall matters for the ports Docker does not publish, such as LiveKit's on Kubernetes:
 
 === "ufw"
 
@@ -74,6 +71,4 @@ nc -zv meet.example.com 443
 nc -zv meet.example.com 7881
 ```
 
-`nc -zuv` cannot prove a UDP port is open: it reports success whenever nothing answers back. To test 7882/UDP, hold a real call between two devices on different networks.
-
-On the server, `docker compose ps livekit` lists the published ports, and `ss -tulpn | grep -E ':788[12]'` shows `docker-proxy` holding them.
+`nc -zuv` cannot prove a UDP port is open. To test 7882/UDP, hold a call between two devices on different networks. On the server, `docker compose ps livekit` lists the published ports.

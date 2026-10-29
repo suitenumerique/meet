@@ -29,9 +29,8 @@ Turns what people say into a document in [LaSuite Docs](https://github.com/suite
 
 1. Open **More tools** → **Transcribe**.
 2. Check the meeting language: the right one gives a better transcript.
-3. Click **Start transcribing the meeting**.
-
-Tick **Also start a video recording** to get a video too.
+3. To get a video too, tick **Also start a video recording**.
+4. Click **Start transcribing the meeting**.
 
 ## Real-time subtitles *(beta)* { #real-time-subtitles }
 

@@ -1,0 +1,13 @@
+# The metadata collector agent, from the AI Transcription guide.
+# generate-secrets.sh fills every <...> value.
+
+LIVEKIT_URL=ws://livekit:7880
+LIVEKIT_API_KEY=meet
+LIVEKIT_API_SECRET=<your LiveKit API secret>
+
+# Object storage: the Recording guide's Garage, host and port only
+AWS_S3_ENDPOINT_URL=garage:9000
+AWS_S3_ACCESS_KEY_ID=<GARAGE_ACCESS_KEY>
+AWS_S3_SECRET_ACCESS_KEY=<GARAGE_SECRET_KEY>
+AWS_S3_REGION_NAME=garage
+AWS_STORAGE_BUCKET_NAME=meet-media-storage

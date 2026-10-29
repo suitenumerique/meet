@@ -18,7 +18,7 @@ LiveKit's media ports bypass the proxy, see [Firewall & Ports](../configuration/
 
 ## nginx-proxy or Traefik
 
-Each of these two runs as a small Docker stack of its own, so you write no proxy configuration. It:
+Each of these two runs as a small Docker stack of its own. You write no proxy configuration, since it:
 
 - watches Docker;
 - routes every Meet container that asks for it;
@@ -27,7 +27,7 @@ Each of these two runs as a small Docker stack of its own, so you write no proxy
 The Quick Start uses nginx-proxy.
 
 !!! warning
-    Both read the Docker socket to see the containers. To restrict that access, see [nginx-proxy: Separate Containers](https://github.com/nginx-proxy/nginx-proxy/tree/main/docs#separate-containers) or [Traefik: Docker API Access](https://doc.traefik.io/traefik/reference/install-configuration/providers/docker/#docker-api-access).
+    Both read the Docker socket to see the containers. To restrict that access, see [nginx-proxy: Separate Containers](https://github.com/nginx-proxy/nginx-proxy/tree/main/docs#separate-containers), [acme-companion](https://github.com/nginx-proxy/acme-companion/tree/main/docs) or [Traefik: Docker API Access](https://doc.traefik.io/traefik/reference/install-configuration/providers/docker/#docker-api-access).
 
 ### Step 1: Start the proxy
 

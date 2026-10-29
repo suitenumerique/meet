@@ -21,8 +21,13 @@ Any Linux that runs Docker Engine, with the [ports](../configuration/firewall.md
 curl -fsSL https://get.docker.com | sh
 # Run docker without sudo
 sudo usermod -aG docker $USER
-# Log out and back in, then check that Compose answers
-docker compose version
+```
+
+Log out and back in, then check that Compose answers:
+
+```console
+$ docker compose version
+Docker Compose version 5.6.1
 ```
 
 ## Three domain names

@@ -42,7 +42,7 @@ scalingo env-set REDIS_URL="\$SCALINGO_REDIS_URL"
 
 ### Django
 
-Run Django in production mode. Replace `my-meet-app.osc-fr1.scalingo.io` with your app's hostname; the secret key is generated on its line:
+Run Django in [production mode](../reference/env-variables.md#DJANGO_CONFIGURATION). Replace `my-meet-app.osc-fr1.scalingo.io` with your app's [hostname](../reference/env-variables.md#DJANGO_ALLOWED_HOSTS); the [secret key](../reference/env-variables.md#DJANGO_SECRET_KEY) is generated on its line:
 
 ```bash
 scalingo env-set DJANGO_SETTINGS_MODULE="meet.settings"
@@ -51,11 +51,9 @@ scalingo env-set DJANGO_SECRET_KEY="$(openssl rand -hex 32)"
 scalingo env-set DJANGO_ALLOWED_HOSTS="my-meet-app.osc-fr1.scalingo.io"
 ```
 
-See [`DJANGO_CONFIGURATION`](../reference/env-variables.md#DJANGO_CONFIGURATION), [`DJANGO_SECRET_KEY`](../reference/env-variables.md#DJANGO_SECRET_KEY) and [`DJANGO_ALLOWED_HOSTS`](../reference/env-variables.md#DJANGO_ALLOWED_HOSTS).
-
 ### OIDC
 
-Point Meet at your OIDC provider and its client for Meet. Replace `auth.yourdomain.com` and `<your-client-secret>` with your provider's. The example uses Keycloak's endpoints; [SSO & Authentication](configuration/sso.md) has them for other providers:
+Point Meet at your [OIDC provider](../reference/env-variables.md#authentication-oidc) and its client for Meet. Replace `auth.yourdomain.com` and `<your-client-secret>`, the [client secret](../reference/env-variables.md#OIDC_RP_CLIENT_SECRET), with your provider's. The example uses Keycloak's endpoints; [SSO & Authentication](configuration/sso.md) has them for other providers:
 
 ```bash
 OIDC="https://auth.yourdomain.com/realms/meet/protocol/openid-connect"
@@ -69,8 +67,6 @@ scalingo env-set OIDC_RP_CLIENT_ID="meet"
 scalingo env-set OIDC_RP_CLIENT_SECRET="<your-client-secret>"
 scalingo env-set OIDC_RP_SIGN_ALGO="RS256"
 ```
-
-See [`OIDC_RP_CLIENT_SECRET`](../reference/env-variables.md#OIDC_RP_CLIENT_SECRET) and the rest of [Authentication (OIDC)](../reference/env-variables.md#authentication-oidc).
 
 ### LiveKit
 
@@ -98,11 +94,10 @@ The `postdeploy` line of `Procfile` runs the database migrations on each deploym
 
 ## Step 4: Create an admin account
 
-After the first deployment, create an account that can open `/admin/`, with your email and a strong password in place of the two `<…>` values:
+After the first deployment, create an account that can open `/admin/`, with your email and a strong password in place of `<email>` and `<password>`:
 
 ```bash
-scalingo run python manage.py createsuperuser \
-  --email <admin email> --password '<admin password>'
+scalingo run python manage.py createsuperuser --email <email> --password '<password>'
 ```
 
 ## Custom domain

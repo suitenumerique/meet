@@ -4,7 +4,7 @@ For anyone joining on a phone, on a poor network, or both.
 
 ## On a phone
 
-Open the meeting link in your phone's browser, on an iPhone too. You can:
+Open the meeting link in your phone's browser. On an iPhone too, you can:
 
 - talk;
 - use your camera, and switch to the other one in **More Options** → **Switch camera**;

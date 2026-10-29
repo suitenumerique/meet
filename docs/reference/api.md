@@ -76,7 +76,7 @@ PATCH /api/v1.0/users/{id}/
 GET /api/v1.0/users/?q=alice
 ```
 
-Returns users whose email resembles `q`. Unless `ALLOW_UNSECURE_USER_LISTING=True`, it returns an empty list.
+Returns users whose email resembles `q`. Unless [`ALLOW_UNSECURE_USER_LISTING=True`](env-variables.md#ALLOW_UNSECURE_USER_LISTING), it returns an empty list.
 
 ### Exchange a transit code
 ```
@@ -92,7 +92,7 @@ Open to callers without a session: the transit code is the credential. Returns t
 |---|---|
 | 400 | `code` is missing or does not have the length of a transit code |
 | 403 | The code is unknown, expired or already used; the caller already has a session; the user is deactivated; or the application no longer holds `users:session` |
-| 404 | `USER_ACCESS_TOKEN_ENABLED` is off |
+| 404 | [`USER_ACCESS_TOKEN_ENABLED`](env-variables.md#USER_ACCESS_TOKEN_ENABLED) is off |
 
 ## Rooms
 
@@ -136,7 +136,7 @@ Reading a room requires no sign-in. The response adds:
 }
 ```
 
-A slug matching no room returns 404, unless `ALLOW_UNREGISTERED_ROOMS=True`: then the response has `"id": null` and a `livekit` token for that slug. A deleted room returns 410 with `{"detail": "This room has been deleted."}`, regardless of that setting.
+A slug matching no room returns 404, unless [`ALLOW_UNREGISTERED_ROOMS=True`](env-variables.md#ALLOW_UNREGISTERED_ROOMS): then the response has `"id": null` and a `livekit` token for that slug. A deleted room returns 410 with `{"detail": "This room has been deleted."}`, regardless of that setting.
 
 ### Other room endpoints
 
@@ -208,7 +208,7 @@ The accesses of a deleted room can still be listed and read. Granting, changing 
 
 ## Recording
 
-Starting and stopping a recording return 404 while `RECORDING_ENABLE` is off.
+Starting and stopping a recording return 404 while [`RECORDING_ENABLE`](env-variables.md#RECORDING_ENABLE) is off.
 
 ### Start recording
 ```
@@ -230,7 +230,7 @@ Requires being signed in and allowed to record, as [Who can record](../self-host
 
 - `mode` is `screen_recording` or `transcript`.
 - `options` and each of its keys are optional; any other key is rejected.
-- `encoding` picks a resolution, and optionally a profile, from those listed under [Recording](env-variables.md#recording). It is accepted only while `RECORDING_CUSTOM_ENCODING_ENABLED` is on.
+- `encoding` picks a resolution, and optionally a profile, from those listed under [Recording](env-variables.md#recording). It is accepted only while [`RECORDING_CUSTOM_ENCODING_ENABLED`](env-variables.md#RECORDING_CUSTOM_ENCODING_ENABLED) is on.
 
 | Code | Body | When |
 |---|---|---|
@@ -261,7 +261,7 @@ The recording's roles are set when it starts, as [Who can record](../self-hostin
 
 Each poll of `request-entry` sends the signed `id` of the first response as `participant_id`, to keep its place in the queue. An id with an invalid signature returns 400.
 
-Once a host admits the participant, the response carries a `livekit` token.
+Once someone the table lists admits the participant, the response carries a `livekit` token.
 
 Both lobby management endpoints refuse a LiveKit room token.
 
@@ -276,12 +276,12 @@ Both lobby management endpoints refuse a LiveKit room token.
 | `POST` | `/api/v1.0/rooms/{id}/update-participant/` | `participant_identity` and at least one of `name`, `metadata`, `attributes`, `permission` | An administrator or owner |
 | `POST` | `/api/v1.0/rooms/{id}/update-participant-role/` | `{"participant_identity": "...", "role": "administrator"}` | An administrator or owner connected to the meeting. `role` is `member` or `administrator`, kept as a `ResourceAccess`. A target not connected or without a Meet account gets 404. Changing your own role or an owner's gets 403. |
 | `POST` | `/api/v1.0/rooms/{id}/toggle-hand/` | `{"raised": true}` | The holder of a LiveKit room token, for their own hand |
-| `POST` | `/api/v1.0/rooms/{id}/rename/` | `{"name": "Alice"}` | The holder of a LiveKit room token, for their own name. A participant with a Meet account gets 403 unless `AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME` is on. |
-| `POST` | `/api/v1.0/rooms/{id}/start-subtitle/` | None | The holder of a LiveKit room token. Answers 404 unless `ROOM_SUBTITLE_ENABLED` is on. |
+| `POST` | `/api/v1.0/rooms/{id}/rename/` | `{"name": "Alice"}` | The holder of a LiveKit room token, for their own name. A participant with a Meet account gets 403 unless [`AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME`](env-variables.md#AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME) is on. |
+| `POST` | `/api/v1.0/rooms/{id}/start-subtitle/` | None | The holder of a LiveKit room token. Answers 404 unless [`ROOM_SUBTITLE_ENABLED`](env-variables.md#ROOM_SUBTITLE_ENABLED) is on. |
 
 ## Custom backgrounds
 
-Every file endpoint answers 404 unless `FILE_UPLOAD_ENABLED=True`, and each user sees only their own files. An upload takes three steps:
+Every file endpoint answers 404 unless [`FILE_UPLOAD_ENABLED=True`](env-variables.md#FILE_UPLOAD_ENABLED), and each user sees only their own files. An upload takes three steps:
 
 1. `POST /api/v1.0/files/` with `{"type": "background_image", "filename": "beach.jpg"}` creates the record. Its response includes `policy`, a signed URL in object storage.
 2. The browser uploads the file with a `PUT` to that URL.
@@ -297,7 +297,7 @@ POST /api/v1.0/diagnostics/connection/
 
 Open to anyone, signed in or not. Returns a short-lived LiveKit token for a throwaway room, so the browser can test its connection to the media server.
 
-Answers 404 unless `CONNECTION_TEST_ENABLED=True`.
+Answers 404 unless [`CONNECTION_TEST_ENABLED=True`](env-variables.md#CONNECTION_TEST_ENABLED).
 
 ## Internal endpoints
 
@@ -305,12 +305,12 @@ Other services call these, never the browser or an external application.
 
 | Method | Path | Called by | Purpose |
 |---|---|---|---|
-| `POST` | `/api/v1.0/rooms/webhooks-livekit/` | LiveKit, signing each call with `LIVEKIT_API_SECRET` | Room, participant and recording events. The `egress_ended` event is how the backend learns a recording has finished uploading. |
+| `POST` | `/api/v1.0/rooms/webhooks-livekit/` | LiveKit, signing each call with [`LIVEKIT_API_SECRET`](env-variables.md#LIVEKIT_API_SECRET) | Room, participant and recording events. The `egress_ended` event is how the backend learns a recording has finished uploading. |
 | `POST` | `/api/v1.0/recordings/external-process-hook/` | The Summary service, with `Authorization: Bearer <SUMMARY_SERVICE_WEBHOOK_API_TOKEN>` | Reports the result of a transcription or summary job on a recording |
-| `POST` | `/api/v1.0/roomkit/join/` | LiveKit's SIP module, with `Authorization: Bearer <ROOMKIT_SERVER_TO_SERVER_API_TOKEN>` | Prepares the room whose PIN a meeting-room device dialled, body `{"pin_code": "..."}`. Answers 404 unless `ROOMKIT_ENABLED` is on. |
+| `POST` | `/api/v1.0/roomkit/join/` | LiveKit's SIP module, with `Authorization: Bearer <ROOMKIT_SERVER_TO_SERVER_API_TOKEN>` | Prepares the room whose PIN a meeting-room device dialled, body `{"pin_code": "..."}`. Answers 404 unless [`ROOMKIT_ENABLED`](env-variables.md#ROOMKIT_ENABLED) is on. |
 | `GET` | `/api/v1.0/recordings/media-auth/` | The reverse proxy, as a subrequest | Checks that the user may download a recording under `/media/`, and returns the signed headers for object storage |
 | `GET` | `/api/v1.0/files/media-auth/` | The reverse proxy, as a subrequest | The same check for an uploaded file |
-| `GET` | `/jwks` | The OIDC provider | Publishes the public key matching `OIDC_RS_PRIVATE_KEY_STR`. It sits at the root, outside `/api/v1.0/`, and neither the example nginx routing nor the Helm ingress sends it to the backend: add that route if your provider fetches it. |
+| `GET` | `/jwks` | The OIDC provider | Publishes the public key matching [`OIDC_RS_PRIVATE_KEY_STR`](env-variables.md#OIDC_RS_PRIVATE_KEY_STR). It sits at the root, outside `/api/v1.0/`, and neither the example nginx routing nor the Helm ingress sends it to the backend: add that route if your provider fetches it. |
 
 ## Frontend configuration
 

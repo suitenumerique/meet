@@ -32,12 +32,17 @@ $ bash install.sh
 ╔══════════════════════════════════════════════════════════════╗
 ║  Setup complete!                                             ║
 ╚══════════════════════════════════════════════════════════════╝
+...
+  Meet login:      meet-admin / <password>
+...
+  Meet admin panel: https://meet.example.com/admin/  you@example.com / <password>
+...
 ```
 
 It only sets up a fresh install: it stops if `~/docker/keycloak` or `~/docker/meet` exists, since new passwords would not match the existing databases.
 
 !!! warning
-    To start over, run `docker compose down -v` in each, which deletes their data, then delete both directories.
+    To start over, run `docker compose down -v` in `~/docker/keycloak` and `~/docker/meet`, which deletes their data, then delete both directories.
 
 ## After setup
 
@@ -52,6 +57,6 @@ Note the two printed passwords: they are saved nowhere else. The URLs use your o
 ## Next
 
 - To see what the script set up, read [`install.sh`](https://github.com/suitenumerique/meet/blob/main/docs/install.sh) itself: one labelled section per stack.
-- The [Deployment Guide](deployment-guide.md) explains each step, and how to change it.
-- Before production, work through its [After installation](deployment-guide.md#after-installation) steps.
+- To change a step, follow the [Deployment Guide](deployment-guide.md).
+- Before production, work through the Deployment Guide's [After installation](deployment-guide.md#after-installation) steps.
 - To change the look, see [Theming](../configuration/theming.md).

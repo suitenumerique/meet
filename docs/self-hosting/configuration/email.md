@@ -1,28 +1,27 @@
 # Email (SMTP)
 
-Meet sends email for two things only. Sign-in goes through your [OIDC](https://openid.net/developers/how-connect-works/) provider and sends none.
+Meet sends email for two things only:
 
 - **Room invitations**, sent through the API's `POST /api/v1.0/rooms/<id>/invite/`; the interface has no button for them. Without SMTP, the request fails.
-- **A screen recording's download link**, emailed to whoever started the recording and to the room's owners and co-hosts. Without SMTP, the recording is still saved.
+- **A screen recording's download link**, emailed to whoever started it, the host and the co-hosts. Without SMTP, the recording is still saved.
 
 To reach a recording whose email never left:
 
-- Find its ID in the Django admin, under `/admin/` → **Core → Recordings**. The people the email was meant for can then open `https://meet.example.com/recording/<id>`.
+- Find its ID in the Django admin, under `/admin/` → **Core → Recordings**: its recipients can open `https://meet.example.com/recording/<id>`.
 - Once SMTP works, the admin action **Resend notification to external service** sends the email again.
 
 ## What to set
 
-Set your SMTP server's host, port, login and sender address with the variables of [Environment Variables: Email](../../reference/env-variables.md#email). On port 587, set `DJANGO_EMAIL_USE_TLS=True` for STARTTLS; on port 465, `DJANGO_EMAIL_USE_SSL=True` instead.
+Set your SMTP server's host, port, login and sender address with the variables of [Environment Variables: Email](../../reference/env-variables.md#email). On port 587, set [`DJANGO_EMAIL_USE_TLS=True`](../../reference/env-variables.md#DJANGO_EMAIL_USE_TLS) for STARTTLS; on port 465, [`DJANGO_EMAIL_USE_SSL=True`](../../reference/env-variables.md#DJANGO_EMAIL_USE_SSL) instead.
 
-- `DJANGO_EMAIL_APP_BASE_URL`, such as `https://meet.example.com`, builds the invitation link.
-- `DJANGO_EMAIL_DOMAIN`, such as `meet.example.com`, is the domain every email shows.
+- [`DJANGO_EMAIL_APP_BASE_URL`](../../reference/env-variables.md#DJANGO_EMAIL_APP_BASE_URL) and [`DJANGO_EMAIL_DOMAIN`](../../reference/env-variables.md#DJANGO_EMAIL_DOMAIN) build the invitation link and the domain every email shows.
 - The recording link comes from [`RECORDING_DOWNLOAD_BASE_URL`](../../reference/env-variables.md#RECORDING_DOWNLOAD_BASE_URL) instead.
 
-With [`CELERY_ENABLED`](../../reference/env-variables.md#CELERY_ENABLED)`=True`, the Celery worker sends the recording emails and retries a failed delivery, so a slow SMTP server never holds up the backend. Otherwise the backend sends them itself.
+A failed recording email is retried only with [`CELERY_ENABLED`](../../reference/env-variables.md#CELERY_ENABLED)`=True`.
 
 ## Docker Compose setup
 
-Set the variables in `env.d/common`, which already holds a commented-out Mail block, not in `.env`: Compose reads `env.d/common` last, so its value wins. Then recreate the backend and the Celery worker:
+Uncomment and fill the Mail block of `env.d/common`, not `.env`. Then recreate the backend and the Celery worker:
 
 ```bash
 docker compose up -d --force-recreate backend celery
@@ -39,7 +38,7 @@ kubectl -n meet create secret generic meet-smtp \
 
 Then set the variables under `backend.envVars` in your `values.yaml`:
 
-```yaml
+```yaml title="values.yaml"
 backend:
   envVars:
     DJANGO_EMAIL_HOST: "smtp.example.com"
@@ -55,15 +54,15 @@ backend:
     DJANGO_EMAIL_DOMAIN: "meet.example.com"
 ```
 
-Then apply them with `helm upgrade meet meet/meet --namespace meet --values values.yaml`.
+Then apply them with `helm upgrade meet meet/meet -n meet -f values.yaml`.
 
 ## Scalingo setup
 
-Set each variable with `scalingo env-set NAME="value"`. [Scalingo's email documentation](https://doc.scalingo.com/platform/app/sending-emails) covers its SMTP providers.
+Set them all in one call, `scalingo env-set NAME1="value" NAME2="value"`. [Scalingo's email documentation](https://doc.scalingo.com/platform/app/sending-emails) covers its SMTP providers.
 
 ## Check delivery
 
-Send a test email from the backend, with your own address:
+Send a test email, with your own address in place of `you@example.com`:
 
 ```bash
 docker compose exec -T backend python manage.py shell <<'EOF'

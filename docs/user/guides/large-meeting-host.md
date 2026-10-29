@@ -16,7 +16,7 @@ Sign in before you create the room, so you own it. Then open **Open admin** → 
 - **Open to trusted people**: people who are not signed in wait in the **Lobby**.
 - **Restricted**: everyone without a role on the room waits there.
 
-**Accept all** in **See everyone** admits them at once.
+**Accept all** in **See everyone** admits everyone waiting at once.
 
 ### Add a co-host
 

@@ -4,7 +4,7 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
 
 ## Before upgrading
 
-1. **Read what changed.** [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) lists every release, and [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) the manual steps some releases need. Read both for every version between yours and the target: releases are applied in order, and only patch releases can be skipped.
+1. **Read what changed** in [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) and [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md), for every version between yours and the target: only patch releases can be skipped.
 2. **Back up the database**, from `~/docker/meet`:
 
     ```bash
@@ -16,8 +16,8 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
 
 ## Upgrade
 
-1. Set `MEET_VERSION` in `.env` to the target release, for example `MEET_VERSION=v1.36.3`. Every Meet service reads it, and Compose uses `latest` while it is unset.
-2. Download the images, without stopping anything yet:
+1. Set `MEET_VERSION` in `.env` to the target release, for example `MEET_VERSION=v1.36.3`. Unset, Compose uses `latest`.
+2. Download the images:
 
     ```bash
     docker compose pull
@@ -30,7 +30,7 @@ These steps are for Docker Compose. On Kubernetes, migrations run as a Job, see 
     docker compose up -d
     ```
 
-5. Run the database migrations, which are safe even when the release changes no schema:
+5. Run the database migrations:
 
     ```bash
     docker compose exec backend python manage.py migrate
@@ -54,11 +54,10 @@ docker compose exec -T postgresql createdb -U meet meet
 docker compose exec -T postgresql psql -U meet -v ON_ERROR_STOP=1 meet < meet_backup_YYYYMMDD.sql
 
 # Set MEET_VERSION in .env back to the previous version, then:
-docker compose pull
 docker compose up -d
 ```
 
-Once Meet works on the restored data, drop `meet_before_rollback`. It holds everything written since the upgrade, and while it exists the next rollback fails at the rename:
+Once Meet works on the restored data, drop `meet_before_rollback`, which holds everything written since the upgrade; while it exists, the next rollback fails at the rename:
 
 ```bash
 docker compose exec -T postgresql psql -U meet -d postgres \
@@ -67,13 +66,10 @@ docker compose exec -T postgresql psql -U meet -d postgres \
 
 ## LiveKit and Egress
 
-LiveKit is versioned independently of Meet: check the [LiveKit releases](https://github.com/livekit/livekit/releases) before moving it. A restart of LiveKit drops the calls in progress, so pick a quiet hour.
-
-In `.env`, set the new tag in `LIVEKIT_VERSION`, and in `EGRESS_VERSION` if you run recording. Then:
+Check the [LiveKit releases](https://github.com/livekit/livekit/releases), then set the new tags in `LIVEKIT_VERSION`, and `EGRESS_VERSION` with recording, in `.env`. A LiveKit restart drops the calls in progress, so pick a quiet hour:
 
 ```bash
 # Without recording, leave out livekit-egress
-docker compose pull livekit livekit-egress
 docker compose up -d livekit livekit-egress
 ```
 

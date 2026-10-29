@@ -295,7 +295,7 @@ Leaving never ends the meeting for the others: Meet has no "end for all".
 Shortly after the last person leaves, LiveKit closes the meeting and tells the backend, which clears:
 
 - the waiting room;
-- its record of who was present;
+- the backend's record of who was present;
 - the phone PIN rule.
 
 Deleting a room is different: only its owner can, through the API, and that ends any meeting in it at once. Its link then says the room was deleted, until the [room purge](../self-hosting/configuration/room-purge.md) removes it for good.

@@ -9,8 +9,7 @@ How a change goes from your fork into `main`.
 ```bash
 # 1. Branch from the latest main of the project
 git fetch upstream && git switch -c my-change upstream/main
-# 2. Commit with a gitmoji, a scope, a lowercase subject and a body,
-#    then add a CHANGELOG.md line
+# 2. Commit with gitmoji, scope, lowercase subject, body; add a CHANGELOG.md line
 git commit
 # 3. Check the commit messages the way CI does
 uvx --from gitlint-core gitlint --commits upstream/main..HEAD

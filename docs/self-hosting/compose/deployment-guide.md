@@ -41,7 +41,7 @@ LETSENCRYPT_EMAIL=you@example.com
 
 ## Stack 2: Identity provider
 
-- **You already run an OIDC provider**, such as Authentik or Google: register a client for Meet there, as [SSO: Client configuration](../configuration/sso.md#client-configuration) shows, note its endpoints and client secret, and skip to Stack 3.
+- **You already run an OIDC provider**, such as Authentik or Google: register a client for Meet there, as [SSO: Client configuration](../configuration/sso.md#client-configuration) shows, note its client ID, client secret and endpoints, and skip to Stack 3.
 - **You don't:** run Keycloak here, with a realm that already holds Meet's client.
 
 ### Download the files
@@ -51,8 +51,11 @@ mkdir -p ~/docker/keycloak/env.d && cd ~/docker/keycloak
 
 RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-# The stack, its realm, and the script that fills the passwords
-curl -fsSL --remote-name-all $RAW/docs/generate-secrets.sh \
+# The script that fills the passwords
+curl -fsSL -O $RAW/docs/generate-secrets.sh
+
+# The stack and its realm
+curl -fsSL --remote-name-all \
   $RAW/docs/examples/keycloak/{compose.yml,keycloak-realm.json}
 
 # The settings of Keycloak and of its database
@@ -81,7 +84,7 @@ Then the override that connects Keycloak to your reverse proxy:
 
 ### Fill in the passwords
 
-Give the script the email of Meet's first user, `meet-admin`:
+Give [`generate-secrets.sh`](https://github.com/suitenumerique/meet/blob/main/docs/generate-secrets.sh) the email of Meet's first user, `meet-admin`:
 
 ```console
 $ ADMIN_EMAIL=you@example.com bash generate-secrets.sh
@@ -99,7 +102,7 @@ Keep that password: meet-admin signs in with it once, then picks a new one. The 
 - The client secret in `keycloak-realm.json`, which Stack 3 reads.
 
 !!! warning
-    Run the script before starting Keycloak: until then, anyone could claim `meet-admin` with the realm's placeholder password.
+    Keycloak imports the realm once, at its first start, and never reads the file again. Run the script before that start, or the realm keeps its placeholder password and client secret. To start over, run `docker compose down -v`, which deletes Keycloak's database, then the script, then `docker compose up -d`.
 
 ### Start Keycloak
 
@@ -114,7 +117,7 @@ postgresql   Up 2 minutes (healthy)
 Repeat the second command until both show `(healthy)`.
 
 !!! info
-    Keycloak's admin console is at `https://${IDP_HOST}/admin/`: user `admin`, password `KC_BOOTSTRAP_ADMIN_PASSWORD` from `env.d/keycloak`. That account is [temporary](https://www.keycloak.org/server/bootstrap-admin-recovery): create your own admin account there, then delete it.
+    Keycloak's admin console is at `https://${IDP_HOST}/admin/`: user `admin`, password `KC_BOOTSTRAP_ADMIN_PASSWORD` from `env.d/keycloak`. That account is [temporary](https://www.keycloak.org/server/bootstrap-admin-recovery): create your own admin account there, then delete `admin`.
 
 ## Stack 3: Meet core
 
@@ -127,8 +130,11 @@ mkdir -p ~/docker/meet/env.d && cd ~/docker/meet
 
 RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
 
-# The stack, LiveKit's settings, the nginx that splits API and web app, and the script
-curl -fsSL --remote-name-all $RAW/docs/generate-secrets.sh \
+# The script that fills the secrets
+curl -fsSL -O $RAW/docs/generate-secrets.sh
+
+# The stack, LiveKit's settings, and the nginx that splits API and web app
+curl -fsSL --remote-name-all \
   $RAW/docs/examples/meet/{compose.yml,livekit-server.yaml,nginx-routing.conf}
 
 # The settings of Meet and of its database
@@ -155,15 +161,15 @@ Then the override that connects Meet to your reverse proxy:
       $RAW/docs/examples/meet/docker-compose.override.yml.traefik
     ```
 
-`NUM_PROXIES=2` in `env.d/common` counts the reverse proxy and the frontend's nginx. Change it if more proxies sit in front, see [`NUM_PROXIES`](../../reference/env-variables.md#NUM_PROXIES).
+[`NUM_PROXIES=2`](../../reference/env-variables.md#NUM_PROXIES) in `env.d/common` counts the reverse proxy and the frontend's nginx. Change it if more proxies sit in front, see [`NUM_PROXIES`](../../reference/env-variables.md#NUM_PROXIES).
 
 ### Fill in the secrets
 
 !!! note "Another identity provider than Stack 2's Keycloak"
     First put its values in `env.d/common`, as [SSO & Authentication](../configuration/sso.md) shows. The script keeps them.
 
-    - `OIDC_RP_CLIENT_ID`
-    - `OIDC_RP_CLIENT_SECRET`
+    - [`OIDC_RP_CLIENT_ID`](../../reference/env-variables.md#OIDC_RP_CLIENT_ID)
+    - [`OIDC_RP_CLIENT_SECRET`](../../reference/env-variables.md#OIDC_RP_CLIENT_SECRET)
     - the `OIDC_OP_*` endpoints
 
 ```console
@@ -180,7 +186,7 @@ What each one is:
 
 - [`DJANGO_SECRET_KEY`](../../reference/env-variables.md#DJANGO_SECRET_KEY): Django's signing key.
 - [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET): shared by Meet and LiveKit.
-- [`OIDC_RP_CLIENT_SECRET`](../../reference/env-variables.md#OIDC_RP_CLIENT_SECRET): Meet's secret at the identity provider, read from Stack 2's `keycloak-realm.json`.
+- [`OIDC_RP_CLIENT_SECRET`](../../reference/env-variables.md#OIDC_RP_CLIENT_SECRET): Meet's secret at the identity provider, read from Stack 2's `keycloak-realm.json`, or kept as you set it.
 - [`DB_PASSWORD`](../../reference/env-variables.md#DB_PASSWORD): Meet's database.
 
 ### Start Meet
@@ -210,7 +216,7 @@ Running migrations:
   ...
 ```
 
-`migrate` creates Meet's tables. Then create an account for the admin panel, `https://meet.example.com/admin/`, which your identity provider's accounts cannot open. Put your own email and a strong password in the command:
+Then create an account for the admin panel, `https://meet.example.com/admin/`, which your identity provider's accounts cannot open. Put your own email and a strong password in the command:
 
 ```bash
 docker compose exec backend python manage.py createsuperuser \
@@ -218,6 +224,8 @@ docker compose exec backend python manage.py createsuperuser \
 ```
 
 ### Verify
+
+Put your three domains in the commands:
 
 ```console
 $ curl -s -o /dev/null -w "%{http_code}\n" https://meet.example.com/

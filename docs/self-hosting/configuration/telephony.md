@@ -9,7 +9,7 @@ Callers join a meeting by phone through [LiveKit SIP](https://github.com/livekit
 Phone ──► PSTN ──► SIP Trunk ──► LiveKit SIP Bridge ──► LiveKit Room
 ```
 
-The PSTN is the public phone network, and SIP the protocol phone providers use to set up calls.
+The PSTN is the public phone network.
 
 ## Prerequisites
 
@@ -22,23 +22,19 @@ The PSTN is the public phone network, and SIP the protocol phone providers use t
 
 Add to `env.d/common`:
 
-```dotenv
+```dotenv title="env.d/common"
 ROOM_TELEPHONY_ENABLED=True
 ROOM_TELEPHONY_PHONE_NUMBER=+33123456789
 ROOM_TELEPHONY_DEFAULT_COUNTRY=FR
 ```
 
-If `ROOM_TELEPHONY_PHONE_NUMBER` is missing or cannot be parsed with `ROOM_TELEPHONY_DEFAULT_COUNTRY`, Meet shows no dial-in number and the backend logs a warning. Every other variable and default is in [Environment Variables: Telephony](../../reference/env-variables.md#telephony).
-
-```bash
-docker compose up -d --force-recreate backend
-```
+If [`ROOM_TELEPHONY_PHONE_NUMBER`](../../reference/env-variables.md#ROOM_TELEPHONY_PHONE_NUMBER) is missing or cannot be parsed with [`ROOM_TELEPHONY_DEFAULT_COUNTRY`](../../reference/env-variables.md#ROOM_TELEPHONY_DEFAULT_COUNTRY), Meet shows no dial-in number and the backend logs a warning. Every other variable and default is in [Environment Variables: Telephony](../../reference/env-variables.md#telephony).
 
 ## LiveKit SIP service
 
-Create `livekit-sip.yaml`. `<your LiveKit API secret>` is `LIVEKIT_API_SECRET`, from `env.d/common` on Docker Compose or the `meet-backend-env` Secret on Kubernetes.
+Create `livekit-sip.yaml` in `~/docker/meet`, then run `bash generate-secrets.sh` there: it fills `<your LiveKit API secret>`.
 
-```yaml
+```yaml title="livekit-sip.yaml"
 api_key: meet
 api_secret: <your LiveKit API secret>
 ws_url: ws://livekit:7880
@@ -47,9 +43,9 @@ redis:
   address: redis:6379
 ```
 
-Add the service under `services:` in `compose.yml`. Its `ports:` are LiveKit SIP's [default](https://github.com/livekit/sip#config) `sip_port` and `rtp_port`, the telephony rows of the [firewall table](firewall.md):
+Add the service under `services:` in `compose.yml`:
 
-```yaml
+```yaml title="compose.yml"
   livekit-sip:
     image: livekit/sip:latest
     restart: unless-stopped
@@ -67,15 +63,17 @@ Add the service under `services:` in `compose.yml`. Its `ports:` are LiveKit SIP
       - internal
 ```
 
+Start it, and recreate the backend with the settings above:
+
 ```bash
-docker compose up -d livekit-sip
+docker compose up -d
 ```
 
 ## Inbound SIP trunk
 
-The trunk tells LiveKit SIP which calls to accept. Save it as `inbound-trunk.json`, with the number of `ROOM_TELEPHONY_PHONE_NUMBER`:
+The trunk tells LiveKit SIP which calls to accept. Save it as `inbound-trunk.json`, with the number of [`ROOM_TELEPHONY_PHONE_NUMBER`](../../reference/env-variables.md#ROOM_TELEPHONY_PHONE_NUMBER):
 
-```json
+```json title="inbound-trunk.json"
 {
   "trunk": {
     "name": "Main dial-in number",
@@ -90,22 +88,19 @@ The trunk tells LiveKit SIP which calls to accept. Save it as `inbound-trunk.jso
 Create the trunk once with the [LiveKit CLI](https://github.com/livekit/livekit-cli), `lk`, with the same secret:
 
 ```bash
+SECRET=$(sed -n 's/^LIVEKIT_API_SECRET=//p' ~/docker/meet/env.d/common)
 lk sip inbound create \
   --url https://livekit.example.com \
   --api-key meet \
-  --api-secret <your LiveKit API secret> \
+  --api-secret "$SECRET" \
   inbound-trunk.json
 ```
-
-## No dispatch rule to create
-
-Meet creates and deletes each room's dispatch rule itself, as [How do phone calls join?](../../overview/how-meet-works.md#agents-and-phone-calls) shows. Callers other than [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices can therefore join only while someone is connected from a browser.
 
 ## SIP provider setup (Twilio example)
 
 1. Create a Twilio account and obtain a phone number.
 2. In the Twilio console, create a SIP Trunk.
-3. Point the origination URI at your LiveKit SIP service: `sip:livekit.example.com:5060`, the address of the server running LiveKit SIP.
+3. Point the origination URI at your LiveKit SIP service: `sip:livekit.example.com:5060`.
 
 ## Audio prompt language
 
@@ -113,9 +108,10 @@ LiveKit SIP speaks its prompts, the PIN prompt among them, in English. For anoth
 
 ## Test a call
 
-Join a room from a browser, call `ROOM_TELEPHONY_PHONE_NUMBER`, and enter the PIN shown after **Code:** in the **Meeting information** panel. When the call fails, see [Telephony issues](../../reference/troubleshooting.md#telephony-issues).
+Join a room from a browser, call [`ROOM_TELEPHONY_PHONE_NUMBER`](../../reference/env-variables.md#ROOM_TELEPHONY_PHONE_NUMBER), and enter the PIN shown after **Code:** in the **Meeting information** panel. When the call fails, see [Telephony issues](../../reference/troubleshooting.md#telephony-issues).
 
 ## Limitations
 
 - Dial-in only: Meet does not implement calling out.
-- Meet displays a single dial-in number, `ROOM_TELEPHONY_PHONE_NUMBER`.
+- Meet displays a single dial-in number, [`ROOM_TELEPHONY_PHONE_NUMBER`](../../reference/env-variables.md#ROOM_TELEPHONY_PHONE_NUMBER).
+- Callers other than [Roomkit](../../reference/env-variables.md#roomkit-meeting-room-sip-devices) devices join only while someone is connected from a browser, since Meet creates and deletes each room's [dispatch rule](../../overview/how-meet-works.md#agents-and-phone-calls) itself.

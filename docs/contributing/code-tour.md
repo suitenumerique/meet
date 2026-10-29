@@ -19,10 +19,10 @@ meet/
 │   ├── addons/       Outlook add-in
 │   ├── mail/         MJML sources of the emails
 │   └── helm/         Helm chart and the helmfile used for local Kubernetes
-├── .github/          CI: pull request checks, image builds, chart release
-├── docker/           Keycloak, LiveKit, nginx, Garage dev config; DINUM frontend image
+├── .github/          CI: pull request checks, image builds, Helm chart release
+├── docker/           Dev Keycloak realm, LiveKit, nginx, Garage; DINUM frontend image
 ├── env.d/            Environment file templates, for development and production
-├── bin/              docker compose wrappers, Tiltfile, release, Scalingo buildpack
+├── bin/              Wrappers for docker compose, Tiltfile, release, Scalingo buildpack
 ├── deploy/           The nginx configuration template of the Scalingo deployment
 ├── crowdin/          The Crowdin configuration that syncs the translations
 ├── docs/             This site
@@ -44,7 +44,7 @@ A [Django](https://www.djangoproject.com/) 5.2 project in three parts:
 
 | Path under `src/backend/` | What it holds |
 |---|---|
-| [`meet/settings.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/meet/settings.py) | Every setting, read from environment variables through django-configurations; each variable is in [Environment variables](../reference/env-variables.md). `DJANGO_CONFIGURATION` picks the class: `Development` or `Test` locally, `Production` on a server |
+| [`meet/settings.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/meet/settings.py) | Every setting, read from environment variables through django-configurations; each variable is in [Environment variables](../reference/env-variables.md). [`DJANGO_CONFIGURATION`](../reference/env-variables.md#DJANGO_CONFIGURATION) picks the class: `Development` or `Test` locally, `Production` on a server |
 | [`meet/celery_app.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/meet/celery_app.py) | The Celery application the `celery-dev` worker runs |
 | [`core/models.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/models.py) | The data model, described under [Models](#models) |
 | [`core/api/`](https://github.com/suitenumerique/meet/tree/main/src/backend/core/api) | The REST API the frontend calls, under `/api/v1.0/`, built on [Django REST Framework](https://www.django-rest-framework.org/): viewsets, serializers, permissions, throttling |
@@ -82,7 +82,7 @@ Sign-in goes through the `oidc_login` module of [django-lasuite](https://github.
 | API | Prefix | Routes and their code |
 |---|---|---|
 | Browser API | `/api/v1.0/` | `users`, `rooms`, `resource-accesses`, `recordings`, `files` and `diagnostics` from [`core/api/viewsets.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/api/viewsets.py); `roomkit` from `core/roomkit/`; `addons/sessions` from `core/addons/`; the sign-in routes; `config/`, the instance's settings for the frontend |
-| External API | `/external-api/v1.0/`, mounted only when `EXTERNAL_API_ENABLED` is on | `application`, `rooms` and `users` from [`core/external_api/viewsets.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/external_api/viewsets.py) |
+| External API | `/external-api/v1.0/`, mounted only when [`EXTERNAL_API_ENABLED`](../reference/env-variables.md#EXTERNAL_API_ENABLED) is on | `application`, `rooms` and `users` from [`core/external_api/viewsets.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/external_api/viewsets.py) |
 
 Most actions on a room are extra routes of `RoomViewSet`, such as `request-entry`, `start-recording` or `mute-participant`.
 
@@ -129,7 +129,7 @@ Accessibility follows these patterns:
 
 The pass is the LiveKit access token the backend signs for each participant; the browser connects to LiveKit with it, as [Joining a meeting](../overview/how-meet-works.md#joining-a-meeting) describes.
 
-[`generate_token()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) in `core/utils.py` builds it. The token's name is the participant's display name, and it carries three attributes derived from the participant's identity: `room_role`, `is_authenticated` and `color`.
+[`generate_token()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) in `core/utils.py` builds it. The token's name is the participant's display name, and it carries three attributes: `room_role`, `is_authenticated` and `color`, the last derived from the participant's identity.
 
 Owners and administrators get LiveKit's `room_admin` grant, which lets them moderate.
 

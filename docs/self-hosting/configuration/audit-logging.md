@@ -1,18 +1,16 @@
 # Audit logging
 
-The **audit log** records who did what in Meet, to what, on whose behalf, from where, and whether it worked: a room created through the external API, a recording started, a sign-in, a change in the Django admin.
+The **audit log** records who did what in Meet, to what, from where, and whether it worked: a sign-in, a room created through the external API, a recording, a change in the Django admin.
 
-- Each event is one line of JSON that a dedicated logger, `audit`, writes to the backend's standard output, separate from the application logs.
+- It is always on and needs no setting.
+- Each event is one JSON line on the backend's standard output, from the `audit` logger, apart from the application logs.
 - Events follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs) (ECS) 9.5.0.
-- Audit logging is always on and needs no setting.
 
-How the code emits events is in the [Code tour](../../contributing/code-tour.md#the-audit-log).
-
-Personal data is kept to a minimum: a person is identified by their account id, their [OIDC](https://openid.net/developers/how-connect-works/) `sub` and their email's domain. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
+A person is identified by their account id, their [OIDC](https://openid.net/developers/how-connect-works/) `sub` and their email's domain. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
 
 ## What an event looks like
 
-Pretty-printed, one event reads:
+Pretty-printed:
 
 ```json
 {
@@ -60,7 +58,7 @@ Pretty-printed, one event reads:
 }
 ```
 
-When an action is refused, the event keeps the name of the action that was attempted, here still `room.create`. Only the fields describing the outcome change:
+A refused action changes only the outcome fields:
 
 ```json
 {
@@ -77,11 +75,11 @@ When an action is refused, the event keeps the name of the action that was attem
 
 ## Collecting the events
 
-A log shipper tells the audit events from the application logs by `data_stream.dataset: meet.audit`.
+A log shipper tells audit events apart by `data_stream.dataset: meet.audit`.
 
 === "Docker Compose"
 
-    From `~/docker/meet`, print the backend's audit events:
+    From `~/docker/meet`:
 
     ```bash
     # --no-log-prefix drops the container name, so each line stays valid JSON
@@ -90,215 +88,180 @@ A log shipper tells the audit events from the application logs by `data_stream.d
 
 === "Kubernetes"
 
-    Print the audit events of one backend pod:
-
     ```bash
     kubectl -n meet logs deployment/meet-backend | grep '"dataset":"meet.audit"'
     ```
 
 ## Configuration
 
-Every audit variable and its default is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging). Two depend on your deployment:
+Every audit variable is in [Environment Variables: Audit logging](../../reference/env-variables.md#audit-logging). Two depend on your deployment:
 
-- **[`NUM_PROXIES`](../../reference/env-variables.md#NUM_PROXIES)** decides which address an event records as the client. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. Add one for a load balancer that also appends to `X-Forwarded-For`.
-- **[`REQUEST_ID_TRUST_HEADER`](../../reference/env-variables.md#REQUEST_ID_TRUST_HEADER)** needs a proxy that overwrites the request id header. On nginx, that is `proxy_set_header X-Request-ID $request_id;`.
+- [`NUM_PROXIES`](../../reference/env-variables.md#NUM_PROXIES) decides which address an event records as the client. The default, `1`, fits the Helm chart, whose ingress sends `/api/` straight to the backend. Add one for a load balancer that also appends to `X-Forwarded-For`.
+- [`REQUEST_ID_TRUST_HEADER`](../../reference/env-variables.md#REQUEST_ID_TRUST_HEADER) needs a proxy that overwrites the request id header. On nginx: `proxy_set_header X-Request-ID $request_id;`.
 
 ## Answering common questions
 
 ### Who created, changed or deleted this room?
 
-Filter on `entity.target.sub_type: room` with the room's id in `entity.target.id`, or its slug in `entity.target.raw.slug`. `event.action` says what happened, and `user.id` or `lasuite.application.client_id` who did it. Rooms are audited when they are handled through the external API, as `room.*`, or the Django admin, as `admin.room.*`.
+Filter on `entity.target.sub_type: room` and the room's `entity.target.id`, or its slug in `entity.target.raw.slug`. Only the external API, `room.*`, and the Django admin, `admin.room.*`, are audited.
 
 ### What has this application done?
 
-Filter on `lasuite.application.client_id`. To include the attempts made before its credentials were verified, such as a wrong secret or an inactive application, also search `lasuite.details.claimed_client_id`.
+Filter on `lasuite.application.client_id`. Add `lasuite.details.claimed_client_id` for attempts made before its credentials were verified, such as a wrong secret.
 
 ### What did this person do, and what was done to their account?
 
-`user.id` is the account whose authority an action used, and `user.target.id` the account an action was about: search both. To follow someone across the other La Suite products, use their OIDC `sub`, in `lasuite.actor.sub`.
+Search both `user.id`, the account whose authority an action used, and `user.target.id`, the account it was about. Across the other La Suite products, use their OIDC `sub`, in `lasuite.actor.sub`.
 
 ### Which requests were refused, and why?
 
-Filter on `lasuite.outcome: denied` and group by `event.reason`. A burst of `authentication_failed` on `user.login` or `application.token.issue` from a single `source.ip` deserves a closer look.
+Filter on `lasuite.outcome: denied` and group by `event.reason`. Watch for bursts of `authentication_failed` from one `source.ip`.
 
 ### What else happened during this request?
 
-Search for its `http.request.id`, on every audit event of the request and in the Gunicorn access log, where it reads `rid=`. The application logs do not carry it. A single request may produce several events: an application obtaining a token for someone who never signed in produces both `user.provision` and `application.token.issue`.
+Search its `http.request.id`: every audit event of the request carries it, and so does the Gunicorn access log, as `rid=`. The application logs do not.
 
 ## Fields reference
 
-Every field is standard ECS, except those under `lasuite.*` and `entity.target.raw.*`, the fields of a target.
+Every field is standard ECS, except those under `lasuite.*` and `entity.target.raw.*`.
 
 | Field | Meaning |
 |---|---|
-| `@timestamp` | When the event was emitted: ISO 8601, in UTC, with millisecond precision |
-| `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` built from [`AUDIT_LOG_SERVICE_NAME`](../../reference/env-variables.md#AUDIT_LOG_SERVICE_NAME), and `AUDIT_LOG_DATA_STREAM_NAMESPACE`: what sets the audit stream apart from the application logs |
-| `service.name`, `service.environment`, `service.version`, `service.node.name` | The backend instance that wrote the event: `AUDIT_LOG_SERVICE_NAME`, the current environment, the release and the host name, which is the pod on Kubernetes. Never the caller |
-| `service.origin.name` | The internal service that called the backend, when the actor is a `service`: `summary` or `livekit` |
-| `service.target.name` | The service the backend called, such as `summary` for `recording.transcript.request` |
-| `event.id` | Unique id of the event, so that a shipper retrying it cannot create a duplicate |
-| `event.action` | What was attempted, from the [Catalogue](#catalogue), whatever the result: a refused `room.create` is still a `room.create` |
-| `event.category`, `event.type` | The ECS classification: `api`, `authentication`, `iam` and others, with `creation`, `change`, `access`, `denied`, `user` and others. Always a combination ECS expects, see [Classification](#classification) |
-| `event.outcome` | ECS `success` or `failure`, refusals included, or `unknown` when the result was reported in terms the backend does not recognise |
-| `event.reason` | Why it did not succeed: `authentication_failed`, `permission_denied`, `rate_limited`, `validation_error`, `not_found`, `conflict`, `internal_error` |
-| `lasuite.outcome` | `success`, `failure`, `denied` or `unknown`: the same as `event.outcome`, with refusals, such as a 401, 403 or 429, kept apart as `denied`, since ECS has no `denied` |
+| `@timestamp` | When the event was emitted: ISO 8601, UTC, milliseconds |
+| `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` from [`AUDIT_LOG_SERVICE_NAME`](../../reference/env-variables.md#AUDIT_LOG_SERVICE_NAME), and [`AUDIT_LOG_DATA_STREAM_NAMESPACE`](../../reference/env-variables.md#AUDIT_LOG_DATA_STREAM_NAMESPACE): what sets the audit stream apart |
+| `service.name`, `service.environment`, `service.version`, `service.node.name` | The backend instance that wrote the event, never the caller. On Kubernetes, the node name is the pod |
+| `service.origin.name` | The internal service that called the backend, for a `service` actor: `summary` or `livekit` |
+| `service.target.name` | The service the backend called, such as `summary` |
+| `event.id` | Unique, so a shipper's retry cannot create a duplicate |
+| `event.action` | What was attempted, from the [Catalogue](#catalogue), whatever the result |
+| `event.category`, `event.type` | The ECS classification, see [Classification](#classification) |
+| `event.outcome` | `success`, `failure`, refusals included, or `unknown` |
+| `event.reason` | Why it failed: `authentication_failed`, `permission_denied`, `rate_limited`, `validation_error`, `not_found`, `conflict`, `internal_error` |
+| `lasuite.outcome` | As `event.outcome`, with refusals, a 401, 403 or 429, kept apart as `denied` |
 | `lasuite.actor.type` | `user`, `application`, `service`, `system` or `anonymous`, see [Actors](#actors) |
-| `lasuite.actor.sub` | The OIDC `sub` of the account in `user.*`, when it has one: the identity it shares with the other La Suite products |
-| `lasuite.auth.method` | How the actor proved who it is: `session`, `application_jwt`, `addons_jwt`, `user_access_jwt`, `resource_server`, `menshen_token`, `livekit_token`, `shared_secret`, `client_credentials`, `transit_code`, `oidc`, `password`, `none` when it did not authenticate, or `unknown` for an authentication class that is not registered. Requests served outside the API, such as the admin and logout, report `session` when signed in |
-| `lasuite.application.client_id` | The external application acting, if any. Only set once its credentials are verified. For a Menshen token, Menshen's own client id, see [Actors](#actors) |
-| `user.id`, `user.domain` | The account whose authority the action used, see [Actors](#actors): its primary key and email domain. The email address itself is never recorded |
-| `user.roles` | That account's privileges when the event happened: `superuser`, `staff` |
-| `user.target.id`, `user.target.domain` | The account the action was about: a provisioned user, the user an access grants a role to, the account an admin edits, or the user a transit code is minted for. `user.*` stays the actor |
-| `organization.id` | The tenant: the application's client id when there is one, otherwise the user's email domain |
+| `lasuite.actor.sub` | The OIDC `sub` of the account in `user.*`, shared with the other La Suite products |
+| `lasuite.auth.method` | How the actor authenticated: `session`, `application_jwt`, `addons_jwt`, `user_access_jwt`, `resource_server`, `menshen_token`, `livekit_token`, `shared_secret`, `client_credentials`, `transit_code`, `oidc`, `password`, `none`, or `unknown` for an unregistered class. The admin and logout report `session` when signed in |
+| `lasuite.application.client_id` | The external application acting, once its credentials are verified. For a Menshen token, Menshen's client id, see [Actors](#actors) |
+| `user.id`, `user.domain` | The account whose authority the action used: primary key and email domain, never the address |
+| `user.roles` | That account's privileges at the time: `superuser`, `staff` |
+| `user.target.id`, `user.target.domain` | The account the action was about: a provisioned user, a user granted a role, an account an admin edits, the user of a transit code |
+| `organization.id` | The tenant: the application's client id, otherwise the user's email domain |
 | `entity.target.*` | The resource acted on, see [Targets](#targets) |
-| `lasuite.details` | Fields specific to the action, listed in the [Catalogue](#catalogue) |
-| `client.ip`, `source.ip` | The real client address, never a proxy's: the same one the rate limits identify, see `NUM_PROXIES` in [Configuration](#configuration) |
+| `lasuite.details` | Fields specific to the action, see the [Catalogue](#catalogue) |
+| `client.ip`, `source.ip` | The real client address, never a proxy's, as [`NUM_PROXIES`](../../reference/env-variables.md#NUM_PROXIES) sets |
 | `http.request.method`, `url.path` | The request as received |
 | `user_agent.original` | The client's `User-Agent`, cut at 1024 characters |
-| `http.request.id` | The id shared by the audit events and the access log of one HTTP request, what other tools call a trace id. Also sent back as the `X-Request-ID` response header. Generated by the backend unless `REQUEST_ID_TRUST_HEADER` is set |
-| `http.response.status_code` | The status of the response, for API calls and refusals |
-| `error.message` | A human-readable reason for a failure |
-| `error.type` | The class of an unhandled exception. Its message is left out, as it may contain personal data |
-| `log.level` | `info` for a success, `warning` for failures, refusals and unknown outcomes, `error` for internal errors |
+| `http.request.id` | Shared by the audit events and the access log of one request, and sent back as `X-Request-ID`. Generated unless [`REQUEST_ID_TRUST_HEADER`](../../reference/env-variables.md#REQUEST_ID_TRUST_HEADER) is set |
+| `http.response.status_code` | The response status, for API calls and refusals |
+| `error.message` | Why it failed, for a person to read |
+| `error.type` | The class of an unhandled exception, without its message |
+| `log.level` | `info` on success, `warning` for failures, refusals and unknown outcomes, `error` for internal errors |
 
 ### Targets
-
-The resource an action was performed on is described in ECS `entity.target`, a recent field set that ECS may still flag as beta.
 
 | Field | Meaning |
 |---|---|
 | `entity.target.id` | Its primary key |
-| `entity.target.sub_type` | Its model, such as `room`, `recording`, `user`, `application`, `resourceaccess` or `transit_code`, whose `id` is the code's SHA-256 |
-| `entity.target.type` | Its ECS entity type, when one fits: `user` for an account, `application` for an application |
+| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess`, or `transit_code`, whose `id` is the code's SHA-256 |
+| `entity.target.type` | `user` for an account, `application` for an application |
 | `entity.target.name` | Its name, when its model registers one |
-| `entity.target.raw.*` | The other fields its model registers, such as a room's `slug` and `access_level`, or the OIDC `sub` of a user |
+| `entity.target.raw.*` | The other fields its model registers, such as a room's `slug` and `access_level`, or a user's OIDC `sub` |
 
 ### Actors
 
-`lasuite.actor.type` says who acted, and `user.*` whose authority the action used. The two differ when an application acts for a user: the actor is the application, and `user.*` is that user.
-
 | `lasuite.actor.type` | Who | `user.*` |
 |---|---|---|
-| `user` | A person's account acting for itself: through a session, an OIDC or password login, an add-on token, or the LiveKit token of a known account. Device accounts are users like any other | That account |
-| `application` | A client application acting on behalf of a user. Either a Meet application, through its client credentials, its delegated token or the user access token of its embedded frontend, or another La Suite application, through the resource server or a token exchanged with Menshen. `lasuite.application.client_id` names it | The delegating user |
-| `service` | An internal service of the deployment calling the backend with a shared secret, named by `service.origin.name`: `summary` for the summary service, or `livekit` for the LiveKit server reporting on a recording. Never an account | Absent |
-| `system` | The backend itself, with no inbound request, as in a Celery task | Absent |
+| `user` | An account acting for itself: session, OIDC or password login, add-on token, or the LiveKit token of a known account | That account |
+| `application` | A client application acting for a user: a Meet application through its credentials, delegated token or embedded frontend, or a La Suite application through the resource server or Menshen. `lasuite.application.client_id` names it | The delegating user |
+| `service` | An internal service calling with a shared secret, named in `service.origin.name`: `summary` or `livekit` | Absent |
+| `system` | The backend itself, with no request, as in a Celery task | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
 
-The backend picks the actor type by applying these rules in order:
+The backend takes the first rule that matches: a known client id gives `application`; no request and no actor, `system`; a caller authenticated without an account, `service`; an account, `user`; anything else, `anonymous`.
 
-1. A client id is known, usually from the token payload: `application`.
-2. There is neither a request nor an actor: `system`.
-3. The caller authenticated without an account, as an internal service: `service`.
-4. The caller is an account: `user`.
-5. Anything else: `anonymous`.
-
-How an application acts for a user:
-
-- Directly, with the delegated token it obtained through `application.token.issue`.
-- Through an embedded frontend, with the transit code of [Signing a user in to an iframe](../../reference/external-api.md#signing-a-user-in-to-an-iframe). Only the code's SHA-256 is ever logged.
-
-A La Suite application may call the external API with a token exchanged through Menshen, La Suite's token exchange server:
-
-- The call is recorded as an `application`, with `lasuite.auth.method` `menshen_token`.
-- Menshen reports itself as the client the token was issued to, not the application that exchanged it. So `lasuite.application.client_id` and `organization.id` hold Menshen's client id for every such call.
-- Never recorded: the token, its `jti`, which Menshen derives from an opaque token itself, and the email Menshen reports.
+A call with a token exchanged through Menshen, La Suite's token exchange server, is an `application` with `lasuite.auth.method` `menshen_token`. `lasuite.application.client_id` and `organization.id` hold Menshen's client id. The token, its `jti` and the email Menshen reports are never recorded.
 
 ### Classification
 
-`event.category` and `event.type` are only ever combined in the ways the ECS 9.5.0 `expected_event_types` allow:
+`event.category` and `event.type` only ever combine as ECS 9.5.0 expects:
 
 - Each action declares its category, `api` by default, and its types.
-- A refusal adds the `denied` type only when the category expects it. An API call becomes `["creation", "denied"]`. A failed login stays `["start"]`, and `event.outcome`, `event.reason` and `lasuite.outcome` show that it was refused.
-- A 401 is also filed under `authentication`, as in `["api", "authentication"]`, so that it counts as a failed authentication.
-
-When an audited API action raises an exception the backend does not handle, the event is still recorded, as a `failure` with reason `internal_error`, status code `500` and `error.type`.
+- A refusal adds `denied` only where the category expects it: an API call becomes `["creation", "denied"]`, a failed login stays `["start"]`.
+- A 401 is also filed under `authentication`, as `["api", "authentication"]`.
 
 ## Catalogue
 
-Action names are dotted and lower-case, in the form `<target>.<verb>`. The code emits no action outside this list.
+Actions read `<target>.<verb>`.
 
 ### Applications and delegation
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
-| `application.token.issue` | An application asks for a delegated token, `POST /external-api/v1.0/application/token/`, whether it gets one or is refused. It can be refused for bad credentials, an inactive application, an invalid or unauthorized email domain, an unknown user, or a provisioning conflict | On success: `user.*` is the delegated user, `entity.target` the application, and `lasuite.details` holds `scopes`, `user_provisioned` and `expires_in`. On refusal: `event.reason`, `http.response.status_code` and `lasuite.details.requested_domain`. Until its credentials are verified, the client id the caller submitted is only recorded as `lasuite.details.claimed_client_id`: it never sets `lasuite.application` or `organization` |
-| `user.provision` | An application creates a provisional user from an email address, before that person ever signed in, or fails to. It is a `failure` with reason `conflict` when a concurrent request created the user first. Also emitted when a La Suite application calls the external API, through the resource server or with a Menshen token, for a `sub` no account has and `OIDC_CREATE_USER` lets the backend create one | `user.target` and `entity.target` are the user, the existing one on a conflict. `lasuite.auth.method` is `client_credentials`, `resource_server` or `menshen_token`. A provisional user has no `sub` yet: its id links this event to the winning one and to its later `user.login`. On a conflict over an email, `lasuite.details.requested_sub` is the `sub` no account was created for |
-| `transit_code.issue` | An application mints a single-use transit code for its delegated user | `entity.target` is the code, whose `id` is its SHA-256. `user.target` is the user it is minted for. `lasuite.details.expires_in` |
-| `transit_code.exchange` | An embedded frontend exchanges a transit code for a user access token | `event.category` is `authentication`, `lasuite.auth.method` is `transit_code`, and `entity.target` is the code's SHA-256. Once the code verifies, even if the exchange is then refused: `lasuite.actor.type` is `application`, the one that minted it, and `user.target` the user it was minted for. On success, `user.*` is that user too, with `lasuite.details.expires_in`. A code that does not verify is recorded as an `anonymous` failed authentication |
+| `application.token.issue` | An application asks for a delegated token, `POST /external-api/v1.0/application/token/`, granted or refused | On success, `user.*` is the delegated user, `entity.target` the application, `lasuite.details` holds `scopes`, `user_provisioned`, `expires_in`. On refusal, `event.reason` and `lasuite.details.requested_domain`. An unverified client id goes only in `lasuite.details.claimed_client_id` |
+| `user.provision` | An application creates a provisional user from an email, or fails to: `conflict` when a concurrent request won. Also when a La Suite application calls for an unknown `sub` and [`OIDC_CREATE_USER`](../../reference/env-variables.md#OIDC_CREATE_USER) allows it | `user.target` and `entity.target` are the user. `lasuite.auth.method` is `client_credentials`, `resource_server` or `menshen_token`. On an email conflict, `lasuite.details.requested_sub` |
+| `transit_code.issue` | An application mints a single-use transit code for its delegated user | `entity.target` is the code's SHA-256, `user.target` its user, `lasuite.details.expires_in` |
+| `transit_code.exchange` | An embedded frontend exchanges a transit code for a user access token | `event.category` `authentication`, `lasuite.auth.method` `transit_code`. Once the code verifies, the actor is the application that minted it and `user.target` its user. A code that does not verify is an `anonymous` failed authentication |
 
 ### Rooms
 
-`room.*` covers the external API only. A room changed in the Django admin is an `admin.room.*` event.
+`room.*` covers the external API, successes and failures alike. The Django admin's are `admin.room.*`.
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
-| `room.create` | A room is created, or the attempt fails | `entity.target` is the room |
-| `room.update` | A room is updated, or the attempt fails | `entity.target` is the room, refusals included. `lasuite.details.updated_fields` and `previous_access_level` |
-| `room.delete` | A room is deleted, or the attempt fails. Deleting soft-deletes the room, see [Room purge](room-purge.md), and closes its LiveKit room | `entity.target` is the room, refusals included |
-| `room.retrieve` | A room is read, or the attempt fails | `entity.target` is the room |
-| `room.list` | Rooms are listed, or the attempt fails | `lasuite.details.total` |
+| `room.create` | A room is created | `entity.target` is the room |
+| `room.update` | A room is updated | `lasuite.details.updated_fields`, `previous_access_level` |
+| `room.delete` | A room is soft-deleted, see [Room purge](room-purge.md), and its LiveKit room closed | `entity.target` is the room |
+| `room.retrieve` | A room is read | `entity.target` is the room |
+| `room.list` | Rooms are listed | `lasuite.details.total` |
 
 ### Recordings, transcripts and summaries
 
-The summary service derives transcripts and summaries from a recording, so their actions sit under `recording.transcript.*` and `recording.summary.*`, with the recording as their target.
+Transcripts and summaries come from a recording, so their actions sit under `recording.*`, with the recording as target.
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
-| `recording.start` | Someone allowed to record, see [Recording: Who can record](recording.md#who-can-record), starts a recording, or the attempt fails: a recording already in progress, a worker error | `entity.target` is the recording, or the room when none was created. `lasuite.details.collect_metadata` |
-| `recording.stop` | Someone allowed to record stops the recording in progress, or the attempt fails | `entity.target` is the recording, or the room when none is active |
-| `recording.end` | LiveKit reports that a recording ended, through its `egress_ended` webhook: `success` when its media file is available, `failure` when it was aborted or failed, `unknown` for a status the backend does not map | `service.origin.name` is `livekit`. `entity.target` is the recording as it was before the report was processed. `lasuite.details.worker_event`, one of `completed`, `limit reached`, `aborted`, `failed`, and `error_code` |
+| `recording.start` | Someone [allowed to record](recording.md#who-can-record) starts a recording, or the attempt fails | `entity.target` is the recording, or the room when none was created. `lasuite.details.collect_metadata` |
+| `recording.stop` | Someone allowed to record stops it, or the attempt fails | `entity.target` is the recording, or the room when none is active |
+| `recording.end` | LiveKit's `egress_ended` webhook reports the end: `success` with a media file, `failure` when aborted or failed, `unknown` otherwise | `service.origin.name` `livekit`. `lasuite.details.worker_event` and `error_code` |
 | `recording.delete` | A recording is deleted, or the attempt fails | `entity.target` is the recording |
-| `recording.transcript.request` | The backend sends a recording to the summary service to be transcribed, or fails to | `lasuite.actor.type` is `system`, `service.target.name` is `summary`, and `entity.target` is the recording. `lasuite.details.summary_requested`, whether a summary of the transcript is to be made too, and `job_id` |
-| `recording.transcript.report` | The summary service reports on a transcript through `external-process-hook`, or a call to that hook is refused | `service.origin.name` is `summary`. `entity.target` is the recording, absent for an unknown job. `lasuite.details.job_id` and `status`. A failure the service reports is recorded as a `failure` |
-| `recording.summary.report` | The summary service reports on a summary | Same as `recording.transcript.report` |
+| `recording.transcript.request` | The backend sends a recording to the summary service, or fails to | Actor `system`, `service.target.name` `summary`. `lasuite.details.summary_requested`, `job_id` |
+| `recording.transcript.report` | The summary service reports on a transcript, or its call is refused | `service.origin.name` `summary`. `lasuite.details.job_id`, `status` |
+| `recording.summary.report` | The summary service reports on a summary | As `recording.transcript.report` |
 
-A recording's target says what was recorded:
-
-- `mode` is how the media was captured: `screen_recording` for a video, `transcript` for an audio track;
-- `requested_mode` is what the user asked for;
-- `is_transcribed` says whether it is sent to the summary service.
-
-`mode` and `requested_mode` differ for a transcript started with **Also start a video recording** ticked: `mode` is then `screen_recording`, and `requested_mode` is `transcript`.
+A recording target's `mode` is how it was captured, `screen_recording` or `transcript`, and `requested_mode` what the user asked for. They differ for a transcript with **Also start a video recording** ticked. `is_transcribed` says whether it goes to the summary service.
 
 ### Sign-in and the admin
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
-| `user.login` | A user signs in, or a sign-in attempt fails: `denied`, with reason `authentication_failed` | `lasuite.auth.method` is `oidc`, `password` or `unknown`. On success, it is named after the login backend, also given in `lasuite.details.auth_backend`. On failure, it is named after the credentials submitted: a password, or the nonce of the OIDC callback |
+| `user.login` | A user signs in, or fails to: `denied`, `authentication_failed` | `lasuite.auth.method` `oidc`, `password` or `unknown`. `lasuite.details.auth_backend` on success |
 | `user.logout` | A user signs out | |
-| `admin.access` | A signed-in account without staff access reaches an admin page. Always denied, once per refused page | `event.category` is `web` and `event.type` is `access`. `event.reason`, and `http.response.status_code`: the redirect to the login page |
-| `admin.<target>.<verb>` | A write is made through the Django admin, see [Django admin](#django-admin) | |
+| `admin.access` | An account without staff access reaches an admin page: always denied, once per page | `event.category` `web`, `event.type` `access` |
+| `admin.<target>.<verb>` | A write through the Django admin, see [Django admin](#django-admin) | |
 
 ## Django admin
 
-Every write made through the Django admin produces an audit event, and Django still writes its own history entry.
-
-The action name follows a template, `admin.<target>.<verb>`, where `<target>` is the model name and `<verb>` one of:
+Every write through the Django admin is an `admin.<target>.<verb>` event, such as `admin.room.update`, beside Django's own history entry:
 
 | `<verb>` | Emitted when | Notable fields |
 |---|---|---|
 | `create` | An object is added | `lasuite.details.changed_fields`, `changes` |
 | `update` | An object is changed | `lasuite.details.changed_fields`, `changes` |
-| `delete` | An object is deleted: one event per object, once the deletion has run. A deletion that raises is a `failure` with reason `internal_error`, and in a bulk deletion every selected object is then reported as failed | `error.message` on failure |
+| `delete` | An object is deleted, one event each. A deletion that raises is a `failure`, `internal_error`, for every selected object | `error.message` on failure |
 | `action` | A bulk action runs | `lasuite.details.admin_action`, `count` |
 
-This gives names such as `admin.room.update`, `admin.user.delete` or `admin.recording.action`.
-
-`event.category` is `iam` for anything that grants access to the product, and `configuration` otherwise. Writes on a user or a group put `user` or `group` first in `event.type`, as in `["user", "change"]`.
+`event.category` is `iam` for anything granting access, `configuration` otherwise.
 
 ### What changed
 
-- `lasuite.details.changed_fields` always lists the names of the fields a form changed, exactly the ones Django reports in its own history.
-- `lasuite.details.changes` gives their values, as `{"from": ..., "to": ...}`, but only for the fields a model explicitly allows, see [Registering models](../../contributing/code-tour.md#registering-models-and-authentication-methods).
-- Anything that looks like a secret is left out, whatever the allow-list says: a password change is reported as a change to `password`, never with its value.
-- A JSON field on the allow-list, such as a room's `configuration`, is recorded as JSON rather than as a string, and both versions are kept whole.
+- `lasuite.details.changed_fields` lists the fields the form changed, as Django's history does.
+- `lasuite.details.changes` gives `{"from": ..., "to": ...}` only for the fields a model allows, see [Registering models](../../contributing/code-tour.md#registering-models-and-authentication-methods). A secret never appears: a password change shows only `password`.
 
 ### Inlines
 
-Objects edited through an inline produce their own event, linked to the parent's by `http.request.id`. Granting a role on a room produces both `admin.room.update` and `admin.resourceaccess.create`, whose `user.target` is the account granted the role.
+An object edited through an inline has its own event, linked to its parent's by `http.request.id`. Granting a role on a room gives both `admin.room.update` and `admin.resourceaccess.create`.
 
 ### What is not covered
 
-- **Reads.** Opening a change list, a change form or the history page emits nothing. Django's own history remains the record of who touched what.
-- **Custom actions that bypass the ORM hooks.** An action calling `queryset.update()` or `queryset.delete()` directly is reported as a single `admin.<target>.action`, with its name and the number of objects, not one event per object. `delete_selected` is the exception: Django reports its objects one by one, so it emits one `admin.<target>.delete` per object and no `action` event.
+- **Reads**: opening a list, a form or the history emits nothing.
+- **Custom actions calling `queryset.update()` or `.delete()`**: one `admin.<target>.action`, not one event per object. `delete_selected` still emits one `admin.<target>.delete` per object.
