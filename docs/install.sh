@@ -33,7 +33,8 @@ success() { echo "  ✓ $*"; }
 die()     { echo ""; echo "Error: $*" >&2; exit 1; }
 
 check_dep() {
-  command -v "$1" >/dev/null 2>&1 || die "$1 is not installed. Install it and re-run."
+  local dep="$1"
+  command -v "$dep" >/dev/null 2>&1 || die "$dep is not installed. Install it and re-run."
 }
 
 set_env() {

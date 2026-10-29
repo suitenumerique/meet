@@ -14,9 +14,12 @@ spec:
       labels:
         app: livekit-egress
     spec:
+      # Egress never calls the Kubernetes API
+      automountServiceAccountToken: false
       containers:
       - name: livekit-egress
-        image: livekit/egress:latest
+        # Pin the release you tested, from github.com/livekit/egress/releases
+        image: livekit/egress:v1.15.0
         env:
         - name: EGRESS_CONFIG_FILE
           value: /config/livekit-egress.yaml
@@ -32,6 +35,9 @@ spec:
           requests:
             cpu: 500m
             memory: 512Mi
+            # Egress writes each recording here before uploading it: no limit,
+            # so a long recording is never evicted
+            ephemeral-storage: 1Gi
           limits:
             memory: 2Gi
       volumes:

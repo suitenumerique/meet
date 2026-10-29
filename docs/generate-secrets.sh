@@ -57,22 +57,23 @@ if [[ -f "${STACK_DIR}/.env" ]]; then
 fi
 
 if [[ ! -d "$ENV_DIR" ]]; then
-  echo "Error: $ENV_DIR directory not found."
-  echo "Run this script from your project directory, or pass the env.d/ path as an argument."
+  echo "Error: $ENV_DIR directory not found." >&2
+  echo "Run this script from your project directory, or pass the env.d/ path as an argument." >&2
   exit 1
 fi
 
 if [[ -n "$LIVEKIT_YAML" ]] && [[ ! -f "$LIVEKIT_YAML" ]]; then
-  echo "Error: $LIVEKIT_YAML not found."
+  echo "Error: $LIVEKIT_YAML not found." >&2
   exit 1
 fi
 
-command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is not installed."; exit 1; }
+command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is not installed." >&2; exit 1; }
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 # env_value FILE KEY: the value of KEY in FILE, empty when it has none.
 env_value() {
-  grep -E "^$2=" "$1" | cut -d= -f2- || true
+  local file="$1" key="$2"
+  grep -E "^${key}=" "$file" | cut -d= -f2- || true
 }
 
 # set_secret FILE KEY VALUE [placeholder-only]
@@ -107,7 +108,7 @@ LIVEKIT_API_SECRET=$(openssl rand -hex 32)
 KC_REALM="${STACK_DIR}/../keycloak/keycloak-realm.json"
 if [[ -z "${KC_CLIENT_SECRET:-}" ]] && [[ -f "$KC_REALM" ]] && [[ -f "${ENV_DIR}/common" ]]; then
   if grep -q "REPLACE_ME" "$KC_REALM"; then
-    echo "Error: run generate-secrets.sh in the Keycloak stack first, so both stacks share its client secret."
+    echo "Error: run generate-secrets.sh in the Keycloak stack first, so both stacks share its client secret." >&2
     exit 1
   fi
   KC_CLIENT_SECRET=$(sed -n 's/.*"secret": *"\([^"]*\)".*/\1/p' "$KC_REALM")

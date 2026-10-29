@@ -13,9 +13,9 @@ document.addEventListener(
   (event) => {
     const button = event.target.closest("[data-clipboard-target]")
     if (!button) return
-    const code = document.querySelector(button.getAttribute("data-clipboard-target"))
+    const code = document.querySelector(button.dataset.clipboardTarget)
     const commands = code?.querySelector(".gp") && consoleCommands(code)
-    if (commands) code.closest("pre").setAttribute("data-copy", commands)
+    if (commands) code.closest("pre").dataset.copy = commands
   },
   true,
 )

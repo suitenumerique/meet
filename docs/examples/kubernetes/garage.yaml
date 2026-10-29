@@ -47,6 +47,8 @@ spec:
       labels:
         app: garage
     spec:
+      # Garage never calls the Kubernetes API
+      automountServiceAccountToken: false
       containers:
         - name: garage
           image: dxflrs/garage:v2.4.1
@@ -60,6 +62,14 @@ spec:
           ports:
             - name: s3
               containerPort: 9000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 100Mi
+            limits:
+              memory: 1Gi
+              ephemeral-storage: 1Gi
           readinessProbe:
             exec:
               command: ["/garage", "health"]
