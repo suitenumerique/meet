@@ -28,7 +28,6 @@ nav = [
     {"Overview" = "self-hosting/index.md"},
     {"Quick Start" = "self-hosting/compose/quick-start.md"},
     {"Customising Meet" = "self-hosting/customising.md"},
-    {"Check your install" = "self-hosting/verify.md"},
     {"Docker Compose" = [
       {"Prerequisites" = "self-hosting/compose/prerequisites.md"},
       {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"},
@@ -55,7 +54,8 @@ nav = [
       {"Room purge" = "self-hosting/configuration/room-purge.md"},
       {"Audit logging" = "self-hosting/configuration/audit-logging.md"}
     ]},
-    {"Troubleshooting" = "reference/troubleshooting.md"}
+    {"Troubleshooting" = "reference/troubleshooting.md"},
+    {"Check your install" = "self-hosting/verify.md"}
   ]},
   {"Integrating" = [
     {"External API" = "reference/external-api.md"},

@@ -15,6 +15,22 @@ Choose how to install your own Meet instance, then check that calls work. What e
 - **[Scalingo](scalingo.md)**: when your apps run there, with LiveKit hosted elsewhere.
 - Community packages, not supported by the maintainers: [Nix](https://search.nixos.org/packages?channel=unstable&show=lasuite-meet&query=lasuite-meet) and [YunoHost](https://github.com/YunoHost-Apps/meet_ynh).
 
+## Install with an AI assistant
+
+Copy this request into your assistant, with your domain and the optional features you want in place of the two values in angle brackets:
+
+```text
+Install LaSuite Meet on this server with Docker Compose, following
+https://documentation-meet.beta.numerique.gouv.fr/self-hosting/compose/deployment-guide/
+My domain is <your-domain.org>. Turn on: <recording, or nothing>.
+Every optional feature and setting is listed at
+https://documentation-meet.beta.numerique.gouv.fr/self-hosting/customising/
+When you are done, run this command and show me its whole output:
+cd ~/docker/meet && curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/check-install.sh | bash
+```
+
+The last line is your proof: the command prints a ✓ or a ✗ for each check, whatever the assistant reports.
+
 ## Check your install { #check-that-it-works }
 
 Whichever way you installed Meet, by hand or with an AI assistant, check the result yourself: a page that loads does not prove that calls work. [Check your install](verify.md) runs every check, from the services to a call between two networks, with what passing looks like for each.

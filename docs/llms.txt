@@ -2,7 +2,7 @@
 
 > LaSuite Meet is open-source video conferencing built on LiveKit, developed by DINUM, the French government's digital agency, and self-hostable under the MIT licence. This file indexes its documentation for language models: each link is the page's Markdown source, and the rendered site is at https://documentation-meet.beta.numerique.gouv.fr/.
 
-Most of what an administrator can change is a backend setting, an environment variable. Start from Customising Meet, which lists every change in plain words with a link to its guide and its variable, then Environment Variables for the exact name, default and file. Optional features ship switched off in the example files: a Docker Compose profile, a commented block of `values.yaml` or `env.d/common`, which the feature's guide says to switch on. After installing or changing Meet, run every command check of [Check your install](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/verify.md) and report each output, then ask the user to run its browser checks, the two-device call included.
+Most of what an administrator can change is a backend setting, an environment variable. Start from Customising Meet, which lists every change in plain words with a link to its guide and its variable, then Environment Variables for the exact name, default and file. Optional features ship switched off in the example files: a Docker Compose profile, a commented block of `values.yaml` or `env.d/common`, which the feature's guide says to switch on. After installing or changing Meet with Docker Compose, run the command of [Check your install](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/verify.md) on the server and report its output, then ask the user to make its call between two devices on different networks.
 
 ## Customising and settings
 
@@ -19,7 +19,7 @@ Most of what an administrator can change is a backend setting, an environment va
 - [Kubernetes prerequisites](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/kubernetes/prerequisites.md): cluster, ingress, cert-manager and external services
 - [Helm Deployment](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/kubernetes/helm.md): the Meet and LiveKit charts, secrets, upgrading, uninstalling
 - [Scalingo](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/scalingo.md): Meet as a Scalingo app with PostgreSQL and Redis add-ons
-- [Check your install](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/verify.md): the checks that prove an install works as configured and carries calls, each with its command and its expected output
+- [Check your install](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/verify.md): one command checking a Docker Compose install, a ✓ or ✗ per check, then the call between two networks that no command proves
 
 ## Configuration
 

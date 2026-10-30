@@ -52,6 +52,14 @@ Note the two printed passwords: they are saved nowhere else. The URLs use your o
 | Django admin | Manage rooms, users and recordings | `https://meet.example.com/admin/` | The admin email you entered | Printed |
 | Keycloak console | Add or manage the people who can sign in | `https://auth.example.com/admin/` | `admin` | `KC_BOOTSTRAP_ADMIN_PASSWORD` in `~/docker/keycloak/env.d/keycloak` |
 
+## Check the install
+
+```bash
+cd ~/docker/meet && curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/check-install.sh | bash
+```
+
+The command prints ✓ or ✗ for each check, then a verdict; [Check your install](../verify.md) explains a failing line and the call to make next.
+
 ## Next
 
 - To see what the script set up, read [`install.sh`](https://github.com/suitenumerique/meet/blob/main/docs/install.sh) itself: one labelled section per stack.

@@ -2,10 +2,6 @@
 
 Everything an administrator can change in Meet is listed below, from its colours and logo to who can join a meeting and what gets recorded. Each row gives the default and links to the guide that explains the change.
 
-!!! ai "With an AI assistant"
-
-    Give your assistant this page and the change you want: every row links to its setting and its guide.
-
 ## Applying a change
 
 Most changes are settings of Meet's backend. Where you write them depends on how Meet is installed:

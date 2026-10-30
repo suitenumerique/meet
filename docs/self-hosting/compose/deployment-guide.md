@@ -230,22 +230,11 @@ docker compose exec backend python manage.py createsuperuser \
 
 ### Verify
 
-Put your three domains in the commands:
-
-```console
-$ curl -s -o /dev/null -w "%{http_code}\n" https://meet.example.com/
-200
-
-$ curl -s -o /dev/null -w "%{http_code}\n" https://auth.example.com/realms/meet
-200
-
-$ curl -s -o /dev/null -w "%{http_code}\n" https://livekit.example.com/
-200
+```bash
+cd ~/docker/meet && curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/check-install.sh | bash
 ```
 
-Any HTTP status means the certificate works; `000` means it is not issued yet, see [TLS certificate not being issued](../../reference/troubleshooting.md#tls-certificate-not-being-issued). Check `auth.example.com` only with the Keycloak stack.
-
-Then open `https://meet.example.com` and click **Login**: you reach your identity provider's login page and, after signing in, land back on the Meet home page. [Check your install](../verify.md) runs the full check, each step with its command and its expected output.
+The command prints ✓ or ✗ for each check, then a verdict; [Check your install](../verify.md) explains a failing line and the call to make next.
 
 ## After installation
 
