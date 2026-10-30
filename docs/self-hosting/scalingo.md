@@ -1,6 +1,6 @@
 # Deployment on Scalingo
 
-Take this path when your apps already run on [Scalingo](https://scalingo.com/): Meet becomes one more app there, built by the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack), with PostgreSQL and Redis addons. LiveKit, the media server, still runs elsewhere.
+Take this path when your apps already run on [Scalingo](https://scalingo.com/): Meet becomes one more app there, built by the [Suite Numérique buildpack](https://github.com/suitenumerique/buildpack), with PostgreSQL and Redis addons. LiveKit, the media server, still runs elsewhere. [How Meet works](../overview/how-meet-works.md#the-pieces) says what each piece does.
 
 To only try Meet, run [Quick Start](compose/quick-start.md) on a single server first.
 
@@ -13,7 +13,17 @@ To only try Meet, run [Quick Start](compose/quick-start.md) on a single server f
 
 ## Step 1: Create the app and its addons
 
-Create the app with the `scalingo` CLI or the [Scalingo dashboard](https://dashboard.scalingo.com/), then add the PostgreSQL and Redis addons. They set `SCALINGO_POSTGRESQL_URL` and `SCALINGO_REDIS_URL`.
+Create the app from a clone of Meet, so the CLI adds the `scalingo` Git remote that [Step 3](#step-3-deploy) pushes to, then add the PostgreSQL and Redis addons. They set `SCALINGO_POSTGRESQL_URL` and `SCALINGO_REDIS_URL`. Replace each `<plan>` with one that `scalingo addons-plans postgresql` or `scalingo addons-plans redis` lists:
+
+```bash
+git clone https://github.com/suitenumerique/meet.git
+cd meet
+scalingo create my-meet-app
+scalingo addons-add postgresql <plan>
+scalingo addons-add redis <plan>
+```
+
+The [Scalingo dashboard](https://dashboard.scalingo.com/) creates the same app and addons, without the Git remote.
 
 ## Step 2: Set the environment variables
 
@@ -90,7 +100,11 @@ Push the code to build and start the app:
 git push scalingo main
 ```
 
-The `postdeploy` line of `Procfile` runs the database migrations on each deployment.
+The `postdeploy` line of `Procfile` runs the database migrations on each deployment. Then open the app and sign in through your OIDC provider:
+
+```bash
+scalingo open
+```
 
 ## Step 4: Create an admin account
 
@@ -99,6 +113,8 @@ After the first deployment, create an account that can open `/admin/`, with your
 ```bash
 scalingo run python manage.py createsuperuser --email <email> --password '<password>'
 ```
+
+Before production, work through [Next steps](index.md#next-steps).
 
 ## Custom domain
 
@@ -121,22 +137,25 @@ Set `CUSTOM_LOGO_URL` to the HTTPS URL of an SVG file, 5 MB at most, or the buil
 scalingo env-set CUSTOM_LOGO_URL="https://cdn.yourdomain.com/logo.svg"
 ```
 
+## Upgrade
+
+Scalingo backs up the PostgreSQL addon on its own, per its [backup policies](https://doc.scalingo.com/databases/about/backup-policies). Before an upgrade, check [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) for version-specific steps and take a backup by hand, since a rollback does not undo a migration:
+
+```bash
+scalingo --addon postgresql backups-create
+# Push the new version; postdeploy runs its migrations
+git pull
+git push scalingo main
+```
+
+`scalingo --addon postgresql backups` lists the backups and `backups-download` fetches one; Scalingo's [Restoring](https://doc.scalingo.com/databases/postgresql/shared-resources/guides/restoring) guide loads it back.
+
 ## Troubleshooting
 
 Follow the app's logs while you reproduce the problem:
 
 ```bash
-scalingo logs --tail
+scalingo logs --follow
 ```
 
 Common problems and their fixes are in [Troubleshooting](../reference/troubleshooting.md).
-
-## Additional resources
-
-- [Scalingo Documentation](https://doc.scalingo.com/)
-- [Meet Environment Variables](../reference/env-variables.md)
-- [Django Configurations Documentation](https://django-configurations.readthedocs.io/)
-
-## Next
-
-Continue with [Next steps](index.md#next-steps).

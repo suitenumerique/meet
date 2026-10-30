@@ -36,25 +36,7 @@ kubectl -n meet create secret generic meet-smtp \
   --from-literal=password="<your SMTP password>"
 ```
 
-Then set the variables under `backend.envVars` in your `values.yaml`:
-
-```yaml title="values.yaml"
-backend:
-  envVars:
-    DJANGO_EMAIL_HOST: "smtp.example.com"
-    DJANGO_EMAIL_PORT: "587"
-    DJANGO_EMAIL_HOST_USER: "meet@example.com"
-    DJANGO_EMAIL_HOST_PASSWORD:
-      secretKeyRef:
-        name: meet-smtp
-        key: password
-    DJANGO_EMAIL_USE_TLS: "True"
-    DJANGO_EMAIL_FROM: "meet@example.com"
-    DJANGO_EMAIL_APP_BASE_URL: "https://meet.example.com"
-    DJANGO_EMAIL_DOMAIN: "meet.example.com"
-```
-
-Then apply them with `helm upgrade meet meet/meet -n meet -f values.yaml`.
+Then uncomment the Email lines of `backend.envVars` in your `values.yaml`, which read the password from that Secret, and put your server's host, port, login and sender address in place of the examples. Apply them with `helm upgrade meet meet/meet -n meet -f values.yaml`.
 
 ## Scalingo setup
 

@@ -1,5 +1,7 @@
 # Recording & Transcription
 
+Get a video or a written record of a meeting, or follow it with live captions, as its host or as a participant.
+
 <figure markdown="span">
   ![More tools panel](../assets/recording.gif)
   <figcaption>More tools → Record or Transcribe</figcaption>
@@ -7,7 +9,7 @@
 
 Each appears only where your Meet server has [set it up](features-controls.md#set-up-by-your-administrator).
 
-The host and co-hosts can start a recording or a transcription, and often signed-in participants too, see [Permissions](features-controls.md#permissions). Anyone else can click **Request**.
+[Permissions](features-controls.md#permissions) lists who can start a recording or a transcription, and anyone else can click **Request**.
 
 ## Recording
 
@@ -36,4 +38,4 @@ Turns what people say into a document in [LaSuite Docs](https://github.com/suite
 
 Shows what people say as live captions, which are not kept. Anyone can click **Show subtitles** in the control bar.
 
-Their size and colours are set in [Accessibility & Shortcuts](accessibility.md#display).
+Their size and colours are set as [Live subtitles](guides/deaf-hard-of-hearing.md#live-subtitles) shows.

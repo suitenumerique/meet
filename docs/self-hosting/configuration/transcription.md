@@ -67,129 +67,39 @@ The summary service and its Celery workers take one environment. They use the ba
     LASUITE_DOCS_SERVER_TO_SERVER_API_KEY=your-docs-api-key
     ```
 
+    With another storage, put the endpoint, region and bucket of `env.d/common` in the Object storage lines of both files: the script copied only the keys. Both take the endpoint with or without its scheme, since [`AWS_S3_SECURE_ACCESS`](../../reference/env-variables.md#AWS_S3_SECURE_ACCESS) picks HTTP or HTTPS: set it to `True` in both for HTTPS.
+
 === "Kubernetes"
 
-    Add to your `values.yaml`. The `&summaryEnv` anchor lets Step 2 reuse the block, and the S3 keys come from the `garage-secrets` Secret of the Recording guide:
+    Under `summary` in your `values.yaml`, set `replicas: 1` and uncomment `envVars`. Its `&summaryEnv` anchor lets Step 2 reuse the block, and its S3 keys come from the `garage-secrets` Secret of the Recording guide. With another storage, put the endpoint, region, bucket and keys of `backend.envVars` there, and set `AWS_S3_SECURE_ACCESS` to `"True"` for HTTPS.
 
-    ```yaml title="values.yaml"
-    summary:
-      replicas: 1
-      envVars: &summaryEnv
-        CELERY_BROKER_URL: "redis://redis-master:6379/1"
-        CELERY_RESULT_BACKEND: "redis://redis-master:6379/1"
-        AWS_S3_ENDPOINT_URL: "http://garage.meet.svc.cluster.local:9000"
-        AWS_S3_ACCESS_KEY_ID:
-          secretKeyRef:
-            name: garage-secrets
-            key: GARAGE_DEFAULT_ACCESS_KEY
-        AWS_S3_SECRET_ACCESS_KEY:
-          secretKeyRef:
-            name: garage-secrets
-            key: GARAGE_DEFAULT_SECRET_KEY
-        AWS_S3_REGION_NAME: "garage"
-        AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
-        AWS_S3_SECURE_ACCESS: "False"
-        AUTHORIZED_TENANTS: |
-          [{
-            "id": "meet",
-            "api_key": "<generate-a-strong-secret>",
-            "webhook_url": "https://meet.example.com/api/v1.0/recordings/external-process-hook/",
-            "webhook_api_key": "<generate-a-strong-secret>",
-            "allowed_push_to_docs": true
-          }]
-        WHISPERX_BASE_URL: "http://whisperx:8000/v1"
-        WHISPERX_ASR_MODEL: "large-v3"
-        WHISPERX_API_KEY: "your-api-key"
-        LLM_BASE_URL: "https://your-llm-api.example.com/v1"
-        LLM_API_KEY: "your-llm-api-key"
-        LLM_MODEL: "gpt-4o-mini"
-        IS_LASUITE_DOCS_INTEGRATION_ENABLED: "True"
-        LASUITE_DOCS_BASE_URL: "https://docs.example.com"
-        LASUITE_DOCS_SERVER_TO_SERVER_API_KEY: "your-docs-api-key"
-    ```
+    Then put a secret from `openssl rand -hex 32` in each `<generate-a-strong-secret>`, and your WhisperX, LLM and LaSuite Docs values in place of the `WHISPERX_`, `LLM_` and `LASUITE_DOCS_` examples.
 
 ### Step 2: Summary service and workers
 
 === "Docker Compose"
 
-    Add to the Meet stack's `compose.yml`, under `services:`:
+    The Meet stack's `compose.yml` holds the summary service, its Redis and its two workers under the `transcription` profile. Add it to [`COMPOSE_PROFILES`](https://docs.docker.com/compose/how-tos/profiles/) in the stack's `.env`, after the Recording guide's `recording`:
 
-    ```yaml title="compose.yml"
-      # The Celery broker
-      redis-summary:
-        image: redis:7
-        restart: unless-stopped
-        networks:
-          - internal
-
-      # The API
-      app-summary:
-        image: lasuite/meet-summary:${MEET_VERSION:-latest}
-        restart: unless-stopped
-        env_file:
-          - env.d/summary
-        depends_on:
-          - redis-summary
-        networks:
-          - internal
-
-      # Transcribes
-      celery-summary-transcribe:
-        image: lasuite/meet-summary:${MEET_VERSION:-latest}
-        restart: unless-stopped
-        command: celery -A summary.core.celery_worker worker --pool=solo -Q transcribe-queue-v2
-        env_file:
-          - env.d/summary
-        depends_on:
-          - redis-summary
-        networks:
-          - internal
-
-      # Sends the result back to Meet
-      celery-summary-webhook:
-        image: lasuite/meet-summary:${MEET_VERSION:-latest}
-        restart: unless-stopped
-        command: celery -A summary.core.celery_worker worker --pool=solo -Q call-webhook-queue-v2
-        env_file:
-          - env.d/summary
-        depends_on:
-          - redis-summary
-        networks:
-          - internal
+    ```dotenv title=".env"
+    COMPOSE_PROFILES=recording,transcription
     ```
 
     Step 3 starts them.
 
 === "Kubernetes"
 
-    Turn the workers back on, since the [Helm Deployment](../kubernetes/helm.md#download-the-values) values turn them off, and give them the Step 1 environment:
+    The [Helm Deployment](../kubernetes/helm.md#download-the-values) values turn the workers off. Turn them back on in your `values.yaml`, with the Step 1 environment:
 
-    ```yaml title="values.yaml"
-    celeryTranscribe:
-      envVars: *summaryEnv
-      instances:
-        - name: transcribe-1
-          replicas: 1
-
-    # Summaries only, see LLM summaries below
-    celerySummarize:
-      envVars: *summaryEnv
-
-    celerySummaryBackend:
-      envVars: *summaryEnv
-      replicas: 1
-    ```
+    - Uncomment `envVars: *summaryEnv` under `celeryTranscribe`, `celerySummarize` and `celerySummaryBackend`. `celerySummarize` runs only for [LLM summaries](#llm-summaries).
+    - Under `celeryTranscribe`, delete `instances: []` and uncomment the `instances` list below it.
+    - Set `replicas: 1` under `celerySummaryBackend`.
 
 ### Step 3: Connect the Meet backend
 
 === "Docker Compose"
 
-    Add to `env.d/common`, beside the two tokens Step 1's script put there:
-
-    ```dotenv title="env.d/common"
-    SUMMARY_SERVICE_VERSION=2
-    SUMMARY_SERVICE_ENDPOINT=http://app-summary:8000/api/v2/async-jobs/transcribe
-    ```
+    Uncomment the two AI transcription lines of `env.d/common`, [`SUMMARY_SERVICE_VERSION`](../../reference/env-variables.md#SUMMARY_SERVICE_VERSION) and [`SUMMARY_SERVICE_ENDPOINT`](../../reference/env-variables.md#SUMMARY_SERVICE_ENDPOINT). Step 1's script already added the two tokens.
 
     Start the summary service, and recreate every container reading `env.d/common`:
 
@@ -199,16 +109,7 @@ The summary service and its Celery workers take one environment. They use the ba
 
 === "Kubernetes"
 
-    Add to `backend.envVars` in your `values.yaml`:
-
-    ```yaml title="values.yaml"
-    backend:
-      envVars:
-        SUMMARY_SERVICE_VERSION: "2"
-        SUMMARY_SERVICE_ENDPOINT: "http://meet-summary:80/api/v2/async-jobs/transcribe"
-        SUMMARY_SERVICE_API_TOKEN: "<same-api_key-you-set-in-AUTHORIZED_TENANTS>"
-        SUMMARY_SERVICE_WEBHOOK_API_TOKEN: "<same-webhook_api_key-you-set-in-AUTHORIZED_TENANTS>"
-    ```
+    Uncomment the four `SUMMARY_SERVICE_` lines of `backend.envVars` in your `values.yaml`, and put Step 1's `api_key` and `webhook_api_key` in place of the two tokens' placeholders. Then apply them:
 
     ```bash
     helm upgrade meet meet/meet --namespace meet --values values.yaml
@@ -222,23 +123,12 @@ With [`FRONTEND_ANALYTICS`](../../reference/env-variables.md#FRONTEND_ANALYTICS)
 
 === "Docker Compose"
 
-    Add [`METADATA_COLLECTOR_ENABLED=True`](../../reference/env-variables.md#METADATA_COLLECTOR_ENABLED) to `env.d/common`.
+    Uncomment [`METADATA_COLLECTOR_ENABLED`](../../reference/env-variables.md#METADATA_COLLECTOR_ENABLED) in `env.d/common`.
 
-    Its environment, `env.d/metadata-collector`, came with Step 1, its secrets filled.
+    Its environment, `env.d/metadata-collector`, came with Step 1, its secrets filled. `compose.yml` holds the agent under the `metadata-collector` profile: add it to `COMPOSE_PROFILES` in `.env`:
 
-    Add the agent to `compose.yml`, under `services:`:
-
-    ```yaml title="compose.yml"
-      metadata-collector:
-        image: lasuite/meet-agents:${MEET_VERSION:-latest}
-        command: python metadata_collector.py start
-        restart: unless-stopped
-        env_file:
-          - env.d/metadata-collector
-        depends_on:
-          - livekit
-        networks:
-          - internal
+    ```dotenv title=".env"
+    COMPOSE_PROFILES=recording,transcription,metadata-collector
     ```
 
     ```bash
@@ -249,33 +139,8 @@ With [`FRONTEND_ANALYTICS`](../../reference/env-variables.md#FRONTEND_ANALYTICS)
 
     The chart runs the agent as `agentMetadata`, which the Helm Deployment values turn off. Turn it on in your `values.yaml`:
 
-    ```yaml title="values.yaml"
-    backend:
-      envVars:
-        METADATA_COLLECTOR_ENABLED: "True"
-
-    agentMetadata:
-      replicas: 1
-      command: ["python", "metadata_collector.py", "start"]
-      envVars:
-        LIVEKIT_URL: "ws://livekit-server:7880"
-        LIVEKIT_API_KEY: "meet"
-        LIVEKIT_API_SECRET:
-          secretKeyRef:
-            name: meet-backend-env
-            key: LIVEKIT_API_SECRET
-        AWS_S3_ENDPOINT_URL: "garage.meet.svc.cluster.local:9000"
-        AWS_S3_ACCESS_KEY_ID:
-          secretKeyRef:
-            name: garage-secrets
-            key: GARAGE_DEFAULT_ACCESS_KEY
-        AWS_S3_SECRET_ACCESS_KEY:
-          secretKeyRef:
-            name: garage-secrets
-            key: GARAGE_DEFAULT_SECRET_KEY
-        AWS_S3_REGION_NAME: "garage"
-        AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
-    ```
+    - Under `agentMetadata`, set `replicas: 1` and uncomment `command` and `envVars`. With another storage, put the endpoint, region, bucket and keys of `backend.envVars` in its `AWS_S3_` and bucket lines, and add `AWS_S3_SECURE_ACCESS: "True"` for HTTPS: the agent defaults to HTTP.
+    - Uncomment `METADATA_COLLECTOR_ENABLED` in `backend.envVars`.
 
     ```bash
     helm upgrade meet meet/meet --namespace meet --values values.yaml
@@ -288,7 +153,7 @@ Summarization writes a summary of the transcript with an LLM and pushes it to La
 - The push to LaSuite Docs is enabled.
 - The person who started the transcription has the feature flag `summary-enabled`. Meet reads it from the analytics backend that [`ANALYTICS_BACKEND`](../../reference/env-variables.md#ANALYTICS_BACKEND) names, such as PostHog, or from a static list when no backend is set.
 - [`IS_SUMMARY_ENABLED=True`](../../reference/env-variables.md#IS_SUMMARY_ENABLED) in the summary service, its default.
-- A worker consumes `summarize-queue-v2`: on Kubernetes, `celerySummarize` with `replicas: 1`; on Docker Compose, a service like Step 2's `celery-summary-transcribe`, with `-Q summarize-queue-v2`.
+- A worker consumes `summarize-queue-v2`: on Kubernetes, `celerySummarize` with `replicas: 1`; on Docker Compose, `celery-summary-summarize`, under the `summaries` profile. Add `summaries` after the profiles already in `.env`, keeping `metadata-collector` if Step 4 added it: `COMPOSE_PROFILES=recording,transcription,metadata-collector,summaries`.
 
 The LLM variables are in [Summaries (LLM)](../../reference/env-variables.md#summaries-llm), and the analytics ones in [Analytics and marketing](../../reference/env-variables.md#analytics-and-marketing).
 
@@ -298,11 +163,7 @@ The value is a Python dictionary, not JSON: write `True`, not `true`. Set it on 
 
 === "Docker Compose"
 
-    Add to `env.d/common`:
-
-    ```dotenv title="env.d/common"
-    ANALYTICS_BACKEND_SETTINGS={"feature_flags": {"summary-enabled": True}}
-    ```
+    Uncomment [`ANALYTICS_BACKEND_SETTINGS`](../../reference/env-variables.md#ANALYTICS_BACKEND_SETTINGS) in `env.d/common`, which the Celery worker reads too:
 
     ```bash
     docker compose up -d
@@ -310,13 +171,7 @@ The value is a Python dictionary, not JSON: write `True`, not `true`. Set it on 
 
 === "Kubernetes"
 
-    Add to `backend.envVars` in your `values.yaml`, which the `celeryBackend` worker inherits:
-
-    ```yaml title="values.yaml"
-    backend:
-      envVars:
-        ANALYTICS_BACKEND_SETTINGS: '{"feature_flags": {"summary-enabled": True}}'
-    ```
+    Uncomment `ANALYTICS_BACKEND_SETTINGS` in `backend.envVars` of your `values.yaml`, which the `celeryBackend` worker inherits:
 
     ```bash
     helm upgrade meet meet/meet --namespace meet --values values.yaml

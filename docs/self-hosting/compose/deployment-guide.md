@@ -1,6 +1,6 @@
 # Deployment Guide
 
-The [Quick Start](quick-start.md) script always installs its own reverse proxy and Keycloak. If you already run one of them, build the stacks by hand here instead, leaving out the one you have.
+The [Quick Start](quick-start.md) script always installs its own reverse proxy and Keycloak.
 
 ```
 ~/docker/
@@ -114,14 +114,14 @@ keycloak     Up 2 minutes (healthy)
 postgresql   Up 2 minutes (healthy)
 ```
 
-Repeat the second command until both show `(healthy)`.
+Repeat the second command until both show `(healthy)`. If one never does, read its logs as the [Diagnostic checklist](../../reference/troubleshooting.md#diagnostic-checklist) shows.
 
 !!! info
     Keycloak's admin console is at `https://${IDP_HOST}/admin/`: user `admin`, password `KC_BOOTSTRAP_ADMIN_PASSWORD` from `env.d/keycloak`. That account is [temporary](https://www.keycloak.org/server/bootstrap-admin-recovery): create your own admin account there, then delete `admin`.
 
 ## Stack 3: Meet core
 
-Meet itself runs here: the backend, the frontend, Celery, PostgreSQL, Redis and LiveKit.
+Meet itself runs here: the backend, the frontend, Celery, PostgreSQL, Redis and LiveKit. What each one does is in [How Meet works](../../overview/how-meet-works.md#the-pieces).
 
 ### Download the files
 
@@ -203,7 +203,7 @@ postgresql   Up 2 minutes (healthy)
 redis        Up 2 minutes
 ```
 
-Repeat the second command until `backend` and `postgresql` show `(healthy)`. The reverse proxy requests the TLS certificates once DNS has propagated.
+Repeat the second command until `backend` and `postgresql` show `(healthy)`. If one never does, read its logs as the [Diagnostic checklist](../../reference/troubleshooting.md#diagnostic-checklist) shows. The reverse proxy requests the TLS certificates once DNS has propagated.
 
 ### Create the tables and an admin account
 
@@ -262,6 +262,100 @@ Before using Meet in production:
     LIVEKIT_VERSION=v1.13.6
     ```
 
-    Pin Keycloak with `KEYCLOAK_VERSION` in `~/docker/keycloak/.env`, from its [releases](https://github.com/keycloak/keycloak/releases). The proxy's `compose.yml` has no version variable: put a full tag on each `image:` line.
-6. **Back up the database.** [Upgrading](../configuration/upgrade.md#before-upgrading) shows how, and [Rolling back](../configuration/upgrade.md#rolling-back) how to restore. Keep backups off-server and test a restore.
+    With recording, pin `EGRESS_VERSION` there too, from the [Egress releases](https://github.com/livekit/egress/releases), and with telephony `LIVEKIT_SIP_VERSION`, from the [SIP bridge's tags](https://github.com/livekit/sip/tags). Pin Keycloak with `KEYCLOAK_VERSION` in `~/docker/keycloak/.env`, from its [releases](https://github.com/keycloak/keycloak/releases). The proxy's `compose.yml` has no version variable: put a full tag on each `image:` line.
+6. **Back up the databases.** [Before upgrading](#before-upgrading) shows how for Meet's, and [Rolling back](#rolling-back) how to restore. With the Keycloak stack, which holds the accounts, dump its database too, from `~/docker/keycloak`:
+
+    ```bash
+    docker compose exec -T postgresql pg_dump -U keycloak keycloak > keycloak_backup_$(date +%Y%m%d).sql
+    ```
+
+    Keep backups off-server and test a restore.
 7. **Add features.** Each optional feature links its setup guide in [Set up by your administrator](../../user/features-controls.md#set-up-by-your-administrator).
+
+## Upgrading
+
+### Before upgrading
+
+1. **Read what changed** in [CHANGELOG.md](https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md) and [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md), for every version between yours and the target: only patch releases can be skipped.
+2. **Back up the database**, from `~/docker/meet`:
+
+    ```bash
+    # -T disables the pseudo-terminal, so nothing but the dump reaches the file
+    docker compose exec -T postgresql pg_dump -U meet meet > meet_backup_$(date +%Y%m%d).sql
+    ```
+
+3. **Note the version you run now**, to roll back to: `docker compose images backend` shows its tag.
+
+### Upgrade Meet
+
+1. Set `MEET_VERSION` in `.env` to the target release.
+2. Download the images:
+
+    ```bash
+    docker compose pull
+    ```
+
+3. Apply any manual step UPGRADE.md lists for the target version.
+4. Start the new images:
+
+    ```bash
+    docker compose up -d
+    ```
+
+5. Run the database migrations:
+
+    ```bash
+    docker compose exec backend python manage.py migrate
+    ```
+
+6. Check the backend started cleanly: `docker compose logs --tail=50 backend`.
+
+### Rolling back
+
+Restore the database from the backup taken before upgrading, then go back to the old version:
+
+```bash
+# Stop the backend and workers
+docker compose stop backend celery
+
+# Move the migrated database aside, then restore into an empty one: a restore
+# over the migrated schema keeps the new tables and columns
+docker compose exec -T postgresql psql -U meet -d postgres \
+  -c "ALTER DATABASE meet RENAME TO meet_before_rollback"
+docker compose exec -T postgresql createdb -U meet meet
+docker compose exec -T postgresql psql -U meet -v ON_ERROR_STOP=1 meet < meet_backup_YYYYMMDD.sql
+
+# Set MEET_VERSION in .env back to the previous version, then:
+docker compose up -d
+```
+
+Once Meet works on the restored data, drop `meet_before_rollback`, which holds everything written since the upgrade; while it exists, the next rollback fails at the rename:
+
+```bash
+docker compose exec -T postgresql psql -U meet -d postgres \
+  -c "DROP DATABASE meet_before_rollback"
+```
+
+### LiveKit, Egress and SIP
+
+Check the [LiveKit releases](https://github.com/livekit/livekit/releases), then set the new tags in `LIVEKIT_VERSION`, `EGRESS_VERSION` with recording and `LIVEKIT_SIP_VERSION` with telephony, in `.env`. A LiveKit restart drops the calls in progress, so pick a quiet hour:
+
+```bash
+# Without recording, leave out livekit-egress
+# Without telephony, leave out livekit-sip
+docker compose up -d livekit livekit-egress livekit-sip
+```
+
+## Stop or remove
+
+Each stack stops from its own directory, `~/docker/meet` for Meet:
+
+```bash
+# Remove the containers; the data stays in the stack's volumes
+docker compose down
+
+# Remove the containers and delete the volumes
+docker compose down -v
+```
+
+`-v` deletes the stack's data: Meet's database in `meet_db`, Keycloak's in `kc_db`, or nginx-proxy's certificates, which [Let's Encrypt](https://letsencrypt.org/docs/rate-limits/) reissues only a few times a week. Traefik keeps its certificates in `acme.json`. Once every stack is down, `docker network rm proxy` removes the shared network.

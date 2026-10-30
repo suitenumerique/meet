@@ -1,26 +1,8 @@
 # Security
 
+Harden the Meet server you run, and learn how Meet itself protects its API and signs users in. How calls are encrypted is in [Is it secure?](../overview/how-meet-works.md#security).
+
 ## Infrastructure hardening
-
-### Django secret key
-
-Generate [`DJANGO_SECRET_KEY`](env-variables.md#DJANGO_SECRET_KEY):
-
-```bash
-openssl rand -hex 32
-```
-
-Rotate it immediately if it leaks; rotating it invalidates every active session.
-
-### LiveKit API secret
-
-Generate [`LIVEKIT_API_SECRET`](env-variables.md#LIVEKIT_API_SECRET):
-
-```bash
-openssl rand -hex 32
-```
-
-Keep it at 32 characters or more. Anyone holding it can forge tokens for your LiveKit server: if it leaks, rotate it at once.
 
 ### TLS
 
@@ -33,21 +15,9 @@ Keep it at 32 characters or more. Anyone holding it can forge tokens for your Li
         minVersion: VersionTLS12
   ```
 
-### Database
+### Database and object storage
 
-- Use a strong, unique password for PostgreSQL
-- Never expose its port publicly, as [Never public](../self-hosting/configuration/firewall.md#never-public) lists
-- Use TLS if the database is on a separate host
-
-### Object storage (S3)
-
-- Do not expose the storage's ports publicly, as [Never public](../self-hosting/configuration/firewall.md#never-public) lists. Recording downloads go through `/media/` on the reverse proxy instead.
-- Limit Meet's storage credentials to its own buckets, with an IAM-style access policy.
-
-### Docker
-
-- The backend and frontend images run as non-root users.
-- Mount `/var/run/docker.sock` read-only, and only in the reverse proxy, which needs it to discover containers.
+Never expose PostgreSQL's port or the storage's ports publicly, as [Never public](../self-hosting/configuration/firewall.md#never-public) lists. Recording downloads go through `/media/` on the reverse proxy instead.
 
 ### Kubernetes
 
@@ -61,7 +31,7 @@ The Django backend checks CSRF tokens on browser requests that change data. [`DJ
 
 ### Object-level permissions
 
-- Who may read, change or delete a room is in the [Backend API](api.md#rooms).
+- Anyone may read a room's details, signed in or not; its owners and administrators change it, and only its owners delete it.
 - A deleted room keeps its link until the [room purge](../self-hosting/configuration/room-purge.md) removes it, so nobody can take it over meanwhile.
 - [`ALLOW_UNREGISTERED_ROOMS`](env-variables.md#ALLOW_UNREGISTERED_ROOMS) decides what a room code that matches no room returns, see [Unauthenticated access](../self-hosting/configuration/sso.md#unauthenticated-access).
 
@@ -91,10 +61,6 @@ The backend writes an audit event for each sign-in, each room action made throug
 Users sign in through an external [OIDC](https://openid.net/developers/how-connect-works/) provider, such as Keycloak, Authentik or Google, and have no password in Meet. Django admin passwords and application secrets are stored hashed.
 
 Clients join LiveKit with the pass that [What happens when someone joins?](../overview/how-meet-works.md#joining-a-meeting) describes. The backend signs it with [`LIVEKIT_API_SECRET`](env-variables.md#LIVEKIT_API_SECRET).
-
-## Media encryption
-
-Media is encrypted in transit with DTLS-SRTP, never end to end, so whoever runs LiveKit can reach it, as [Is it secure?](../overview/how-meet-works.md#security) explains.
 
 ## Vulnerabilities
 

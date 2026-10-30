@@ -79,7 +79,7 @@ On the 29th of January 2026, Prime Minister Sébastien Lecornu, announced the fu
 
 ## Docs
 
-We're currently working on both technical and user documentation for La Suite Meet. In the meantime, many of the essential aspects are already well covered by the [LiveKit documentation](https://docs.livekit.io/home/) and their [self-hosting guide](https://docs.livekit.io/home/self-hosting/deployment/). Stay tuned for more updates!
+The documentation, for users, administrators and integrators, is at [documentation-meet.beta.numerique.gouv.fr](https://documentation-meet.beta.numerique.gouv.fr/).
 
 ## Self-host
 
@@ -89,20 +89,9 @@ We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/
 
 **Questions?** Open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) or join our [Matrix community](https://matrix.to/#/#meet-official:matrix.org).
 
-> [!NOTE]
-> Some advanced features (ex: recording, transcription) lack detailed documentation. We're working hard to provide comprehensive guides soon.
-
 #### Known instances
-We hope to see many more, here is an incomplete list of public La Suite Meet instances. Feel free to make a PR to add ones that are not listed below🙏
 
-| Url                                                           | Org          | Access                                                                                                                                        |
-|---------------------------------------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)   | DINUM        | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up     |
-| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT         | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up |
-| [visio.lasuite.coop](https://visio.lasuite.coop/)             | lasuite.coop | Free and open demo to all. Content and accounts are reset after one month                                                                     |
-| [mosacloud.cloud](https://mosa.cloud/)                        | mosa.cloud   | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps.                                                         |
-| [Clever Cloud](https://www.clever.cloud/product/visio/)       | clever cloud | Openvisio is a sovereign video conferencing solution based on LaSuite Meet offered by [Clever Cloud](https://www.clever.cloud/).              |
-| [Email.eu](https://email.eu/)                                 | Email.eu     | Sovereign business workspace.                                                                                                                 |
+The public instances are listed in the [documentation](https://documentation-meet.beta.numerique.gouv.fr/#known-public-instances). Feel free to make a PR adding yours to [`docs/index.md`](docs/index.md).
 
 
 # Contributing

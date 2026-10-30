@@ -42,7 +42,7 @@ graph LR
 
 ## What runs where? { #the-pieces }
 
-Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firewall.md), the requests between the pieces in [Networking](../reference/networking.md), and their code in the [Code tour](../contributing/code-tour.md).
+Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firewall.md), the requests between the pieces in its [Traffic flow](../self-hosting/configuration/firewall.md#traffic-flow), and their code in the [Code tour](../contributing/code-tour.md).
 
 | Piece | What it does |
 |---|---|

@@ -1,5 +1,7 @@
 # Troubleshooting
 
+Look up the symptom your Meet server shows to find its cause and its fix. The commands assume a Docker Compose install.
+
 ## Diagnostic checklist
 
 Collect this before looking up a symptom:
@@ -30,7 +32,7 @@ docker restart traefik
 
 ### Service returns 502 / Traefik can't reach a container
 
-The container is not on the `proxy` Docker network, whose members [Docker networks](networking.md#docker-networks) lists.
+The container is not on the `proxy` Docker network, whose members [Docker networks](../self-hosting/configuration/firewall.md#docker-networks) lists.
 
 **Fix**: Add `proxy` to the service's `networks:` list:
 ```yaml
@@ -56,15 +58,6 @@ docker compose up -d --force-recreate <service>
 3. Check the certificate logs:
     - nginx-proxy: `docker compose -f ~/docker/nginx-proxy/compose.yml logs acme-companion`
     - Traefik: `docker logs traefik | grep -i "acme\|certificate\|error"`
-
-### Port conflict on 80 or 443
-
-Another process, another proxy or Apache for example, already holds the port.
-
-**Fix**: Find it, and stop it before starting your proxy:
-```bash
-sudo ss -tlpn 'sport = :80 or sport = :443'
-```
 
 ## Application issues
 
@@ -248,33 +241,6 @@ The origination URI in your SIP provider's console does not point to your LiveKi
 A room has no dispatch rule until its first browser participant joins, as [How do phone calls join?](../overview/how-meet-works.md#agents-and-phone-calls) explains. It also has none while LiveKit's webhook does not reach the backend.
 
 **Fix**: Have someone join the room from a browser before phone participants dial in, and check the webhook arrives: `docker compose logs backend | grep webhooks-livekit`.
-
-## Docker and container issues
-
-### Container keeps restarting
-
-```bash
-docker compose logs --tail=30 <service>
-```
-
-Common causes:
-- A required environment variable is missing; the log names it
-- Port already in use on the host
-- Permission error on a mounted volume
-
-### Out of disk space
-
-!!! warning
-    `docker system prune` and `docker volume prune` act on the whole Docker host: every project's unused containers, images, networks and anonymous volumes go too. Each lists what it removes and asks before deleting.
-
-```bash
-# How full each disk is
-df -h
-
-# Unused Docker data, host-wide
-docker system prune
-docker volume prune
-```
 
 ## Getting more help
 

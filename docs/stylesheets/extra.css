@@ -61,3 +61,28 @@ pre.mermaid {
 .md-typeset tr:has(> td > code:target) > td {
   background-color: var(--md-accent-fg-color--transparent);
 }
+
+/* A link leaving the docs pages ends with an arrow: a menu entry to GitHub,
+   and any link to the API reference. */
+.md-nav__link[href^="http"]::after,
+.md-nav__link[href*="swagger.html"]::after,
+.md-typeset a[href*="swagger.html"]::after {
+  content: "↗";
+  margin-left: 0.3em;
+}
+
+/* An "ai" box, for notes about working with an AI assistant: violet, with a robot. */
+:root {
+  --md-admonition-icon--ai: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgY2xhc3M9Imx1Y2lkZSBsdWNpZGUtYm90IiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0xMiA4VjRIOCIvPjxyZWN0IHdpZHRoPSIxNiIgaGVpZ2h0PSIxMiIgeD0iNCIgeT0iOCIgcng9IjIiLz48cGF0aCBkPSJNMiAxNGgyTTIwIDE0aDJNMTUgMTN2Mk05IDEzdjIiLz48L3N2Zz4=");
+}
+.md-typeset .admonition.ai,
+.md-typeset details.ai {
+  border-color: #7c4dff;
+  background-color: #7c4dff1a;
+}
+.md-typeset .ai > .admonition-title::before,
+.md-typeset .ai > summary::before {
+  background-color: #7c4dff;
+  -webkit-mask-image: var(--md-admonition-icon--ai);
+  mask-image: var(--md-admonition-icon--ai);
+}

@@ -1,6 +1,6 @@
 # Helm Deployment
 
-Run Meet on a [Kubernetes](https://kubernetes.io/) cluster you already operate: it is how [DINUM](https://www.numerique.gouv.fr/) runs [Visio](https://visio.numerique.gouv.fr/) in production. Check the [Prerequisites](prerequisites.md) first, then install Meet with [Helm](https://helm.sh/) and LiveKit beside it.
+Run Meet on a [Kubernetes](https://kubernetes.io/) cluster you already operate: it is how [DINUM](https://www.numerique.gouv.fr/) runs [Visio](https://visio.numerique.gouv.fr/) in production. Check the [Prerequisites](prerequisites.md) first, then install Meet with [Helm](https://helm.sh/) and LiveKit beside it. [What runs where](../../overview/how-meet-works.md#the-pieces) lists the parts this deploys.
 
 ## Add the chart
 
@@ -53,52 +53,37 @@ sed -i "s/example\.com/$DOMAIN/g" values.yaml livekit-values.yaml
 Then check, in `values.yaml`:
 
 - [`DB_HOST`](../../reference/env-variables.md#DB_HOST) and the other `DB_` lines: your PostgreSQL.
-- [`REDIS_URL`](../../reference/env-variables.md#REDIS_URL) and [`CELERY_BROKER_URL`](../../reference/env-variables.md#CELERY_BROKER_URL): your Redis, also `redis.address` in `livekit-values.yaml`.
+- [`REDIS_URL`](../../reference/env-variables.md#REDIS_URL) and [`CELERY_BROKER_URL`](../../reference/env-variables.md#CELERY_BROKER_URL): your Redis.
 - The `OIDC_OP_` endpoints, such as [`OIDC_OP_AUTHORIZATION_ENDPOINT`](../../reference/env-variables.md#OIDC_OP_AUTHORIZATION_ENDPOINT): Keycloak's form, while another provider's are in [SSO & Authentication](../configuration/sso.md).
 
-The file also turns off the optional services the chart runs by default, each comment naming the guide that turns it back on. The SMTP variables go under `backend.envVars`, per [Email (SMTP)](../configuration/email.md#kubernetes-setup), and the chart's [README](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) lists every key.
+The file also holds every optional feature switched off, commented out or behind `enabled: false`, each comment naming the guide that turns it on. The chart's [README](https://github.com/suitenumerique/meet/blob/main/src/helm/meet/README.md) lists every key.
+
+And in `livekit-values.yaml`:
+
+- `livekit.redis.address`: your Redis, the one Meet uses.
 
 ### Security context (recommended)
 
-The chart sets no security context by default. Add the settings the `restricted` Pod Security Standard requires to each component's `securityContext` in `values.yaml`. For `backend`, add these keys under its `backend:` block:
+The chart sets no security context by default. `values.yaml` holds the settings the `restricted` Pod Security Standard requires, commented out:
 
-```yaml title="values.yaml"
-backend:
-  podSecurityContext:
-    fsGroup: 1000
-  # A read-only root filesystem needs a writable /tmp for the gunicorn workers.
-  extraVolumes:
-    - name: tmp
-      emptyDir: {}
-  extraVolumeMounts:
-    - name: tmp
-      mountPath: /tmp
-  securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
-    seccompProfile:
-      type: RuntimeDefault
-    capabilities:
-      drop:
-        - ALL
-
-# Repeat the securityContext block for: frontend, summary, celeryBackend,
-# celeryTranscribe, celerySummarize, celerySummaryBackend, agentMetadata,
-# agentSubtitles.
-```
+1. Under `backend`, uncomment the block from `podSecurityContext` to `extraVolumeMounts`. Its `securityContext` defines the `restrictedContext` anchor.
+2. After step 1, uncomment `securityContext: *restrictedContext` under each other component: `frontend`, `summary`, `celeryBackend`, `celeryTranscribe`, `celerySummarize`, `celerySummaryBackend`, `agentMetadata` and `agentSubtitles`. Without step 1's anchor, Helm refuses the file.
+3. Under `frontend`, also uncomment the `extraVolumes:` and `extraVolumeMounts:` keys and their `tmp` entries: nginx cannot start on a read-only root filesystem without a writable `/tmp`.
 
 `celerySummaryBackend` and the backend's cleanup CronJobs ignore `podSecurityContext`.
 
 ## Install
 
-```bash
-helm install meet meet/meet -n meet -f values.yaml
+`--version` pins the chart, so a reinstall gets the same one; `helm search repo meet/meet --versions` lists them. `--wait` returns once every pod is ready, and the command is safe to run again:
 
-# Check that the pods run and the ingresses exist
+```bash
+helm upgrade --install meet meet/meet -n meet -f values.yaml \
+  --version 0.0.29 --wait --timeout 10m
+
+# Check that the pods run, the ingresses exist and the certificates are issued
 kubectl -n meet get pods
 kubectl -n meet get ingress
+kubectl -n meet get certificate
 
 # If a pod fails, read its logs
 kubectl -n meet logs deployment/meet-backend
@@ -129,7 +114,7 @@ helm repo add livekit https://helm.livekit.io
 helm repo update
 ```
 
-Its `keys:` take the [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET) of Meet's Secret. Put it in `livekit-values.yaml`:
+Its `livekit.keys` take the [`LIVEKIT_API_SECRET`](../../reference/env-variables.md#LIVEKIT_API_SECRET) of Meet's Secret. Put it in `livekit-values.yaml`:
 
 ```bash
 JP='{.data.LIVEKIT_API_SECRET}'
@@ -140,14 +125,19 @@ sed -i "s|<LIVEKIT_API_SECRET>|$SECRET|" livekit-values.yaml
 Then install it:
 
 ```bash
-helm install livekit-server livekit/livekit-server -n meet -f livekit-values.yaml
+helm upgrade --install livekit-server livekit/livekit-server -n meet \
+  -f livekit-values.yaml --version 1.9.0 --wait --timeout 10m
 ```
 
 `livekit-values.yaml` exposes LiveKit through a plain Ingress, which the cluster's default IngressClass serves. Other `loadBalancer` types, for a cloud load balancer, are in LiveKit's [`server-sample.yaml`](https://github.com/livekit/livekit-helm/blob/master/server-sample.yaml).
 
 ### LiveKit media ports
 
-Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Ports](../configuration/firewall.md) open in its security group or firewall.
+Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Ports](../configuration/firewall.md) open in its security group or firewall. LiveKit's pods use the node's network, so a node runs one of them at most.
+
+### Check the install
+
+Open `https://meet.your-domain.org`, sign in, and join the same room from two devices. Audio and video both ways means sign-in, LiveKit and its media ports all work.
 
 ## Recording and transcription
 
@@ -160,16 +150,7 @@ Both are optional. Set up [Recording](../configuration/recording.md#setup), then
 - The other components each read their own `envFrom`, and each `celeryTranscribe` instance can add `extraEnvFrom`.
 - A variable set in `envVars` wins over the same name loaded through `envFrom`.
 
-To take a single variable from a Secret of another shape, reference it under `envVars`. Replace `my-database` and `password` with that Secret's name and key:
-
-```yaml title="values.yaml"
-backend:
-  envVars:
-    DB_PASSWORD:
-      secretKeyRef:
-        name: my-database
-        key: password
-```
+To take a single variable from a Secret of another shape, reference it under `envVars`, as the commented `DB_PASSWORD` of `values.yaml` does: uncomment it, then put that Secret's name and key in place of `my-database` and `password`.
 
 ### Encrypted values files with SOPS
 
@@ -204,12 +185,15 @@ DINUM's setup in [`src/helm/`](https://github.com/suitenumerique/meet/tree/main/
 
 ## Upgrading
 
-Check [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) for version-specific steps first:
+Check [UPGRADE.md](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) for version-specific steps first, and back up Meet's database, with your PostgreSQL provider's backup or `pg_dump`: `helm rollback` does not undo a migration. Replace `<new version>` with one `helm search repo meet/meet --versions` lists:
 
 ```bash
 helm repo update
-helm upgrade meet meet/meet -n meet -f values.yaml
+helm upgrade meet meet/meet -n meet -f values.yaml \
+  --version <new version> --wait --timeout 10m
 ```
+
+If `values.yaml` is lost, `helm get values meet -n meet > values.yaml` exports the values in use.
 
 The chart runs the database migrations in a Job, `meet-backend-migrate`. Kubernetes deletes it 30 seconds after it finishes, per `backend.jobs.ttlSecondsAfterFinished`, so read its logs while it runs:
 
@@ -223,6 +207,20 @@ To run the migrations by hand instead:
 kubectl -n meet exec deployment/meet-backend -- python manage.py migrate
 ```
 
-## Next
+LiveKit upgrades through its own release, its versions listed by `helm search repo livekit/livekit-server --versions`:
 
-Continue with [Next steps](../index.md#next-steps).
+```bash
+helm upgrade livekit-server livekit/livekit-server -n meet \
+  -f livekit-values.yaml --version <new version>
+```
+
+An old LiveKit pod keeps serving its calls until they end, for up to 5 hours, the chart's `terminationGracePeriodSeconds: 18000`, so the rollout can take that long.
+
+## Uninstall
+
+```bash
+helm uninstall meet livekit-server -n meet
+kubectl -n meet delete secret meet-backend-env
+```
+
+Your PostgreSQL, Redis, S3 bucket and identity provider stay as they are. `kubectl delete namespace meet` removes everything left in the namespace, a PostgreSQL installed there included.

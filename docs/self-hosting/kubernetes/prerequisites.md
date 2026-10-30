@@ -1,6 +1,6 @@
 # Prerequisites (Kubernetes)
 
-For a single server, see the [Docker Compose prerequisites](../compose/prerequisites.md).
+Prepare a Kubernetes cluster to run Meet with its [Helm chart](helm.md). For a single server, see the [Docker Compose prerequisites](../compose/prerequisites.md).
 
 ## A cluster
 
@@ -43,7 +43,3 @@ Point three subdomains at the ingress load balancer's IP before you install: cer
 | `meet.example.com` | Meet |
 | `livekit.example.com` | LiveKit, through the same ingress, see [LiveKit on Kubernetes](helm.md#livekit-on-kubernetes) |
 | `auth.example.com` | Your OIDC provider, if it runs in the cluster |
-
-## Next
-
-Continue to [Helm Deployment](helm.md).

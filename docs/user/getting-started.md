@@ -1,6 +1,6 @@
 # Getting Started
 
-You need a microphone and a recent Chrome, Firefox, Safari or Edge, see [Browser support](features-controls.md#browser-support).
+Start a meeting and send its link, or join someone else's, the first time you use Meet. You need a microphone and a recent Chrome, Firefox, Safari or Edge, see [Browser support](features-controls.md#browser-support).
 
 !!! tip "No instance yet?"
 

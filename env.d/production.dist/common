@@ -51,3 +51,29 @@ LIVEKIT_API_SECRET=<generate a secret key>
 LIVEKIT_API_KEY=meet
 LIVEKIT_API_URL=https://${LIVEKIT_HOST}
 ALLOW_UNREGISTERED_ROOMS=False
+
+# Recording: the Recording guide
+#RECORDING_ENABLE=True
+#AWS_S3_ENDPOINT_URL=http://garage:9000
+#AWS_S3_REGION_NAME=garage
+#AWS_STORAGE_BUCKET_NAME=meet-media-storage
+#RECORDING_DOWNLOAD_BASE_URL=https://${MEET_HOST}/recording
+
+# AI transcription: the AI Transcription guide
+#SUMMARY_SERVICE_VERSION=2
+#SUMMARY_SERVICE_ENDPOINT=http://app-summary:8000/api/v2/async-jobs/transcribe
+# Speaker names, with the metadata-collector profile
+#METADATA_COLLECTOR_ENABLED=True
+# LLM summaries for every user, without an analytics backend
+#ANALYTICS_BACKEND_SETTINGS={"feature_flags": {"summary-enabled": True}}
+
+# Live subtitles: the Real-time Subtitles guide
+#ROOM_SUBTITLE_ENABLED=True
+
+# Telephony: the Telephony guide
+#ROOM_TELEPHONY_ENABLED=True
+#ROOM_TELEPHONY_PHONE_NUMBER=<your phone number>
+#ROOM_TELEPHONY_DEFAULT_COUNTRY=FR
+
+# Your CSS: the Theming guide, with the frontend's custom.css volume
+#FRONTEND_CUSTOM_CSS_URL=/custom.css

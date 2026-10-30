@@ -172,7 +172,7 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | `lasuite.actor.type` | Who | `user.*` |
 |---|---|---|
 | `user` | An account acting for itself: session, OIDC or password login, add-on token, or the LiveKit token of a known account | That account |
-| `application` | A client application acting for a user: a Meet application through its credentials, delegated token or embedded frontend, or a La Suite application through the resource server or Menshen. `lasuite.application.client_id` names it | The delegating user |
+| `application` | A client application acting for a user: a Meet application through its credentials, application token or embedded frontend, or a La Suite application through the resource server or Menshen. `lasuite.application.client_id` names it | The delegating user |
 | `service` | An internal service calling with a shared secret, named in `service.origin.name`: `summary` or `livekit` | Absent |
 | `system` | The backend itself, with no request, as in a Celery task | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
@@ -197,7 +197,7 @@ Actions read `<target>.<verb>`.
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
-| `application.token.issue` | An application asks for a delegated token, `POST /external-api/v1.0/application/token/`, granted or refused | On success, `user.*` is the delegated user, `entity.target` the application, `lasuite.details` holds `scopes`, `user_provisioned`, `expires_in`. On refusal, `event.reason` and `lasuite.details.requested_domain`. An unverified client id goes only in `lasuite.details.claimed_client_id` |
+| `application.token.issue` | An application asks for an application token, `POST /external-api/v1.0/application/token/`, granted or refused | On success, `user.*` is the delegated user, `entity.target` the application, `lasuite.details` holds `scopes`, `user_provisioned`, `expires_in`. On refusal, `event.reason` and `lasuite.details.requested_domain`. An unverified client id goes only in `lasuite.details.claimed_client_id` |
 | `user.provision` | An application creates a provisional user from an email, or fails to: `conflict` when a concurrent request won. Also when a La Suite application calls for an unknown `sub` and [`OIDC_CREATE_USER`](../../reference/env-variables.md#OIDC_CREATE_USER) allows it | `user.target` and `entity.target` are the user. `lasuite.auth.method` is `client_credentials`, `resource_server` or `menshen_token`. On an email conflict, `lasuite.details.requested_sub` |
 | `transit_code.issue` | An application mints a single-use transit code for its delegated user | `entity.target` is the code's SHA-256, `user.target` its user, `lasuite.details.expires_in` |
 | `transit_code.exchange` | An embedded frontend exchanges a transit code for a user access token | `event.category` `authentication`, `lasuite.auth.method` `transit_code`. Once the code verifies, the actor is the application that minted it and `user.target` its user. A code that does not verify is an `anonymous` failed authentication |

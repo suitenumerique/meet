@@ -1,6 +1,6 @@
 # Prerequisites (Docker Compose)
 
-For a cluster, see the [Kubernetes prerequisites](../kubernetes/prerequisites.md).
+Prepare a single Linux server to run Meet with Docker Compose. For a cluster, see the [Kubernetes prerequisites](../kubernetes/prerequisites.md).
 
 ## A Linux server
 
@@ -43,4 +43,4 @@ Point three subdomains at your server's public IP before you start: Let's Encryp
 ## Next
 
 - [Quick Start](quick-start.md): one script on a fresh server, with nginx-proxy and Keycloak.
-- [Deployment Guide](deployment-guide.md): the same steps by hand, when you already run a reverse proxy or a sign-in provider.
+- [Deployment Guide](deployment-guide.md): the same steps by hand.

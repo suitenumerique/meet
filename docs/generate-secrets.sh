@@ -31,6 +31,7 @@
 #   keycloak-realm.json   the client secret, the domain and meet-admin
 #   livekit-server.yaml   the webhook domain and LIVEKIT_API_SECRET
 #   livekit-egress.yaml, livekit-sip.yaml: their <your LiveKit API secret>
+#   inbound-trunk.json    ROOM_TELEPHONY_PHONE_NUMBER, once env.d/common sets it
 #   ../garage/.env        GARAGE_RPC_SECRET, GARAGE_ACCESS_KEY, GARAGE_SECRET_KEY
 #   env.d/summary, env.d/metadata-collector, env.d/multi-user-transcriber:
 #                         their <...> AWS_S3_* and LIVEKIT_API_SECRET lines
@@ -198,6 +199,15 @@ for yaml in "${STACK_DIR}/livekit-egress.yaml" "${STACK_DIR}/livekit-sip.yaml"; 
     echo "set LIVEKIT_API_SECRET in ${yaml##*/}"
   fi
 done
+
+# ── the Telephony guide's inbound trunk, which accepts calls to Meet's number ─
+TRUNK="${STACK_DIR}/inbound-trunk.json"
+PHONE_NUMBER=$(env_value "${ENV_DIR}/common" ROOM_TELEPHONY_PHONE_NUMBER)
+if [[ -f "$TRUNK" && -n "$PHONE_NUMBER" && "$PHONE_NUMBER" != "<"* ]] \
+  && grep -q "<ROOM_TELEPHONY_PHONE_NUMBER>" "$TRUNK"; then
+  sed -i "s|<ROOM_TELEPHONY_PHONE_NUMBER>|${PHONE_NUMBER}|" "$TRUNK"
+  echo "set ROOM_TELEPHONY_PHONE_NUMBER in ${TRUNK##*/}"
+fi
 
 # ── patch livekit-server.yaml ─────────────────────────────────────────────────
 if [[ -n "$LIVEKIT_YAML" ]]; then

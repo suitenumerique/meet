@@ -31,6 +31,8 @@ Meet announces:
 - whose video you pinned or unpinned
 - a shared screen's zoom level
 
+The browser tab's title shows the room code.
+
 To hear reactions too, turn on **Announce reactions aloud** in **More Options** → **Settings** → **Accessibility**.
 
 ## Easier to see
@@ -40,7 +42,7 @@ To hear reactions too, turn on **Announce reactions aloud** in **More Options** 
   <figcaption>Settings → Accessibility: reactions read aloud, display font, captions</figcaption>
 </figure>
 
-- **A readable font:** pick [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/) under **Display font**.
+- **A readable font:** pick [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/) under **Display font**. The same menu offers [Lexend](https://www.lexend.com/), for readability, and [OpenDyslexic](https://opendyslexic.org/), for dyslexia.
 - **Zoom a shared screen:** click it, then `+` and `-`; the arrow keys move around.
 - **Fullscreen:** `Ctrl+Shift+F`.
 - **Less motion:** Meet stops its animations when your system asks for reduced motion.

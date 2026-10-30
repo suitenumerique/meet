@@ -1,6 +1,6 @@
 # Develop locally
 
-The whole stack runs on your machine in Docker Compose, driven by the [`Makefile`](https://github.com/suitenumerique/meet/blob/main/Makefile). The [Code tour](code-tour.md) shows where the code lives, and [Pull requests](pull-requests.md) how a change gets merged.
+The whole stack runs on your machine in Docker Compose, driven by the [`Makefile`](https://github.com/suitenumerique/meet/blob/main/Makefile). The [Code tour](code-tour.md) shows where the code lives, and [Pull requests](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md) how a change gets merged.
 
 ## TL;DR
 
@@ -100,7 +100,7 @@ Garage keeps recordings, transcripts and summaries in its own format under `data
 
 - The `app-dev` container runs Django's development server with [`src/backend`](https://github.com/suitenumerique/meet/tree/main/src/backend) mounted at `/app`: saving a Python file restarts it.
 - The Celery worker, `celery-dev`, does not reload: run `make run-backend` after changing a task.
-- The container runs the `Development` configuration, with debug mode and the [API schema pages](../reference/api.md#interactive-api-explorer) on. Its settings come from `env.d/development/common` and `env.d/development/postgresql`, documented in [Environment variables](../reference/env-variables.md).
+- The container runs the `Development` configuration, with debug mode and the API schema pages on, `/api/v1.0/swagger/` and `/api/v1.0/redoc/`. Its settings come from `env.d/development/common` and `env.d/development/postgresql`, documented in [Environment variables](../reference/env-variables.md).
 
 | Command | What it does |
 |---|---|
@@ -185,7 +185,7 @@ The `make` targets fix what they can in place. CI only checks, so run them befor
 | `make frontend-format` | Runs Prettier on `src/frontend/src`, rewriting the files |
 | `cd src/sdk/library && npm ci && npm run lint && npm run check && npm run build` | Lints, checks the formatting of, and builds the SDK, as CI does. Run it when you touch [`src/sdk`](https://github.com/suitenumerique/meet/tree/main/src/sdk) |
 
-CI also checks commit messages, spelling and shell scripts: [What CI checks](pull-requests.md#what-ci-checks) gives the local command for each.
+CI also checks commit messages, spelling and shell scripts: [What CI checks](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md#what-ci-checks) gives the local command for each.
 
 ## Translations
 
@@ -302,4 +302,4 @@ A page follows these rules:
 - **An icon inside a sentence or a table has `class="off-glb"`**, which keeps it out of the lightbox that opens screenshots full size: `<img class="off-glb" src="../assets/icons/mic-line.svg" width="20" />`.
 - **A new page is added to `nav` in `zensical.toml`**, or it builds without appearing in the navigation.
 
-CI's spelling and shellcheck jobs cover `docs/` too, see [What CI checks](pull-requests.md#what-ci-checks).
+CI's spelling and shellcheck jobs cover `docs/` too, see [What CI checks](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md#what-ci-checks).

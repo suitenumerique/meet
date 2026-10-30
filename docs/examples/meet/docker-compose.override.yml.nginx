@@ -22,3 +22,11 @@ services:
       VIRTUAL_PORT: "7880"
       LETSENCRYPT_HOST: ${LIVEKIT_HOST}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    # TURN over TLS reads acme-companion's certificates: uncomment these two
+    # lines and the volumes block below, see the LiveKit & TURN guide
+    # volumes:
+    #   - nginx-proxy_certs:/certs:ro
+
+# volumes:
+#   nginx-proxy_certs:
+#     external: true

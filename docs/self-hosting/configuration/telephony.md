@@ -20,10 +20,9 @@ The PSTN is the public phone network.
 
 ## Meet backend
 
-Add to `env.d/common`:
+Uncomment the Telephony lines of `env.d/common`, then put your number in place of `<your phone number>`, and your two-letter country code in place of `FR`:
 
 ```dotenv title="env.d/common"
-ROOM_TELEPHONY_ENABLED=True
 ROOM_TELEPHONY_PHONE_NUMBER=+33123456789
 ROOM_TELEPHONY_DEFAULT_COUNTRY=FR
 ```
@@ -32,35 +31,29 @@ If [`ROOM_TELEPHONY_PHONE_NUMBER`](../../reference/env-variables.md#ROOM_TELEPHO
 
 ## LiveKit SIP service
 
-Create `livekit-sip.yaml` in `~/docker/meet`, then run `bash generate-secrets.sh` there: it fills `<your LiveKit API secret>`.
+Download LiveKit SIP's config, [`livekit-sip.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-sip.yaml), and the [inbound trunk](#inbound-sip-trunk) into the Meet stack:
 
-```yaml title="livekit-sip.yaml"
-api_key: meet
-api_secret: <your LiveKit API secret>
-ws_url: ws://livekit:7880
-
-redis:
-  address: redis:6379
+```bash
+cd ~/docker/meet
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
+curl -fsSL --remote-name-all \
+  $RAW/docs/examples/meet/{livekit-sip.yaml,inbound-trunk.json}
 ```
 
-Add the service under `services:` in `compose.yml`:
+Then fill the LiveKit secret of `livekit-sip.yaml`, and your number in `inbound-trunk.json`, with the Meet stack's script:
 
-```yaml title="compose.yml"
-  livekit-sip:
-    image: livekit/sip:latest
-    restart: unless-stopped
-    environment:
-      SIP_CONFIG_FILE: /sip-config.yaml
-    volumes:
-      - ./livekit-sip.yaml:/sip-config.yaml:ro
-    ports:
-      - "5060:5060/udp"
-      - "10000-20000:10000-20000/udp"
-    depends_on:
-      - redis
-      - livekit
-    networks:
-      - internal
+```console
+$ bash generate-secrets.sh
+...
+set LIVEKIT_API_SECRET in livekit-sip.yaml
+set ROOM_TELEPHONY_PHONE_NUMBER in inbound-trunk.json
+kept LIVEKIT_API_SECRET in livekit-server.yaml: no placeholder left
+```
+
+`compose.yml` holds LiveKit SIP under the `telephony` profile. Turn it on with [`COMPOSE_PROFILES`](https://docs.docker.com/compose/how-tos/profiles/) in the Meet stack's `.env`, comma-separated after any profile already there:
+
+```dotenv title=".env"
+COMPOSE_PROFILES=telephony
 ```
 
 Start it, and recreate the backend with the settings above:
@@ -71,17 +64,7 @@ docker compose up -d
 
 ## Inbound SIP trunk
 
-The trunk tells LiveKit SIP which calls to accept. Save it as `inbound-trunk.json`, with the number of [`ROOM_TELEPHONY_PHONE_NUMBER`](../../reference/env-variables.md#ROOM_TELEPHONY_PHONE_NUMBER):
-
-```json title="inbound-trunk.json"
-{
-  "trunk": {
-    "name": "Main dial-in number",
-    "numbers": ["+33123456789"],
-    "allowed_addresses": ["<your provider's signalling IP or CIDR range>"]
-  }
-}
-```
+The trunk tells LiveKit SIP which calls to accept. The script put your number in [`inbound-trunk.json`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/inbound-trunk.json); put your provider's signalling addresses in place of its `allowed_addresses` placeholder.
 
 `allowed_addresses` takes IP addresses or CIDR ranges, not hostnames; an empty list accepts calls from any address.
 

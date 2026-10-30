@@ -1,5 +1,7 @@
 # Features & Controls
 
+Participants and hosts look up each control of a Meet meeting here, with the roles allowed to use it and the browsers that support it.
+
 <figure markdown="span">
   ![Features Tour](../assets/feature-tour.gif)
   <figcaption>A tour of the meeting controls</figcaption>
@@ -65,7 +67,7 @@ Meet has no button to turn off a single participant's camera.
 |---|---|
 | **Host** | Whoever created the room while signed in. *Owner* in the API |
 | **Co-host** | A signed-in participant the host or a co-host promoted, from the participants panel. *Administrator* in the API |
-| **Member** | Given through the [backend API](../reference/api.md#room-access-roles), and kept by a co-host whose role is removed. Joins a **Restricted** room directly |
+| **Member** | No screen of the meeting gives it: whoever runs your Meet server sets it on the room's page of the admin site, `/admin/` → **Core → Rooms**. A co-host whose role is removed keeps it. Joins a **Restricted** room directly |
 
 ### Room access levels { #access-levels }
 
@@ -77,7 +79,7 @@ Meet has no button to turn off a single participant's camera.
 
 ### Deleted rooms
 
-- Meet has no delete button: the host deletes a room through the [Backend API](../reference/api.md#other-room-endpoints) or another application's [External API](../reference/external-api.md#deleting-a-room).
+- Meet has no delete button: a room is deleted by another application, through the [External API](../reference/external-api.md#deleting-a-room).
 - Everyone in it is disconnected, and its link then says the meeting was deleted.
 - Whoever runs your Meet server can also have old rooms deleted automatically, see [Room purge](../self-hosting/configuration/room-purge.md).
 
@@ -181,7 +183,7 @@ Everything there stays in the browser you set it in, your name included. Only th
 | Shortcuts | The list of [keyboard shortcuts](accessibility.md#keyboard) |
 | Transcription | The meeting language, for the host and co-hosts |
 | Recording | The recording quality, for the host and co-hosts, where [allowed](#set-up-by-your-administrator) |
-| Accessibility | Fonts, [caption style](accessibility.md#display), reactions read aloud |
+| Accessibility | Fonts, [caption style](guides/deaf-hard-of-hearing.md#live-subtitles), reactions read aloud |
 
 A signed-in user can change their name only where the Meet server allows it.
 

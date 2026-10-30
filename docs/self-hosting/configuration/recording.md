@@ -27,6 +27,8 @@ Set up [Email (SMTP)](email.md) first: the download link reaches users by email.
 !!! note "Another S3-compatible provider"
     To use AWS S3, Scaleway Object Storage, OVHcloud Object Storage or another, skip this step and put its endpoint, keys and region in the [`AWS_S3_*` variables](../../reference/env-variables.md#object-storage-s3) of Step 3.
 
+    [AI transcription](transcription.md) reads its own copy of the endpoint, keys, region and bucket: `env.d/summary` and `env.d/metadata-collector` on Docker Compose, the `summary` and `agentMetadata` blocks of `values.yaml` on Kubernetes.
+
     Keep the bucket private: the backend authorizes each download, as Step 4 sets up.
 
 [Garage](https://garagehq.deuxfleurs.fr/) runs here as a single node with no replication. Its first start creates the access key and the `meet-media-storage` bucket, and later starts leave both untouched: set the keys before that start.
@@ -102,29 +104,22 @@ Egress reads [`livekit-egress.yaml`](https://github.com/suitenumerique/meet/blob
 
 === "Docker Compose"
 
-    Download its config into the Meet stack, then add the service under `services:` in `compose.yml`:
+    Download its config into the Meet stack:
 
     ```bash
     cd ~/docker/meet
     curl -fsSL -O $RAW/docs/examples/meet/livekit-egress.yaml
     ```
 
-    ```yaml title="compose.yml"
-      livekit-egress:
-        image: livekit/egress:${EGRESS_VERSION:-latest}
-        restart: unless-stopped
-        environment:
-          EGRESS_CONFIG_FILE: /livekit-egress.yaml
-        volumes:
-          - ./livekit-egress.yaml:/livekit-egress.yaml:ro
-        depends_on:
-          - redis
-          - livekit
-        networks:
-          - internal
+    Then run `bash generate-secrets.sh` in `~/docker/meet`: it fills `<your LiveKit API secret>`.
+
+    `compose.yml` holds Egress under the `recording` profile. Turn it on with [`COMPOSE_PROFILES`](https://docs.docker.com/compose/how-tos/profiles/) in the Meet stack's `.env`, comma-separated after any profile already there:
+
+    ```dotenv title=".env"
+    COMPOSE_PROFILES=recording
     ```
 
-    Then run `bash generate-secrets.sh` in `~/docker/meet`: it fills `<your LiveKit API secret>`. Step 3 starts Egress.
+    Step 3 starts Egress.
 
 === "Kubernetes"
 
@@ -139,15 +134,7 @@ Egress reads [`livekit-egress.yaml`](https://github.com/suitenumerique/meet/blob
 
 === "Docker Compose"
 
-    Add to `env.d/common`, where Step 1 already put the two keys:
-
-    ```dotenv title="env.d/common"
-    RECORDING_ENABLE=True
-    AWS_S3_ENDPOINT_URL=http://garage:9000
-    AWS_S3_REGION_NAME=garage
-    AWS_STORAGE_BUCKET_NAME=meet-media-storage
-    RECORDING_DOWNLOAD_BASE_URL=https://meet.example.com/recording
-    ```
+    Uncomment the Recording lines of `env.d/common`. They point at the Garage of Step 1, whose two keys Step 1's script already added. With another storage, put its endpoint, region and bucket in those lines, and add its keys as [`AWS_S3_ACCESS_KEY_ID`](../../reference/env-variables.md#AWS_S3_ACCESS_KEY_ID) and [`AWS_S3_SECRET_ACCESS_KEY`](../../reference/env-variables.md#AWS_S3_SECRET_ACCESS_KEY).
 
     Start Egress, and recreate every container reading `env.d/common`:
 
@@ -157,25 +144,7 @@ Egress reads [`livekit-egress.yaml`](https://github.com/suitenumerique/meet/blob
 
 === "Kubernetes"
 
-    Add to `backend.envVars` in your `values.yaml`. The two keys come from the Secret of Step 1:
-
-    ```yaml title="values.yaml"
-    backend:
-      envVars:
-        RECORDING_ENABLE: "True"
-        AWS_S3_ENDPOINT_URL: "http://garage.meet.svc.cluster.local:9000"
-        AWS_S3_ACCESS_KEY_ID:
-          secretKeyRef:
-            name: garage-secrets
-            key: GARAGE_DEFAULT_ACCESS_KEY
-        AWS_S3_SECRET_ACCESS_KEY:
-          secretKeyRef:
-            name: garage-secrets
-            key: GARAGE_DEFAULT_SECRET_KEY
-        AWS_S3_REGION_NAME: "garage"
-        AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
-        RECORDING_DOWNLOAD_BASE_URL: "https://meet.example.com/recording"
-    ```
+    In your `values.yaml`, uncomment the Recording lines of `backend.envVars`, which take the two keys from the Secret of Step 1, then apply them:
 
     ```bash
     helm upgrade meet meet/meet -n meet -f values.yaml
@@ -194,35 +163,7 @@ Downloads go through `https://meet.example.com/media/`: the proxy gets signed he
 
 === "Docker Compose"
 
-    `nginx-routing.conf` ships a commented-out `/media/` block. Uncomment it and fill its placeholders, which with the Garage of Step 1 gives:
-
-    ```nginx title="nginx-routing.conf"
-    location /media/ {
-        auth_request /media-auth;
-        auth_request_set $authHeader $upstream_http_authorization;
-        auth_request_set $authDate $upstream_http_x_amz_date;
-        auth_request_set $authContentSha256 $upstream_http_x_amz_content_sha256;
-
-        proxy_set_header Authorization $authHeader;
-        proxy_set_header X-Amz-Date $authDate;
-        proxy_set_header X-Amz-Content-SHA256 $authContentSha256;
-
-        proxy_pass http://garage:9000/meet-media-storage/;
-        proxy_set_header Host garage:9000;
-    }
-
-    location = /media-auth {
-        internal;
-        proxy_pass http://meet_backend/api/v1.0/recordings/media-auth/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Original-URL $request_uri;
-
-        proxy_pass_request_body off;
-        proxy_set_header Content-Length "";
-    }
-    ```
-
-    With another storage, put its host and bucket in place of `garage:9000` and `meet-media-storage`. Then restart the frontend, which runs this nginx:
+    Uncomment the Recording downloads block at the end of `nginx-routing.conf`, the `/media/` and `/media-auth` locations. It points at the Garage of Step 1: with another storage, put its host and bucket in place of `garage:9000` and `meet-media-storage`. Then restart the frontend, which runs this nginx:
 
     ```bash
     docker compose restart frontend
@@ -230,31 +171,7 @@ Downloads go through `https://meet.example.com/media/`: the proxy gets signed he
 
 === "Kubernetes"
 
-    The chart's `ingressMedia` does the same, with nginx-ingress only. With a storage other than the Garage of Step 1, set `upstream-vhost` and `serviceMedia` to its address. Add to `values.yaml`:
-
-    ```yaml title="values.yaml"
-    ingressMedia:
-      enabled: true
-      className: nginx
-      host: meet.example.com
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-        nginx.ingress.kubernetes.io/auth-url: "https://meet.example.com/api/v1.0/recordings/media-auth/"
-        nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
-        # The Host header sent to the storage: its host:port
-        nginx.ingress.kubernetes.io/upstream-vhost: "garage.meet.svc.cluster.local:9000"
-        # Sends /media/<path> to /<bucket>/<path> on the storage
-        nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/$1
-        nginx.ingress.kubernetes.io/configuration-snippet: |
-          add_header Content-Security-Policy "default-src 'none'" always;
-      tls:
-        enabled: true
-        secretName: meet-tls
-
-    serviceMedia:
-      host: garage.meet.svc.cluster.local
-      port: 9000
-    ```
+    The chart's `ingressMedia` does the same, with nginx-ingress only. In your `values.yaml`, it points at the Garage of Step 1: with another storage, set `upstream-vhost` and `serviceMedia` to its address, and its bucket in `rewrite-target`. Then set `enabled: true` under `ingressMedia` and apply it:
 
     ```bash
     helm upgrade meet meet/meet -n meet -f values.yaml
@@ -314,7 +231,7 @@ RECORDING_ENCODING_DEFAULT_PROFILE=small
 
 1. Start a meeting, open **More tools** → **Record**, and click **Start recording the meeting**.
 2. Speak for 30 seconds, then click **Stop recording the meeting**.
-3. Run the bucket check of Step 1 again, from `~/docker/garage` on Docker Compose: the object count has gone up by one.
+3. Run the bucket check of Step 1 again, from `~/docker/garage` on Docker Compose: the object count has gone up by two, the `.mp4` and the `.json` manifest Egress writes beside it.
 4. Check the recording's status under `/admin/` → **Core → Recordings**.
 5. Check that the email with the download link arrived.
 

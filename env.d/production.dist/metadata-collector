@@ -5,7 +5,7 @@ LIVEKIT_URL=ws://livekit:7880
 LIVEKIT_API_KEY=meet
 LIVEKIT_API_SECRET=<your LiveKit API secret>
 
-# Object storage: the Recording guide's Garage, host and port only
+# Object storage: the Recording guide's Garage; AWS_S3_SECURE_ACCESS picks HTTP or HTTPS
 AWS_S3_ENDPOINT_URL=garage:9000
 AWS_S3_ACCESS_KEY_ID=<GARAGE_ACCESS_KEY>
 AWS_S3_SECRET_ACCESS_KEY=<GARAGE_SECRET_KEY>

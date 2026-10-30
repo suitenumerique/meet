@@ -6,13 +6,13 @@ LiveKit is the media server: every participant sends it their audio and video, a
 
 [Signalling](../../overview/how-meet-works.md#key-concepts) goes through your reverse proxy on 443 to LiveKit's port 7880, which stays [private](firewall.md#never-public). Media goes straight between the browser and LiveKit, on the first path the network allows:
 
-| Path | Port | Used when |
-|---|---|---|
-| Direct UDP | 7882/UDP | Always tried first, with the lowest latency |
-| TCP | 7881/TCP | The network blocks 7882/UDP. Adds latency |
-| TURN relay | 443/UDP, or TLS on 5349/TCP | The network blocks both. Off until you [enable TURN](#turn) |
+| Path | Used when |
+|---|---|
+| Direct UDP | Always tried first, with the lowest latency |
+| TCP | The network blocks direct UDP. Adds latency |
+| TURN relay | The network blocks both. Off until you [enable TURN](#turn) |
 
-A participant whose network allows none of these joins but gets no audio or video. If a phone hotspot fixes it, their network blocks the media ports.
+A participant whose network allows none of these joins but gets no audio or video. If a phone hotspot fixes it, their network blocks the [media ports](firewall.md#ports-to-open).
 
 ## The media port
 
@@ -76,7 +76,7 @@ Many networks let UDP through on 443, for HTTP/3. LiveKit takes 443/UDP, and the
       domain: livekit.example.com
     ```
 
-2. In the `livekit` service of `compose.yml`, add `- "443:443/udp"` under `ports:`.
+2. In the `livekit` service of `compose.yml`, uncomment `- "443:443/udp"` under `ports:`.
 3. Open 443/UDP, see [Firewall & Ports](firewall.md).
 4. Apply: `docker compose up -d livekit`.
 
@@ -93,25 +93,7 @@ LiveKit needs the certificate and key for `livekit.example.com` as files:
 
 === "nginx-proxy"
 
-    acme-companion keeps the certificates in the proxy stack's `certs` volume, which Docker names `nginx-proxy_certs`. Mount it into LiveKit in `compose.yml`:
-
-    ```yaml title="compose.yml"
-    services:
-      livekit:
-        ports:
-          - "443:443/udp"
-          - "5349:5349/tcp"
-          - "7881:7881/tcp"
-          - "7882:7882/udp"
-        volumes:
-          - ./livekit-server.yaml:/config.yaml:ro
-          - nginx-proxy_certs:/certs:ro
-
-    # Merge with the file's existing top-level volumes
-    volumes:
-      nginx-proxy_certs:
-        external: true
-    ```
+    acme-companion keeps the certificates in the proxy stack's `certs` volume, which Docker names `nginx-proxy_certs`. To mount it into LiveKit at `/certs`, uncomment the two `volumes:` blocks at the end of the Meet stack's `docker-compose.override.yml`.
 
 === "Traefik"
 
@@ -121,7 +103,7 @@ LiveKit needs the certificate and key for `livekit.example.com` as files:
     2. Mount their directory into LiveKit at `/certs`.
     3. Point `cert_file` and `key_file` of the `turn:` block at the names the tool writes.
 
-Then add the TLS settings to the `turn:` block, open 5349/TCP, and apply with `docker compose up -d livekit`:
+Then uncomment `- "5349:5349/tcp"` under the `livekit` service's `ports:` in `compose.yml`, add the TLS settings to the `turn:` block, open 5349/TCP, and apply with `docker compose up -d livekit`:
 
 ```yaml title="livekit-server.yaml"
 turn:

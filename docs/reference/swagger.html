@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meet External API</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css" />
+  </head>
+  <body>
+    <p style="margin: 8px 16px"><a href="external-api/">← External API documentation</a></p>
+    <div id="swagger-ui"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
+    <script>
+      // Both OpenAPI files of the External API, picked in the top bar or with
+      // ?urls.primaryName=User%27s%20OIDC%20token in the link.
+      SwaggerUIBundle({
+        urls: [
+          { url: "openapi.yaml", name: "Application token" },
+          { url: "resource_server.yaml", name: "User's OIDC token" },
+        ],
+        dom_id: "#swagger-ui",
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        layout: "StandaloneLayout",
+        deepLinking: true,
+      })
+    </script>
+  </body>
+</html>

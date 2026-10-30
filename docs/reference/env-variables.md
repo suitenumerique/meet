@@ -1,5 +1,7 @@
 # Environment Variables
 
+Look up each environment variable a Meet server reads, required or optional, with its default and its meaning.
+
 | Service | Where the variables go |
 |---|---|
 | [Backend](#backend) | `env.d/common` with Docker Compose, `backend.envVars` in the Helm chart |
@@ -14,10 +16,24 @@ It works for every variable holding a single secret, such as [`DJANGO_SECRET_KEY
 
 A production backend does not start, or no one can log in, without these:
 
-- [Core](#core): [`DJANGO_CONFIGURATION`](#DJANGO_CONFIGURATION), [`DJANGO_SECRET_KEY`](#DJANGO_SECRET_KEY), [`DJANGO_ALLOWED_HOSTS`](#DJANGO_ALLOWED_HOSTS)
-- [Database](#database): [`DB_HOST`](#DB_HOST), [`DB_NAME`](#DB_NAME), [`DB_USER`](#DB_USER), [`DB_PASSWORD`](#DB_PASSWORD), or [`DATABASE_URL`](#DATABASE_URL) alone
-- [Authentication](#authentication-oidc): [`OIDC_RP_CLIENT_SECRET`](#OIDC_RP_CLIENT_SECRET), [`OIDC_OP_JWKS_ENDPOINT`](#OIDC_OP_JWKS_ENDPOINT), [`OIDC_OP_AUTHORIZATION_ENDPOINT`](#OIDC_OP_AUTHORIZATION_ENDPOINT), [`OIDC_OP_TOKEN_ENDPOINT`](#OIDC_OP_TOKEN_ENDPOINT), [`OIDC_OP_USER_ENDPOINT`](#OIDC_OP_USER_ENDPOINT)
-- [LiveKit](#livekit): [`LIVEKIT_API_KEY`](#LIVEKIT_API_KEY), [`LIVEKIT_API_SECRET`](#LIVEKIT_API_SECRET), [`LIVEKIT_API_URL`](#LIVEKIT_API_URL)
+| Variable | What to set |
+|---|---|
+| [`DJANGO_CONFIGURATION`](#DJANGO_CONFIGURATION) | `Production` on a server, `Development` or `Test` locally. The default needs development-only packages the published image does not include. |
+| [`DJANGO_SECRET_KEY`](#DJANGO_SECRET_KEY) | 50+ character random string for cryptographic signing. Rotating it signs everyone out |
+| [`DJANGO_ALLOWED_HOSTS`](#DJANGO_ALLOWED_HOSTS) | Comma-separated list of allowed hostnames |
+| [`DB_HOST`](#DB_HOST) | PostgreSQL hostname |
+| [`DB_NAME`](#DB_NAME) | Database name |
+| [`DB_USER`](#DB_USER) | Database user |
+| [`DB_PASSWORD`](#DB_PASSWORD) | Database password |
+| [`DATABASE_URL`](#DATABASE_URL) | Full database URL, such as `postgres://user:pass@host:5432/name`, in place of the four `DB_` variables |
+| [`OIDC_RP_CLIENT_SECRET`](#OIDC_RP_CLIENT_SECRET) | OIDC client secret |
+| [`OIDC_OP_JWKS_ENDPOINT`](#OIDC_OP_JWKS_ENDPOINT) | OIDC JWKS URL |
+| [`OIDC_OP_AUTHORIZATION_ENDPOINT`](#OIDC_OP_AUTHORIZATION_ENDPOINT) | OIDC authorization URL |
+| [`OIDC_OP_TOKEN_ENDPOINT`](#OIDC_OP_TOKEN_ENDPOINT) | OIDC token exchange URL |
+| [`OIDC_OP_USER_ENDPOINT`](#OIDC_OP_USER_ENDPOINT) | OIDC userinfo URL |
+| [`LIVEKIT_API_KEY`](#LIVEKIT_API_KEY) | LiveKit API key. Must match a key under `keys:` in `livekit-server.yaml`, or `livekit.keys` in `livekit-values.yaml` on Kubernetes |
+| [`LIVEKIT_API_SECRET`](#LIVEKIT_API_SECRET) | LiveKit API secret, the value of that key under `keys:`. 32+ characters: anyone holding it can forge tokens for your LiveKit server, so rotate it at once if it leaks |
+| [`LIVEKIT_API_URL`](#LIVEKIT_API_URL) | **Public** LiveKit URL, e.g. `https://livekit.example.com`. Browsers receive it and the backend calls it, so it cannot be the Docker-internal address. |
 
 Everything else has a working default. The optional features are off until
 their switch is set:
@@ -36,7 +52,7 @@ their switch is set:
 |---|---|---|---|
 | `DJANGO_SETTINGS_MODULE`{#DJANGO_SETTINGS_MODULE} | No | `meet.settings` | The only value. `wsgi.py`, `manage.py` and the Celery app set it when it is missing. |
 | `DJANGO_CONFIGURATION`{#DJANGO_CONFIGURATION} | **Yes** | `Development` | `Production` on a server, `Development` or `Test` locally. The default needs development-only packages the published image does not include. |
-| `DJANGO_SECRET_KEY`{#DJANGO_SECRET_KEY} | **Yes** | -- | 50+ character random string for cryptographic signing; [Security](security.md#django-secret-key) shows how to generate it |
+| `DJANGO_SECRET_KEY`{#DJANGO_SECRET_KEY} | **Yes** | -- | 50+ character random string for cryptographic signing. Rotating it signs everyone out |
 | `DJANGO_ALLOWED_HOSTS`{#DJANGO_ALLOWED_HOSTS} | **Yes** | -- | Comma-separated list of allowed hostnames |
 | `DJANGO_CSRF_TRUSTED_ORIGINS`{#DJANGO_CSRF_TRUSTED_ORIGINS} | No | -- | Comma-separated HTTPS origins allowed to send form posts from another domain. Requests from Meet's own domain, through the reverse proxy, need nothing here |
 | `NUM_PROXIES`{#NUM_PROXIES} | No | `1` | Proxies in front of the backend that append to `X-Forwarded-For`; rate limits and audit events read the client's address that many entries from the right. If it is too low, every client gets a proxy's address; if it is too high, a client can pick its own. The Docker Compose template sets `2`: the reverse proxy and the frontend's nginx |
@@ -93,7 +109,7 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 | `OIDC_OP_USER_ENDPOINT`{#OIDC_OP_USER_ENDPOINT} | **Yes** | -- | OIDC userinfo URL |
 | `OIDC_RP_CLIENT_ID`{#OIDC_RP_CLIENT_ID} | No | `meet` | OIDC client ID |
 | `OIDC_OP_LOGOUT_ENDPOINT`{#OIDC_OP_LOGOUT_ENDPOINT} | No | -- | OIDC logout URL |
-| `OIDC_OP_URL`{#OIDC_OP_URL} | No | -- | Issuer URL of the OIDC provider, e.g. `https://auth.example.com/realms/meet`. Checked as the `iss` of back-channel logout tokens, and required for the [resource server](#external-api-oidc-resource-server). It does not replace the `OIDC_OP_*_ENDPOINT` variables |
+| `OIDC_OP_URL`{#OIDC_OP_URL} | No | -- | Issuer URL of the OIDC provider, e.g. `https://auth.example.com/realms/meet`. Checked as the `iss` of back-channel logout tokens, and required for the [user's OIDC token](#external-api-oidc-resource-server) mode. It does not replace the `OIDC_OP_*_ENDPOINT` variables |
 | `OIDC_RP_SIGN_ALGO`{#OIDC_RP_SIGN_ALGO} | No | `RS256` | Token signing algorithm |
 | `OIDC_RP_SCOPES`{#OIDC_RP_SCOPES} | No | `openid email` | Requested OIDC scopes |
 | `OIDC_REDIRECT_REQUIRE_HTTPS`{#OIDC_REDIRECT_REQUIRE_HTTPS} | No | `False` | Require HTTPS for OIDC redirect URIs. **Recommended in production.** |
@@ -125,8 +141,8 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `LIVEKIT_API_KEY`{#LIVEKIT_API_KEY} | **Yes** | -- | LiveKit API key. Must match a key under `keys:` in `livekit-server.yaml` |
-| `LIVEKIT_API_SECRET`{#LIVEKIT_API_SECRET} | **Yes** | -- | LiveKit API secret, the value of that key under `keys:` |
+| `LIVEKIT_API_KEY`{#LIVEKIT_API_KEY} | **Yes** | -- | LiveKit API key. Must match a key under `keys:` in `livekit-server.yaml`, or `livekit.keys` in `livekit-values.yaml` on Kubernetes |
+| `LIVEKIT_API_SECRET`{#LIVEKIT_API_SECRET} | **Yes** | -- | LiveKit API secret, the value of that key under `keys:`. 32+ characters: anyone holding it can forge tokens for your LiveKit server, so rotate it at once if it leaks |
 | `LIVEKIT_API_URL`{#LIVEKIT_API_URL} | **Yes** | -- | **Public** LiveKit URL, e.g. `https://livekit.example.com`. Browsers receive it and the backend calls it, so it cannot be the Docker-internal address. |
 | `LIVEKIT_DEFAULT_VIDEO_CODEC`{#LIVEKIT_DEFAULT_VIDEO_CODEC} | No | `vp9` | Default video codec. One of `vp8`, `h264`, `vp9`, `av1`. |
 | `LIVEKIT_DEFAULT_SOURCES`{#LIVEKIT_DEFAULT_SOURCES} | No | `["camera","microphone","screen_share","screen_share_audio"]` | Media sources participants can publish by default |
@@ -301,9 +317,9 @@ The app title is set at build time, see [Build-time theming](../self-hosting/con
 | `FRONTEND_USE_PROCONNECT_BUTTON`{#FRONTEND_USE_PROCONNECT_BUTTON} | No | `False` | Show the ProConnect login button, for French government instances |
 | `FRONTEND_USE_FRENCH_GOV_FOOTER`{#FRONTEND_USE_FRENCH_GOV_FOOTER} | No | `False` | Show French government footer |
 | `FRONTEND_ANALYTICS`{#FRONTEND_ANALYTICS} | No | `{}` | Analytics configuration exposed to the frontend: the backend or provider, and its keys |
-| `FRONTEND_SUPPORT`{#FRONTEND_SUPPORT} | No | `{}` | Support widget configuration exposed to the frontend, such as Crisp |
+| `FRONTEND_SUPPORT`{#FRONTEND_SUPPORT} | No | `{}` | Support settings for the frontend: `widget_script_url`, `widget_api_url` and `widget_channel` of the La Suite support form, whose button shows only when all three are set, and the `help_article_recording`, `help_article_transcript` and `help_article_more_tools` links |
 | `FRONTEND_FEEDBACK`{#FRONTEND_FEEDBACK} | No | `{}` | Feedback form configuration exposed to the frontend |
-| `FRONTEND_MANIFEST_LINK`{#FRONTEND_MANIFEST_LINK} | No | -- | Override the web app manifest URL |
+| `FRONTEND_MANIFEST_LINK`{#FRONTEND_MANIFEST_LINK} | No | -- | URL of the home page's **Learn more about** link, followed by the app name; unset, the link is hidden |
 | `FRONTEND_SILENCE_LIVEKIT_DEBUG`{#FRONTEND_SILENCE_LIVEKIT_DEBUG} | No | `False` | Suppress LiveKit debug logs |
 
 To replace the logo or the landing page images at runtime, mount your own files over them, as [Theming: Custom assets](../self-hosting/configuration/theming.md#custom-assets-logo-images) shows.
@@ -336,7 +352,7 @@ Lets participants check their connection to LiveKit before a meeting.
 
 ### External API (applications)
 
-Lets external applications authenticate against Meet on behalf of users with application JWTs. See [External API](external-api.md) and [Application-delegated](external-api-delegated.md).
+Lets external applications authenticate against Meet on behalf of users with application JWTs. See [External API: Application token](external-api.md#application-token).
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -364,9 +380,9 @@ It needs the [External API (applications)](#external-api-applications) switched 
 | `TRANSIT_CODE_TTL`{#TRANSIT_CODE_TTL} | No | `60` | Seconds a transit code stays valid. It needs to last only through the redirect and the exchange. |
 | `EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES`{#EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES} | No | `30/minute` | Rate limit for transit code exchanges, per client address |
 
-### External API (OIDC resource server)
+### External API (user's OIDC token) { #external-api-oidc-resource-server }
 
-Lets an application call the external API with the access token its user got from your [OIDC](https://openid.net/developers/how-connect-works/) provider, separate from the browser login. What the mode needs is in [Resource server](external-api-resource-server.md).
+Lets an application call the external API with the access token its user got from your [OIDC](https://openid.net/developers/how-connect-works/) provider, separate from the browser login. What the mode needs is in [External API: User's OIDC token](external-api.md#users-oidc-token).
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
@@ -472,7 +488,7 @@ Rarely changed: internal names, token claims and lengths. None is required.
 | `PRESENCE_KEY_PREFIX`{#PRESENCE_KEY_PREFIX} | [Presence](#redis-celery-and-presence) | `room_presence` | Redis key prefix for presence state |
 | `LOBBY_KEY_PREFIX`{#LOBBY_KEY_PREFIX} | [Waiting room](#rooms-and-waiting-room) | `room_lobby` | Redis key prefix for lobby state |
 | `LOBBY_NOTIFICATION_TYPE`{#LOBBY_NOTIFICATION_TYPE} | [Waiting room](#rooms-and-waiting-room) | `participantWaiting` | LiveKit data channel notification type sent to the room when someone is waiting |
-| `RECORDING_WORKER_CLASSES`{#RECORDING_WORKER_CLASSES} | [Recording](#recording) | -- | Worker class per recording mode. Default: `screen_recording` → `VideoCompositeEgressService`, `transcript` → `AudioCompositeEgressService`. Change it only for custom egress workers. |
+| `RECORDING_WORKER_CLASSES`{#RECORDING_WORKER_CLASSES} | [Recording](#recording) | -- | Worker class per recording mode. Default: `screen_recording` → `core.recording.worker.services.VideoCompositeEgressService`, `transcript` → `core.recording.worker.services.AudioCompositeEgressService`; each value is a full Python path. Change it only for custom egress workers. |
 | `APPLICATION_JWT_ALG`{#APPLICATION_JWT_ALG} | [External API](#external-api-applications) | `HS256` | Application JWT signing algorithm |
 | `APPLICATION_JWT_ISSUER`{#APPLICATION_JWT_ISSUER} | [External API](#external-api-applications) | `lasuite-meet` | `iss` claim for application JWTs |
 | `APPLICATION_JWT_AUDIENCE`{#APPLICATION_JWT_AUDIENCE} | [External API](#external-api-applications) | -- | `aud` claim for application JWTs |
@@ -485,10 +501,10 @@ Rarely changed: internal names, token claims and lengths. None is required.
 | `USER_ACCESS_TOKEN_TYPE_CLAIM`{#USER_ACCESS_TOKEN_TYPE_CLAIM} | [User access tokens](#user-access-tokens) | `user_token` | `token_type` claim every user access token must carry |
 | `TRANSIT_CODE_NBYTES`{#TRANSIT_CODE_NBYTES} | [User access tokens](#user-access-tokens) | `48` | Random bytes in a transit code. 48 bytes make a 64-character code. |
 | `TRANSIT_CODE_CACHE_PREFIX`{#TRANSIT_CODE_CACHE_PREFIX} | [User access tokens](#user-access-tokens) | `transit-code` | Redis key prefix for transit codes |
-| `OIDC_RS_SIGNING_ALGO`{#OIDC_RS_SIGNING_ALGO} | [Resource server](#external-api-oidc-resource-server) | `ES256` | Read by the shared library for signed introspection responses. Meet reads introspection as plain JSON, so it has no effect today |
-| `OIDC_RS_ENCRYPTION_ALGO`{#OIDC_RS_ENCRYPTION_ALGO} | [Resource server](#external-api-oidc-resource-server) | `RSA-OAEP` | Algorithm advertised as `alg` for the key published at `/jwks`; would also decrypt encrypted introspection responses, which Meet does not request |
-| `OIDC_RS_ENCRYPTION_ENCODING`{#OIDC_RS_ENCRYPTION_ENCODING} | [Resource server](#external-api-oidc-resource-server) | `A256GCM` | For encrypted introspection responses, which Meet does not request; no effect today |
-| `OIDC_RS_ENCRYPTION_KEY_TYPE`{#OIDC_RS_ENCRYPTION_KEY_TYPE} | [Resource server](#external-api-oidc-resource-server) | `RSA` | Key type used to read [`OIDC_RS_PRIVATE_KEY_STR`](#OIDC_RS_PRIVATE_KEY_STR) for `/jwks` |
+| `OIDC_RS_SIGNING_ALGO`{#OIDC_RS_SIGNING_ALGO} | [User's OIDC token](#external-api-oidc-resource-server) | `ES256` | Read by the shared library for signed introspection responses. Meet reads introspection as plain JSON, so it has no effect today |
+| `OIDC_RS_ENCRYPTION_ALGO`{#OIDC_RS_ENCRYPTION_ALGO} | [User's OIDC token](#external-api-oidc-resource-server) | `RSA-OAEP` | Algorithm advertised as `alg` for the key published at `/jwks`; would also decrypt encrypted introspection responses, which Meet does not request |
+| `OIDC_RS_ENCRYPTION_ENCODING`{#OIDC_RS_ENCRYPTION_ENCODING} | [User's OIDC token](#external-api-oidc-resource-server) | `A256GCM` | For encrypted introspection responses, which Meet does not request; no effect today |
+| `OIDC_RS_ENCRYPTION_KEY_TYPE`{#OIDC_RS_ENCRYPTION_KEY_TYPE} | [User's OIDC token](#external-api-oidc-resource-server) | `RSA` | Key type used to read [`OIDC_RS_PRIVATE_KEY_STR`](#OIDC_RS_PRIVATE_KEY_STR) for `/jwks` |
 | `ADDONS_TOKEN_AUDIENCE`{#ADDONS_TOKEN_AUDIENCE} | [Add-ons](#add-ons) | `addons` | `aud` claim for add-on tokens |
 | `ADDONS_TOKEN_ISSUER`{#ADDONS_TOKEN_ISSUER} | [Add-ons](#add-ons) | `lasuite-meet` | `iss` claim for add-on tokens |
 | `ADDONS_TOKEN_ALG`{#ADDONS_TOKEN_ALG} | [Add-ons](#add-ons) | `HS256` | Add-on token signing algorithm |

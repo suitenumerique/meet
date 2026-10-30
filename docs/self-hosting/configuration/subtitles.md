@@ -14,27 +14,15 @@ The [multi-user transcriber agent](https://github.com/suitenumerique/meet/blob/m
 
 ### Step 1: Backend
 
-[`ROOM_SUBTITLE_AGENT_NAME`](../../reference/env-variables.md#ROOM_SUBTITLE_AGENT_NAME) must match the agent's [`TRANSCRIBER_AGENT_NAME`](../../reference/env-variables.md#TRANSCRIBER_AGENT_NAME), see [Environment Variables: Subtitles](../../reference/env-variables.md#subtitles).
+[`ROOM_SUBTITLE_AGENT_NAME`](../../reference/env-variables.md#ROOM_SUBTITLE_AGENT_NAME) and the agent's [`TRANSCRIBER_AGENT_NAME`](../../reference/env-variables.md#TRANSCRIBER_AGENT_NAME) both default to `multi-user-transcriber`: to rename the agent, set both to the same name.
 
 === "Docker Compose"
 
-    Add to `env.d/common`:
-
-    ```dotenv title="env.d/common"
-    ROOM_SUBTITLE_ENABLED=True
-    ROOM_SUBTITLE_AGENT_NAME=multi-user-transcriber
-    ```
+    Uncomment the Live subtitles line of `env.d/common`, [`ROOM_SUBTITLE_ENABLED`](../../reference/env-variables.md#ROOM_SUBTITLE_ENABLED).
 
 === "Kubernetes"
 
-    Add to `backend.envVars` in your `values.yaml`:
-
-    ```yaml title="values.yaml"
-    backend:
-      envVars:
-        ROOM_SUBTITLE_ENABLED: "True"
-        ROOM_SUBTITLE_AGENT_NAME: "multi-user-transcriber"
-    ```
+    Uncomment the Live subtitles line of `backend.envVars` in your `values.yaml`, [`ROOM_SUBTITLE_ENABLED`](../../reference/env-variables.md#ROOM_SUBTITLE_ENABLED).
 
 ### Step 2: Agent
 
@@ -65,19 +53,10 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
     DEEPGRAM_API_KEY=your-deepgram-api-key
     ```
 
-    Add the agent to `compose.yml`, under `services:`:
+    `compose.yml` holds the agent under the `subtitles` profile. Turn it on with [`COMPOSE_PROFILES`](https://docs.docker.com/compose/how-tos/profiles/) in the Meet stack's `.env`, comma-separated after any profile already there:
 
-    ```yaml title="compose.yml"
-      multi-user-transcriber:
-        image: lasuite/meet-agents:${MEET_VERSION:-latest}
-        command: python multi_user_transcriber.py start
-        restart: unless-stopped
-        env_file:
-          - env.d/multi-user-transcriber
-        depends_on:
-          - livekit
-        networks:
-          - internal
+    ```dotenv title=".env"
+    COMPOSE_PROFILES=subtitles
     ```
 
     Start the agent, and recreate the backend with Step 1's settings:
@@ -95,27 +74,7 @@ Every agent variable, with its default, is in [Environment Variables: Subtitles 
       --from-literal=api-key="<your Deepgram API key>"
     ```
 
-    Then turn the agent on in your `values.yaml`:
-
-    ```yaml title="values.yaml"
-    agentSubtitles:
-      replicas: 1
-      envVars:
-        LIVEKIT_URL: "ws://livekit-server:7880"
-        LIVEKIT_API_KEY: "meet"
-        LIVEKIT_API_SECRET:
-          secretKeyRef:
-            name: meet-backend-env
-            key: LIVEKIT_API_SECRET
-        STT_PROVIDER: "deepgram"
-        DEEPGRAM_STT_MODEL: "nova-3"
-        DEEPGRAM_STT_LANGUAGE: "multi"
-        ENABLE_SILERO_VAD: "true"
-        DEEPGRAM_API_KEY:
-          secretKeyRef:
-            name: meet-deepgram
-            key: api-key
-    ```
+    Then turn the agent on: under `agentSubtitles` in your `values.yaml`, set `replicas: 1` and uncomment `envVars`.
 
     ```bash
     helm upgrade meet meet/meet --namespace meet --values values.yaml

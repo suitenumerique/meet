@@ -4,54 +4,12 @@ Colors, fonts, logos and images change without a rebuild. Only the application t
 
 ## Colors and fonts
 
-### Load your CSS file
+[`custom.css`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/custom.css) is a theme to edit in place: a teal primary color, and a font to uncomment. Download it; on Docker Compose, from `~/docker/meet`:
 
-Set [`FRONTEND_CUSTOM_CSS_URL`](../../reference/env-variables.md#FRONTEND_CUSTOM_CSS_URL), on the **backend** container, to your CSS file's URL. To serve the file from the frontend container, mount it into `/usr/share/nginx/html` and set the variable to its path:
-
-=== "Docker Compose"
-
-    Add to the `frontend` service's `volumes:` in `compose.yml`:
-
-    ```yaml title="compose.yml"
-          - ./custom.css:/usr/share/nginx/html/custom.css:ro
-    ```
-
-    Add to `env.d/common`:
-
-    ```dotenv title="env.d/common"
-    FRONTEND_CUSTOM_CSS_URL=/custom.css
-    ```
-
-    ```bash
-    docker compose up -d --force-recreate frontend backend
-    ```
-
-=== "Kubernetes"
-
-    Store the file in a ConfigMap:
-
-    ```bash
-    kubectl -n meet create configmap meet-custom-css --from-file=custom.css
-    ```
-
-    Then mount it and set the variable in your `values.yaml`:
-
-    ```yaml title="values.yaml"
-    frontend:
-      extraVolumes:
-        - name: custom-css
-          configMap:
-            name: meet-custom-css
-      extraVolumeMounts:
-        - name: custom-css
-          mountPath: /usr/share/nginx/html/custom.css
-          subPath: custom.css
-          readOnly: true
-
-    backend:
-      envVars:
-        FRONTEND_CUSTOM_CSS_URL: "/custom.css"
-    ```
+```bash
+RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
+curl -fsSL -O $RAW/docs/examples/meet/custom.css
+```
 
 ### What to override
 
@@ -72,43 +30,29 @@ The main semantic tokens, defined in [`src/frontend/panda.config.ts`](https://gi
 | Font serif | Alternate or reading font | `--fonts-serif` |
 | Font mono | Code or technical font | `--fonts-mono` |
 
-### Example: full primary color override
+In `custom.css`, put your colors in place of the teal ones. For the font, uncomment the `@import` line and `--fonts-sans`, then name your font in both.
 
-```css title="custom.css"
-:root {
-  /* Semantic tokens */
-  --colors-primary: #00796B;
-  --colors-primary-hover: #00695C;
-  --colors-primary-active: #004D40;
-  --colors-primary-text: #ffffff;
-  --colors-primary-subtle: #E0F2F1;
-  --colors-primary-subtle-text: #00695C;
-  --colors-primary-warm: #80CBC4;
+### Load your CSS file
 
-  /* Raw palette scale */
-  --colors-primary-50:  #E0F2F1;
-  --colors-primary-100: #B2DFDB;
-  --colors-primary-200: #80CBC4;
-  --colors-primary-300: #4DB6AC;
-  --colors-primary-400: #26A69A;
-  --colors-primary-500: #009688;
-  --colors-primary-600: #00897B;
-  --colors-primary-700: #00796B;
-  --colors-primary-800: #00695C;
-  --colors-primary-900: #004D40;
-  --colors-primary-950: #003D33;
-}
-```
+Set [`FRONTEND_CUSTOM_CSS_URL`](../../reference/env-variables.md#FRONTEND_CUSTOM_CSS_URL), on the **backend** container, to your CSS file's URL. To serve the file from the frontend container, mount it into `/usr/share/nginx/html` and set the variable to its path:
 
-### Example: custom font
+=== "Docker Compose"
 
-```css title="custom.css"
-@import url(https://fonts.bunny.net/css?family=Roboto:wght@400;700&display=swap);
+    Uncomment the `custom.css` line in the `frontend` service's `volumes:` of `compose.yml`, and [`FRONTEND_CUSTOM_CSS_URL`](../../reference/env-variables.md#FRONTEND_CUSTOM_CSS_URL) in `env.d/common`:
 
-:root {
-  --fonts-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif;
-}
-```
+    ```bash
+    docker compose up -d --force-recreate frontend backend
+    ```
+
+=== "Kubernetes"
+
+    Store the file in a ConfigMap:
+
+    ```bash
+    kubectl -n meet create configmap meet-custom-css --from-file=custom.css
+    ```
+
+    Then, in your `values.yaml`, uncomment `FRONTEND_CUSTOM_CSS_URL` in `backend.envVars`, and under `frontend` uncomment `extraVolumes`, `extraVolumeMounts` and their `custom-css` entries.
 
 ## Custom assets (logo, images)
 
@@ -125,12 +69,7 @@ Mount each file, or `assets/intro-slider/` whole with its four images, never the
 
 === "Docker Compose"
 
-    Add to the `frontend` service's `volumes:` in `compose.yml`:
-
-    ```yaml title="compose.yml"
-          - ./custom-assets/logo.svg:/usr/share/nginx/html/assets/logo.svg:ro
-          - ./custom-assets/intro-slider:/usr/share/nginx/html/assets/intro-slider:ro
-    ```
+    Put your files in `~/docker/meet/custom-assets/`, then uncomment their two lines in the `frontend` service's `volumes:` of `compose.yml`, for `logo.svg` and for `intro-slider/`.
 
 === "Kubernetes"
 
@@ -142,24 +81,7 @@ Mount each file, or `assets/intro-slider/` whole with its four images, never the
       --from-file=intro-slider-1.png=./custom-assets/intro-slider/1.png
     ```
 
-    Then mount each key in your `values.yaml`:
-
-    ```yaml title="values.yaml"
-    frontend:
-      extraVolumes:
-        - name: custom-assets
-          configMap:
-            name: meet-custom-assets
-      extraVolumeMounts:
-        - name: custom-assets
-          mountPath: /usr/share/nginx/html/assets/logo.svg
-          subPath: logo.svg
-          readOnly: true
-        - name: custom-assets
-          mountPath: /usr/share/nginx/html/assets/intro-slider/1.png
-          subPath: intro-slider-1.png
-          readOnly: true
-    ```
+    Then, under `frontend` in your `values.yaml`, uncomment `extraVolumes`, `extraVolumeMounts` and their `custom-assets` entries, which mount the two keys above. Each further key takes one more mount.
 
 ## Build-time theming
 

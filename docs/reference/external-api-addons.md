@@ -1,8 +1,16 @@
 # Add-ons
 
-In this mode, an add-in gets a token for the user by having them sign in to Meet in a popup. The add-in runs in an iframe inside another application, such as Outlook.
+An add-in runs in an iframe inside another application, such as Outlook, and gets an [External API](external-api.md#getting-a-token) token for its user by having them sign in to Meet in a popup.
 
-The session endpoints under `/api/v1.0/addons/sessions/` need [`ADDONS_ENABLED=True`](env-variables.md#add-ons) and answer 404 without it. The room calls made with the token afterwards need [`EXTERNAL_API_ENABLED=True`](env-variables.md#EXTERNAL_API_ENABLED) as well.
+The session endpoints under `/api/v1.0/addons/sessions/` need [`ADDONS_ENABLED=True`](env-variables.md#add-ons) and answer 404 without it.
+
+## Available add-ons
+
+| Add-on | What it does | Status |
+|---|---|---|
+| [Outlook](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook) | Adds a meeting link to an Outlook email or calendar event | Available |
+| Thunderbird | The same for Thunderbird | In progress: [#1581](https://github.com/suitenumerique/meet/pull/1581) |
+| Zimbra | Adds a meeting link to a Zimbra calendar event | Requested: [#618](https://github.com/suitenumerique/meet/issues/618) |
 
 ## Authentication flow
 
@@ -98,7 +106,3 @@ Cookie: addonsSid=...
 ```
 
 The session is deleted and the cookie cleared after this final read.
-
-## Implementation reference
-
-The [Outlook add-in](https://github.com/suitenumerique/meet/tree/main/src/addons/outlook) is a working example: [`api.js`](https://github.com/suitenumerique/meet/blob/main/src/addons/outlook/src/common/api.js) holds its calls to the session endpoints.

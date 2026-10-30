@@ -1,6 +1,6 @@
 # Code tour
 
-[How Meet works](../overview/how-meet-works.md) explains how the parts work together, and [Develop locally](develop.md) how to run them.
+Find each part of Meet's code in the repository before you change it. [How Meet works](../overview/how-meet-works.md) explains how the parts work together, and [Develop locally](develop.md) how to run them.
 
 ## TL;DR
 
@@ -77,7 +77,7 @@ Sign-in goes through the `oidc_login` module of [django-lasuite](https://github.
 
 ### API
 
-[`core/urls.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/urls.py) mounts two APIs. Their endpoints and authentication are in the [API reference](../reference/api.md).
+[`core/urls.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/urls.py) mounts two APIs. The frontend's is described by the schema the backend generates, at `/api/v1.0/swagger/` under the `Development` configuration; the other is the [External API](../reference/external-api.md).
 
 | API | Prefix | Routes and their code |
 |---|---|---|
@@ -138,7 +138,7 @@ The pass reaches the browser two ways:
 - In the `livekit` field of `GET /api/v1.0/rooms/<id>/`, which `RoomSerializer` in [`core/api/serializers.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/api/serializers.py) adds when the visitor may enter at once.
 - In the answer to `POST /api/v1.0/rooms/<id>/request-entry/`, once someone admits the visitor from the waiting room, from [`core/services/lobby.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/services/lobby.py).
 
-The pass also authenticates the API calls that [LiveKit room token](../reference/api.md#livekit-room-token) lists, for every participant, signed in or not. They accept it through `LiveKitTokenAuthentication` in [`core/authentication/livekit.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/authentication/livekit.py).
+The pass also authenticates the API calls a participant makes during a call, signed in or not. They accept it through `LiveKitTokenAuthentication` in [`core/authentication/livekit.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/authentication/livekit.py).
 
 ```mermaid
 sequenceDiagram

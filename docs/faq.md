@@ -1,5 +1,7 @@
 # Frequently Asked Questions
 
+Here are answers for participants and hosts about joining and using Meet, and for anyone who wants to run their own Meet server or contribute to the project.
+
 ## Joining
 
 ### Do I need to install anything?
@@ -23,11 +25,7 @@ Yes: **Create a meeting** → **Create a meeting for a later date**, then send t
 
 ### Is Meet accessible?
 
-It works with a keyboard alone and with screen readers, see [Accessibility & Shortcuts](user/accessibility.md). Each of these readers has a guide:
-
-- [Deaf or hard of hearing](user/guides/deaf-hard-of-hearing.md)
-- [Blind or low vision](user/guides/blind-low-vision.md)
-- [Sign-language interpreter](user/guides/sign-language-interpreter.md)
+It works with a keyboard alone and with screen readers, see [Accessibility & Shortcuts](user/accessibility.md). A guide for each need is on the [home page](index.md#where-to-start).
 
 ### Why does the link say the meeting has been deleted?
 
@@ -76,20 +74,17 @@ Your name is in **More Options** → **Settings** → **Profile**. Blur and back
 
 ### How do I make someone a co-host?
 
-In **See everyone**, open the menu beside their name and click **Make co-host**. Only a signed-in participant can be made co-host, see [Roles](user/features-controls.md#roles).
+In **See everyone**, click **Make co-host** in the menu beside their name, as [For hosts](user/features-controls.md#for-hosts) shows.
 
 ### How do I remove someone, and keep them out?
 
-In **See everyone**, open the menu beside their name and click **Remove from the call**: it disconnects them but does not stop them coming back.
-
-To keep them out, set the room to **Restricted** and deny their request; a current or former co-host still gets in. See [Hosting a large meeting](user/guides/large-meeting-host.md#remove-someone).
+Set the room to **Restricted**, then in **See everyone** click **Remove from the call** in the menu beside their name, and **Deny** their request to come back. A current or former co-host still walks in, as [Remove someone](user/guides/large-meeting-host.md#remove-someone) shows.
 
 ## Recording and transcription
 
 ### Who gets the recording, and for how long?
 
-- Whoever started it, and the room's host and co-hosts, see [Recording](user/recording.md#recording). Whoever runs your Meet server can also reach the file.
-- How long it is kept is up to whoever runs your Meet server, see [What is stored where](overview/how-meet-works.md#what-is-stored-where).
+The [download link](user/recording.md#recording) goes by email to whoever started it, the host and the co-hosts, and whoever runs your Meet server decides [how long the file is kept](overview/how-meet-works.md#what-is-stored-where).
 
 ### Why don't I see the recording or transcription buttons?
 

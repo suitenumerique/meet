@@ -2,11 +2,15 @@
 
 Meet works with a keyboard alone and with screen readers. It follows the recommendations of [RGAA](https://accessibilite.numerique.gouv.fr/), France's accessibility standard, but has not been audited yet.
 
-!!! tip "A guide for your case"
+Each need has its own guide, with the settings and shortcuts that matter for it:
 
-    - [Deaf or hard of hearing](guides/deaf-hard-of-hearing.md)
-    - [Blind or low vision](guides/blind-low-vision.md)
-    - [Sign-language interpreter](guides/sign-language-interpreter.md)
+| Guide | For |
+|---|---|
+| [Hosting a large meeting](guides/large-meeting-host.md) | Teachers and speakers |
+| [On a phone or a weak connection](guides/phone-or-weak-connection.md) | Phones and poor networks |
+| [Deaf or hard of hearing](guides/deaf-hard-of-hearing.md) | Following by reading |
+| [Blind or low vision](guides/blind-low-vision.md) | Screen readers, keyboard, magnifiers |
+| [Sign-language interpreter](guides/sign-language-interpreter.md) | Interpreters and their hosts |
 
 ## Keyboard
 
@@ -32,21 +36,6 @@ In a meeting, `Ctrl+Shift+/` or **Settings → Shortcuts** lists these shortcuts
 | Move around a zoomed shared screen | Arrow keys |
 
 On a Mac, `Ctrl` is `⌘`.
-
-## Screen readers
-
-- Announced: your microphone or camera going on or off, a recording starting or stopping, people joining, new chat messages while the chat is closed, whose video you pinned or unpinned, and a shared screen's zoom level.
-- Others' reactions, such as "Alice: thumbs up", are announced once you turn on **Announce reactions aloud** in **Settings → Accessibility**.
-- The tab title shows the room code.
-
-## Display
-
-In **Settings → Accessibility**:
-
-- **Display font**: [Lexend](https://www.lexend.com/) for readability, [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/) for low vision, [OpenDyslexic](https://opendyslexic.org/) for dyslexia
-- **Captions**: text size and colours, for [real-time subtitles](recording.md#real-time-subtitles)
-
-Meet turns off its animations when your system asks for reduced motion.
 
 ## Reporting a problem
 

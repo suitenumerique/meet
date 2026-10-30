@@ -1,0 +1,48 @@
+/* Your theme for Meet, from the Theming guide, loaded through
+   FRONTEND_CUSTOM_CSS_URL. Put your colors in place of this teal. */
+
+/* A custom font: uncomment this line and --fonts-sans below. */
+/* @import url(https://fonts.bunny.net/css?family=Roboto:wght@400;700&display=swap); */
+
+:root {
+  /* Semantic tokens */
+  --colors-primary: #00796B;
+  --colors-primary-hover: #00695C;
+  --colors-primary-active: #004D40;
+  --colors-primary-text: #ffffff;
+  --colors-primary-subtle: #E0F2F1;
+  --colors-primary-subtle-text: #00695C;
+  --colors-primary-warm: #80CBC4;
+
+  /* Raw palette scale */
+  --colors-primary-50:  #E0F2F1;
+  --colors-primary-100: #B2DFDB;
+  --colors-primary-200: #80CBC4;
+  --colors-primary-300: #4DB6AC;
+  --colors-primary-400: #26A69A;
+  --colors-primary-500: #009688;
+  --colors-primary-600: #00897B;
+  --colors-primary-700: #00796B;
+  --colors-primary-800: #00695C;
+  --colors-primary-900: #004D40;
+  --colors-primary-950: #003D33;
+  /* Saturated shade for action buttons, Meet's #1212FF */
+  --colors-primary-action: #00897B;
+
+  /* Dark scale, inside a room: 50 is the darkest, 950 the lightest */
+  --colors-primary-dark-50:  #162221;
+  --colors-primary-dark-75:  #223432;
+  --colors-primary-dark-100: #2D4644;
+  --colors-primary-dark-200: #436A66;
+  --colors-primary-dark-300: #5A8F8A;
+  --colors-primary-dark-400: #70B3AD;
+  --colors-primary-dark-500: #87D7D0;
+  --colors-primary-dark-600: #9DDFD9;
+  --colors-primary-dark-700: #B3E7E2;
+  --colors-primary-dark-800: #C9EEEB;
+  --colors-primary-dark-900: #DFF6F4;
+  --colors-primary-dark-950: #F5FEFD;
+  --colors-primary-dark-action: #C1FBF6;
+
+  /* --fonts-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif; */
+}

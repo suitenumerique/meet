@@ -4,8 +4,6 @@ One script installs Meet on a fresh Linux server, with HTTPS and sign-in ready.
 
 Recording and transcription are left out.
 
-Already have a reverse proxy or a sign-in provider? Use the [Deployment Guide](deployment-guide.md) instead.
-
 Before you run it, read the [Prerequisites](prerequisites.md). The script brings Keycloak, so you need no sign-in provider of your own.
 
 ## Download and run
@@ -42,7 +40,7 @@ $ bash install.sh
 It only sets up a fresh install: it stops if `~/docker/keycloak` or `~/docker/meet` exists, since new passwords would not match the existing databases.
 
 !!! warning
-    To start over, run `docker compose down -v` in `~/docker/keycloak` and `~/docker/meet`, which deletes their data, then delete both directories.
+    To start over, remove both stacks and their data as [Stop or remove](deployment-guide.md#stop-or-remove) shows, then delete both directories.
 
 ## After setup
 
@@ -57,6 +55,4 @@ Note the two printed passwords: they are saved nowhere else. The URLs use your o
 ## Next
 
 - To see what the script set up, read [`install.sh`](https://github.com/suitenumerique/meet/blob/main/docs/install.sh) itself: one labelled section per stack.
-- To change a step, follow the [Deployment Guide](deployment-guide.md).
 - Before production, work through the Deployment Guide's [After installation](deployment-guide.md#after-installation) steps.
-- To change the look, see [Theming](../configuration/theming.md).
