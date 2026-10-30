@@ -17,19 +17,28 @@ Choose how to install your own Meet instance, then check that calls work. What e
 
 ## Install with an AI assistant
 
-Copy this request into your assistant, with your domain and the optional features you want in place of the two values in angle brackets:
+Copy this request into your assistant as it is: it asks for your domain, your install method and the features you want before it starts.
 
 ```text
-Install LaSuite Meet on this server with Docker Compose, following
-https://documentation-meet.beta.numerique.gouv.fr/self-hosting/compose/deployment-guide/
-My domain is <your-domain.org>. Turn on: <recording, or nothing>.
-Every optional feature and setting is listed at
+Install LaSuite Meet for me, following its documentation:
+https://documentation-meet.beta.numerique.gouv.fr/self-hosting/
+
+Before you start, ask me:
+- the domain to use
+- how to install it: Docker Compose, Kubernetes or Scalingo
+- which optional features to turn on: recording, AI transcription,
+  live subtitles, telephony
+
+Every feature and setting is listed at
 https://documentation-meet.beta.numerique.gouv.fr/self-hosting/customising/
-When you are done, run this command and show me its whole output:
+
+When you are done, prove that it works and show me the whole output.
+On Docker Compose, run:
 cd ~/docker/meet && curl -fsSL https://raw.githubusercontent.com/suitenumerique/meet/main/docs/check-install.sh | bash
+On Kubernetes, run the Helm guide's "Check the install" steps.
 ```
 
-The last line is your proof: the command prints a ✓ or a ✗ for each check, whatever the assistant reports.
+The check at the end is your proof, whatever the assistant reports.
 
 ## Check your install { #check-that-it-works }
 
