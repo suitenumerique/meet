@@ -21,6 +21,11 @@ the following command inside your docker container:
 The Crisp chat is gone, the support button, now open the La Suite support form. They are hidden unless these `FRONTEND_SUPPORT` keys are all set.
 The former help links for recording/transcription are now redirecting to the adhoc page in the official documentation
 
+### Pages hidden from search engines
+
+Every page except `/` now carries a `noindex` tag and, with the provided nginx configurations, an `X-Robots-Tag` header to stay out of search indexes.
+A new `robots.txt` also blocks the main AI crawlers. If you maintain your own nginx configuration, copy the `location = /` and `location = /home.html` blocks from `src/frontend/default.conf`, and the `X-Robots-Tag` header from its `location /`.
+
 ## [v1.35.0]
 
 ### Purging deleted rooms
