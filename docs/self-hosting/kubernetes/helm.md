@@ -137,7 +137,7 @@ Each node that runs LiveKit needs a public IP, with the ports in [Firewall & Por
 
 ### Check the install
 
-Open `https://meet.your-domain.org`, sign in, and join the same room from two devices. Audio and video both ways means sign-in, LiveKit and its media ports all work.
+Open `https://meet.your-domain.org`, sign in, and join the same room from two devices. Audio and video both ways means sign-in, LiveKit and its media ports all work. [Check your install](../verify.md) runs the full check, each step with its command and its expected output.
 
 ## Recording and transcription
 

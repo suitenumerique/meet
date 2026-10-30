@@ -28,6 +28,7 @@ nav = [
     {"Overview" = "self-hosting/index.md"},
     {"Quick Start" = "self-hosting/compose/quick-start.md"},
     {"Customising Meet" = "self-hosting/customising.md"},
+    {"Check your install" = "self-hosting/verify.md"},
     {"Docker Compose" = [
       {"Prerequisites" = "self-hosting/compose/prerequisites.md"},
       {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"},

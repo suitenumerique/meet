@@ -72,7 +72,7 @@ Every feature is in the open source code.
 
     An AI assistant can install and configure Meet for you. Give it [`llms.txt`](llms.txt), the index of this documentation, and tell it how you install Meet, Docker Compose, Kubernetes or Scalingo, and what you want: "install Meet with recording on my server", for example. To change an existing install, point it at [Customising Meet](self-hosting/customising.md), which links every setting to its guide.
 
-    Then check the result yourself, as [Check that it works](self-hosting/index.md#check-that-it-works) shows: an assistant can report success on an install that does not carry a call.
+    Then check the result yourself, as [Check your install](self-hosting/verify.md) shows: an assistant can report success on an install that does not carry a call.
 
 ## Known public instances
 

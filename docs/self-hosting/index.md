@@ -15,15 +15,9 @@ Choose how to install your own Meet instance, then check that calls work. What e
 - **[Scalingo](scalingo.md)**: when your apps run there, with LiveKit hosted elsewhere.
 - Community packages, not supported by the maintainers: [Nix](https://search.nixos.org/packages?channel=unstable&show=lasuite-meet&query=lasuite-meet) and [YunoHost](https://github.com/YunoHost-Apps/meet_ynh).
 
-## Check that it works
+## Check your install { #check-that-it-works }
 
-Whichever way you installed Meet, by hand or with an AI assistant, check the result yourself: a page that loads does not prove that calls work.
-
-1. **Every service runs.** With Docker Compose, `docker compose ps` in each stack's directory shows every container `Up`, and `backend` and `postgresql` `(healthy)`. On Kubernetes, `kubectl -n meet get pods` shows every pod `Running`.
-2. **The three addresses answer.** Run the `curl` commands of the Deployment Guide's [Verify](compose/deployment-guide.md#verify) step against your domains.
-3. **Sign-in works.** Open your Meet address and click **Login**: you reach your identity provider and come back signed in.
-4. **A real call works.** Join the same room from two devices, one of them on another network such as a phone on mobile data. Audio and video both ways prove that LiveKit's [ports](configuration/firewall.md) are open; if media is missing, see [Troubleshooting](../reference/troubleshooting.md).
-5. **Each feature you turned on works.** For recording, record a minute, stop, and check that the email arrives and its link plays the file.
+Whichever way you installed Meet, by hand or with an AI assistant, check the result yourself: a page that loads does not prove that calls work. [Check your install](verify.md) runs every check, from the services to a call between two networks, with what passing looks like for each.
 
 ## Next steps
 

@@ -245,7 +245,7 @@ $ curl -s -o /dev/null -w "%{http_code}\n" https://livekit.example.com/
 
 Any HTTP status means the certificate works; `000` means it is not issued yet, see [TLS certificate not being issued](../../reference/troubleshooting.md#tls-certificate-not-being-issued). Check `auth.example.com` only with the Keycloak stack.
 
-Then open `https://meet.example.com` and click **Login**: you reach your identity provider's login page and, after signing in, land back on the Meet home page.
+Then open `https://meet.example.com` and click **Login**: you reach your identity provider's login page and, after signing in, land back on the Meet home page. [Check your install](../verify.md) runs the full check, each step with its command and its expected output.
 
 ## After installation
 
