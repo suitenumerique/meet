@@ -13,7 +13,9 @@ export interface ApiConfig {
     flags_api_host?: string
   }
   support?: {
-    id: string
+    widget_script_url?: string
+    widget_api_url?: string
+    widget_channel?: string
     help_article_transcript: string
     help_article_recording: string
     help_article_more_tools: string

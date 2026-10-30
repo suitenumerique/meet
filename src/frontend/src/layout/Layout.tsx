@@ -6,6 +6,7 @@ import { useSnapshot } from 'valtio'
 import { Footer } from '@/layout/Footer'
 import { ScreenReaderAnnouncer } from '@/primitives'
 import { SkipLink, MAIN_CONTENT_ID } from './SkipLink'
+import { SupportWidget } from '@/features/support/components/SupportWidget'
 
 export type Layout = 'fullpage' | 'centered'
 
@@ -46,6 +47,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           })}
         >
           <ScreenReaderAnnouncer />
+          <SupportWidget />
           {children}
         </main>
       </div>

@@ -32,6 +32,7 @@ export type LogCode =
   | 'fullscreen_failure'
   | 'publish_sources_failure'
   | 'disconnect_failure'
+  | 'support_widget_failure'
   | 'generic_failure'
 
 export const reportError = (

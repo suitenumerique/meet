@@ -72,14 +72,6 @@ main#main-content :is(h1, h2, h3)[tabindex='-1']:focus {
   }
 }
 
-body:has(.lk-video-conference) #crisp-chatbox-button {
-  display: none !important;
-}
-
-body:has(.lk-video-conference) #crisp-chatbox > * > div[role='button'] {
-  display: none !important;
-}
-
 html:has(.lk-video-conference) {
   scrollbar-gutter: auto !important;
 }
