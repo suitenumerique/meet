@@ -4,7 +4,7 @@
 
 Built on [LiveKit](https://livekit.io/), LaSuite Meet runs HD audio and video calls in the browser, with nothing to install. [DINUM](https://www.numerique.gouv.fr/), the French government's digital agency, develops it, and it powers [Visio](https://visio.numerique.gouv.fr/), the video platform of French public servants.
 
-[![GitHub Stars](https://img.shields.io/github/stars/suitenumerique/meet)](https://github.com/suitenumerique/meet/stargazers/)
+[![GitHub Stars](https://img.shields.io/github/stars/suitenumerique/meet)](https://github.com/suitenumerique/meet)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md)
 [![License: MIT](https://img.shields.io/github/license/suitenumerique/meet)](https://github.com/suitenumerique/meet/blob/main/LICENSE.md)
 [![Matrix](https://img.shields.io/badge/chat-matrix-blue)](https://matrix.to/#/#meet-official:matrix.org)

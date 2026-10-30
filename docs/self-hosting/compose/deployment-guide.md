@@ -209,6 +209,11 @@ Repeat the second command until `backend` and `postgresql` show `(healthy)`. The
 
 ```console
 $ docker compose exec backend python manage.py migrate
+System check identified some issues:
+
+WARNINGS:
+?: (dockerflow.health.W001) Unapplied migration admin.0001_initial
+...
 Operations to perform:
   Apply all migrations: ...
 Running migrations:
