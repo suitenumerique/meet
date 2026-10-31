@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(frontend) replace the Crisp chat with the La Suite support form
 - 🔒️(frontend) keep rooms out of search engine and AI indexes
 - ⬆️(backend) upgrade django-lasuite to v1.0.0
+- ⚡️(docker) build frontend assets natively for arm64 images
 
 ## [1.36.3] - 2026-10-23
 
