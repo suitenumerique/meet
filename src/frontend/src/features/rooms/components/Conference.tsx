@@ -10,7 +10,6 @@ import {
   ConnectionErrorReason,
   DisconnectReason,
   MediaDeviceFailure,
-  Room,
   type RoomOptions,
   VideoPresets,
 } from 'livekit-client'
@@ -46,6 +45,26 @@ import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
+import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
+import { createLiveKitRoom } from '@/features/rooms/livekit/utils/reconnectPolicy'
+
+const handleError = (e: Error) => {
+  const failure = getMediaDeviceFailure(e)
+  if (failure && failure !== MediaDeviceFailure.Other) return
+
+  // connect() was aborted by a disconnect() before the join completed
+  if (
+    e instanceof ConnectionError &&
+    e.reason === ConnectionErrorReason.Cancelled
+  ) {
+    void captureEvent('connection-cancelled')
+    return
+  }
+
+  reportError('livekit_room_error', e, {
+    path: 'connect_publish',
+  })
+}
 
 export const Conference = ({
   roomId,
@@ -136,7 +155,11 @@ export const Conference = ({
     apiConfig?.livekit.default_video_codec,
   ])
 
-  const room = useMemo(() => new Room(roomOptions), [roomOptions])
+  const reconnect = apiConfig?.livekit.reconnect
+  const room = useMemo(
+    () => createLiveKitRoom(roomOptions, reconnect),
+    [roomOptions, reconnect]
+  )
 
   useEffect(() => {
     /**
@@ -186,6 +209,7 @@ export const Conference = ({
   const isMobile = useIsMobile()
 
   const hasAutoMutedRef = useRef(false)
+  const hasConnectedRef = useRef(false)
 
   /*
    * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
@@ -248,24 +272,9 @@ export const Conference = ({
           className={css({
             backgroundColor: 'primaryDark.50 !important',
           })}
-          onError={(e) => {
-            const failure = getMediaDeviceFailure(e)
-            if (failure && failure !== MediaDeviceFailure.Other) return
-
-            // connect() was aborted by a disconnect() before the join completed
-            if (
-              e instanceof ConnectionError &&
-              e.reason === ConnectionErrorReason.Cancelled
-            ) {
-              void captureEvent('connection-cancelled')
-              return
-            }
-
-            reportError('livekit_room_error', e, {
-              path: 'connect_publish',
-            })
-          }}
+          onError={handleError}
           onConnected={async () => {
+            hasConnectedRef.current = true
             if (!apiConfig) return
             if (
               userPreferencesSnap.is_auto_mute_large_room_enabled &&
@@ -307,6 +316,20 @@ export const Conference = ({
                   }
                 )
                 return
+              default:
+                // Reconnecting gave up, or the join itself failed
+                navigateTo(
+                  'feedback',
+                  {},
+                  {
+                    state: {
+                      reason: hasConnectedRef.current
+                        ? ConnectionEndReason.Lost
+                        : ConnectionEndReason.Failed,
+                      ...metadata,
+                    },
+                  }
+                )
             }
           }}
         >

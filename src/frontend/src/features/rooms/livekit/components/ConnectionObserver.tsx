@@ -1,17 +1,29 @@
 import { useConfig } from '@/api/useConfig'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import {
+  useConnectionState,
   useRemoteParticipants,
   useRoomContext,
 } from '@livekit/components-react'
 import { useEffect, useRef } from 'react'
 import { useSnapshot } from 'valtio'
-import { DisconnectReason, RoomEvent } from 'livekit-client'
+import {
+  ConnectionState,
+  DisconnectReason,
+  type Room,
+  RoomEvent,
+} from 'livekit-client'
 
 import { userPreferencesStore } from '@/stores/userPreferences'
 
 import { captureEvent, captureMediaEvent } from '@/features/analytics/telemetry'
 import { connectionObserverStore } from '@/stores/connectionObserver'
+import { BackoffReconnectPolicy } from '@/features/rooms/livekit/utils/reconnectPolicy'
+
+const getBackoffPolicy = (room: Room) => {
+  const policy = room.options.reconnectPolicy
+  return policy instanceof BackoffReconnectPolicy ? policy : undefined
+}
 
 export const ConnectionObserver = () => {
   const room = useRoomContext()
@@ -31,6 +43,7 @@ export const ConnectionObserver = () => {
       RoomEvent.ParticipantDisconnected,
     ],
   })
+  const connectionState = useConnectionState(room)
 
   useEffect(() => {
     // Always clear existing timer on dependency change
@@ -48,6 +61,10 @@ export const ConnectionObserver = () => {
       return
     }
 
+    // A full reconnection removes every remote participant until it
+    // succeeds: being alone then doesn't mean being idle
+    if (connectionState !== ConnectionState.Connected) return
+
     if (remoteParticipants.length === 0) {
       idleDisconnectModalTimeoutRef.current = setTimeout(() => {
         connectionObserverStore.isIdleDisconnectModalOpen = true
@@ -64,6 +81,7 @@ export const ConnectionObserver = () => {
     }
   }, [
     remoteParticipants.length,
+    connectionState,
     data?.idle_disconnect_warning_delay,
     userPreferencesSnap.is_idle_disconnect_modal_enabled,
   ])
@@ -89,11 +107,13 @@ export const ConnectionObserver = () => {
     }
 
     const handleReconnected = async () => {
+      const durationMs = getBackoffPolicy(room)?.lastReconnectionDurationMs
       const participantSid = room.localParticipant.sid
       const roomSid = await room.getSid().catch(() => undefined)
       captureEvent('reconnected-event', {
         livekit_room_sid: roomSid,
         livekit_participant_sid: participantSid,
+        durationMs,
       })
     }
 
@@ -116,9 +136,12 @@ export const ConnectionObserver = () => {
         sessionDuration: connectionStartTimeRef.current
           ? connectionEndTime - connectionStartTimeRef.current
           : -1,
-        reason: disconnectReason
-          ? DisconnectReason[disconnectReason]
-          : 'UNKNOWN',
+        // LiveKit reports no reason when the reconnect policy gives up
+        reason: getBackoffPolicy(room)?.gaveUp
+          ? 'RECONNECT_GAVE_UP'
+          : disconnectReason
+            ? DisconnectReason[disconnectReason]
+            : 'UNKNOWN',
       })
     }
 

@@ -68,6 +68,17 @@ class VideoCodecValue(values.Value):
         return codec
 
 
+class StrictlyPositiveIntegerValue(values.PositiveIntegerValue):
+    """An integer greater than 0"""
+
+    def to_python(self, value):
+        """Ensure the integer is greater than 0."""
+        int_value = super().to_python(value)
+        if int_value == 0:
+            raise ValueError(f"Expected an integer greater than 0, got {value!r}.")
+        return int_value
+
+
 class ResolutionSpec(BaseModel):
     """An value of RECORDING_ENCODING_AVAILABLE_RESOLUTIONS."""
 
@@ -786,6 +797,28 @@ class Base(Configuration):
     )
     LIVEKIT_DEFAULT_VIDEO_CODEC = VideoCodecValue(
         "vp9", environ_name="LIVEKIT_DEFAULT_VIDEO_CODEC", environ_prefix=None
+    )
+    # Livekit websocket reconnection exponential backoff config sent to the frontend.
+    # Before its first reconnection attempt, a client waits a random delay up to the base
+    # delay. That ceiling doubles after every failed attempt, capped at the max delay, and
+    # later delays fall between half the ceiling and the ceiling.
+    # It gives up after the give-up delay unless the media still flows.
+    # After a successful reconnection, a new disconnection starting sooner than the reset
+    # delay after the last one resumes the backoff one step above where that one stopped.
+    LIVEKIT_RECONNECT_BACKOFF_ENABLED = values.BooleanValue(
+        True, environ_name="LIVEKIT_RECONNECT_BACKOFF_ENABLED", environ_prefix=None
+    )
+    LIVEKIT_RECONNECT_BASE_DELAY_MS = StrictlyPositiveIntegerValue(
+        1000, environ_name="LIVEKIT_RECONNECT_BASE_DELAY_MS", environ_prefix=None
+    )
+    LIVEKIT_RECONNECT_MAX_DELAY_MS = StrictlyPositiveIntegerValue(
+        10000, environ_name="LIVEKIT_RECONNECT_MAX_DELAY_MS", environ_prefix=None
+    )
+    LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS = StrictlyPositiveIntegerValue(
+        300000, environ_name="LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS", environ_prefix=None
+    )
+    LIVEKIT_RECONNECT_BACKOFF_RESET_MS = values.PositiveIntegerValue(
+        120000, environ_name="LIVEKIT_RECONNECT_BACKOFF_RESET_MS", environ_prefix=None
     )
     CONNECTION_TEST_ENABLED = values.BooleanValue(
         environ_name="CONNECTION_TEST_ENABLED",

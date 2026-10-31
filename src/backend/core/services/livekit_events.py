@@ -96,6 +96,9 @@ EGRESS_STATUS_TO_RECORDING_EVENT = {
     api.EgressStatus.EGRESS_FAILED: RecordingWorkerEvent.FAILED,
 }
 
+EGRESS_ROOM_CONNECTION_FAILED_ERROR = "recording ended early: connection to room failed"
+EGRESS_CPU_EXHAUSTED_DETAILS = "End reason: CPU exhausted"
+
 
 def to_recording_event(egress_status):
     """Translate a LiveKit egress status into a recording worker event."""
@@ -107,6 +110,34 @@ def to_recording_event(egress_status):
             egress_status,
         )
     return event
+
+
+def to_ended_recording_event(egress_info):
+    """Translate an ended LiveKit egress into a recording worker event.
+
+    This handles partial media file upload where an egress was interrupted
+    which can happen when:
+    - an transcription egress that lost its room connection uploads an audio file, then ends
+      FAILED with the EGRESS_ROOM_CONNECTION_FAILED_ERROR
+    - an egress drained because its host ran out of CPU which can transition to COMPLETE state
+      with EGRESS_CPU_EXHAUSTED_DETAILS or FAILED state if the drain outlasted its grace period
+      and the egress got killed, possibly before the upload.
+    """
+
+    status = egress_info.status
+    is_cut_short = (
+        egress_info.error == EGRESS_ROOM_CONNECTION_FAILED_ERROR
+        or egress_info.details == EGRESS_CPU_EXHAUSTED_DETAILS
+    )
+    has_uploaded_file = any(file.location for file in egress_info.file_results)
+
+    if is_cut_short and (
+        status == api.EgressStatus.EGRESS_COMPLETE
+        or (status == api.EgressStatus.EGRESS_FAILED and has_uploaded_file)
+    ):
+        return RecordingWorkerEvent.INTERRUPTED
+
+    return to_recording_event(status)
 
 
 class LiveKitEventsService:
@@ -221,7 +252,7 @@ class LiveKitEventsService:
                 f"Recording with worker ID {data.egress_info.egress_id} does not exist"
             ) from err
 
-        event = to_recording_event(data.egress_info.status)
+        event = to_ended_recording_event(data.egress_info)
         self._audit_recording_end(recording, event, data.egress_info.error_code)
 
         # Log if/why the recording failed
@@ -230,6 +261,7 @@ class LiveKitEventsService:
             event,
             error=data.egress_info.error,
             error_code=data.egress_info.error_code,
+            details=data.egress_info.details,
         )
 
         # Update room

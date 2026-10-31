@@ -37,6 +37,7 @@
     "started": "{{name}} hat die Meeting-Transkription gestartet.",
     "stopped": "{{name}} hat die Meeting-Transkription gestoppt.",
     "limitReached": "Die Transkription hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
+    "interrupted": "Die Transkription wurde unerwartet beendet, der bereits aufgezeichnete Teil wird gespeichert.",
     "failed": "Die Transkription wurde unerwartet beendet und konnte nicht gespeichert werden.",
     "aborted": "Die Transkription konnte nicht gestartet werden.",
     "requested": "{{name}} möchte die Meeting-Transkription starten."
@@ -46,6 +47,7 @@
     "started": "{{name}} hat die Meeting-Aufzeichnung gestartet.",
     "stopped": "{{name}} hat die Meeting-Aufzeichnung gestoppt.",
     "limitReached": "Die Aufzeichnung hat die maximal zulässige Dauer überschritten und wird automatisch gespeichert.",
+    "interrupted": "Die Aufzeichnung wurde unerwartet beendet, der bereits aufgezeichnete Teil wird gespeichert.",
     "failed": "Die Aufzeichnung wurde unerwartet beendet und konnte nicht gespeichert werden.",
     "aborted": "Die Aufzeichnung konnte nicht gestartet werden.",
     "requested": "{{name}} möchte die Meeting-Aufzeichnung starten."

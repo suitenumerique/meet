@@ -1,7 +1,7 @@
 """
 Test LiveKitEvents service.
 """
-# pylint: disable=W0621,W0613, W0212, E0611, C0302
+# pylint: disable=W0621,W0613, W0212, E0611, E1101, C0302
 
 import logging
 import uuid
@@ -11,6 +11,7 @@ from unittest import mock
 from django.utils import timezone
 
 import pytest
+from faker import Faker
 from livekit.api import EgressStatus
 
 from core.audit.testing import find_events
@@ -19,12 +20,15 @@ from core.models import Room
 from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.recording_events import RecordingEventsService
 from core.services.livekit_events import (
+    EGRESS_CPU_EXHAUSTED_DETAILS,
+    EGRESS_ROOM_CONNECTION_FAILED_ERROR,
     EGRESS_STATUS_TO_RECORDING_EVENT,
     ActionFailedError,
     AuthenticationError,
     InvalidPayloadError,
     LiveKitEventsService,
     api,
+    to_ended_recording_event,
     to_recording_event,
 )
 from core.services.lobby import LobbyService
@@ -39,6 +43,7 @@ from core.services.sip_management import (
 from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
+fake = Faker()
 
 
 @pytest.fixture
@@ -492,6 +497,228 @@ def test_to_recording_event_returns_none_on_unmapped_status(caplog):
 
     assert event is None
     assert "Unmapped LiveKit egress status" in caplog.text
+
+
+recording_filename = f"recordings/{fake.file_name(extension='ogg')}"
+
+UPLOADED_FILE = api.FileInfo(
+    filename=recording_filename,
+    location=f"https://storage.example.com/{recording_filename}",
+    size=1048576,
+)
+NOT_UPLOADED_FILE = api.FileInfo(filename=recording_filename)
+
+ROOM_CONNECTION_FAILED = {
+    "status": EgressStatus.EGRESS_FAILED,
+    "error": EGRESS_ROOM_CONNECTION_FAILED_ERROR,
+    "error_code": 503,
+    "details": "End reason: Source closed",
+}
+CPU_EXHAUSTED_DRAINED = {
+    "status": EgressStatus.EGRESS_COMPLETE,
+    "details": EGRESS_CPU_EXHAUSTED_DETAILS,
+}
+CPU_EXHAUSTED_KILLED = {
+    "status": EgressStatus.EGRESS_FAILED,
+    "error": "CPU exhausted: 8.5 cores used",
+    "error_code": 403,
+    "details": EGRESS_CPU_EXHAUSTED_DETAILS,
+}
+
+
+@pytest.mark.parametrize(
+    ("egress_info", "expected_event"),
+    (
+        (
+            api.EgressInfo(**ROOM_CONNECTION_FAILED, file_results=[UPLOADED_FILE]),
+            RecordingWorkerEvent.INTERRUPTED,
+        ),
+        (
+            api.EgressInfo(**ROOM_CONNECTION_FAILED, file_results=[NOT_UPLOADED_FILE]),
+            RecordingWorkerEvent.FAILED,
+        ),
+        (
+            api.EgressInfo(**CPU_EXHAUSTED_DRAINED, file_results=[UPLOADED_FILE]),
+            RecordingWorkerEvent.INTERRUPTED,
+        ),
+        (
+            api.EgressInfo(**CPU_EXHAUSTED_KILLED, file_results=[UPLOADED_FILE]),
+            RecordingWorkerEvent.INTERRUPTED,
+        ),
+        (
+            api.EgressInfo(**CPU_EXHAUSTED_KILLED, file_results=[NOT_UPLOADED_FILE]),
+            RecordingWorkerEvent.FAILED,
+        ),
+        # Other failures stay failures, even with an uploaded file.
+        (
+            api.EgressInfo(
+                status=EgressStatus.EGRESS_FAILED,
+                error="pipeline frozen",
+                error_code=500,
+                details="End reason: Source closed",
+                file_results=[UPLOADED_FILE],
+            ),
+            RecordingWorkerEvent.FAILED,
+        ),
+        (
+            api.EgressInfo(
+                status=EgressStatus.EGRESS_COMPLETE,
+                details="End reason: StopEgress API",
+                file_results=[UPLOADED_FILE],
+            ),
+            RecordingWorkerEvent.COMPLETED,
+        ),
+        (
+            api.EgressInfo(
+                status=EgressStatus.EGRESS_ABORTED,
+                error="Stop called before pipeline could start",
+                error_code=412,
+                details="End reason: StopEgress API",
+            ),
+            RecordingWorkerEvent.ABORTED,
+        ),
+        (
+            api.EgressInfo(
+                status=EgressStatus.EGRESS_LIMIT_REACHED,
+                error="Session limit reached",
+                error_code=413,
+                details="End reason: Session limit reached",
+                file_results=[UPLOADED_FILE],
+            ),
+            RecordingWorkerEvent.LIMIT_REACHED,
+        ),
+    ),
+)
+def test_to_ended_recording_event_translates_egress_info(egress_info, expected_event):
+    """Should tell an egress cut short with a partial file apart from the others."""
+
+    assert to_ended_recording_event(egress_info) == expected_event
+
+
+@pytest.mark.parametrize(
+    ("mode", "egress_info_kwargs", "notification_type"),
+    (
+        ("transcript", ROOM_CONNECTION_FAILED, "transcriptionInterrupted"),
+        ("transcript", CPU_EXHAUSTED_DRAINED, "transcriptionInterrupted"),
+        ("screen_recording", CPU_EXHAUSTED_DRAINED, "screenRecordingInterrupted"),
+        ("screen_recording", CPU_EXHAUSTED_KILLED, "screenRecordingInterrupted"),
+    ),
+)
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_interrupted_saves_partial_recording(  # noqa: PLR0913, PLR0917
+    mock_update_metadata,
+    mock_notify,
+    mock_notify_external_services,
+    mode,
+    egress_info_kwargs,
+    notification_type,
+    service,
+    caplog,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """Should save an interrupted recording and tell participants it is partial."""
+
+    mock_notify_external_services.return_value = True
+
+    recording = RecordingFactory(worker_id="worker-1", mode=mode, status="active")
+    data = api.WebhookEvent(
+        event="egress_ended",
+        egress_info=api.EgressInfo(
+            egress_id=recording.worker_id,
+            file_results=[UPLOADED_FILE],
+            **egress_info_kwargs,
+        ),
+    )
+
+    with caplog.at_level(logging.WARNING):
+        service._handle_egress_ended(data)
+
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id), notification_data={"type": notification_type}
+    )
+    mock_notify_external_services.assert_called_once_with(recording)
+    mock_update_metadata.assert_called_once_with(
+        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
+    )
+    assert (
+        f"Recording worker reported interrupted for recording {recording.id}"
+        in caplog.text
+    )
+
+    recording.refresh_from_db()
+
+    assert recording.status == "notification_succeeded"
+
+
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_interrupted_after_stop_does_not_notify_participants(
+    mock_update_metadata, mock_notify, mock_notify_external_services, service
+):
+    """Shouldn't notify participants about a recording they already stopped."""
+
+    mock_notify_external_services.return_value = False
+
+    recording = RecordingFactory(worker_id="worker-1", status="stopped")
+    data = api.WebhookEvent(
+        event="egress_ended",
+        egress_info=api.EgressInfo(
+            egress_id=recording.worker_id,
+            file_results=[UPLOADED_FILE],
+            **CPU_EXHAUSTED_DRAINED,
+        ),
+    )
+
+    service._handle_egress_ended(data)
+
+    mock_notify.assert_not_called()
+    mock_notify_external_services.assert_called_once_with(recording)
+
+    recording.refresh_from_db()
+
+    assert recording.status == "saved"
+
+
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_failed_on_another_error_discards_recording(
+    mock_update_metadata, mock_notify, service
+):
+    """Should still flag as failed an egress that failed for another reason."""
+
+    recording = RecordingFactory(
+        worker_id="worker-1", mode="transcript", status="active"
+    )
+    data = api.WebhookEvent(
+        event="egress_ended",
+        egress_info=api.EgressInfo(
+            egress_id=recording.worker_id,
+            status=EgressStatus.EGRESS_FAILED,
+            error="pipeline frozen",
+            error_code=500,
+            details="End reason: Source closed",
+            file_results=[UPLOADED_FILE],
+        ),
+    )
+
+    service._handle_egress_ended(data)
+
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id),
+        notification_data={"type": "transcriptionFailed"},
+    )
+
+    recording.refresh_from_db()
+
+    assert recording.status == "failed"
 
 
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")

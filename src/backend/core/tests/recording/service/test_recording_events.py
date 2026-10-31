@@ -53,6 +53,26 @@ def test_handle_limit_reached_success(mock_notify, mode, notification_type, serv
 @pytest.mark.parametrize(
     ("mode", "notification_type"),
     (
+        ("screen_recording", "screenRecordingInterrupted"),
+        ("transcript", "transcriptionInterrupted"),
+    ),
+)
+@mock.patch("core.utils.notify_participants")
+def test_handle_interrupted_success(mock_notify, mode, notification_type, service):
+    """Test _handle_interrupted stops recording and notifies participants."""
+
+    recording = RecordingFactory(status="active", mode=mode)
+    service._handle_interrupted(recording)
+
+    assert recording.status == "stopped"
+    mock_notify.assert_called_once_with(
+        room_name=str(recording.room.id), notification_data={"type": notification_type}
+    )
+
+
+@pytest.mark.parametrize(
+    ("mode", "notification_type"),
+    (
         ("screen_recording", "screenRecordingFailed"),
         ("transcript", "transcriptionFailed"),
     ),
@@ -222,6 +242,7 @@ def test_handle_update_syncs_room_metadata(
         RecordingWorkerEvent.STARTING,
         RecordingWorkerEvent.COMPLETED,
         RecordingWorkerEvent.LIMIT_REACHED,
+        RecordingWorkerEvent.INTERRUPTED,
         RecordingWorkerEvent.ABORTED,
         RecordingWorkerEvent.FAILED,
     ),
@@ -244,6 +265,10 @@ def test_handle_update_ignores_events_without_a_metadata_status(
         (RecordingWorkerEvent.LIMIT_REACHED, "active", "saved", "LimitReached"),
         (RecordingWorkerEvent.LIMIT_REACHED, "stopped", "saved", None),
         (RecordingWorkerEvent.LIMIT_REACHED, "saved", "saved", None),
+        (RecordingWorkerEvent.INTERRUPTED, "active", "saved", "Interrupted"),
+        (RecordingWorkerEvent.INTERRUPTED, "stopped", "saved", None),
+        (RecordingWorkerEvent.INTERRUPTED, "saved", "saved", None),
+        (RecordingWorkerEvent.INTERRUPTED, "failed_to_stop", "failed_to_stop", None),
         (RecordingWorkerEvent.ABORTED, "active", "aborted", "Aborted"),
         (RecordingWorkerEvent.ABORTED, "failed_to_stop", "failed_to_stop", None),
         (RecordingWorkerEvent.FAILED, "active", "failed", "Failed"),
@@ -321,6 +346,7 @@ def test_handle_terminal_event_ignores_non_terminal_events(
     ("event", "expected_status"),
     (
         (RecordingWorkerEvent.LIMIT_REACHED, "saved"),
+        (RecordingWorkerEvent.INTERRUPTED, "saved"),
         (RecordingWorkerEvent.ABORTED, "aborted"),
         (RecordingWorkerEvent.FAILED, "failed"),
     ),
@@ -407,6 +433,7 @@ def test_handle_update_survives_a_metadata_failure(
     ("event", "expected_level"),
     (
         (RecordingWorkerEvent.ABORTED, logging.INFO),
+        (RecordingWorkerEvent.INTERRUPTED, logging.WARNING),
         (RecordingWorkerEvent.FAILED, logging.ERROR),
     ),
 )
@@ -419,7 +446,11 @@ def test_log_worker_error_reports_an_unsuccessful_event(
 
     with caplog.at_level(logging.INFO):
         service.log_worker_error(
-            recording, event, error="could not connect to the room", error_code=500
+            recording,
+            event,
+            error="could not connect to the room",
+            error_code=500,
+            details="End reason: Failure",
         )
 
     assert (
@@ -428,6 +459,7 @@ def test_log_worker_error_reports_an_unsuccessful_event(
     )
     assert "could not connect to the room" in caplog.text
     assert "error_code=500" in caplog.text
+    assert "details=End reason: Failure" in caplog.text
     worker_logs = [
         record
         for record in caplog.records
@@ -448,7 +480,7 @@ def test_log_worker_error_reports_an_unsuccessful_event(
     ),
 )
 def test_log_worker_error_stays_quiet_on_anything_else(event, service, caplog):
-    """Test log_worker_error ignores events other than FAILED and ABORTED."""
+    """Test log_worker_error ignores events other than FAILED, INTERRUPTED and ABORTED."""
 
     recording = RecordingFactory(status="active")
 

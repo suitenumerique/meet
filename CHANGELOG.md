@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(frontend) add jittered exponential backoff to LiveKit reconnections
+- ✨(frontend) tell participants when a recording is interrupted
+
 ### Changed
 
 - ⬆️(summary) update ffmpeg to 8.1.3-r0
@@ -15,6 +20,15 @@ and this project adheres to
 - 🔒️(frontend) keep rooms out of search engine and AI indexes
 - ⬆️(backend) upgrade django-lasuite to v1.0.0
 - ⚡️(docker) build frontend assets natively for arm64 images
+- ⬆️(frontend) upgrade livekit-client to 2.23.0
+- ✨(backend) expose LiveKit reconnection settings in the config
+- ✨(backend) keep recordings cut short by LiveKit egress
+- ⬆️(dev) upgrade LiveKit server to v1.13.11 and egress to v1.15.0
+
+### Fixed
+
+- 🐛(frontend) show a page when the connection ends unexpectedly
+- 🐛(frontend) show the transcript mic hint when every mic is muted
 
 ## [1.36.3] - 2026-10-23
 

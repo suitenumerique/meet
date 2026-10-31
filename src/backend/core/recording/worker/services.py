@@ -95,8 +95,6 @@ class BaseEgressService:
         # Cases below should be very infrequent as status changes should be
         # received and processed by `handle_ended`, thus `stop` would not
         # be called (unless failure and stop are very close in time).
-        # We therefore accept not to notify the user in this code branch.
-        # This could be fixed in a future refactoring.
         if response.status == livekit_api.EgressStatus.EGRESS_ABORTED:
             self._log_egress_error(response, "aborted")
             return "ABORTED"

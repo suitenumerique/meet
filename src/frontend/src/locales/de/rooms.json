@@ -4,7 +4,9 @@
       "normal": "Du hast das Meeting verlassen",
       "duplicateIdentity": "Du bist dem Meeting von einem anderen Gerät aus beigetreten",
       "participantRemoved": "Du wurdest vom Host aus dem Meeting entfernt",
-      "roomDeleted": "Dieses Meeting wurde gelöscht"
+      "roomDeleted": "Dieses Meeting wurde gelöscht",
+      "connectionLost": "Die Verbindung zum Meeting wurde unterbrochen",
+      "connectionFailed": "Beitritt zum Meeting nicht möglich"
     },
     "home": "Zur Startseite zurückkehren",
     "back": "Dem Meeting erneut beitreten"
