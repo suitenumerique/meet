@@ -13,9 +13,9 @@ from livekit.api import (
     ListRoomsResponse,
     ParticipantInfo,
     ParticipantPermission,
-    Room,
     TwirpError,
 )
+from livekit.api import Room as LiveKitRoom
 
 from core.factories import RoomFactory
 from core.models import Room, RoomAccessLevel
@@ -60,7 +60,7 @@ def test_is_full_compares_participants_to_limit(
     """A room is full once the people in it reach its limit."""
     mock_api = _mock_room(
         mock_create_livekit_client,
-        rooms=[Room(name="room-abc", max_participants=max_participants)],
+        rooms=[LiveKitRoom(name="room-abc", max_participants=max_participants)],
         participants=_people(people),
     )
 
@@ -78,7 +78,7 @@ def test_is_full_counts_the_list_not_the_lagging_room_count(
     """A join the room's num_participants has not caught up with still counts."""
     _mock_room(
         mock_create_livekit_client,
-        rooms=[Room(name="room-abc", max_participants=3, num_participants=1)],
+        rooms=[LiveKitRoom(name="room-abc", max_participants=3, num_participants=1)],
         participants=_people(3),
     )
 
@@ -99,7 +99,7 @@ def test_is_full_leaves_out_recorders_and_agents(mock_create_livekit_client, dep
     """Recorders and agents do not take a seat, as in LiveKit's own join check."""
     _mock_room(
         mock_create_livekit_client,
-        rooms=[Room(name="room-abc", max_participants=2)],
+        rooms=[LiveKitRoom(name="room-abc", max_participants=2)],
         participants=_people(1) + [ParticipantInfo(identity="bot", **dependent)],
     )
 
@@ -110,7 +110,8 @@ def test_is_full_leaves_out_recorders_and_agents(mock_create_livekit_client, dep
 def test_is_full_without_limit(mock_create_livekit_client):
     """A room with no limit is never full, and its participants are not listed."""
     mock_api = _mock_room(
-        mock_create_livekit_client, rooms=[Room(name="room-abc", max_participants=0)]
+        mock_create_livekit_client,
+        rooms=[LiveKitRoom(name="room-abc", max_participants=0)],
     )
 
     assert RoomManagement.is_full("room-abc") is False
@@ -130,11 +131,12 @@ def test_is_full_room_not_live(mock_create_livekit_client):
     [
         TwirpError("internal", "boom", status=500),
         aiohttp.ClientConnectionError("connection refused"),
+        TimeoutError(),
     ],
 )
 @mock.patch("core.services.room_management.utils.create_livekit_client")
 def test_is_full_raises_management_exception(mock_create_livekit_client, error):
-    """Twirp and connection errors raise RoomManagementException."""
+    """Twirp, connection and timeout errors raise RoomManagementException."""
     mock_api = _mock_room(mock_create_livekit_client, rooms=[])
     mock_api.room.list_rooms.side_effect = error
 

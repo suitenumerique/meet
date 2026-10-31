@@ -31,7 +31,7 @@ def _get_capacity(room, token_room=None):
     headers = {}
     if token_room:
         token = utils.generate_token(room=str(token_room.id), user=AnonymousUser())
-        headers["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+        headers["HTTP_AUTHORIZATION"] = f"X-LiveKit-Token {token}"
     url = reverse("rooms-capacity", kwargs={"pk": room.id})
     return APIClient().get(url, **headers)
 

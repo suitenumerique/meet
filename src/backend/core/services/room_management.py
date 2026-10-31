@@ -130,7 +130,7 @@ class RoomManagement:
             participants = await lkapi.room.list_participants(
                 ListParticipantsRequest(room=room_name)
             )
-        except (TwirpError, aiohttp.ClientError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             logger.exception("Unexpected error reading room %s", room_name)
             raise RoomManagementException("Could not read room") from e
         finally:
