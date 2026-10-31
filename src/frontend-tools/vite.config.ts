@@ -17,11 +17,6 @@ const toolsPackage = readPackageJson(
 )
 const frontendPackage = readPackageJson(frontendPath('package.json'))
 
-/** The version actually on disk, or null when the package is not hoisted there. */
-const installedVersion = (nodeModules: string, name: string): string | null => {
-  const path = `${nodeModules}/${name}/package.json`
-  return existsSync(path) ? readPackageJson(path).version : null
-}
 const toolsModules = fileURLToPath(new URL('./node_modules', import.meta.url))
 // What production ships is its lockfile, which is always checked in; its
 // node_modules may not be installed (the tools CI job never installs it).
@@ -29,11 +24,29 @@ const shippedPackages: Record<string, { version: string }> = readPackageJson(
   frontendPath('package-lock.json')
 ).packages
 
+/**
+ * The copy of `name` that `parent` loads, resolved as Node does: nested under
+ * the parent first, then hoisted. npm nests a package whenever an override or
+ * a version conflict keeps it from being hoisted.
+ */
+const installedVersion = (name: string, parent?: string): string | null => {
+  const dirs = [`${toolsModules}/${parent}/node_modules`, toolsModules]
+  for (const dir of parent ? dirs : dirs.slice(1)) {
+    const path = `${dir}/${name}/package.json`
+    if (existsSync(path)) return readPackageJson(path).version
+  }
+  return null
+}
+const shippedVersion = (name: string, parent?: string): string | undefined =>
+  (parent &&
+    shippedPackages[`node_modules/${parent}/node_modules/${name}`]?.version) ||
+  shippedPackages[`node_modules/${name}`]?.version
+
 // A diagnostic is only meaningful against what production ships: every
 // package both apps declare, and each runtime one's own dependencies (jose
 // and loglevel arrive through livekit-client), must be installed here at the
-// version production locks. Installed, not declared: a stale node_modules
-// would otherwise pass.
+// version production resolves for the same parent. Installed, not declared:
+// a stale node_modules would otherwise pass.
 const shared = Object.keys({
   ...toolsPackage.dependencies,
   ...toolsPackage.devDependencies,
@@ -44,20 +57,23 @@ const shared = Object.keys({
 )
 // Dev tooling (vite, @types) never reaches the page, so only runtime
 // dependencies are followed one level down.
-const checked = new Set(shared)
-for (const name of shared.filter((n) => n in toolsPackage.dependencies)) {
-  const path = `${toolsModules}/${name}/package.json`
+const checked: Array<{ name: string; parent?: string }> = shared.map(
+  (name) => ({ name })
+)
+for (const parent of shared.filter((n) => n in toolsPackage.dependencies)) {
+  const path = `${toolsModules}/${parent}/package.json`
   if (!existsSync(path)) continue
-  for (const dep of Object.keys(readPackageJson(path).dependencies ?? {}))
-    checked.add(dep)
+  for (const name of Object.keys(readPackageJson(path).dependencies ?? {}))
+    checked.push({ name, parent })
 }
 
-for (const name of checked) {
-  const tools = installedVersion(toolsModules, name)
-  const shipped = shippedPackages[`node_modules/${name}`]?.version
+for (const { name, parent } of checked) {
+  const tools = installedVersion(name, parent)
+  const shipped = shippedVersion(name, parent)
   if (tools && shipped && tools !== shipped) {
+    const where = parent ? ` (under ${parent})` : ''
     throw new Error(
-      `${name}@${tools} is installed in src/frontend-tools, but ` +
+      `${name}@${tools}${where} is installed in src/frontend-tools, but ` +
         `src/frontend locks ${shipped}. Pin ${shipped} (under "overrides" ` +
         `when it is transitive), then npm install.`
     )

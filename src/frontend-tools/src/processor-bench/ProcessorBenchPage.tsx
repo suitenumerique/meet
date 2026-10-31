@@ -50,7 +50,7 @@ const describeSource = (
     : ''
   const mismatch =
     settings.width !== requested.width || settings.height !== requested.height
-      ? ` (requested ${requested.width}x${requested.height}; the camera has no such mode)`
+      ? ` (requested ${requested.width}x${requested.height})`
       : ''
   return `Camera delivered ${actual}${fps}${mismatch}`
 }
@@ -264,6 +264,7 @@ const ProcessorBenchPage = () => {
       if (error instanceof BenchAbortError) {
         setProgress({ phase: 'idle' })
       } else {
+        setProgress({ phase: 'idle' })
         setFailure(error instanceof Error ? error.message : String(error))
       }
     } finally {

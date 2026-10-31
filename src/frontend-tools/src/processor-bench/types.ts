@@ -110,7 +110,11 @@ export type ContenderResult = {
   contenderId: string
   label: string
   runs: RunMetrics[]
-  /** Pass 0: model download and compile included. Null when pass 0 failed. */
+  /**
+   * Pass 0: model download and compile included. Only the first contender of
+   * a run gets one, since later ones reuse what it loaded. Null otherwise, or
+   * when pass 0 failed.
+   */
   coldStartupMs: number | null
   /** Mean over every later pass: assets already cached. */
   warmStartupMs: number | null

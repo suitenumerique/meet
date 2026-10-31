@@ -294,9 +294,14 @@ function maxOf(values: Array<number | null | undefined>): number | null {
   return usable.length > 0 ? Math.max(...usable) : null
 }
 
+const COLD_STARTUP_NOTE =
+  'No cold startup: an effect that ran before it already loaded the shared ' +
+  'WASM and models. Benchmark it alone to time its cold start.'
+
 function aggregate(
   contender: BenchContender,
-  runs: RunMetrics[]
+  runs: RunMetrics[],
+  ranFirst: boolean
 ): ContenderResult {
   const good = runs.filter((run) => !run.error)
   const ordered = [...runs].sort((a, b) => a.pass - b.pass)
@@ -308,8 +313,11 @@ function aggregate(
     contenderId: contender.id,
     label: contender.label,
     runs: ordered,
-    // Pass 0 only: a later pass standing in for a failed one is warm.
-    coldStartupMs: ordered[0]?.pass === 0 ? ordered[0].startupMs : null,
+    // Only the session's very first run is cold: later effects find the
+    // WASM and models an earlier one already fetched and compiled, and a
+    // later pass standing in for a failed pass 0 is warm too.
+    coldStartupMs:
+      ranFirst && ordered[0]?.pass === 0 ? ordered[0].startupMs : null,
     warmStartupMs: averageOf(
       ordered.filter((run) => run.pass > 0).map((run) => run.startupMs)
     ),
@@ -330,6 +338,7 @@ function aggregate(
     },
     notes: [
       ...new Set(runs.map((run) => run.note).filter((n): n is string => !!n)),
+      ...(ranFirst ? [] : [COLD_STARTUP_NOTE]),
     ],
     errors: [
       ...new Set(runs.map((run) => run.error).filter((e): e is string => !!e)),
@@ -423,8 +432,8 @@ export async function runBenchmark(
     specs,
     options: resolved,
     sourceSettings,
-    results: contenders.map((contender) =>
-      aggregate(contender, runsByContender.get(contender.id)!)
+    results: contenders.map((contender, index) =>
+      aggregate(contender, runsByContender.get(contender.id)!, index === 0)
     ),
   }
 }

@@ -52,7 +52,9 @@ is why each run gets a fresh pair.
 Passes alternate direction — forward, then reversed — so thermal drift and model-cache
 warmth do not systematically favour whoever ran first. Steady-state metrics are averaged
 across passes; startup is reported separately as cold (first run, model download included)
-and warm (later runs).
+and warm (later runs). Only the first effect selected gets a cold figure: the ones after it
+reuse the WASM and models it already fetched and compiled, so benchmark an effect alone to
+time its cold start.
 
 ### Metrics
 

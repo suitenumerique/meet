@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend-tools) add a benchmark harness for livekit track processors
 - ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
 - ✨(backend) add room soft-deletion to the external API
 - ✨(all) allow any authenticated user to start a recording
@@ -66,7 +67,6 @@ and this project adheres to
 - 🔒️(backend) audit writes and bulk actions made in the Django admin
 - ✨(backend) audit recordings, transcripts and summaries
 - ✨(backend) audit transit code issuance and exchange
-- ✨(frontend-tools) add a benchmark harness for livekit track processors
 
 ### Changed
 
