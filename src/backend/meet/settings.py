@@ -17,6 +17,7 @@ import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 
 import dj_database_url
@@ -139,7 +140,7 @@ class Base(Configuration):
         )
         else {
             "ENGINE": values.Value(
-                "django.db.backends.postgresql_psycopg2",
+                "django.db.backends.postgresql",
                 environ_name="DB_ENGINE",
                 environ_prefix=None,
             ),
@@ -154,6 +155,21 @@ class Base(Configuration):
             "PORT": values.Value(5432, environ_name="DB_PORT", environ_prefix=None),
         }
     }
+    DB_PSYCOPG_POOL_ENABLED = values.BooleanValue(
+        False, environ_name="DB_PSYCOPG_POOL_ENABLED", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MIN_SIZE = values.PositiveIntegerValue(
+        1, environ_name="DB_PSYCOPG_POOL_MIN_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_SIZE = values.PositiveIntegerValue(
+        3, environ_name="DB_PSYCOPG_POOL_MAX_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_TIMEOUT = values.FloatValue(
+        30.0, environ_name="DB_PSYCOPG_POOL_TIMEOUT", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_IDLE = values.FloatValue(
+        600.0, environ_name="DB_PSYCOPG_POOL_MAX_IDLE", environ_prefix=None
+    )
     DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
     # Static files (CSS, JavaScript, Images)
@@ -311,6 +327,7 @@ class Base(Configuration):
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
         "dockerflow.django.middleware.DockerflowMiddleware",
+        "core.audit.request.AuditLogMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",
@@ -331,8 +348,10 @@ class Base(Configuration):
     INSTALLED_APPS = [
         # Meet
         "core",
+        "core.audit.apps.AuditConfig",
         "demo",
         "drf_spectacular",
+        "core.audit.apps.AuditedAdminConfig",
         # Third party apps
         "corsheaders",
         "dockerflow.django",
@@ -340,7 +359,6 @@ class Base(Configuration):
         "parler",
         "easy_thumbnails",
         # Django
-        "django.contrib.admin",
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.postgres",
@@ -370,6 +388,7 @@ class Base(Configuration):
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": (
             "core.authentication.backends.SessionAuthenticationWith401",
+            "core.authentication.user_token.UserAccessJWTAuthentication",
         ),
         "DEFAULT_PARSER_CLASSES": [
             "rest_framework.parsers.JSONParser",
@@ -383,6 +402,13 @@ class Base(Configuration):
         "PAGE_SIZE": 20,
         "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        # Trusted proxies appending to X-Forwarded-For in front of the backend.
+        # Throttles and audit events identify the client as the entry that many
+        # positions from the right; unset, DRF would use the raw header, which a
+        # client can vary to escape its throttle.
+        "NUM_PROXIES": values.IntegerValue(
+            1, environ_name="NUM_PROXIES", environ_prefix=None
+        ),
         "DEFAULT_THROTTLE_RATES": {
             "room_creation": values.Value(
                 default="50/minute",
@@ -394,9 +420,24 @@ class Base(Configuration):
                 environ_name="ROOM_CREATION_DAILY_THROTTLE_RATES",
                 environ_prefix=None,
             ),
+            "start_recording": values.Value(
+                default="10/minute",
+                environ_name="START_RECORDING_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "start_recording_daily": values.Value(
+                default="100/day",
+                environ_name="START_RECORDING_DAILY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
             "request_entry": values.Value(
                 default="150/minute",
                 environ_name="REQUEST_ENTRY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "exchange_access_token": values.Value(
+                default="30/minute",
+                environ_name="EXCHANGE_ACCESS_TOKEN_THROTTLE_RATES",
                 environ_prefix=None,
             ),
             "creation_callback": values.Value(
@@ -502,6 +543,7 @@ class Base(Configuration):
     EMAIL_PORT = values.PositiveIntegerValue(None)
     EMAIL_USE_TLS = values.BooleanValue(False)
     EMAIL_USE_SSL = values.BooleanValue(False)
+    EMAIL_TIMEOUT = values.PositiveIntegerValue(30)
     EMAIL_FROM = values.Value("from@example.com")
     EMAIL_BRAND_NAME = values.Value(None)
     EMAIL_SUPPORT_EMAIL = values.Value(None)
@@ -702,6 +744,20 @@ class Base(Configuration):
         default=None, environ_name="OIDC_RS_SCOPES_PREFIX", environ_prefix=None
     )
 
+    # Menshen, La Suite's OAuth 2.0 token exchange server
+    MENSHEN_ENABLED = values.BooleanValue(
+        False, environ_name="MENSHEN_ENABLED", environ_prefix=None
+    )
+    MENSHEN_SERVER_URL = values.Value(
+        None, environ_name="MENSHEN_SERVER_URL", environ_prefix=None
+    )
+    MENSHEN_CLIENT_ID = values.Value(
+        None, environ_name="MENSHEN_CLIENT_ID", environ_prefix=None
+    )
+    MENSHEN_CLIENT_SECRET = SecretFileValue(
+        None, environ_name="MENSHEN_CLIENT_SECRET", environ_prefix=None
+    )
+
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {
         "api_key": SecretFileValue(environ_name="LIVEKIT_API_KEY", environ_prefix=None),
@@ -758,6 +814,9 @@ class Base(Configuration):
     LIVEKIT_VERIFY_SSL = values.BooleanValue(
         True, environ_name="LIVEKIT_VERIFY_SSL", environ_prefix=None
     )
+    LIVEKIT_API_TIMEOUT_SECONDS = values.PositiveIntegerValue(
+        10, environ_name="LIVEKIT_API_TIMEOUT_SECONDS", environ_prefix=None
+    )
     # Regex to filter webhook events by room name. Only matching events are processed.
     LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = values.Value(
         None, environ_name="LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX", environ_prefix=None
@@ -770,6 +829,9 @@ class Base(Configuration):
     )
     ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
         None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
+    )
+    ROOM_DELETED_RETENTION_DAYS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_DELETED_RETENTION_DAYS", environ_prefix=None
     )
     # if provided, treat as suspicious (possible privilege escalation attempt).
     PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
@@ -786,6 +848,14 @@ class Base(Configuration):
     # Recording settings
     RECORDING_ENABLE = values.BooleanValue(
         False, environ_name="RECORDING_ENABLE", environ_prefix=None
+    )
+    # Let any authenticated participant connected to a trusted or public room
+    # start/stop recordings. Disable to keep recording reserved to room
+    # admins/owners.
+    RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED = values.BooleanValue(
+        True,
+        environ_name="RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED",
+        environ_prefix=None,
     )
     RECORDING_OUTPUT_FOLDER = values.Value(
         "recordings", environ_name="RECORDING_OUTPUT_FOLDER", environ_prefix=None
@@ -980,11 +1050,6 @@ class Base(Configuration):
         environ_name="LOBBY_NOTIFICATION_TYPE",
         environ_prefix=None,
     )
-    LOBBY_COOKIE_NAME = values.Value(
-        "lobbyParticipantId",
-        environ_name="LOBBY_COOKIE_NAME",
-        environ_prefix=None,
-    )
 
     # Calendar integrations
     ROOM_CREATION_CALLBACK_CACHE_TIMEOUT = values.PositiveIntegerValue(
@@ -1070,7 +1135,7 @@ class Base(Configuration):
         environ_prefix=None,
     )
     APPLICATION_CLIENT_SECRET_LENGTH = values.PositiveIntegerValue(
-        128,
+        50,
         environ_name="APPLICATION_CLIENT_SECRET_LENGTH",
         environ_prefix=None,
     )
@@ -1105,6 +1170,66 @@ class Base(Configuration):
     APPLICATION_BASE_URL = values.Value(
         None,
         environ_name="APPLICATION_BASE_URL",
+        environ_prefix=None,
+    )
+
+    # User access tokens (embedded frontend / iframe support)
+    USER_ACCESS_TOKEN_ENABLED = values.BooleanValue(
+        False, environ_name="USER_ACCESS_TOKEN_ENABLED", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_SECRET_KEY = SecretFileValue(
+        None, environ_name="USER_ACCESS_TOKEN_SECRET_KEY", environ_prefix=None
+    )
+    USER_ACCESS_TOKEN_ALG = values.Value(
+        "HS256",
+        environ_name="USER_ACCESS_TOKEN_ALG",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_ISSUER = values.Value(
+        "lasuite-meet",
+        environ_name="USER_ACCESS_TOKEN_ISSUER",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_AUDIENCE = values.Value(
+        None,
+        environ_name="USER_ACCESS_TOKEN_AUDIENCE",
+        environ_prefix=None,
+    )
+    # Lifetime of the user access token obtained through the exchange
+    # endpoint. It never transits through a URL, so it can cover a full
+    # meeting (default: 2 hours).
+    USER_ACCESS_TOKEN_TTL = values.PositiveIntegerValue(
+        7200,
+        environ_name="USER_ACCESS_TOKEN_TTL",
+        environ_prefix=None,
+    )
+    # Lifetime of the single-use transit code handed to the frontend
+    # through a URL fragment. Kept very short by design: it must only
+    # survive the redirect and the exchange call.
+    TRANSIT_CODE_TTL = values.PositiveIntegerValue(
+        60,
+        environ_name="TRANSIT_CODE_TTL",
+        environ_prefix=None,
+    )
+    TRANSIT_CODE_CACHE_PREFIX = values.Value(
+        "transit-code",
+        environ_name="TRANSIT_CODE_CACHE_PREFIX",
+        environ_prefix=None,
+    )
+    # Number of random bytes per code (48 bytes -> 64 url-safe characters)
+    TRANSIT_CODE_NBYTES = values.PositiveIntegerValue(
+        48,
+        environ_name="TRANSIT_CODE_NBYTES",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_TYPE = values.Value(
+        "Bearer",
+        environ_name="USER_ACCESS_TOKEN_TYPE",
+        environ_prefix=None,
+    )
+    USER_ACCESS_TOKEN_TYPE_CLAIM = values.Value(
+        "user_token",
+        environ_name="USER_ACCESS_TOKEN_TYPE_CLAIM",
         environ_prefix=None,
     )
     # Warning: EXTERNAL_API_ALLOW_PUBLIC_ACCESS is ignored when
@@ -1210,6 +1335,31 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    AUDIT_LOG_LEVEL = values.Value(
+        "INFO", environ_name="AUDIT_LOG_LEVEL", environ_prefix=None
+    )
+    AUDIT_LOG_STREAM = values.Value(
+        "ext://sys.stdout", environ_name="AUDIT_LOG_STREAM", environ_prefix=None
+    )
+    AUDIT_LOG_SERVICE_NAME = values.Value(
+        "meet", environ_name="AUDIT_LOG_SERVICE_NAME", environ_prefix=None
+    )
+    AUDIT_LOG_DATA_STREAM_NAMESPACE = values.Value(
+        "default", environ_name="AUDIT_LOG_DATA_STREAM_NAMESPACE", environ_prefix=None
+    )
+    # Reuse the inbound request id as the trace id
+    # Only enable it when the ingress overwrites the header
+    # When off, the backend generates the id.
+    REQUEST_ID_TRUST_HEADER = values.BooleanValue(
+        False, environ_name="REQUEST_ID_TRUST_HEADER", environ_prefix=None
+    )
+
+    DOCKERFLOW_REQUEST_ID_HEADER_NAME = values.Value(
+        "X-Request-ID",
+        environ_name="DOCKERFLOW_REQUEST_ID_HEADER_NAME",
+        environ_prefix=None,
+    )
+
     LOGGING_SILENCED_401_PATHS = values.ListValue(
         default=["/api/v1.0/users/me/"],
         environ_name="LOGGING_SILENCED_401_PATHS",
@@ -1227,6 +1377,9 @@ class Base(Configuration):
                 "format": "{asctime} {name} {levelname} {message}",
                 "style": "{",
             },
+            "audit_json": {
+                "()": "core.audit.formatter.AuditJsonFormatter",
+            },
         },
         "filters": {
             "silence_expected_401": {
@@ -1238,6 +1391,11 @@ class Base(Configuration):
                 "class": "logging.StreamHandler",
                 "formatter": "simple",
                 "filters": ["silence_expected_401"],
+            },
+            "audit_console": {
+                "class": "logging.StreamHandler",
+                "stream": AUDIT_LOG_STREAM,
+                "formatter": "audit_json",
             },
         },
         # Override root logger to send it to console
@@ -1269,6 +1427,11 @@ class Base(Configuration):
                     environ_name="LOGGING_LEVEL_LOGGERS_APP",
                     environ_prefix=None,
                 ),
+                "propagate": False,
+            },
+            "audit": {
+                "handlers": ["audit_console"],
+                "level": AUDIT_LOG_LEVEL,
                 "propagate": False,
             },
         },
@@ -1385,6 +1548,62 @@ class Base(Configuration):
             )
 
     @classmethod
+    def _check_audit_log_data_stream_namespace(cls):
+        """Ensure the audit data stream namespace contains no ``-``.
+
+        ECS splits data stream names ``<type>-<dataset>-<namespace>`` on -
+        """
+        if "-" in cls.AUDIT_LOG_DATA_STREAM_NAMESPACE:
+            raise ValueError(
+                "AUDIT_LOG_DATA_STREAM_NAMESPACE "
+                f"'{cls.AUDIT_LOG_DATA_STREAM_NAMESPACE}' must not contain '-'."
+            )
+
+    @classmethod
+    def _configure_database_pool(cls):
+        """Inject the psycopg pool options into the default database when enabled."""
+        if not cls.DB_PSYCOPG_POOL_ENABLED:
+            return
+
+        database = cls.DATABASES["default"]
+        if database.get("ENGINE") not in (
+            "django.db.backends.postgresql",
+            "django.db.backends.postgresql_psycopg2",
+        ):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED requires the django.db.backends.postgresql "
+                f"engine, got {database.get('ENGINE')!r}."
+            )
+        if database.get("CONN_MAX_AGE"):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED cannot be combined with persistent "
+                "connections; set CONN_MAX_AGE to 0."
+            )
+        if cls.DB_PSYCOPG_POOL_MIN_SIZE > cls.DB_PSYCOPG_POOL_MAX_SIZE:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_MIN_SIZE cannot be greater than "
+                "DB_PSYCOPG_POOL_MAX_SIZE."
+            )
+        if cls.DB_PSYCOPG_POOL_TIMEOUT <= 0 or cls.DB_PSYCOPG_POOL_MAX_IDLE <= 0:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_TIMEOUT and DB_PSYCOPG_POOL_MAX_IDLE must be positive."
+            )
+
+        database["OPTIONS"] = {
+            "keepalives_idle": 60,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+            **database.get("OPTIONS", {}),
+            "pool": {
+                "min_size": cls.DB_PSYCOPG_POOL_MIN_SIZE,
+                "max_size": cls.DB_PSYCOPG_POOL_MAX_SIZE,
+                "timeout": cls.DB_PSYCOPG_POOL_TIMEOUT,
+                "max_idle": cls.DB_PSYCOPG_POOL_MAX_IDLE,
+            },
+        }
+        database["CONN_HEALTH_CHECKS"] = True
+
+    @classmethod
     def post_setup(cls):
         """Post setup configuration.
         This is the place where you can configure settings that require other
@@ -1398,6 +1617,11 @@ class Base(Configuration):
             )
 
         cls._check_recording_encoding_maps()
+        cls._check_audit_log_data_stream_namespace()
+        cls._configure_database_pool()
+
+        if cls.LIVEKIT_API_TIMEOUT_SECONDS < 1:
+            raise ValueError("LIVEKIT_API_TIMEOUT_SECONDS must be at least 1")
 
         if (
             cls.SUMMARY_SERVICE_VERSION == 1
@@ -1413,24 +1637,43 @@ class Base(Configuration):
                 stacklevel=2,
             )
 
-        if cls.ROOM_INACTIVITY_DELETION_DAYS:
+        for setting_name, rooms, period in (
+            ("ROOM_INACTIVITY_DELETION_DAYS", "Inactive rooms", "inactivity period"),
+            ("ROOM_DELETED_RETENTION_DAYS", "Deleted rooms", "retention period"),
+        ):
+            purge_days = getattr(cls, setting_name)
+            if not purge_days:
+                continue
             if not cls.RECORDING_EXPIRATION_DAYS:
                 warnings.warn(
-                    "ROOM_INACTIVITY_DELETION_DAYS is set but "
-                    "RECORDING_EXPIRATION_DAYS is not. Recordings never expire, so "
-                    "inactive rooms holding a saved recording will never be purged.",
+                    f"{setting_name} is set but RECORDING_EXPIRATION_DAYS is not. "
+                    f"Recordings never expire, so {rooms.lower()} holding a saved "
+                    "recording will never be purged.",
                     UserWarning,
                     stacklevel=2,
                 )
-            elif cls.RECORDING_EXPIRATION_DAYS >= cls.ROOM_INACTIVITY_DELETION_DAYS:
+            elif cls.RECORDING_EXPIRATION_DAYS >= purge_days:
                 warnings.warn(
                     "RECORDING_EXPIRATION_DAYS is greater than or equal to "
-                    "ROOM_INACTIVITY_DELETION_DAYS. Inactive rooms holding a saved "
-                    "recording will be kept past the inactivity period, until their "
-                    "recordings expire.",
+                    f"{setting_name}. {rooms} holding a saved recording will be "
+                    f"kept past the {period}, until their recordings expire.",
                     UserWarning,
                     stacklevel=2,
                 )
+
+        # Secrets use a 62-character alphanumeric charset (~5.95 bits/char).
+        # 43 characters provide at least 256 bits of entropy; 42 provide ~250 bits.
+        if cls.APPLICATION_CLIENT_SECRET_LENGTH < 43:
+            warnings.warn(
+                f"APPLICATION_CLIENT_SECRET_LENGTH={cls.APPLICATION_CLIENT_SECRET_LENGTH} "
+                "is below the recommended 43 characters (256 bits of entropy). "
+                "Application secrets use a fast hash and rely on high entropy to "
+                "resist offline guessing if the database leaks. "
+                "Please set APPLICATION_CLIENT_SECRET_LENGTH to at least 43.",
+                # We use UserWarning to make sure it shows up in production deployment
+                UserWarning,
+                stacklevel=2,
+            )
 
         # The SENTRY_DSN setting should be available to activate sentry for an environment
         if cls.SENTRY_DSN is not None:
@@ -1451,6 +1694,8 @@ class Base(Configuration):
 
             # Ignore the logs added by the DockerflowMiddleware
             ignore_logger("request.summary")
+            # Audit events are a data stream, not errors to report
+            ignore_logger("audit")
 
 
 class Build(Base):
@@ -1502,9 +1747,19 @@ class Test(Base):
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "formatters": {
+                "audit_json": {
+                    "()": "core.audit.formatter.AuditJsonFormatter",
+                },
+            },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
+                },
+                "audit_console": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                    "formatter": "audit_json",
                 },
             },
             "loggers": {
@@ -1512,11 +1767,17 @@ class Test(Base):
                     "handlers": ["console"],
                     "level": "DEBUG",
                 },
+                "audit": {
+                    "handlers": ["audit_console"],
+                    "level": "INFO",
+                    "propagate": False,
+                },
             },
         }
     )
     PASSWORD_HASHERS = [
         "django.contrib.auth.hashers.MD5PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     ]
     USE_SWAGGER = True
     EXTERNAL_API_ENABLED = True
@@ -1537,6 +1798,9 @@ class Test(Base):
     ADDONS_ENABLED = True
     ADDONS_CSRF_SECRET = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
     ADDONS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-addons"  # noqa:S105
+    USER_ACCESS_TOKEN_ENABLED = True
+    USER_ACCESS_TOKEN_SECRET_KEY = "secret-key-padded-for-minimum-len!-room"  # noqa:S105
+    USER_ACCESS_TOKEN_AUDIENCE = "Test inc."  # noqa:S105
 
     CONNECTION_TEST_ENABLED = True
 

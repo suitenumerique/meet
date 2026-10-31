@@ -104,10 +104,11 @@ ROOM_TELEPHONY_ENABLED=True
 # ROOMKIT_ENABLED = True
 # ROOMKIT_SERVER_TO_SERVER_API_TOKEN = ThisIsAnExampleKeyForDevPurposeOnly
 
-# Metadata
-METADATA_COLLECTOR_ENABLED=True
+# LiveKit agents (opt-in, start them with `make run-agents`)
+# Metadata (requires the metadata-collector agent)
+METADATA_COLLECTOR_ENABLED=False
 
-# Subtitle
+# Subtitle (requires the multi-user-transcriber agent)
 ROOM_SUBTITLE_ENABLED=False
 
 FRONTEND_USE_FRENCH_GOV_FOOTER=False

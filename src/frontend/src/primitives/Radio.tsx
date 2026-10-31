@@ -9,6 +9,8 @@ import { type StyledVariantProps } from '@/styled-system/types'
 const StyledRadio = styled(RACRadio, {
   base: {
     display: 'flex',
+    // anchor the visually hidden input, so it scrolls with the radio
+    position: 'relative',
     alignItems: 'center',
     gap: 0.375,
     forcedColorAdjust: 'none',

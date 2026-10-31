@@ -32,6 +32,7 @@ import { useDeviceInUse } from '../livekit/hooks/useDeviceInUse'
 import { useDeviceMissing } from '../livekit/hooks/useDeviceMissing'
 import { useJoinTracks } from '../livekit/hooks/useJoinTracks'
 import { SilentMicDetector } from './SilentMicDetector'
+import { type PreviewTrack, toggleTrack } from '../utils/toggleTrack'
 
 const styles = {
   page: css({
@@ -187,22 +188,6 @@ const styles = {
     marginBottom: '1.5rem',
   }),
 }
-
-type PreviewTrack = LocalAudioTrack | LocalVideoTrack
-
-const toggleTrack =
-  (enabled: boolean, save: (v: boolean) => void, track?: PreviewTrack) =>
-  async () => {
-    save(!enabled)
-    try {
-      await (enabled ? track?.mute() : track?.unmute())
-    } catch (err) {
-      save(enabled)
-      reportError('join_preview_failure', err as Error, {
-        path: 'join_preview',
-      })
-    }
-  }
 
 const switchTrackDevice =
   (save: (id: string) => void, track?: PreviewTrack) => async (id: string) => {

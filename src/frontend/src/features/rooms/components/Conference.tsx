@@ -47,6 +47,7 @@ import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
+import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 
 export const Conference = ({
   roomId,
@@ -88,6 +89,7 @@ export const Conference = ({
   const {
     status: fetchStatus,
     isError: isFetchError,
+    error: fetchError,
     data,
   } = useQuery({
     queryKey: fetchKey,
@@ -101,6 +103,8 @@ export const Conference = ({
         if (error.statusCode == '404') {
           createRoom({ slug: roomId, username })
         }
+        // A deleted room can't be recreated, surface the error instead
+        if (error.statusCode == '410') throw error
       }),
     retry: false,
   })
@@ -123,7 +127,7 @@ export const Conference = ({
         ...VOICE_AUDIO_CONSTRAINTS,
       },
       audioOutput: {
-        deviceId: userConfig.audioOutputDeviceId ?? undefined,
+        deviceId: resolveAudioOutputDeviceId(userConfig.audioOutputDeviceId),
       },
     }
     // do not rely on the userConfig object directly as its reference may change on every render
@@ -201,6 +205,15 @@ export const Conference = ({
   }, [apiConfig?.livekit])
 
   const { t } = useTranslation('rooms')
+  if (fetchError?.statusCode == 410) {
+    return (
+      <ErrorScreen
+        title={t('error.deletedRoom.heading')}
+        body={t('error.deletedRoom.body')}
+      />
+    )
+  }
+
   if (isCreateError) {
     // this error screen should be replaced by a proper waiting room for anonymous user.
     return (
@@ -326,6 +339,7 @@ export const Conference = ({
                 return
               case DisconnectReason.DUPLICATE_IDENTITY:
               case DisconnectReason.PARTICIPANT_REMOVED:
+              case DisconnectReason.ROOM_DELETED:
                 navigateTo(
                   'feedback',
                   {},

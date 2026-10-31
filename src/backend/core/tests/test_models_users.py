@@ -69,7 +69,10 @@ def test_models_users_sub_validator(sub, is_valid):
     else:
         with pytest.raises(
             ValidationError,
-            match="Enter a valid sub. This value should be printable ASCII only.",
+            match=(
+                "Enter a valid sub. This value should be printable ASCII only, "
+                "with 255 characters or less."
+            ),
         ):
             user.full_clean()
 

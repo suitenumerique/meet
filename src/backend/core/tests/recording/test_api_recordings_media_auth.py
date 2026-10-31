@@ -89,9 +89,9 @@ def test_api_recordings_media_auth_no_abilities():
     assert response.status_code == 403
 
 
-def test_api_recordings_media_auth_wrong_abilities():
+def test_api_recordings_media_auth_member():
     """
-    Test that users with insufficient role permissions cannot download recordings
+    Members of a recording (e.g. its starter) are allowed to download it.
     """
     user = UserFactory()
 
@@ -102,13 +102,14 @@ def test_api_recordings_media_auth_wrong_abilities():
 
     UserRecordingAccessFactory(user=user, recording=recording, role="member")
 
-    original_url = f"http://localhost/media/recordings/{recording.id!s}.mp4"
+    original_url = f"http://localhost/media/{recording.key:s}"
 
     response = client.get(
         "/api/v1.0/recordings/media-auth/", HTTP_X_ORIGINAL_URL=original_url
     )
 
-    assert response.status_code == 403
+    assert response.status_code == 200
+    assert "AWS4-HMAC-SHA256 Credential=" in response["Authorization"]
 
 
 @pytest.mark.parametrize("wrong_status", ["initiated", "active", "failed_to_stop"])

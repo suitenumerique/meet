@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { keys } from '@/api/queryKeys'
+import { ApiError } from '@/api/ApiError'
 import {
   requestEntry,
   ApiLobbyStatus,
   type ApiRequestEntry,
 } from '../api/requestEntry'
+import { setLobbyParticipantId } from '@/stores/lobby'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
 export const POLL_INTERVAL_MS = 3_000
@@ -39,19 +41,33 @@ export const useLobby = ({
   const { data: waitingData } = useQuery({
     queryKey: [keys.requestEntry, roomId],
     queryFn: async () => {
-      const response = await requestEntry({
-        roomId,
-        username,
-      })
-      if (response.status === ApiLobbyStatus.ACCEPTED) {
-        clearWaitingTimeout()
-        setStatus(ApiLobbyStatus.ACCEPTED)
-        onAccepted(response)
-      } else if (response.status === ApiLobbyStatus.DENIED) {
-        clearWaitingTimeout()
-        setStatus(ApiLobbyStatus.DENIED)
+      try {
+        const response = await requestEntry({
+          roomId,
+          username,
+        })
+
+        if (response.id) {
+          setLobbyParticipantId(roomId, response.id)
+        }
+        if (response.status === ApiLobbyStatus.ACCEPTED) {
+          clearWaitingTimeout()
+          setStatus(ApiLobbyStatus.ACCEPTED)
+          onAccepted(response)
+        } else if (response.status === ApiLobbyStatus.DENIED) {
+          clearWaitingTimeout()
+          setStatus(ApiLobbyStatus.DENIED)
+        }
+        return response
+      } catch (error) {
+        // The room was deleted while waiting, stop polling
+        if (error instanceof ApiError && error.statusCode === 410) {
+          clearWaitingTimeout()
+          setStatus(ApiLobbyStatus.DELETED)
+          return { status: ApiLobbyStatus.DELETED }
+        }
+        throw error
       }
-      return response
     },
     refetchInterval: POLL_INTERVAL_MS,
     refetchOnWindowFocus: false,

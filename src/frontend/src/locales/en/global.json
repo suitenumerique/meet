@@ -27,6 +27,15 @@
   },
   "selected": "selected",
   "submit": "OK",
+  "support": {
+    "buttonLabel": "Contact support",
+    "openError": "The contact form could not be opened. Please try again later.",
+    "sent": {
+      "title": "Message sent",
+      "body": "The support team has received your message.",
+      "close": "Close"
+    }
+  },
   "footer": {
     "links": {
       "legifrance": "legifrance.gouv.fr",

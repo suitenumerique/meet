@@ -101,6 +101,8 @@ in
     languages.typescript.enable = false;
     languages.nix.enable = true;
 
+    git-hooks.hooks.gitlint.enable = true;
+
     packages =
       with pkgs;
       [

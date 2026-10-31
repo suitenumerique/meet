@@ -38,6 +38,17 @@ server {
       add_header Cache-Control "public, max-age=2592000";
   }
 
+  location = / {
+      try_files /home.html /index.html;
+      add_header Cache-Control "no-cache, no-store, must-revalidate";
+      add_header Pragma "no-cache";
+      add_header Expires 0;
+  }
+
+  location = /home.html {
+      internal;
+  }
+
   # Serve static files
   location / {
       try_files $uri $uri/ /index.html;
@@ -45,6 +56,7 @@ server {
       add_header Cache-Control "no-cache, no-store, must-revalidate";
       add_header Pragma "no-cache";  # HTTP 1.0 header for backward compatibility
       add_header Expires 0;
+      add_header X-Robots-Tag "noindex, nofollow" always;
   }
 
   # Optionally, handle 404 errors by redirecting to index.html

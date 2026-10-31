@@ -78,7 +78,7 @@ export const AudioDevicesControl = ({
         {...trackProps}
         isDisabled={!canPublishTrack}
         kind={kind}
-        toggle={trackProps.toggle as () => Promise<void>}
+        toggle={trackProps.toggle as () => Promise<boolean | undefined>}
         overrideToggleButtonProps={{
           ...(hideMenu
             ? {

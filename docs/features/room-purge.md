@@ -1,6 +1,6 @@
 # Room purge
 
-Rooms pile up over time and most of them are only used once. The `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for a configurable number of days. It is disabled by default.
+Rooms pile up over time and most of them are only used once. The `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for a configurable number of days, and the rooms deleted by their owner for longer than a configurable retention period. It is disabled by default.
 
 ## How it works
 
@@ -12,16 +12,21 @@ A room is inactive when:
 
 Rooms that existed before this feature was deployed are considered started on the day of the release, so none of them can be purged before a full inactivity period has elapsed.
 
-The command is meant to run once a day. The Helm chart schedules it in `backend.cronjobs` (`purge-inactive-rooms`, 01:00); it does nothing until `ROOM_INACTIVITY_DELETION_DAYS` is set.
+Deleting a room through the API only soft deletes it: the room is hidden, its link tells visitors the meeting was deleted, and it keeps its slug and PIN code. A soft-deleted room is purged:
+
+- when it is inactive, as described above: a deleted room is never considered started again, so its inactivity period keeps running, or
+- when it was deleted more than `ROOM_DELETED_RETENTION_DAYS` days ago.
+
+The command is meant to run once a day. The Helm chart schedules it in `backend.cronjobs` (`purge-inactive-rooms`, 01:00); it does nothing until `ROOM_INACTIVITY_DELETION_DAYS` or `ROOM_DELETED_RETENTION_DAYS` is set.
 
 ```bash
-python manage.py purge_inactive_rooms            # delete the inactive rooms
+python manage.py purge_inactive_rooms            # delete the inactive and deleted rooms
 python manage.py purge_inactive_rooms --dry-run  # only list the rooms that would be deleted
 ```
 
 ## Rooms that are kept
 
-A recording can only be reached through its room. An inactive room is kept as long as it holds a saved recording its users may still access:
+A recording can only be reached through its room. A room is kept, past its inactivity or retention period, as long as it holds a saved recording its users may still access:
 
 - with `RECORDING_EXPIRATION_DAYS` set, a saved recording created less than that many days ago,
 - with `RECORDING_EXPIRATION_DAYS` unset, any saved recording.
@@ -33,7 +38,8 @@ The room is deleted from the database, along with its accesses, its telephony PI
 The recording **files in the bucket are left untouched**: the backend never deletes anything from the storage, it only drops the database entries pointing at it. Removing the files is the job of the bucket lifecycle policy, which should match `RECORDING_EXPIRATION_DAYS` (see the [recording documentation](recording.md)). When the two do not match, the purge leaves objects behind: they become unreachable, since serving a recording requires its database entry, but they keep costing storage.
 
 ⚠️ When a room is purged, all it's configuration and access rights are also deleted. Its slug becomes available again
-and can be reused when a meeting is created from that same URL.
+and can be reused when a meeting is created from that same URL. This also applies to a soft-deleted room: once purged, its link
+no longer tells visitors the meeting was deleted, and its PIN code can be given to another room.
 
 * With `ALLOW_UNREGISTERED_ROOMS=false`, only an authenticated user can navigate to a previously existing link after the room has been purged. Doing so recreates the room in the database with a fresh configuration, with that user associated with it and granted admin rights.
 

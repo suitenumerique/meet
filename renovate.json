@@ -25,12 +25,6 @@
       "matchPackageNames": ["redis"]
     },
     {
-      "groupName": "allowed pylint versions",
-      "matchManagers": ["pep621"],
-      "matchPackageNames": ["pylint"],
-      "allowedVersions": "<4.0.0"
-    },
-    {
         "groupName": "allowed django versions",
         "matchManagers": ["pep621"],
         "matchPackageNames": ["django"],

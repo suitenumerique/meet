@@ -5,6 +5,7 @@ Utils functions used in the core app
 # pylint: disable=R0913, R0917
 # ruff: noqa:S311, PLR0913
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -218,19 +219,37 @@ def generate_s3_authorization_headers(key):
     return request
 
 
+async def bound_livekit_request(request, handler):
+    """Give up on a LiveKit request, its answer included, after the set timeout.
+
+    The SDK passes timeout=None to aiohttp on every call, which means no limit,
+    so a timeout set on the session never applies.
+    """
+    async with asyncio.timeout(settings.LIVEKIT_API_TIMEOUT_SECONDS):
+        response = await handler(request)
+        await response.read()
+    return response
+
+
+class LiveKitClient(LiveKitAPI):
+    """A LiveKit API client that closes the session it is given."""
+
+    async def aclose(self):
+        """Close the session, which LiveKitAPI leaves open when it did not create it."""
+        await self._session.close()
+
+
 def create_livekit_client(custom_configuration=None):
     """Create and return a configured LiveKit API client."""
-
-    custom_session = None
-
-    if not settings.LIVEKIT_VERIFY_SSL:
-        connector = aiohttp.TCPConnector(ssl=False)
-        custom_session = aiohttp.ClientSession(connector=connector)
+    connector = None if settings.LIVEKIT_VERIFY_SSL else aiohttp.TCPConnector(ssl=False)
+    session = aiohttp.ClientSession(
+        connector=connector, middlewares=(bound_livekit_request,)
+    )
 
     # Use default configuration if none provided
     configuration = custom_configuration or settings.LIVEKIT_CONFIGURATION
 
-    return LiveKitAPI(session=custom_session, **configuration)
+    return LiveKitClient(session=session, **configuration)
 
 
 class NotificationError(Exception):
@@ -261,7 +280,7 @@ async def notify_participants(room_name: str, notification_data: dict):
                 kind="RELIABLE",
             )
         )
-    except TwirpError as e:
+    except (TwirpError, TimeoutError) as e:
         raise NotificationError("Failed to notify room participants") from e
     finally:
         await lkapi.aclose()
@@ -333,7 +352,8 @@ def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
         str: The detected MIME type
 
     Notes:
-        Originally from https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L166 # pylint:disable=line-too-long
+        Originally from
+        https://github.com/suitenumerique/drive/blob/564822d31f071c6dfacd112ef4b7146c73077cd9/src/backend/core/api/utils.py#L166
     """
     # Initialize magic detector
     mime_detector = magic.Magic(mime=True)
