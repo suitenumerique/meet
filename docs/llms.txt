@@ -1,0 +1,64 @@
+# LaSuite Meet
+
+> LaSuite Meet is open-source video conferencing built on LiveKit, developed by DINUM, the French government's digital agency, and self-hostable under the MIT licence. This file indexes its documentation for language models: each link is the page's Markdown source, and the rendered site is at https://documentation-meet.beta.numerique.gouv.fr/.
+
+Most of what an administrator can change is a backend setting, an environment variable. Start from Customising Meet, which lists every change in plain words with a link to its guide and its variable, then Environment Variables for the exact name, default and file. Optional features ship switched off in the example files: a Docker Compose profile, a commented block of `values.yaml` or `env.d/common`, which the feature's guide says to switch on. After installing or changing Meet with Docker Compose, run the command of [Check your install](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/verify.md) on the server and report its output, then ask the user to make its call between two devices on different networks.
+
+## Customising and settings
+
+- [Customising Meet](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/customising.md): everything an administrator can change, its default, and the guide and variable for each
+- [Environment Variables](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/reference/env-variables.md): every variable per service, required or not, its default and meaning
+
+## Self-hosting
+
+- [Self-hosting overview](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/index.md): the install paths and when each fits
+- [Quick Start](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/compose/quick-start.md): one script installing Meet, a reverse proxy and Keycloak on a fresh Linux server
+- [Docker Compose prerequisites](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/compose/prerequisites.md): server size, domain names and ports
+- [Docker Compose Deployment Guide](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/compose/deployment-guide.md): the stacks by hand, after-installation steps, upgrading, rolling back, stopping
+- [Reverse Proxy](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/compose/reverse-proxy.md): nginx-proxy or Traefik in front of the stacks
+- [Kubernetes prerequisites](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/kubernetes/prerequisites.md): cluster, ingress, cert-manager and external services
+- [Helm Deployment](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/kubernetes/helm.md): the Meet and LiveKit charts, secrets, upgrading, uninstalling
+- [Scalingo](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/scalingo.md): Meet as a Scalingo app with PostgreSQL and Redis add-ons
+- [Check your install](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/verify.md): one command checking a Docker Compose install, a ✓ or ✗ per check, then the call between two networks that no command proves
+
+## Configuration
+
+- [LiveKit and TURN](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/livekit.md): the media server, its ports and TURN
+- [Firewall and ports](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/firewall.md): every port to open, the traffic flows and the Docker networks
+- [SSO and authentication](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/sso.md): OpenID Connect providers and unauthenticated access
+- [Recording](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/recording.md): LiveKit Egress, S3-compatible storage and download links
+- [AI transcription](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/transcription.md): the summary service, speech-to-text and LaSuite Docs output
+- [Real-time subtitles](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/subtitles.md): the LiveKit agent and its speech-to-text provider
+- [Telephony](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/telephony.md): dial-in through LiveKit SIP
+- [Email](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/email.md): SMTP for invitations and recording links
+- [Theming](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/theming.md): colours, fonts, logo and images without a rebuild
+
+## Operating
+
+- [Security](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/reference/security.md): TLS, services that must never be public, rate limits, the authentication model
+- [Room purge](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/room-purge.md): deleting inactive rooms
+- [Audit logging](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/audit-logging.md): the audit events, their fields and how to query them
+- [Troubleshooting](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/reference/troubleshooting.md): symptoms, causes and fixes
+
+## Integrating
+
+- [External API](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/reference/external-api.md): creating and managing rooms from another application, the two token modes, errors
+- [OpenAPI, application token](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/reference/openapi.yaml): every route with its schemas, for a token your backend requests for a user
+- [OpenAPI, user's OIDC token](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/reference/resource_server.yaml): the same rooms routes, for the token your user got from your OIDC provider
+- [Add-ons](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/reference/external-api-addons.md): add-ins such as Outlook's, and their sign-in flow
+
+## Using Meet
+
+- [Getting Started](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/user/getting-started.md): joining and running a first meeting
+- [Features and controls](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/user/features-controls.md): every control in a meeting, roles and permissions
+- [Recording and transcription, for users](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/user/recording.md): starting a recording and getting the file
+- [Accessibility and shortcuts](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/user/accessibility.md): keyboard, screen readers and display settings
+- [FAQ](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/faq.md): common questions from participants and hosts
+- [How Meet works](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/overview/how-meet-works.md): the architecture, what is stored, security and media
+
+## Optional
+
+- [Develop locally](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/contributing/develop.md): running Meet from source
+- [Code tour](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/contributing/code-tour.md): where each part of the code lives
+- [Contributing](https://raw.githubusercontent.com/suitenumerique/meet/main/CONTRIBUTING.md): commits, changelog, CI and pull requests
+- [Changelog](https://raw.githubusercontent.com/suitenumerique/meet/main/CHANGELOG.md)

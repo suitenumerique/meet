@@ -4,11 +4,11 @@ This is an experimental part of the stack.  It currently lacks proper observabil
 
 ## How it works 
 
-Please refer to the [Recording feature documentation](https://github.com/suitenumerique/meet/blob/main/docs/features/recording.md) and the [Transcription feature documentation](https://github.com/suitenumerique/meet/blob/main/docs/features/transcription.md).
+Please refer to the [Recording feature documentation](https://github.com/suitenumerique/meet/blob/main/docs/self-hosting/configuration/recording.md) and the [Transcription feature documentation](https://github.com/suitenumerique/meet/blob/main/docs/self-hosting/configuration/transcription.md).
 
 ## How to develop
 
-(To develop locally follow the instructions on [developing La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md))
+(To develop locally follow the instructions on [developing La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/contributing/develop.md))
 
 From the root of the project:
 

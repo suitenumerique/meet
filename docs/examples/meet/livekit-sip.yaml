@@ -1,0 +1,9 @@
+# LiveKit SIP, the phone bridge of the Telephony guide.
+# generate-secrets.sh fills the LiveKit API secret.
+
+api_key: meet
+api_secret: <your LiveKit API secret>
+ws_url: ws://livekit:7880
+
+redis:
+  address: redis:6379

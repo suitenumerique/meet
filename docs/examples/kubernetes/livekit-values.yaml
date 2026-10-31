@@ -1,0 +1,30 @@
+# Values for LiveKit's Helm chart, from the Helm Deployment guide.
+# The guide's commands put your domain and Meet's LIVEKIT_API_SECRET in.
+
+livekit:
+  keys:
+    meet: <LIVEKIT_API_SECRET>
+  # Your Redis, the one Meet uses
+  redis:
+    address: redis-master.meet.svc.cluster.local:6379
+  rtc:
+    use_external_ip: true
+    # Required for UDP media
+    udp_port: 7882
+  logging:
+    level: info
+  webhook:
+    api_key: meet
+    urls:
+      - https://meet.example.com/api/v1.0/rooms/webhooks-livekit/
+
+# The chart has no ingress: block. type: nginx renders a plain Ingress with no
+# ingressClassName, so the cluster's default IngressClass serves it.
+loadBalancer:
+  type: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    - hosts:
+        - livekit.example.com
+      secretName: livekit-tls
