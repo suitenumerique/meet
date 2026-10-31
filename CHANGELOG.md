@@ -48,6 +48,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend-tools) add a benchmark harness for livekit track processors
 - ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
 - ✨(backend) add room soft-deletion to the external API
 - ✨(all) allow any authenticated user to start a recording
