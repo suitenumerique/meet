@@ -1,8 +1,7 @@
 /* Your theme for Meet, from the Theming guide, loaded through
    FRONTEND_CUSTOM_CSS_URL. Put your colors in place of this teal. */
 
-/* A custom font: uncomment this line and --fonts-sans below. */
-/* @import url(https://fonts.bunny.net/css?family=Roboto:wght@400;700&display=swap); */
+/* A custom font: the Theming guide shows the two lines to add. */
 
 :root {
   /* Semantic tokens */
@@ -43,6 +42,4 @@
   --colors-primary-dark-900: #DFF6F4;
   --colors-primary-dark-950: #F5FEFD;
   --colors-primary-dark-action: #C1FBF6;
-
-  /* --fonts-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif; */
 }

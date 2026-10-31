@@ -22,7 +22,10 @@ command -v curl >/dev/null 2>&1 || die "curl is not installed."
 [[ -f .env ]] || die "No .env in $PWD. Run this in the Meet stack's directory, ~/docker/meet."
 
 # env_value KEY: the value of KEY in the stack's .env, empty when it has none.
-env_value() { grep -E "^$1=" .env | tail -1 | cut -d= -f2- | tr -d "\"'" || true; }
+env_value() {
+  local key="$1"
+  grep -E "^${key}=" .env | tail -1 | cut -d= -f2- | tr -d "\"'" || true
+}
 
 MEET_HOST=$(env_value MEET_HOST)
 LIVEKIT_HOST=$(env_value LIVEKIT_HOST)

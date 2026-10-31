@@ -4,7 +4,7 @@ Colors, fonts, logos and images change without a rebuild. Only the application t
 
 ## Colors and fonts
 
-[`custom.css`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/custom.css) is a theme to edit in place: a teal primary color, and a font to uncomment. Download it; on Docker Compose, from `~/docker/meet`:
+[`custom.css`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/custom.css) is a theme to edit in place, with a teal primary color. Download it; on Docker Compose, from `~/docker/meet`:
 
 ```bash
 RAW="https://raw.githubusercontent.com/suitenumerique/meet/refs/heads/main"
@@ -30,7 +30,15 @@ The main semantic tokens, defined in [`src/frontend/panda.config.ts`](https://gi
 | Font serif | Alternate or reading font | `--fonts-serif` |
 | Font mono | Code or technical font | `--fonts-mono` |
 
-In `custom.css`, put your colors in place of the teal ones. For the font, uncomment the `@import` line and `--fonts-sans`, then name your font in both.
+In `custom.css`, put your colors in place of the teal ones. For a custom font, add its `@import` line at the top of the file and name it in `--fonts-sans`, inside `:root`:
+
+```css title="custom.css"
+@import url(https://fonts.bunny.net/css?family=Roboto:wght@400;700&display=swap);
+
+:root {
+  --fonts-sans: 'Roboto', ui-sans-serif, system-ui, sans-serif;
+}
+```
 
 ### Load your CSS file
 

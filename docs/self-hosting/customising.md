@@ -14,129 +14,185 @@ Most changes are settings of Meet's backend. Where you write them depends on how
 
 A few settings belong to another service, transcription for example. [Environment Variables](../reference/env-variables.md) tells you which file each one goes in.
 
+## The usual changes
+
+A new install usually starts with these:
+
+| Setting | Default |
+|---|---|
+| [Colours and font](configuration/theming.md#colors-and-fonts) | Meet's blue, and the device's own font |
+| [The logo, the home page pictures and the browser-tab icon](configuration/theming.md#custom-assets-logo-images) | Meet's own |
+| [The sign-in service: Keycloak, Authentik, Google or any other OpenID Connect provider](configuration/sso.md) | None: one is required |
+| [Who joins a new room directly, and who waits for the host to let them in](configuration/sso.md#unauthenticated-access) | **Open**: anyone with the link joins directly |
+| [Recording, with the download link sent by email](configuration/recording.md) | Off |
+| [Sending email, for recording download links and room invitations](configuration/email.md) | Nothing is sent until you name an email server |
+| [AI transcription, in beta, delivered to LaSuite Docs](configuration/transcription.md) | Offered once recording is on, and delivers nothing until set up |
+| [Real-time subtitles, in beta](configuration/subtitles.md) | Off |
+| [Phone dial-in](configuration/telephony.md) | Off |
+
 ## Look and feel
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| Colours and font | Meet's blue, and the device's own font | [Theming: Colors and fonts](configuration/theming.md#colors-and-fonts) |
-| The logo, the home page pictures and the browser-tab icon | Meet's own | [Theming: Custom assets](configuration/theming.md#custom-assets-logo-images) |
-| The built-in virtual backgrounds | Eight pictures from Meet | [Theming: Custom assets](configuration/theming.md#custom-assets-logo-images), over the files of [`assets/backgrounds/`](https://github.com/suitenumerique/meet/tree/main/src/frontend/public/assets/backgrounds) |
-| The app's name, in the browser tab and once installed | Empty in the published image: it needs your own build | [Theming: Build-time theming](configuration/theming.md#build-time-theming) |
-| The French government footer | Off | [`FRONTEND_USE_FRENCH_GOV_FOOTER`](../reference/env-variables.md#FRONTEND_USE_FRENCH_GOV_FOOTER) |
-| A page of your own in place of the home page, for signed-out visitors | Off | [`FRONTEND_EXTERNAL_HOME_URL`](../reference/env-variables.md#FRONTEND_EXTERNAL_HOME_URL) |
-| A **Learn more** link on the home page | None | [`FRONTEND_MANIFEST_LINK`](../reference/env-variables.md#FRONTEND_MANIFEST_LINK) |
-| Documentation and feedback links in the meeting's menu | None | [`FRONTEND_DOCUMENTATION_URL`](../reference/env-variables.md#FRONTEND_DOCUMENTATION_URL), [`FRONTEND_FEEDBACK`](../reference/env-variables.md#FRONTEND_FEEDBACK) |
-| A support button, and help links in the meeting's side panels | Off | [`FRONTEND_SUPPORT`](../reference/env-variables.md#FRONTEND_SUPPORT) |
+??? note "Colours, logo, backgrounds, the footer, home page and help links (9 settings)"
+
+    ??? example "Meet's default colours, then the teal theme of the shipped custom.css"
+
+        <div class="figure-row" markdown>
+        ![Meet's home page in its default dark blue](../assets/customising-theme-default.png)
+        ![Meet's home page with the teal custom.css](../assets/customising-theme-teal.png)
+        </div>
+
+    ??? example "The French government footer"
+
+        ![The French government footer](../assets/customising-gov-footer.png)
+
+    ??? example "The built-in backgrounds"
+
+        ![The built-in backgrounds](../assets/background-effects.png)
+
+    | Setting | Default |
+    |---|---|
+    | [Colours and font](configuration/theming.md#colors-and-fonts) | Meet's blue, and the device's own font |
+    | [The logo, the home page pictures and the browser-tab icon](configuration/theming.md#custom-assets-logo-images) | Meet's own |
+    | [The built-in virtual backgrounds](configuration/theming.md#custom-assets-logo-images) | Eight pictures from Meet |
+    | [The app's name, in the browser tab and once installed](configuration/theming.md#build-time-theming) | Empty in the published image: it needs your own build |
+    | [The French government footer](../reference/env-variables.md#FRONTEND_USE_FRENCH_GOV_FOOTER) | Off |
+    | [A page of your own in place of the home page, for signed-out visitors](../reference/env-variables.md#FRONTEND_EXTERNAL_HOME_URL) | Off |
+    | [A "Learn more" link on the home page](../reference/env-variables.md#FRONTEND_MANIFEST_LINK) | None |
+    | [Documentation and feedback links in the meeting's menu](../reference/env-variables.md#FRONTEND_DOCUMENTATION_URL) | None |
+    | [A support button, and help links in the meeting's side panels](../reference/env-variables.md#FRONTEND_SUPPORT) | Off |
 
 ## Sign-in and who can join
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| The sign-in service: Keycloak, Authentik, Google or any other OpenID Connect provider | None: one is required | [SSO & Authentication](configuration/sso.md) |
-| Signing in without a click, for someone already signed in to that service | On | [`FRONTEND_IS_SILENT_LOGIN_ENABLED`](../reference/env-variables.md#FRONTEND_IS_SILENT_LOGIN_ENABLED) |
-| The ProConnect button, for French public servants | Off | [`FRONTEND_USE_PROCONNECT_BUTTON`](../reference/env-variables.md#FRONTEND_USE_PROCONNECT_BUTTON) |
-| Creating a Meet account at someone's first sign-in | On | [`OIDC_CREATE_USER`](../reference/env-variables.md#OIDC_CREATE_USER) |
-| How long a sign-in lasts | 12 hours | [`SESSION_COOKIE_AGE`](../reference/env-variables.md#SESSION_COOKIE_AGE) |
-| Starting a meeting without an account, under a room code nobody created | On. The Docker Compose template turns it off | [SSO: Unauthenticated access](configuration/sso.md#unauthenticated-access) |
-| Who joins a new room directly, and who waits for the host to let them in | **Open**: anyone with the link joins directly | [SSO: Unauthenticated access](configuration/sso.md#unauthenticated-access), [Room access levels](../user/features-controls.md#access-levels) |
-| How long someone let in from the waiting room has to join | 6 hours | [`LOBBY_ACCEPTED_TIMEOUT`](../reference/env-variables.md#LOBBY_ACCEPTED_TIMEOUT) |
-| How soon someone turned away may ask again | 5 seconds | [`LOBBY_DENIED_TIMEOUT`](../reference/env-variables.md#LOBBY_DENIED_TIMEOUT) |
+??? note "The sign-in service, sessions, guests and the waiting room (9 settings)"
+
+    ??? example "Who can join, in the host settings"
+
+        ![Who can join, in the host settings](../assets/admin-panel.png)
+
+    | Setting | Default |
+    |---|---|
+    | [The sign-in service: Keycloak, Authentik, Google or any other OpenID Connect provider](configuration/sso.md) | None: one is required |
+    | [Signing in without a click, for someone already signed in to that service](../reference/env-variables.md#FRONTEND_IS_SILENT_LOGIN_ENABLED) | On |
+    | [The ProConnect button, for French public servants](../reference/env-variables.md#FRONTEND_USE_PROCONNECT_BUTTON) | Off |
+    | [Creating a Meet account at someone's first sign-in](../reference/env-variables.md#OIDC_CREATE_USER) | On |
+    | [How long a sign-in lasts](../reference/env-variables.md#SESSION_COOKIE_AGE) | 12 hours |
+    | [Starting a meeting without an account, under a room code nobody created](configuration/sso.md#unauthenticated-access) | On. The Docker Compose template turns it off |
+    | [Who joins a new room directly, and who waits for the host to let them in](configuration/sso.md#unauthenticated-access) | **Open**: anyone with the link joins directly |
+    | [How long someone let in from the waiting room has to join](../reference/env-variables.md#LOBBY_ACCEPTED_TIMEOUT) | 6 hours |
+    | [How soon someone turned away may ask again](../reference/env-variables.md#LOBBY_DENIED_TIMEOUT) | 5 seconds |
 
 ## Recording and transcription
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| Recording, with the download link sent by email | Off | [Recording](configuration/recording.md), [`RECORDING_ENABLE`](../reference/env-variables.md#RECORDING_ENABLE) |
-| Recording by any signed-in participant, in a room that is not **Restricted** | On | [Recording: Who can record](configuration/recording.md#who-can-record) |
-| The recording quality | 720p at 30 images a second, about 1.4 GB an hour | [Recording: encoding](configuration/recording.md#configuring-recording-encoding) |
-| Hosts choosing the quality of each recording | Off | [Recording: Letting users choose](configuration/recording.md#letting-users-choose) |
-| When Meet shows a recording as expired, without deleting it | Never | [`RECORDING_EXPIRATION_DAYS`](../reference/env-variables.md#RECORDING_EXPIRATION_DAYS) |
-| AI transcription, in beta, delivered to LaSuite Docs | Offered once recording is on, and delivers nothing until set up | [AI Transcription](configuration/transcription.md), or hidden with [`RECORDING_WORKER_CLASSES`](../reference/env-variables.md#RECORDING_WORKER_CLASSES) |
-| AI summaries of the transcript | Off | [AI Transcription: LLM summaries](configuration/transcription.md#llm-summaries) |
-| Speaker names in the transcript | Off: speakers are numbered | [AI Transcription: Name the speakers](configuration/transcription.md#step-4-name-the-speakers) |
-| Telling users where their transcripts go | Not shown | [`FRONTEND_TRANSCRIPTION_DESTINATION`](../reference/env-variables.md#FRONTEND_TRANSCRIPTION_DESTINATION) |
-| A satisfaction survey link after a transcription | None | [`TRANSCRIPTION_SATISFACTION_FORM_BASE_URL`](../reference/env-variables.md#TRANSCRIPTION_SATISFACTION_FORM_BASE_URL) |
+??? note "Recording, its quality and expiry, transcription and summaries (10 settings)"
+
+    ??? example "Recording and transcription, in the menu"
+
+        ![Recording and transcription, in the menu](../assets/transcription.png)
+
+    | Setting | Default |
+    |---|---|
+    | [Recording, with the download link sent by email](configuration/recording.md) | Off |
+    | [Recording by any signed-in participant, in a room that is not "Restricted"](configuration/recording.md#who-can-record) | On |
+    | [The recording quality](configuration/recording.md#configuring-recording-encoding) | 720p at 30 images a second, about 1.4 GB an hour |
+    | [Hosts choosing the quality of each recording](configuration/recording.md#letting-users-choose) | Off |
+    | [When Meet shows a recording as expired, without deleting it](../reference/env-variables.md#RECORDING_EXPIRATION_DAYS) | Never |
+    | [AI transcription, in beta, delivered to LaSuite Docs](configuration/transcription.md) | Offered once recording is on, and delivers nothing until set up |
+    | [AI summaries of the transcript](configuration/transcription.md#llm-summaries) | Off |
+    | [Speaker names in the transcript](configuration/transcription.md#step-4-name-the-speakers) | Off: speakers are numbered |
+    | [Telling users where their transcripts go](../reference/env-variables.md#FRONTEND_TRANSCRIPTION_DESTINATION) | Not shown |
+    | [A satisfaction survey link after a transcription](../reference/env-variables.md#TRANSCRIPTION_SATISFACTION_FORM_BASE_URL) | None |
 
 ## In a meeting
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| Real-time subtitles, in beta | Off | [Real-time Subtitles](configuration/subtitles.md), [`ROOM_SUBTITLE_ENABLED`](../reference/env-variables.md#ROOM_SUBTITLE_ENABLED) |
-| The speech-to-text service behind subtitles | Deepgram | [Real-time Subtitles: STT providers](configuration/subtitles.md#stt-providers) |
-| Phone dial-in | Off | [Telephony](configuration/telephony.md), [`ROOM_TELEPHONY_ENABLED`](../reference/env-variables.md#ROOM_TELEPHONY_ENABLED) |
-| The PIN callers type | 10 digits | [`ROOM_TELEPHONY_PIN_LENGTH`](../reference/env-variables.md#ROOM_TELEPHONY_PIN_LENGTH) |
-| Meeting-room hardware joining a room, in beta | Off | [`ROOMKIT_ENABLED`](../reference/env-variables.md#ROOMKIT_ENABLED) |
-| Uploading your own virtual backgrounds | Off. Once on, 10 per person, 2 MB each | [`FILE_UPLOAD_ENABLED`](../reference/env-variables.md#FILE_UPLOAD_ENABLED) |
-| What participants may share, until the host changes it | Camera, microphone, screen and its sound | [`LIVEKIT_DEFAULT_SOURCES`](../reference/env-variables.md#LIVEKIT_DEFAULT_SOURCES) |
-| Signed-in people changing their name in a meeting | On | [`AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME`](../reference/env-variables.md#AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME) |
-| Joining muted, in a large meeting | Above 50 participants | [`FRONTEND_AUTO_MUTE_ON_JOIN_THRESHOLD`](../reference/env-variables.md#FRONTEND_AUTO_MUTE_ON_JOIN_THRESHOLD) |
-| Join and leave sounds | Muted from 5 participants | [`FRONTEND_MAX_PARTICIPANTS_FOR_SOUND`](../reference/env-variables.md#FRONTEND_MAX_PARTICIPANTS_FOR_SOUND) |
-| Ending the call of someone left alone, after a warning | Off | [`FRONTEND_IDLE_DISCONNECT_WARNING_DELAY`](../reference/env-variables.md#FRONTEND_IDLE_DISCONNECT_WARNING_DELAY) |
+??? note "Subtitles, phone dial-in, room hardware, sharing and sounds (11 settings)"
+
+    ??? example "The subtitles button"
+
+        ![The subtitles button](../assets/guide-subtitles-button.png)
+
+    | Setting | Default |
+    |---|---|
+    | [Real-time subtitles, in beta](configuration/subtitles.md) | Off |
+    | [The speech-to-text service behind subtitles](configuration/subtitles.md#stt-providers) | Deepgram |
+    | [Phone dial-in](configuration/telephony.md) | Off |
+    | [The PIN callers type](../reference/env-variables.md#ROOM_TELEPHONY_PIN_LENGTH) | 10 digits |
+    | [Meeting-room hardware joining a room, in beta](../reference/env-variables.md#ROOMKIT_ENABLED) | Off |
+    | [Uploading your own virtual backgrounds](../reference/env-variables.md#FILE_UPLOAD_ENABLED) | Off. Once on, 10 per person, 2 MB each |
+    | [What participants may share, until the host changes it](../reference/env-variables.md#LIVEKIT_DEFAULT_SOURCES) | Camera, microphone, screen and its sound |
+    | [Signed-in people changing their name in a meeting](../reference/env-variables.md#AUTHENTICATED_PARTICIPANTS_CAN_EDIT_DISPLAY_NAME) | On |
+    | [Joining muted, in a large meeting](../reference/env-variables.md#FRONTEND_AUTO_MUTE_ON_JOIN_THRESHOLD) | Above 50 participants |
+    | [Join and leave sounds](../reference/env-variables.md#FRONTEND_MAX_PARTICIPANTS_FOR_SOUND) | Muted from 5 participants |
+    | [Ending the call of someone left alone, after a warning](../reference/env-variables.md#FRONTEND_IDLE_DISCONNECT_WARNING_DELAY) | Off |
 
 ## Connection
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| A relay for people whose network blocks calls, as some company networks do | Off | [LiveKit & TURN: TURN](configuration/livekit.md#turn) |
-| A page where visitors test their connection before a meeting | Off. Once on, the [French government footer](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/layout/Footer.tsx#L274) links it | [`CONNECTION_TEST_ENABLED`](../reference/env-variables.md#CONNECTION_TEST_ENABLED) |
-| A link to your network requirements, for a visitor's IT team | None | [`FRONTEND_TECHNICAL_DOCUMENTATION_URL`](../reference/env-variables.md#FRONTEND_TECHNICAL_DOCUMENTATION_URL) |
+??? note "The TURN relay, the connection test page and network requirements (3 settings)"
+
+    | Setting | Default |
+    |---|---|
+    | [A relay for people whose network blocks calls, as some company networks do](configuration/livekit.md#turn) | Off |
+    | [A page where visitors test their connection before a meeting](../reference/env-variables.md#CONNECTION_TEST_ENABLED) | Off. Once on, the [French government footer](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/layout/Footer.tsx#L274) links it |
+    | [A link to your network requirements, for a visitor's IT team](../reference/env-variables.md#FRONTEND_TECHNICAL_DOCUMENTATION_URL) | None |
 
 ## Email
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| Sending email, for recording download links and room invitations | Nothing is sent until you name an email server | [Email](configuration/email.md) |
-| The sender address | A placeholder, `from@example.com` | [`DJANGO_EMAIL_FROM`](../reference/env-variables.md#DJANGO_EMAIL_FROM) |
-| Your name, logo and support address in emails | None | [Environment Variables: Email](../reference/env-variables.md#email) |
-| Retrying an email that failed | Off | [`CELERY_ENABLED`](../reference/env-variables.md#CELERY_ENABLED) |
+??? note "Sending, the sender, your branding and retries (4 settings)"
+
+    | Setting | Default |
+    |---|---|
+    | [Sending email, for recording download links and room invitations](configuration/email.md) | Nothing is sent until you name an email server |
+    | [The sender address](../reference/env-variables.md#DJANGO_EMAIL_FROM) | A placeholder, `from@example.com` |
+    | [Your name, logo and support address in emails](../reference/env-variables.md#email) | None |
+    | [Retrying an email that failed](../reference/env-variables.md#CELERY_ENABLED) | Off |
 
 ## Languages
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| The languages a transcription accepts | English, French, German, Dutch | [`WHISPERX_ALLOWED_LANGUAGES`](../reference/env-variables.md#WHISPERX_ALLOWED_LANGUAGES) |
-| The language a transcription assumes when none is picked | Detected from the speech | [`WHISPERX_DEFAULT_LANGUAGE`](../reference/env-variables.md#WHISPERX_DEFAULT_LANGUAGE) |
-| The language of subtitles | Detected from the speech, with Deepgram | [`DEEPGRAM_STT_LANGUAGE`](../reference/env-variables.md#DEEPGRAM_STT_LANGUAGE) |
-| The language of the phone prompts | English | [Telephony: Audio prompt language](configuration/telephony.md#audio-prompt-language) |
+??? note "For transcription, subtitles and phone prompts (4 settings)"
+
+    | Setting | Default |
+    |---|---|
+    | [The languages a transcription accepts](../reference/env-variables.md#WHISPERX_ALLOWED_LANGUAGES) | English, French, German, Dutch |
+    | [The language a transcription assumes when none is picked](../reference/env-variables.md#WHISPERX_DEFAULT_LANGUAGE) | Detected from the speech |
+    | [The language of subtitles](../reference/env-variables.md#DEEPGRAM_STT_LANGUAGE) | Detected from the speech, with Deepgram |
+    | [The language of the phone prompts](configuration/telephony.md#audio-prompt-language) | English |
 
 ## Other applications
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| Letting other applications create and manage rooms | Off | [External API](../reference/external-api.md), [`EXTERNAL_API_ENABLED`](../reference/env-variables.md#EXTERNAL_API_ENABLED) |
-| The ways those applications sign in | All off | [External API: Getting a token](../reference/external-api.md#getting-a-token) |
-| The Outlook add-in | Off | [Add-ons](../reference/external-api-addons.md), [`ADDONS_ENABLED`](../reference/env-variables.md#ADDONS_ENABLED) |
-| Showing Meet inside another application's page | Allowed | [External API: Showing Meet in an iframe](../reference/external-api.md#signing-a-user-in-to-an-iframe) |
-| Signing the user in to Meet there | Off | [`USER_ACCESS_TOKEN_ENABLED`](../reference/env-variables.md#USER_ACCESS_TOKEN_ENABLED) |
-| Who joins a room another application created | **Open to trusted people**: signed-in users join directly, others wait | [`EXTERNAL_API_DEFAULT_ACCESS_LEVEL`](../reference/env-variables.md#EXTERNAL_API_DEFAULT_ACCESS_LEVEL) |
-| Other applications creating rooms open to anyone | Off | [`EXTERNAL_API_ALLOW_PUBLIC_ACCESS`](../reference/env-variables.md#EXTERNAL_API_ALLOW_PUBLIC_ACCESS) |
+??? note "The external API, the Outlook add-in and embedding Meet (7 settings)"
+
+    | Setting | Default |
+    |---|---|
+    | [Letting other applications create and manage rooms](../reference/external-api.md) | Off |
+    | [The ways those applications sign in](../reference/external-api.md#getting-a-token) | All off |
+    | [The Outlook add-in](../reference/external-api-addons.md) | Off |
+    | [Showing Meet inside another application's page](../reference/external-api.md#signing-a-user-in-to-an-iframe) | Allowed |
+    | [Signing the user in to Meet there](../reference/env-variables.md#USER_ACCESS_TOKEN_ENABLED) | Off |
+    | [Who joins a room another application created](../reference/env-variables.md#EXTERNAL_API_DEFAULT_ACCESS_LEVEL) | **Open to trusted people**: signed-in users join directly, others wait |
+    | [Other applications creating rooms open to anyone](../reference/env-variables.md#EXTERNAL_API_ALLOW_PUBLIC_ACCESS) | Off |
 
 ## Data, logs and analytics
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| Deleting unused rooms, and rooms their host deleted, for good | Off: every room is kept | [Room purge](configuration/room-purge.md) |
-| Deleting uploaded backgrounds for good, once their owner removes them | After 7 days | [`FILE_PURGE_GRACE_DAYS`](../reference/env-variables.md#FILE_PURGE_GRACE_DAYS) |
-| The audit log of sign-ins, recordings, and external API and admin actions | Always on, in the backend's output | [Audit logging](configuration/audit-logging.md) |
-| Usage analytics in the browser, with [PostHog](https://posthog.com/) | Off | [`FRONTEND_ANALYTICS`](../reference/env-variables.md#FRONTEND_ANALYTICS) |
-| Usage analytics from the server | Off | [`ANALYTICS_BACKEND`](../reference/env-variables.md#ANALYTICS_BACKEND) |
-| Adding new users to a marketing mailing list | Off | [`SIGNUP_NEW_USER_TO_MARKETING_EMAIL`](../reference/env-variables.md#SIGNUP_NEW_USER_TO_MARKETING_EMAIL) |
-| Error reports to [Sentry](https://sentry.io/) | Off | [`DJANGO_SENTRY_DSN`](../reference/env-variables.md#DJANGO_SENTRY_DSN) |
+??? note "Deleting rooms, the audit log, analytics and error reports (7 settings)"
 
-Browser analytics hide the
-[recording](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/recording/hooks/useHasRecordingAccess.ts#L18),
-[transcription](configuration/transcription.md) and
-[subtitle](configuration/subtitles.md#who-sees-it-and-what-it-costs) buttons from every user
-your PostHog project has not given the matching
-[feature flag](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/analytics/enums.ts#L1-L9).
+    | Setting | Default |
+    |---|---|
+    | [Deleting unused rooms, and rooms their host deleted, for good](configuration/room-purge.md) | Off: every room is kept |
+    | [Deleting uploaded backgrounds for good, once their owner removes them](../reference/env-variables.md#FILE_PURGE_GRACE_DAYS) | After 7 days |
+    | [The audit log of sign-ins, recordings, and external API and admin actions](configuration/audit-logging.md) | Always on, in the backend's output |
+    | [Usage analytics in the browser, with [PostHog](https://posthog.com/)](../reference/env-variables.md#FRONTEND_ANALYTICS) | Off |
+    | [Usage analytics from the server](../reference/env-variables.md#ANALYTICS_BACKEND) | Off |
+    | [Adding new users to a marketing mailing list](../reference/env-variables.md#SIGNUP_NEW_USER_TO_MARKETING_EMAIL) | Off |
+    | [Error reports to [Sentry](https://sentry.io/)](../reference/env-variables.md#DJANGO_SENTRY_DSN) | Off |
 
 ## Limits
 
-| What you can change | Default | Where to change it |
-|---|---|---|
-| Rooms one person can create | 50 a minute, 1,000 a day | [`ROOM_CREATION_THROTTLE_RATES`](../reference/env-variables.md#ROOM_CREATION_THROTTLE_RATES) |
-| Recordings one person can start | 10 a minute, 100 a day | [`START_RECORDING_THROTTLE_RATES`](../reference/env-variables.md#START_RECORDING_THROTTLE_RATES) |
-| Every other limit, such as requests to join from the waiting room | Each has its own | [Security: Rate limiting](../reference/security.md#rate-limiting) |
+??? note "Rooms and recordings per person, and every other rate limit (3 settings)"
+
+    | Setting | Default |
+    |---|---|
+    | [Rooms one person can create](../reference/env-variables.md#ROOM_CREATION_THROTTLE_RATES) | 50 a minute, 1,000 a day |
+    | [Recordings one person can start](../reference/env-variables.md#START_RECORDING_THROTTLE_RATES) | 10 a minute, 100 a day |
+    | [Every other limit, such as requests to join from the waiting room](../reference/security.md#rate-limiting) | Each has its own |
 
 ## What you cannot change
 
