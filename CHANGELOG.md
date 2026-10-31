@@ -13,6 +13,7 @@ and this project adheres to
 - ⬆️(summary) update ffmpeg to 8.1.3-r0
 - ✨(frontend) replace the Crisp chat with the La Suite support form
 - 🔒️(frontend) keep rooms out of search engine and AI indexes
+- ⬆️(backend) upgrade django-lasuite to v1.0.0
 
 ## [1.36.3] - 2026-10-23
 

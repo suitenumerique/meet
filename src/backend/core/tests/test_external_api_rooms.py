@@ -184,7 +184,7 @@ def test_api_rooms_list_with_application_disabled(mock_rs_authenticate, settings
 
 @responses.activate
 def test_api_rooms_list_with_invalid_rs_token(settings):
-    """Listing rooms with invalid resource server token should return 400."""
+    """Listing rooms with invalid resource server token should return 401."""
 
     settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
     settings.OIDC_OP_URL = "https://oidc.example.com"
@@ -202,9 +202,8 @@ def test_api_rooms_list_with_invalid_rs_token(settings):
     client.credentials(HTTP_AUTHORIZATION="Bearer invalid-token-123")
     response = client.get("/external-api/v1.0/rooms/")
 
-    # Return 400 instead of 401 because ResourceServerAuthentication raises
-    # SuspiciousOperation when the introspected user is not active
-    assert response.status_code == 400
+    assert response.status_code == 401
+    assert "introspected user is not active" in str(response.data).lower()
 
 
 def test_api_rooms_list_missing_scope():
@@ -422,7 +421,7 @@ def test_api_rooms_retrieve_with_expired_token(settings):
 
 @responses.activate
 def test_api_rooms_retrieve_with_invalid_rs_token(settings):
-    """Retrieving rooms with invalid resource server token should return 400."""
+    """Retrieving rooms with invalid resource server token should return 401."""
 
     settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
     settings.OIDC_OP_URL = "https://oidc.example.com"
@@ -443,9 +442,8 @@ def test_api_rooms_retrieve_with_invalid_rs_token(settings):
     client.credentials(HTTP_AUTHORIZATION="Bearer invalid-token-123")
     response = client.get(f"/external-api/v1.0/rooms/{room.id}/")
 
-    # Return 400 instead of 401 because ResourceServerAuthentication raises
-    # SuspiciousOperation when the introspected user is not active
-    assert response.status_code == 400
+    assert response.status_code == 401
+    assert "introspected user is not active" in str(response.data).lower()
 
 
 def test_api_rooms_retrieve_requires_scope():
@@ -647,7 +645,7 @@ def test_api_rooms_create_with_expired_token(settings):
 
 @responses.activate
 def test_api_rooms_create_with_invalid_rs_token(settings):
-    """Creating rooms with invalid resource server token should return 400."""
+    """Creating rooms with invalid resource server token should return 401."""
 
     settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
     settings.OIDC_OP_URL = "https://oidc.example.com"
@@ -665,9 +663,8 @@ def test_api_rooms_create_with_invalid_rs_token(settings):
     client.credentials(HTTP_AUTHORIZATION="Bearer invalid-token-123")
     response = client.post("/external-api/v1.0/rooms/")
 
-    # Return 400 instead of 401 because ResourceServerAuthentication raises
-    # SuspiciousOperation when the introspected user is not active
-    assert response.status_code == 400
+    assert response.status_code == 401
+    assert "introspected user is not active" in str(response.data).lower()
 
 
 def test_api_rooms_create_inactive_user():
@@ -2969,6 +2966,36 @@ def test_api_rooms_missing_token_is_audited_as_denial(audit_events):
     assert event["http"]["response"] == {"status_code": 401}
     assert event["client"]["ip"] == "1.2.3.4"
     assert event["url"]["path"] == "/external-api/v1.0/rooms/"
+
+
+@responses.activate
+def test_api_rooms_invalid_rs_token_is_audited_as_denial(audit_events, settings):
+    """A token refused by the identity provider is recorded as a denial."""
+    settings.OIDC_OP_INTROSPECTION_ENDPOINT = "https://oidc.example.com/introspect"
+    settings.OIDC_OP_URL = "https://oidc.example.com"
+
+    responses.add(
+        responses.POST,
+        "https://oidc.example.com/introspect",
+        json={"iss": "https://oidc.example.com", "active": False},
+    )
+
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer invalid-token-123")
+    response = client.get("/external-api/v1.0/rooms/")
+
+    assert response.status_code == 401
+    assert response.headers["WWW-Authenticate"] == "Bearer"
+    responses.assert_call_count("https://oidc.example.com/introspect", 1)
+
+    [event] = find_events(audit_events, "room.list")
+
+    assert event["event"]["category"] == ["api", "authentication"]
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert event["http"]["response"] == {"status_code": 401}
+    assert event["error"]["message"] == response.json()["detail"]
 
 
 def test_api_rooms_missing_scope_is_audited_as_denial(audit_events):
