@@ -817,6 +817,11 @@
     "fullScreenEntered": "Volledig scherm ingeschakeld",
     "fullScreenExited": "Volledig scherm uitgeschakeld"
   },
+  "focusLayoutResizer": {
+    "label": "Formaat van deelnemersvideo's wijzigen",
+    "value": "Video's beslaan {{percent}} % van de breedte",
+    "hint": "Sleep om het formaat van de video's te wijzigen. Dubbelklik om te herstellen."
+  },
   "shortcutsPanel": {
     "title": "Sneltoetsen",
     "categories": {

@@ -817,6 +817,11 @@
     "fullScreenEntered": "Plein écran activé",
     "fullScreenExited": "Plein écran désactivé"
   },
+  "focusLayoutResizer": {
+    "label": "Redimensionner les vidéos des participants",
+    "value": "Les vidéos occupent {{percent}} % de la largeur",
+    "hint": "Faites glisser pour redimensionner les vidéos. Double-cliquez pour réinitialiser."
+  },
   "shortcutsPanel": {
     "title": "Raccourcis clavier",
     "categories": {

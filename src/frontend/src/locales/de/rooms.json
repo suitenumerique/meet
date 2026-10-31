@@ -817,6 +817,11 @@
     "fullScreenEntered": "Vollbild aktiviert",
     "fullScreenExited": "Vollbild deaktiviert"
   },
+  "focusLayoutResizer": {
+    "label": "Größe der Teilnehmervideos ändern",
+    "value": "Videos nehmen {{percent}} % der Breite ein",
+    "hint": "Ziehen, um die Größe der Videos zu ändern. Doppelklicken zum Zurücksetzen."
+  },
   "shortcutsPanel": {
     "title": "Tastenkürzel",
     "categories": {

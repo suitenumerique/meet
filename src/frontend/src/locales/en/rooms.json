@@ -817,6 +817,11 @@
     "fullScreenEntered": "Full screen enabled",
     "fullScreenExited": "Full screen disabled"
   },
+  "focusLayoutResizer": {
+    "label": "Resize participant videos",
+    "value": "Videos take {{percent}} % of the width",
+    "hint": "Drag to resize the videos. Double-click to reset."
+  },
   "shortcutsPanel": {
     "title": "Keyboard shortcuts",
     "categories": {

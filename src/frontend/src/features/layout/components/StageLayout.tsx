@@ -12,7 +12,18 @@ import {
 import { Track } from 'livekit-client'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
-import { useEffect, useRef } from 'react'
+import { focusLayoutStore } from '@/stores/focusLayout'
+import { type CSSProperties, useEffect, useRef } from 'react'
+import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
+import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
+import {
+  clampCarouselRatio,
+  RESIZABLE_MEDIA_QUERY,
+} from '@/features/layout/utils/focusLayoutSplit'
+import {
+  CAROUSEL_RATIO_VAR,
+  FocusLayoutResizer,
+} from '@/features/layout/components/FocusLayoutResizer'
 
 export const StageLayout = () => {
   const lastAutoFocusedScreenShareTrack =
@@ -94,20 +105,72 @@ export const StageLayout = () => {
           </GridLayout>
         </div>
       ) : (
-        <div className="lk-focus-layout-wrapper" style={{ height: 'auto' }}>
-          <FocusLayoutContainer style={{ padding: 0 }}>
-            <CarouselLayout
-              tracks={carouselTracks}
-              style={{
-                minWidth: '200px',
-              }}
-            >
-              <ParticipantTile />
-            </CarouselLayout>
-            <FocusLayout trackRef={pinnedTrackRef} />
-          </FocusLayoutContainer>
-        </div>
+        <ResizableFocusLayout
+          carouselTracks={carouselTracks}
+          pinnedTrackRef={pinnedTrackRef}
+        />
       )}
     </>
+  )
+}
+
+interface ResizableFocusLayoutProps {
+  carouselTracks: TrackReferenceOrPlaceholder[]
+  pinnedTrackRef: TrackReferenceOrPlaceholder
+}
+
+// Kept apart from StageLayout so the size observer attaches when the wrapper
+// mounts, which only happens once a track is pinned.
+const ResizableFocusLayout = ({
+  carouselTracks,
+  pinnedTrackRef,
+}: ResizableFocusLayoutProps) => {
+  const focusLayoutRef = useRef<HTMLDivElement>(null)
+  const { width: focusLayoutWidth } = useSize(focusLayoutRef)
+  const isResizable = useMediaQuery(RESIZABLE_MEDIA_QUERY)
+  const { carouselRatio } = useSnapshot(focusLayoutStore)
+  const clampedCarouselRatio = clampCarouselRatio(
+    carouselRatio,
+    focusLayoutWidth
+  )
+
+  return (
+    <div
+      ref={focusLayoutRef}
+      className="lk-focus-layout-wrapper"
+      style={
+        {
+          height: 'auto',
+          [CAROUSEL_RATIO_VAR]: clampedCarouselRatio,
+        } as CSSProperties
+      }
+    >
+      <FocusLayoutContainer
+        style={{
+          padding: 0,
+          ...(isResizable && {
+            gridTemplateColumns: `calc(var(${CAROUSEL_RATIO_VAR}) * 100%) minmax(0, 1fr)`,
+          }),
+        }}
+      >
+        <CarouselLayout
+          tracks={carouselTracks}
+          orientation={isResizable ? 'vertical' : undefined}
+          style={{
+            minWidth: '200px',
+          }}
+        >
+          <ParticipantTile />
+        </CarouselLayout>
+        <FocusLayout trackRef={pinnedTrackRef} />
+      </FocusLayoutContainer>
+      {isResizable && (
+        <FocusLayoutResizer
+          containerRef={focusLayoutRef}
+          ratio={clampedCarouselRatio}
+          layoutWidth={focusLayoutWidth}
+        />
+      )}
+    </div>
   )
 }

@@ -816,6 +816,11 @@
     "fullScreenEntered": "Pantalla completa activada",
     "fullScreenExited": "Pantalla completa desactivada"
   },
+  "focusLayoutResizer": {
+    "label": "Cambiar el tamaño de los vídeos de los participantes",
+    "value": "Los vídeos ocupan el {{percent}} % del ancho",
+    "hint": "Arrastra para cambiar el tamaño de los vídeos. Haz doble clic para restablecer."
+  },
   "shortcutsPanel": {
     "title": "Atajos de teclado",
     "categories": {
