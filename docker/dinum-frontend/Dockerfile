@@ -1,5 +1,5 @@
 # ---- Front-end image ----
-FROM node:22.23.4-alpine AS frontend-deps
+FROM --platform=$BUILDPLATFORM node:22.23.4-alpine AS frontend-deps
 
 RUN apk upgrade --no-cache ca-certificates
 
@@ -41,7 +41,7 @@ COPY ./docker/dinum-frontend/fonts/ \
     ./dist/assets/fonts/
 
 # ---- Addons builder image ----
-FROM node:22.23.4-alpine AS addons-builder
+FROM --platform=$BUILDPLATFORM node:22.23.4-alpine AS addons-builder
 
 RUN apk upgrade --no-cache ca-certificates
 
