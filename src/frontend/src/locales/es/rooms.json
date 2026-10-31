@@ -224,6 +224,10 @@
       "heading": "Reunión eliminada",
       "body": "Esta reunión ha sido eliminada y ya no es posible unirse a ella."
     },
+    "roomFull": {
+      "heading": "Esta reunión está completa",
+      "body": "La reunión ha alcanzado el número máximo de participantes. Vuelve a intentarlo más tarde."
+    },
     "screenShare": {
       "title": "No se puede compartir tu pantalla",
       "ariaLabel": "No se puede compartir tu pantalla",

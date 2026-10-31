@@ -224,6 +224,10 @@
       "heading": "Vergadering verwijderd",
       "body": "Deze vergadering is verwijderd en u kunt er niet meer aan deelnemen."
     },
+    "roomFull": {
+      "heading": "Deze vergadering is vol",
+      "body": "De vergadering heeft het maximale aantal deelnemers bereikt. Probeer het later opnieuw."
+    },
     "screenShare": {
       "title": "Kan uw scherm niet delen",
       "ariaLabel": "Kan uw scherm niet delen",

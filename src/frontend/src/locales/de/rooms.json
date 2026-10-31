@@ -224,6 +224,10 @@
       "heading": "Meeting gelöscht",
       "body": "Dieses Meeting wurde gelöscht und kann nicht mehr betreten werden."
     },
+    "roomFull": {
+      "heading": "Dieses Meeting ist voll",
+      "body": "Das Meeting hat die maximale Anzahl an Teilnehmenden erreicht. Versuche es später erneut."
+    },
     "screenShare": {
       "title": "Bildschirmfreigabe nicht möglich",
       "ariaLabel": "Bildschirmfreigabe nicht möglich",

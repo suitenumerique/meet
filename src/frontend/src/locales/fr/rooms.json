@@ -224,6 +224,10 @@
       "heading": "Réunion supprimée",
       "body": "Cette réunion a été supprimée et n'est plus accessible."
     },
+    "roomFull": {
+      "heading": "Cette réunion est complète",
+      "body": "La réunion a atteint son nombre maximum de participants. Réessayez plus tard."
+    },
     "screenShare": {
       "title": "Impossible de partager votre écran",
       "ariaLabel": "Impossible de partager votre écran",
