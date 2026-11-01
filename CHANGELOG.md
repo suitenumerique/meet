@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.37.0] - 2026-11-01
+
 ### Changed
 
 - ⬆️(summary) update ffmpeg to 8.1.3-r0
