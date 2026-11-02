@@ -224,6 +224,10 @@
       "heading": "Meeting deleted",
       "body": "This meeting has been deleted and can no longer be joined."
     },
+    "roomFull": {
+      "heading": "This meeting is full",
+      "body": "The meeting has reached its maximum number of participants. Try again later."
+    },
     "screenShare": {
       "title": "Unable to share your screen",
       "ariaLabel": "Unable to share your screen",
