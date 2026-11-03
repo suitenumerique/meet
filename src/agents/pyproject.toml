@@ -4,21 +4,21 @@ name = "agents"
 version = "1.37.0"
 requires-python = ">=3.12"
 dependencies = [
-    "livekit-agents==1.7.0",
-    "livekit-plugins-deepgram==1.7.0",
-    "livekit-plugins-silero==1.7.0",
+    "livekit-agents==1.8.9",
+    "livekit-plugins-deepgram==1.8.9",
+    "livekit-plugins-silero==1.8.9",
     "livekit-plugins-kyutai-lasuite==0.0.6",
-    "boto3==1.43.56",
-    "python-dotenv==1.2.3",
-    "protobuf==7.36.0",
-    "sentry-sdk==2.68.1",
-    "websockets==17.1",
+    "boto3==1.43.118",
+    "python-dotenv==1.2.4",
+    "protobuf==7.36.2",
+    "sentry-sdk==2.73.0",
+    "websockets==17.3",
     "httpx==0.28.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff==0.16.4",
+    "ruff==0.17.2",
 ]
 
 [tool.uv]
