@@ -1,4 +1,4 @@
-FROM python:3.13.16-alpine3.24 AS base
+FROM python:3.15.2-alpine3.24 AS base
 
 RUN apk add --no-cache --upgrade 'ca-certificates>=20261020-r0'
 
