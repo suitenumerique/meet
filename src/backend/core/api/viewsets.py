@@ -1721,6 +1721,7 @@ class WhiteboardAssetView(views.APIView):
     POST /api/v1.0/rooms/<room_slug>/whiteboard-assets/
     """
 
+    authentication_classes = []
     permission_classes = [drf_permissions.AllowAny]
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
 
@@ -1816,6 +1817,7 @@ class WhiteboardAssetDetailView(views.APIView):
     GET /api/v1.0/rooms/<room_slug>/whiteboard-assets/<file_id>/
     """
 
+    authentication_classes = []
     permission_classes = [drf_permissions.AllowAny]
 
     def get(self, request, room_slug, file_id):

@@ -1,3 +1,4 @@
+import { apiUrl } from '@/api/apiUrl'
 import type {
   WhiteboardStorageAdapter,
   BinaryFileData,
@@ -7,6 +8,15 @@ import type {
 
 const MAX_PAYLOAD_BYTES = 25 * 1024 * 1024 // 25 MB binary limit
 const MAX_PAYLOAD_CHARS = Math.ceil((MAX_PAYLOAD_BYTES * 4) / 3) // ~34.9M Base64 chars
+
+const getCsrfToken = () => {
+  if (typeof document === 'undefined') return undefined
+  return document.cookie
+    .split(';')
+    .filter((cookie) => cookie.trim().startsWith('csrftoken='))
+    .map((cookie) => cookie.split('=')[1])
+    .pop()
+}
 
 export class MeetWhiteboardStorageAdapter implements WhiteboardStorageAdapter {
   private uploadedFiles: Set<string> = new Set()
@@ -87,10 +97,20 @@ export class MeetWhiteboardStorageAdapter implements WhiteboardStorageAdapter {
       formData.append('file_id', fileId)
       formData.append('file', blob, `${fileId}.${ext}`)
 
-      const uploadUrl = `/api/v1.0/rooms/${encodeURIComponent(roomId)}/whiteboard-assets/`
+      const uploadUrl = apiUrl(
+        `rooms/${encodeURIComponent(roomId)}/whiteboard-assets/`
+      )
+      const csrfToken = getCsrfToken()
+      const headers: HeadersInit = {}
+      if (csrfToken) {
+        headers['X-CSRFToken'] = csrfToken
+      }
+
       const uploadRes = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
+        headers,
+        credentials: 'include',
       })
 
       if (!uploadRes.ok && uploadRes.status !== 200 && uploadRes.status !== 201) {
@@ -118,8 +138,12 @@ export class MeetWhiteboardStorageAdapter implements WhiteboardStorageAdapter {
     }
 
     try {
-      const assetUrl = `/api/v1.0/rooms/${encodeURIComponent(roomId)}/whiteboard-assets/${encodeURIComponent(fileId)}/`
-      const res = await fetch(assetUrl)
+      const assetUrl = apiUrl(
+        `rooms/${encodeURIComponent(roomId)}/whiteboard-assets/${encodeURIComponent(fileId)}/`
+      )
+      const res = await fetch(assetUrl, {
+        credentials: 'include',
+      })
 
       if (!res.ok) {
         if (res.status === 404) return null

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useParams } from 'wouter'
 import { Excalidraw, MainMenu, WelcomeScreen } from '@excalidraw/excalidraw'
 import '@excalidraw/excalidraw/index.css'
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types'
@@ -19,11 +20,12 @@ export const WhiteboardStage = () => {
     useWhiteboard()
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null)
 
+  const { roomId: urlRoomId } = useParams()
   const room = useRoomContext()
   const roomData = useRoomData()
   const roomSlug = useMemo(() => {
-    return roomData?.slug || room?.name || 'default-room'
-  }, [room?.name, roomData?.slug])
+    return roomData?.slug || urlRoomId || room?.name || 'default-room'
+  }, [room?.name, roomData?.slug, urlRoomId])
 
   const storageAdapter = useMemo(() => new MeetWhiteboardStorageAdapter(), [])
 
