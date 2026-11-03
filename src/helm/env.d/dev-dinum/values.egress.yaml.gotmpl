@@ -13,14 +13,15 @@ egress:
   {{- end }}
   {{- end }}
   redis:
-    address: redis-master:6379
+    address: dev-backend-redis:6379
+    username: user
     password: pass
   s3:
     access_key: meet-access-key
     secret: meet-secret-access-key
     region: local
     bucket: meet-media-storage
-    endpoint: http://garage:9000
+    endpoint: http://dev-backend-garage:9000
     force_path_style: true
 
 loadBalancer:

@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
+from django.db import connection
 from django.utils import timezone
 
 import pytest
@@ -361,18 +362,21 @@ def test_api_files_create_file_race_condition():
     """
 
     def create_item(title):
-        user = factories.UserFactory()
-        client = APIClient()
-        client.force_login(user)
-        return client.post(
-            "/api/v1.0/files/",
-            {
-                "title": title,
-                "type": FileTypeChoices.BACKGROUND_IMAGE,
-                "filename": "my_file.png",
-            },
-            format="json",
-        )
+        try:
+            user = factories.UserFactory()
+            client = APIClient()
+            client.force_login(user)
+            return client.post(
+                "/api/v1.0/files/",
+                {
+                    "title": title,
+                    "type": FileTypeChoices.BACKGROUND_IMAGE,
+                    "filename": "my_file.png",
+                },
+                format="json",
+            )
+        finally:
+            connection.close()
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         future1 = executor.submit(create_item, "my item 1")

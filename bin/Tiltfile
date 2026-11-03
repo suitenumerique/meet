@@ -104,15 +104,16 @@ k8s_yaml(secret_yaml_generic(
 
 k8s_yaml(local('cd ../src/helm && helmfile -n meet -e ${DEV_ENV:-dev-keycloak} template .'))
 
-k8s_resource('garage-cors', resource_deps=['garage'])
-k8s_resource('meet-backend', resource_deps=['postgresql', 'garage-cors', 'redis', 'livekit-livekit-server'])
-k8s_resource('meet-celery-backend', resource_deps=['redis'])
-k8s_resource('meet-celery-summarize', resource_deps=['redis'])
-k8s_resource('meet-celery-summary-backend', resource_deps=['redis'])
-k8s_resource('meet-celery-transcribe-default', resource_deps=['redis'])
-k8s_resource('livekit-livekit-server', resource_deps=['redis'])
+k8s_resource('dev-backend-garage-cors', resource_deps=['dev-backend-garage'])
+k8s_resource('dev-backend-keycloak', resource_deps=['dev-backend-keycloak-pg'])
+k8s_resource('meet-backend', resource_deps=['dev-backend-postgres', 'dev-backend-garage-cors', 'dev-backend-redis', 'dev-backend-keycloak', 'livekit-livekit-server'])
+k8s_resource('meet-celery-backend', resource_deps=['dev-backend-redis'])
+k8s_resource('meet-celery-summarize', resource_deps=['dev-backend-redis'])
+k8s_resource('meet-celery-summary-backend', resource_deps=['dev-backend-redis'])
+k8s_resource('meet-celery-transcribe-default', resource_deps=['dev-backend-redis'])
+k8s_resource('livekit-livekit-server', resource_deps=['dev-backend-redis'])
 k8s_resource('livekit-livekit-server-test-connection', resource_deps=['livekit-livekit-server'])
-k8s_resource('keycloak', resource_deps=['kc-postgresql'])
+k8s_resource('livekit-egress', resource_deps=['livekit-livekit-server'])
 # Trigger once on launch
 k8s_resource(
     'meet-backend-createsuperuser',

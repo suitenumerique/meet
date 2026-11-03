@@ -4,6 +4,8 @@
 
 from unittest import mock
 
+from django.db import connection
+
 import aiohttp
 import pytest
 from livekit.api import (
@@ -11,17 +13,18 @@ from livekit.api import (
     ListRoomsResponse,
     ParticipantInfo,
     ParticipantPermission,
-    Room,
+    Room as LiveKitRoom,
     TwirpError,
 )
 
 from core.factories import RoomFactory
-from core.models import RoomAccessLevel
+from core.models import Room, RoomAccessLevel
 from core.services.room_management import (
     RoomManagement,
     RoomManagementException,
     RoomNotFoundException,
 )
+from core.services.sip_management import SIPException, SIPManagement
 
 
 def _mock_room(mock_create_livekit_client, rooms, participants=()):
@@ -57,7 +60,7 @@ def test_is_full_compares_participants_to_limit(
     """A room is full once the people in it reach its limit."""
     mock_api = _mock_room(
         mock_create_livekit_client,
-        rooms=[Room(name="room-abc", max_participants=max_participants)],
+        rooms=[LiveKitRoom(name="room-abc", max_participants=max_participants)],
         participants=_people(people),
     )
 
@@ -75,7 +78,7 @@ def test_is_full_counts_the_list_not_the_lagging_room_count(
     """A join the room's num_participants has not caught up with still counts."""
     _mock_room(
         mock_create_livekit_client,
-        rooms=[Room(name="room-abc", max_participants=3, num_participants=1)],
+        rooms=[LiveKitRoom(name="room-abc", max_participants=3, num_participants=1)],
         participants=_people(3),
     )
 
@@ -96,7 +99,7 @@ def test_is_full_leaves_out_recorders_and_agents(mock_create_livekit_client, dep
     """Recorders and agents do not take a seat, as in LiveKit's own join check."""
     _mock_room(
         mock_create_livekit_client,
-        rooms=[Room(name="room-abc", max_participants=2)],
+        rooms=[LiveKitRoom(name="room-abc", max_participants=2)],
         participants=_people(1) + [ParticipantInfo(identity="bot", **dependent)],
     )
 
@@ -107,7 +110,8 @@ def test_is_full_leaves_out_recorders_and_agents(mock_create_livekit_client, dep
 def test_is_full_without_limit(mock_create_livekit_client):
     """A room with no limit is never full, and its participants are not listed."""
     mock_api = _mock_room(
-        mock_create_livekit_client, rooms=[Room(name="room-abc", max_participants=0)]
+        mock_create_livekit_client,
+        rooms=[LiveKitRoom(name="room-abc", max_participants=0)],
     )
 
     assert RoomManagement.is_full("room-abc") is False
@@ -187,6 +191,221 @@ def test_delete_room_raises_management_exception(mock_create_livekit_client):
         RoomManagement.delete_room("room-abc")
 
     mock_api.aclose.assert_awaited_once()
+
+
+@pytest.mark.django_db(transaction=True)
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+@mock.patch.object(RoomManagement, "delete_room")
+def test_soft_delete_commits_before_closing_livekit_room(mock_delete_room, _):
+    """The deletion is committed before the LiveKit room is closed, so the
+    room_started webhook of a participant reconnecting right away sees it."""
+    room = RoomFactory()
+
+    def assert_deletion_committed(room_name):
+        assert connection.in_atomic_block is False
+        assert Room.all_objects.get(id=room_name).is_deleted
+
+    mock_delete_room.side_effect = assert_deletion_committed
+
+    RoomManagement.soft_delete(room)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "error",
+    [
+        RoomManagementException("Could not delete room"),
+        ConnectionError("LiveKit is unreachable"),
+    ],
+)
+@mock.patch.object(SIPManagement, "delete_dispatch_rule", return_value=False)
+@mock.patch.object(RoomManagement, "delete_room")
+def test_soft_delete_failure_rolls_back_and_can_be_retried(mock_delete_room, _, error):
+    """A failed soft delete leaves the room untouched, in database and in memory,
+    so it can be retried."""
+    room = RoomFactory()
+    mock_delete_room.side_effect = error
+
+    with pytest.raises(type(error)):
+        RoomManagement.soft_delete(room)
+
+    assert room.deleted_at is None
+    assert Room.objects.filter(id=room.id).exists()
+
+    mock_delete_room.side_effect = None
+    RoomManagement.soft_delete(room)
+
+    assert mock_delete_room.call_count == 2
+    assert room.deleted_at is not None
+    assert Room.all_objects.get(id=room.id).deleted_at is not None
+    assert Room.objects.filter(id=room.id).exists() is False
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("sip_setting", ["ROOM_TELEPHONY_ENABLED", "ROOMKIT_ENABLED"])
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomNotFoundException("Room does not exist"),
+)
+def test_soft_delete_room_not_live_deletes_dispatch_rule(
+    mock_delete_room, mock_delete_dispatch_rule, sip_setting, settings
+):
+    """A roomkit join creates the dispatch rule before any LiveKit room exists."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    setattr(settings, sip_setting, True)
+    room = RoomFactory()
+
+    RoomManagement.soft_delete(room)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+    mock_delete_dispatch_rule.assert_called_once_with(room.id)
+    assert Room.all_objects.get(id=room.id).is_deleted
+
+
+@pytest.mark.django_db
+def test_soft_delete_live_room_deletes_dispatch_rule_before_closing_it(settings):
+    """The dispatch rule is deleted before the LiveKit room is closed."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    calls = mock.Mock()
+
+    with (
+        mock.patch.object(RoomManagement, "delete_room", calls.delete_room),
+        mock.patch.object(
+            SIPManagement, "delete_dispatch_rule", calls.delete_dispatch_rule
+        ),
+    ):
+        RoomManagement.soft_delete(room)
+
+    assert calls.mock_calls == [
+        mock.call.delete_dispatch_rule(room.id),
+        mock.call.delete_room(str(room.id)),
+    ]
+
+
+@pytest.mark.django_db
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+@mock.patch.object(RoomManagement, "delete_room")
+def test_soft_delete_sip_disabled_skips_dispatch_rule(
+    mock_delete_room, mock_delete_dispatch_rule, settings
+):
+    """Without telephony nor roomkit, no dispatch rule is looked up."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    room = RoomFactory()
+
+    RoomManagement.soft_delete(room)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+    mock_delete_dispatch_rule.assert_not_called()
+    assert Room.all_objects.get(id=room.id).is_deleted
+
+
+@pytest.mark.django_db
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch.object(
+    SIPManagement,
+    "delete_dispatch_rule",
+    side_effect=SIPException("Could not delete dispatch rules"),
+)
+@mock.patch.object(RoomManagement, "delete_room")
+def test_soft_delete_dispatch_rule_failure_rolls_back(
+    mock_delete_room, mock_delete_dispatch_rule, mock_ensure_dispatch_rule, settings
+):
+    """A dispatch rule that can't be deleted fails the soft delete like a LiveKit
+    room that can't be closed: it is rolled back so it can be retried, and the
+    LiveKit room is left open."""
+    settings.ROOMKIT_ENABLED = True
+    room = RoomFactory()
+
+    with pytest.raises(RoomManagementException):
+        RoomManagement.soft_delete(room)
+
+    mock_delete_room.assert_not_called()
+    mock_delete_dispatch_rule.assert_called_once_with(room.id)
+    mock_ensure_dispatch_rule.assert_not_called()
+    assert room.deleted_at is None
+    assert Room.objects.filter(id=room.id).exists()
+
+
+@pytest.mark.django_db
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch.object(SIPManagement, "delete_dispatch_rule", return_value=True)
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_soft_delete_room_close_failure_restores_dispatch_rule(
+    _, __, mock_ensure_dispatch_rule, settings
+):
+    """A LiveKit room that can't be closed rolls the deletion back, including
+    its dispatch rule, so phone callers can still join the room with its PIN."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+
+    with pytest.raises(RoomManagementException, match="Could not delete room"):
+        RoomManagement.soft_delete(room)
+
+    mock_ensure_dispatch_rule.assert_called_once_with(room)
+    assert room.deleted_at is None
+    assert Room.objects.filter(id=room.id).exists()
+
+
+@pytest.mark.django_db
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch.object(SIPManagement, "delete_dispatch_rule", return_value=False)
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_soft_delete_room_close_failure_without_rule_skips_restore(
+    _, __, mock_ensure_dispatch_rule, settings
+):
+    """A room that had no dispatch rule does not get one on rollback, as nothing
+    would ever delete it."""
+    settings.ROOMKIT_ENABLED = True
+    room = RoomFactory()
+
+    with pytest.raises(RoomManagementException):
+        RoomManagement.soft_delete(room)
+
+    mock_ensure_dispatch_rule.assert_not_called()
+    assert room.deleted_at is None
+
+
+@pytest.mark.django_db
+@mock.patch.object(
+    SIPManagement,
+    "ensure_dispatch_rule",
+    side_effect=SIPException("Could not create dispatch rule"),
+)
+@mock.patch.object(SIPManagement, "delete_dispatch_rule", return_value=True)
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_soft_delete_restore_failure_raises_original_error(
+    _, __, ___, settings, caplog
+):
+    """A dispatch rule that can't be restored is logged without hiding the error
+    that caused the rollback."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+
+    with pytest.raises(RoomManagementException, match="Could not delete room"):
+        RoomManagement.soft_delete(room)
+
+    assert f"Could not restore dispatch rule for room {room.id}" in caplog.text
+    assert room.deleted_at is None
+    assert Room.objects.filter(id=room.id).exists()
 
 
 @mock.patch.object(RoomManagement, "update_metadata")

@@ -2,8 +2,10 @@
 
 from core.tasks.connection_test import delete_connection_test_room
 from core.tasks.file import process_file_deletion
+from core.tasks.mail import send_email
 
 __all__ = (
     "delete_connection_test_room",
     "process_file_deletion",
+    "send_email",
 )

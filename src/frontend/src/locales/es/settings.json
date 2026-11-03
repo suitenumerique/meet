@@ -184,10 +184,46 @@
     "accessibility": "Accesibilidad",
     "transcription": "Transcripción",
     "shortcuts": "Atajos",
-    "rooms": "Reuniones"
+    "rooms": "Reuniones",
+    "recording": "Grabación"
   },
   "roomDefaults": {
     "heading": "Ajustes predeterminados de las reuniones",
     "description": "Elige la configuración que se aplica de forma predeterminada a las nuevas reuniones que crees. Siempre podrás modificarla para cada reunión desde el menu de configuración."
+  },
+  "recording": {
+    "heading": "Calidad de la grabación",
+    "locked": "Estos ajustes no se pueden modificar mientras una grabación se está iniciando o está en curso.",
+    "profile": {
+      "label": "Tipo de contenido",
+      "options": {
+        "talking_heads": {
+          "label": "Personas hablando",
+          "description": "Optimizado para personas ante la cámara con diapositivas ocasionales. Archivos más ligeros."
+        },
+        "text": {
+          "label": "Presentaciones y texto",
+          "description": "Mantiene el texto nítido al compartir diapositivas, documentos o código."
+        },
+        "mixed": {
+          "label": "Contenido mixto",
+          "description": "Equilibrado entre cámaras, pantalla compartida y movimiento moderado."
+        },
+        "full": {
+          "label": "Calidad máxima",
+          "description": "Máxima fidelidad y movimiento más fluido. Archivos más pesados."
+        }
+      }
+    },
+    "resolution": {
+      "label": "Resolución",
+      "description": "Las resoluciones más altas generan archivos más pesados.",
+      "options": {
+        "540p": "540p (qHD)",
+        "720p": "720p (HD)",
+        "1080p": "1080p (Full HD)"
+      }
+    },
+    "defaultOption": "Predeterminado"
   }
 }

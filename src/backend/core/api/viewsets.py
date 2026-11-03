@@ -40,9 +40,11 @@ from rest_framework import (
 )
 from rest_framework.settings import api_settings
 
-from core import analytics, enums, models, utils
+from core import analytics, audit, auditing, enums, models, utils
 from core.api import throttling
+from core.api.exceptions import ensure_room_not_deleted
 from core.api.filters import ListFileFilter
+from core.api.locks import room_locked_for_update
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import RecordingProcessWebhookAuthentication
@@ -62,6 +64,7 @@ from core.recording.worker.mediator import (
     WorkerServiceMediator,
 )
 from core.services.invitation import InvitationService
+from core.services.jwt_token import JwtTokenService
 from core.services.livekit_events import (
     LiveKitEventsService,
     LiveKitWebhookError,
@@ -76,15 +79,13 @@ from core.services.participants_management import (
     ParticipantsManagementException,
 )
 from core.services.room_creation import RoomCreation
-from core.services.room_management import (
-    RoomManagement,
-    RoomManagementException,
-)
+from core.services.room_management import RoomManagement, RoomManagementException
 from core.services.room_roles import (
     RoomRoleError,
     RoomRoleService,
 )
 from core.services.subtitle import SubtitleException, SubtitleService
+from core.services.transit_code import TransitCodeService
 from core.tasks.connection_test import delete_connection_test_room
 from core.tasks.file import process_file_deletion
 from core.utils import generate_token
@@ -126,13 +127,19 @@ class Pagination(pagination.PageNumberPagination):
 
 
 class UserViewSet(
-    mixins.UpdateModelMixin, viewsets.GenericViewSet, mixins.ListModelMixin
+    audit.AuditViewMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+    mixins.ListModelMixin,
 ):
     """User ViewSet"""
 
     permission_classes = [permissions.IsSelf]
     queryset = models.User.objects.all()
     serializer_class = serializers.UserSerializer
+
+    audit_client_id = None
+    audit_code_refused = False
 
     def get_queryset(self):
         """
@@ -169,8 +176,109 @@ class UserViewSet(
             self.serializer_class(request.user, context=context).data
         )
 
+    @decorators.action(
+        detail=False,
+        methods=["post"],
+        url_path="exchange-access-token",
+        permission_classes=[],
+        throttle_classes=[throttling.ExchangeAccessTokenAnonRateThrottle],
+        audit_action=auditing.TRANSIT_CODE_EXCHANGE,
+    )
+    @FeatureFlag.require("user_access_token")
+    def exchange_access_token(self, request):
+        """Exchange a single-use transit code for a user access token.
 
-class RoomViewSet(
+        The endpoint is unauthenticated: the transit code itself, an opaque
+        random string obtained through the external API and delivered to
+        the embedded frontend via a URL fragment, is the credential. Each
+        code can be exchanged exactly once (consuming it deletes it from
+        the cache); replaying a consumed code is denied and logged.
+
+        The issued JWT authenticates the user the code was minted for on
+        the whole core API, exactly like a session cookie would (similar
+        to lib-jitsi-meet's token authentication), and never appears in
+        any URL. Role-based permissions apply unchanged.
+        """
+        if request.user and request.user.is_authenticated:
+            raise drf_exceptions.PermissionDenied("Already authenticated.")
+
+        serializer = serializers.TransitCodeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        code = serializer.validated_data["code"]
+        self.audit_target = auditing.transit_code_target(code)
+
+        code_data = TransitCodeService().consume_code(code)
+
+        if code_data is None:
+            self.audit_code_refused = True
+            raise drf_exceptions.PermissionDenied(
+                "Invalid, expired or already used transit code."
+            )
+
+        client_id = code_data.get("client_id")
+        self.audit_client_id = client_id
+
+        # Re-check the user at exchange time so that a deactivation after
+        # the transit code was minted is taken into account.
+        user = models.User.objects.filter(id=code_data["user_id"]).first()
+        self.audit_user_target = user
+
+        if user is None or not user.is_active:
+            raise drf_exceptions.PermissionDenied(
+                "This account can no longer access the application."
+            )
+
+        if not models.Application.has_active_scope(
+            client_id, models.ApplicationScope.USERS_SESSION
+        ):
+            raise drf_exceptions.PermissionDenied(
+                "This application can no longer create user sessions."
+            )
+
+        token_service = JwtTokenService(
+            secret_key=settings.USER_ACCESS_TOKEN_SECRET_KEY,
+            algorithm=settings.USER_ACCESS_TOKEN_ALG,
+            issuer=settings.USER_ACCESS_TOKEN_ISSUER,
+            audience=settings.USER_ACCESS_TOKEN_AUDIENCE,
+            expiration_seconds=settings.USER_ACCESS_TOKEN_TTL,
+            token_type=settings.USER_ACCESS_TOKEN_TYPE,
+        )
+
+        data = token_service.generate_jwt(
+            user,
+            "user:access",
+            {
+                "client_id": client_id or "unknown",
+                "token_type": settings.USER_ACCESS_TOKEN_TYPE_CLAIM,
+            },
+        )
+
+        self.audit_actor = user
+        self.audit_details = {"expires_in": settings.USER_ACCESS_TOKEN_TTL}
+
+        return drf_response.Response(data)
+
+    def get_audit_fields(self, status_code, error=None):
+        """Report an exchange as an authentication with its transit code.
+
+        The caller is anonymous until the code is consumed, then the
+        application that minted it, a refusal included, acting for its user
+        once the exchange succeeds. A code that does not verify is a failed
+        authentication, though answered with a 403. A request already signed
+        in is reported as it is.
+        """
+        fields = super().get_audit_fields(status_code, error)
+        if self.action != "exchange_access_token" or self.request.user.is_authenticated:
+            return fields
+        fields |= {"auth_method": "transit_code", "client_id": self.audit_client_id}
+        if self.audit_code_refused:
+            fields["reason"] = audit.Reason.AUTHENTICATION_FAILED
+        return fields
+
+
+class RoomViewSet(  # pylint: disable=too-many-public-methods
+    audit.AuditViewMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
@@ -198,10 +306,9 @@ class RoomViewSet(
             filter_kwargs = {"pk": self.kwargs["pk"]}
         except ValueError:
             filter_kwargs = {"slug": slugify(self.kwargs["pk"])}
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        # May raise a permission denied
+        obj = get_object_or_404(models.Room.all_objects, **filter_kwargs)
         self.check_object_permissions(self.request, obj)
+        ensure_room_not_deleted(obj)
         return obj
 
     def retrieve(self, request, *args, **kwargs):
@@ -253,6 +360,27 @@ class RoomViewSet(
         serializer = self.get_serializer(queryset, many=True)
         return drf_response.Response(serializer.data)
 
+    def perform_destroy(self, instance):
+        """Soft delete the room and close its LiveKit room.
+
+        The room and its recordings are kept in database for traceability.
+        """
+        try:
+            RoomManagement.soft_delete(instance)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not delete the room, please try again."
+            ) from e
+
+        analytics.capture(
+            self.request.user,
+            analytics.AnalyticsEvent.ROOM_DELETED,
+            {
+                "room_id": str(instance.pk),
+                "access_level": instance.access_level,
+            },
+        )
+
     def perform_create(self, serializer):
         """Set the current user as owner of the newly created room.
 
@@ -295,12 +423,20 @@ class RoomViewSet(
         )
 
     def perform_update(self, serializer):
-        """Persist the room update, then sync metadata to LiveKit."""
+        """Persist the room update under a row lock, then sync metadata to LiveKit.
 
-        old_configuration = serializer.instance.configuration
-        old_access_level = serializer.instance.access_level
+        The lock is what keeps a concurrent soft delete from being undone: the
+        full-row write of `save()` would otherwise carry back the `deleted_at`
+        read before the deletion committed.
+        """
 
-        room = serializer.save()
+        with room_locked_for_update(serializer.instance) as locked_room:
+            serializer.instance = locked_room
+
+            old_configuration = locked_room.configuration
+            old_access_level = locked_room.access_level
+
+            room = serializer.save()
 
         if (
             room.configuration == old_configuration
@@ -315,7 +451,12 @@ class RoomViewSet(
         methods=["post"],
         url_path="start-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageRecording,
+        ],
+        audit_action=auditing.RECORDING_START,
+        throttle_classes=[
+            throttling.StartRecordingUserRateThrottle,
+            throttling.StartRecordingDailyUserRateThrottle,
         ],
     )
     @FeatureFlag.require("recording")
@@ -348,11 +489,12 @@ class RoomViewSet(
                     mode=mode,
                     options=options_data,
                 )
-                models.RecordingAccess.objects.create(
-                    user=self.request.user,
-                    role=models.RoleChoices.OWNER,
-                    recording=recording,
-                )
+                recording.grant_initial_accesses(starter=self.request.user)
+
+            self.audit_target = recording
+            self.audit_details = {
+                "collect_metadata": bool(recording.options.get("collect_metadata")),
+            }
 
         except (DjangoValidationError, IntegrityError):
             # DjangoValidationError covers the Python-level check (full_clean);
@@ -396,8 +538,9 @@ class RoomViewSet(
         methods=["post"],
         url_path="stop-recording",
         permission_classes=[
-            permissions.HasPrivilegesOnRoom,
+            permissions.CanManageRecording,
         ],
+        audit_action=auditing.RECORDING_STOP,
     )
     @FeatureFlag.require("recording")
     def stop_room_recording(self, request, pk=None):  # pylint: disable=unused-argument
@@ -413,6 +556,8 @@ class RoomViewSet(
             raise drf_exceptions.NotFound(
                 "No active recording found for this room."
             ) from e
+
+        self.audit_target = recording
 
         worker_service = get_worker_service(mode=recording.mode)
         worker_manager = WorkerServiceMediator(worker_service=worker_service)
@@ -450,13 +595,18 @@ class RoomViewSet(
 
         participant, livekit = lobby_service.request_entry(
             room=room,
-            request=request,
+            user=request.user,
             **serializer.validated_data,
         )
-        response = drf_response.Response({**participant.to_dict(), "livekit": livekit})
-        lobby_service.prepare_response(response, participant.id)
-
-        return response
+        return drf_response.Response(
+            {
+                **participant.to_dict(),
+                "id": serializers.RequestEntrySerializer.sign_participant_id(
+                    participant.id
+                ),
+                "livekit": livekit,
+            }
+        )
 
     @decorators.action(
         detail=True,
@@ -971,8 +1121,16 @@ class ResourceAccessViewSet(
 
         return queryset
 
+    def get_object(self):
+        """Accesses to a soft-deleted room can be read but no longer modified."""
+        access = super().get_object()
+        if self.request.method not in drf_permissions.SAFE_METHODS:
+            ensure_room_not_deleted(access.resource)
+        return access
+
 
 class RecordingViewSet(
+    audit.AuditViewMixin,
     mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -986,6 +1144,23 @@ class RecordingViewSet(
     permission_classes = [permissions.HasAbilityPermission]
     queryset = models.Recording.objects.all()
     serializer_class = serializers.RecordingSerializer
+
+    audit_actions = {"destroy": auditing.RECORDING_DELETE}
+    # What the summary service reports on, once its event is validated
+    audit_process_type = None
+
+    def get_audit_action(self):
+        """Audit a summary apart from the transcript it is made from."""
+        if self.audit_process_type == "summary":
+            return auditing.RECORDING_SUMMARY_REPORT
+        return super().get_audit_action()
+
+    def get_audit_fields(self, status_code, error=None):
+        """Report a failure of the summary service as one, though it is acknowledged."""
+        fields = super().get_audit_fields(status_code, error)
+        if status_code < 400 and (self.audit_details or {}).get("status") == "failure":
+            fields["outcome"] = audit.Outcome.FAILURE
+        return fields
 
     def get_queryset(self):
         """Restrict recordings to the user's ones."""
@@ -1002,6 +1177,7 @@ class RecordingViewSet(
         url_path="external-process-hook",
         authentication_classes=[RecordingProcessWebhookAuthentication],
         serializer_class=serializers.ExternalProcessEventSerializer,
+        audit_action=auditing.RECORDING_TRANSCRIPT_REPORT,
     )
     def on_external_process_event_received(self, request, pk=None):  # pylint: disable=unused-argument
         """Handle incoming external process events for recordings."""
@@ -1015,11 +1191,15 @@ class RecordingViewSet(
 
         validated_data = serializer.validated_data
         job_id = validated_data["job_id"]
+        self.audit_process_type = validated_data.get("type")
+        self.audit_details = {"job_id": job_id, "status": validated_data.get("status")}
         try:
             recording = models.Recording.objects.get(external_process_id=job_id)
         except models.Recording.DoesNotExist as e:
             logger.warning("No recording found for job_id %s: %s", job_id, e)
             return ok_response
+
+        self.audit_target = recording
 
         if validated_data.get("type") == "transcript":
             if validated_data.get("status") == "success":

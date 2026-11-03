@@ -45,4 +45,4 @@ services:
   # The local proxy listens on 8080 and collides with Keycloak's published admin port.
   keycloak:
     ports: !override
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"

@@ -2,6 +2,7 @@ import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 import { fetchApi } from '@/api/fetchApi'
 import type { ApiError } from '@/api/ApiError'
 import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import { getLiveKitAuthHeaders } from '@/features/rooms/utils/getLiveKitAuthHeaders'
 
 export interface StartSubtitleParams {
   id: string
@@ -14,9 +15,7 @@ const startSubtitle = ({
 }: StartSubtitleParams): Promise<ApiRoom> => {
   return fetchApi(`rooms/${id}/start-subtitle/`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: getLiveKitAuthHeaders(token),
   })
 }
 

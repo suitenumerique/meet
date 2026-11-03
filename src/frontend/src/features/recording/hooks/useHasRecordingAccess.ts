@@ -2,7 +2,7 @@ import { useFeatureFlagEnabled } from 'posthog-js/react'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import type { RecordingMode } from '../types'
 import { useIsRecordingModeEnabled } from './useIsRecordingModeEnabled'
-import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
+import { useCanRecord } from './useCanRecord'
 import type { FeatureFlags } from '@/features/analytics/enums'
 
 export const useHasRecordingAccess = (
@@ -12,11 +12,11 @@ export const useHasRecordingAccess = (
   const featureEnabled = useFeatureFlagEnabled(featureFlag)
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
   const isRecordingModeEnabled = useIsRecordingModeEnabled(mode)
-  const isAdminOrOwner = useIsAdminOrOwner()
+  const canRecord = useCanRecord()
 
   return (
     (featureEnabled || !isAnalyticsEnabled) &&
-    isAdminOrOwner &&
+    canRecord &&
     isRecordingModeEnabled
   )
 }

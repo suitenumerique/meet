@@ -9,8 +9,9 @@ from unittest import mock
 import pytest
 from rest_framework.test import APIClient
 
+from ...audit.testing import find_events
 from ...factories import RecordingFactory, RoomFactory, UserFactory
-from ...models import Recording, RecordingStatusChoices
+from ...models import Recording, RecordingStatusChoices, RoomAccessLevel
 from ...recording.worker.exceptions import RecordingStopError
 
 pytestmark = pytest.mark.django_db
@@ -41,15 +42,20 @@ def mock_worker_manager(mock_worker_service):
         yield mock_mediator
 
 
-def test_stop_recording_anonymous():
+@pytest.mark.parametrize(
+    "recording_enabled, expected_status",
+    [(True, 401), (False, 404)],
+)
+def test_stop_recording_anonymous(settings, recording_enabled, expected_status):
     """Anonymous users should not be allowed to stop room recordings."""
+    settings.RECORDING_ENABLE = recording_enabled
     room = RoomFactory()
     RecordingFactory(room=room, status=RecordingStatusChoices.ACTIVE)
     client = APIClient()
 
     response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
 
-    assert response.status_code == 401
+    assert response.status_code == expected_status
     # Verify recording status hasn't changed
     assert Recording.objects.filter(status=RecordingStatusChoices.ACTIVE).count() == 1
 
@@ -57,7 +63,7 @@ def test_stop_recording_anonymous():
 def test_stop_recording_non_owner_and_non_administrator(settings):
     """Non-owner and Non-Administrator users should not be allowed to stop room recordings."""
     settings.RECORDING_ENABLE = True
-    room = RoomFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     user = UserFactory()
     RecordingFactory(room=room, status=RecordingStatusChoices.ACTIVE)
     client = APIClient()
@@ -181,3 +187,48 @@ def test_stop_recording_success(
 
     # Verify the recording still exists
     assert Recording.objects.count() == 1
+
+
+def test_stop_recording_is_audited(
+    settings, mock_worker_service_factory, mock_worker_manager, audit_events
+):
+    """A stopped recording is the target of the event."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    recording = RecordingFactory(
+        room=room, mode="transcript", status=RecordingStatusChoices.ACTIVE
+    )
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
+
+    assert response.status_code == 200
+
+    [event] = find_events(audit_events, "recording.stop")
+
+    assert event["event"]["type"] == ["end"]
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["entity"]["target"]["id"] == str(recording.pk)
+    assert event["entity"]["target"]["raw"]["mode"] == "transcript"
+
+
+def test_stop_recording_without_active_recording_is_audited(settings, audit_events):
+    """Stopping a room that records nothing fails on the room."""
+    settings.RECORDING_ENABLE = True
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
+
+    assert response.status_code == 404
+
+    [event] = find_events(audit_events, "recording.stop")
+
+    assert event["event"]["reason"] == "not_found"
+    assert event["entity"]["target"]["sub_type"] == "room"

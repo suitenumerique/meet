@@ -7,18 +7,17 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.translation import get_language, gettext, override
+from django.utils.translation import get_language, gettext, gettext_noop, override
 from django.utils.translation import gettext_lazy as _
 
-import aiohttp
 import requests
 from asgiref.sync import async_to_sync
+from celery.exceptions import OperationalError as CeleryOperationalError
 from livekit import api as livekit_api
 
-from core import models, utils
+from core import audit, auditing, models, utils
 from core.analytics import UserFeatureFlag, is_user_feature_flag_enabled
+from core.tasks.mail import send_email
 from core.utils import generate_download_s3_url
 
 logger = logging.getLogger(__name__)
@@ -52,7 +51,7 @@ class NotificationService:
 
         if recording.mode == models.RecordingModeChoices.SCREEN_RECORDING:
             summary_success = True
-            if recording.options.get("transcribe", False):
+            if recording.is_transcribed:
                 summary_success = self._notify_summary_service(recording)
 
             email_success = self._notify_user_by_email(recording)
@@ -68,18 +67,20 @@ class NotificationService:
     @staticmethod
     def _notify_user_by_email(recording) -> bool:
         """
-        Send an email notification to recording owners when their recording is ready.
+        Queue an email notification to every user with access to the recording
+        when it is ready: its starter and the room's owners/administrators.
 
         The email includes a direct link that redirects owners to a dedicated download
         page in the frontend where they can access their specific recording.
+
+        Rendering and SMTP delivery happen in a Celery worker (``send_email``), so
+        this only does one DB query and enqueues one message per owner.
+        Returns True when every email was queued (or sent, if Celery is disabled).
         """
 
         owner_accesses = (
             models.RecordingAccess.objects.select_related("user")
-            .filter(
-                role=models.RoleChoices.OWNER,
-                recording_id=recording.id,
-            )
+            .filter(recording_id=recording.id)
             .order_by("created_at")
         )
 
@@ -88,10 +89,6 @@ class NotificationService:
             return False
 
         context = {
-            "brandname": settings.EMAIL_BRAND_NAME,
-            "support_email": settings.EMAIL_SUPPORT_EMAIL,
-            "logo_img": settings.EMAIL_LOGO_IMG,
-            "domain": settings.EMAIL_DOMAIN,
             "room_name": recording.room.name,
             "recording_expiration_days": settings.RECORDING_EXPIRATION_DAYS,
             "link": f"{get_recording_download_base_url()}/{recording.id}",
@@ -104,37 +101,22 @@ class NotificationService:
         # 2. The number of recipients per recording is typically small (not thousands)
         for access in owner_accesses:
             user = access.user
-            language = user.language or get_language()
-            with override(language):
-                personalized_context = {
-                    "recording_date": recording.created_at.astimezone(
-                        user.timezone
-                    ).strftime("%Y-%m-%d"),
-                    "recording_time": recording.created_at.astimezone(
-                        user.timezone
-                    ).strftime("%H:%M"),
-                    **context,
-                }
-                msg_html = render_to_string(
-                    "mail/html/screen_recording.html", personalized_context
+            local_created_at = recording.created_at.astimezone(user.timezone)
+            try:
+                send_email.delay(
+                    template="screen_recording",
+                    subject=gettext_noop("Your recording is ready"),
+                    recipients=[user.email],
+                    language=user.language or get_language(),
+                    context={
+                        **context,
+                        "recording_date": local_created_at.strftime("%Y-%m-%d"),
+                        "recording_time": local_created_at.strftime("%H:%M"),
+                    },
                 )
-                msg_plain = render_to_string(
-                    "mail/text/screen_recording.txt", personalized_context
-                )
-                subject = gettext("Your recording is ready")  # Force translation
-
-                try:
-                    send_mail(
-                        subject.capitalize(),
-                        msg_plain,
-                        settings.EMAIL_FROM,
-                        [user.email],
-                        html_message=msg_html,
-                        fail_silently=False,
-                    )
-                except smtplib.SMTPException as exception:
-                    logger.error("notification could not be sent: %s", exception)
-                    has_failures = True
+            except (smtplib.SMTPException, CeleryOperationalError) as exception:
+                logger.error("notification could not be sent: %s", exception)
+                has_failures = True
 
         return not has_failures
 
@@ -155,11 +137,7 @@ class NotificationService:
         if not worker_id:
             return None, None
 
-        custom_configuration = {
-            **settings.LIVEKIT_CONFIGURATION,
-            "timeout": aiohttp.ClientTimeout(total=10),
-        }
-        lkapi = utils.create_livekit_client(custom_configuration=custom_configuration)
+        lkapi = utils.create_livekit_client()
         try:
             egress_list = await lkapi.egress.list_egress(
                 livekit_api.ListEgressRequest(egress_id=worker_id)  # pylint: disable=no-member
@@ -213,14 +191,53 @@ class NotificationService:
 
     @staticmethod
     def _notify_summary_service(recording: models.Recording):
-        if settings.SUMMARY_SERVICE_VERSION == 1:
-            return NotificationService._notify_summary_service_v1(recording)
-        if settings.SUMMARY_SERVICE_VERSION == 2:
-            return NotificationService._notify_summary_service_v2(recording)
+        succeeded = False
+        audit_details = {}
+        try:
+            if settings.SUMMARY_SERVICE_VERSION == 1:
+                succeeded = NotificationService._notify_summary_service_v1(recording)
+            elif settings.SUMMARY_SERVICE_VERSION == 2:
+                succeeded = NotificationService._notify_summary_service_v2(
+                    recording, audit_details
+                )
+            else:
+                raise NotImplementedError(
+                    "Unknown summary service version: "
+                    f"{settings.SUMMARY_SERVICE_VERSION}"
+                )
+            return succeeded
+        finally:
+            audit.log(
+                auditing.RECORDING_TRANSCRIPT_REQUEST,
+                actor=None,
+                actor_type=audit.ActorType.SYSTEM,
+                target=recording,
+                target_service="summary",
+                outcome=audit.Outcome.SUCCESS if succeeded else audit.Outcome.FAILURE,
+                job_id=recording.external_process_id,
+                **audit_details,
+            )
 
-        raise NotImplementedError(
-            f"Unknown summary service version: {settings.SUMMARY_SERVICE_VERSION}"
+    @staticmethod
+    def _get_summary_recipient(recording: models.Recording):
+        """Return the single user who receives the transcript summary.
+
+        A recording can have multiple accesses (the starter and the room's
+        owners/administrators), but its summary is generated only once.
+
+        Temporarily, until the document can be created and shared with all
+        recording accesses, the summary is assigned to the oldest access,
+        which belongs to the starter (see `Recording.grant_initial_accesses`).
+
+        Since the starter may have a MEMBER role, the lookup must not filter by role.
+        """
+        oldest_access = (
+            models.RecordingAccess.objects.select_related("user")
+            .filter(recording_id=recording.id)
+            .order_by("created_at")
+            .first()
         )
+        return oldest_access.user if oldest_access else None
 
     @staticmethod
     def _notify_summary_service_v1(recording: models.Recording):
@@ -233,14 +250,7 @@ class NotificationService:
             logger.error("Summary service not configured")
             return False
 
-        owner_access = (
-            models.RecordingAccess.objects.select_related("user")
-            .filter(
-                role=models.RoleChoices.OWNER,
-                recording_id=recording.id,
-            )
-            .first()
-        )
+        recipient = NotificationService._get_summary_recipient(recording)
 
         if settings.METADATA_COLLECTOR_ENABLED and recording.options.get(
             "collect_metadata", False
@@ -250,7 +260,7 @@ class NotificationService:
         else:
             metadata_filename = None
 
-        if not owner_access:
+        if not recipient:
             logger.error("No owner found for recording %s", recording.id)
             return False
 
@@ -259,16 +269,16 @@ class NotificationService:
         )(recording.worker_id)
 
         payload = {
-            "owner_id": str(owner_access.user.id),
+            "owner_id": str(recipient.id),
             "recording_filename": recording.key,
             "metadata_filename": metadata_filename,
-            "email": owner_access.user.email,
-            "sub": owner_access.user.sub,
+            "email": recipient.email,
+            "sub": recipient.sub,
             "room": recording.room.name,
             "language": recording.options.get("language"),
-            "owner_timezone": str(owner_access.user.timezone),
+            "owner_timezone": str(recipient.timezone),
             "download_link": f"{get_recording_download_base_url()}/{recording.id}",
-            "context_language": owner_access.user.language,
+            "context_language": recipient.language,
             "recording_start_at": (started_at.isoformat() if started_at else None),
             "recording_end_at": (ended_at.isoformat() if ended_at else None),
         }
@@ -298,8 +308,11 @@ class NotificationService:
         return True
 
     @staticmethod
-    def _notify_summary_service_v2(recording: models.Recording):
-        """Notify summary service about a new recording."""
+    def _notify_summary_service_v2(recording: models.Recording, audit_details=None):
+        """Notify summary service about a new recording.
+
+        Whether a summary is asked for is added to ``audit_details``.
+        """
 
         if (
             not settings.SUMMARY_SERVICE_ENDPOINT
@@ -308,14 +321,7 @@ class NotificationService:
             logger.error("Summary service not configured")
             return False
 
-        owner_access = (
-            models.RecordingAccess.objects.select_related("user")
-            .filter(
-                role=models.RoleChoices.OWNER,
-                recording_id=recording.id,
-            )
-            .first()
-        )
+        recipient = NotificationService._get_summary_recipient(recording)
         metadata_filename: None | str = None
         if settings.METADATA_COLLECTOR_ENABLED and recording.options.get(
             "collect_metadata", False
@@ -323,7 +329,7 @@ class NotificationService:
             output_folder = settings.METADATA_COLLECTOR_OUTPUT_FOLDER
             metadata_filename = f"{output_folder}/{recording.id}-metadata.json"
 
-        if not owner_access:
+        if not recipient:
             logger.error("No owner found for recording %s", recording.id)
             return False
 
@@ -349,9 +355,15 @@ class NotificationService:
                 "ended_at": ended_at.isoformat(),
             }
 
+        summary_requested = is_user_feature_flag_enabled(
+            recipient, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
+        )
+        if audit_details is not None:
+            audit_details["summary_requested"] = summary_requested
+
         payload = {
-            "user_sub": owner_access.user.sub,
-            "user_email": owner_access.user.email,
+            "user_sub": recipient.sub,
+            "user_email": recipient.email,
             "cloud_storage_url": generate_download_s3_url(
                 recording.key,
                 expires_in=settings.SUMMARY_SERVICE_CLOUD_STORAGE_SIGNED_URL_EXPIRY_SECONDS,
@@ -360,21 +372,19 @@ class NotificationService:
             "language": recording.options.get(
                 "language", get_language().split("-")[0].lower()
             ),
-            "context_language": owner_access.user.language,
+            "context_language": recipient.language,
             "push_to_docs_config": {
-                "user_email": owner_access.user.email,
+                "user_email": recipient.email,
                 "title": NotificationService._generate_title(
-                    locale=owner_access.user.language
+                    locale=recipient.language
                     or recording.options.get("language", get_language()),
                     room=recording.room.name,
                     recording_datetime=started_at,
-                    owner_timezone=str(owner_access.user.timezone),
+                    owner_timezone=str(recipient.timezone),
                 ),
                 "download_link": f"{get_recording_download_base_url()}/{recording.id}",
                 "form_link": form_link,
-                "auto_create_summary": is_user_feature_flag_enabled(
-                    owner_access.user, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
-                ),
+                "auto_create_summary": summary_requested,
             },
             "metadata": metadata_payload,
         }

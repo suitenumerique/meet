@@ -68,7 +68,7 @@ class WorkerServiceMediator:
         finally:
             recording.save()
 
-        mode = recording.options.get("original_mode", None) or recording.mode
+        mode = recording.requested_mode
 
         try:
             RoomManagement.update_metadata(

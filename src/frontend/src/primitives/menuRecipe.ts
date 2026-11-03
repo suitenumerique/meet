@@ -25,12 +25,15 @@ export const menuRecipe = sva({
       '&[data-focused]': {
         color: 'primary.text',
         backgroundColor: 'primaryDark.100',
-        outline: 'none!',
       },
       '&[data-hovered]': {
         color: 'primary.text',
         backgroundColor: 'primaryDark.100',
-        outline: 'none!',
+      },
+      '&[data-focus-visible]': {
+        outline: '2px solid',
+        outlineColor: 'focusRing',
+        outlineOffset: '2px',
       },
     },
   },
@@ -49,6 +52,10 @@ export const menuRecipe = sva({
       dark: {
         item: {
           color: 'white',
+          '&[data-focus-visible]': {
+            outlineColor: 'white!',
+            outlineOffset: '2px!',
+          },
         },
       },
     },

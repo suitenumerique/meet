@@ -27,6 +27,15 @@
   },
   "selected": "seleccionado",
   "submit": "Aceptar",
+  "support": {
+    "buttonLabel": "Contactar con el soporte",
+    "openError": "No se ha podido abrir el formulario de contacto. Inténtelo de nuevo más tarde.",
+    "sent": {
+      "title": "Mensaje enviado",
+      "body": "El equipo de soporte ha recibido su mensaje.",
+      "close": "Cerrar"
+    }
+  },
   "footer": {
     "links": {
       "legifrance": "legifrance.gouv.fr",

@@ -13,6 +13,9 @@ repositories:
 - name: livekit
   url: https://helm.livekit.io
 
+- name: dev-backends
+  url: https://suitenumerique.github.io/helm-dev-backend
+
 releases:
 - name: extra
   installed: {{ regexMatch "^dev.*" .Environment.Name }}
@@ -27,8 +30,59 @@ releases:
   - enablePermanentRedirect: {{ .Values | get "enablePermanentRedirect" "False"}}
   - oldDomain: {{ .Values | get "oldDomain" "demo.com" }}
   - newDomain: {{ .Values | get "newDomain" "demo.com" }}
-  - realm: |
-{{ readFile "../../docker/auth/realm.json" | replace "http://localhost:3200" "https://meet.127.0.0.1.nip.io" | indent 8 }}
+
+- name: dev-backend
+  installed: {{ regexMatch "^dev.*" .Environment.Name }}
+  namespace: {{ .Namespace }}
+  chart: dev-backends/dev-backend
+  version: 0.0.14
+  values:
+  - postgres:
+      enabled: true
+      username: dinum
+      password: pass
+      database: meet
+      size: 1Gi
+  - redis:
+      enabled: true
+      username: user
+      password: pass
+  - garage:
+      enabled: true
+      accessKey: meet-access-key
+      secretKey: meet-secret-access-key
+      bucket: meet-media-storage
+      region: local
+      persistence: false
+      ingress:
+        enabled: true
+        hostname: garage.127.0.0.1.nip.io
+        annotations:
+          nginx.ingress.kubernetes.io/proxy-body-size: 10m
+        tls:
+          enabled: true
+          secretName: meet-tls
+      cors:
+        allowedOrigins:
+        - https://meet.127.0.0.1.nip.io
+  - keycloak:
+      enabled: true
+      hostname: keycloak.127.0.0.1.nip.io
+      username: admin
+      password: admin
+      tls:
+        enabled: true
+        secretName: meet-tls
+      db:
+        username: dinum
+        password: pass
+        database: keycloak
+        size: 1Gi
+      realm:
+        name: meet
+        username: meet
+        password: meet
+        email: meet@example.com
 
 
 - name: meet
