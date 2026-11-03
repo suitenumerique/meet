@@ -116,6 +116,20 @@ def test_anonymous_falls_back_to_anonymous_label():
     assert claims["name"] == "Anonymous"
 
 
+@pytest.mark.parametrize(
+    "room_max_participants,room_config",
+    [(150, {"maxParticipants": 150}), (None, None)],
+)
+def test_generate_token_room_max_participants(
+    settings, room_max_participants, room_config
+):
+    """The token caps the room it creates; unset, LiveKit keeps its own limit."""
+    settings.ROOM_MAX_PARTICIPANTS = room_max_participants
+    token = generate_token(room="my-room", user=AnonymousUser())
+    claims = decode_token(token)
+    assert claims.get("roomConfig") == room_config
+
+
 @pytest.fixture
 def fake_livekit(request):
     """A LiveKit address that takes the connection, sends `request.param`, then waits."""
@@ -240,6 +254,11 @@ def delete_dispatch_rule():
             lambda: RoomManagement.delete_room("room"),
             RoomManagementException,
             id="delete_room",
+        ),
+        pytest.param(
+            lambda: RoomManagement.is_full("room"),
+            RoomManagementException,
+            id="is_full",
         ),
         pytest.param(
             lambda: SIPManagement().create_dispatch_rule(

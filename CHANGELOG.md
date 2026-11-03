@@ -111,6 +111,8 @@ and this project adheres to
 - 🔒️(backend) audit writes and bulk actions made in the Django admin
 - ✨(backend) audit recordings, transcripts and summaries
 - ✨(backend) audit transit code issuance and exchange
+- ✨(fullstack) let operators cap meetings and show hosts the limit
+- ✨(frontend) name the participant limit when a meeting is full
 
 ### Changed
 
@@ -130,6 +132,7 @@ and this project adheres to
 - 🐛(brevo) use django-lasuite for marketing management
 - ♿️(frontend) expose loading state to assistive technology
 - 🐛(frontend) honour Keep hand raised when picture-in-picture is open
+- 🐛(fullstack) show a clear error when joining a full meeting
 
 ## [1.33.0] - 2026-09-30
 

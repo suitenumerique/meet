@@ -9,6 +9,7 @@ import { ApiAccessLevel, ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
+import { ParticipantLimit } from '@/features/rooms/components/ParticipantLimit'
 
 // fixme - duplication with the InviteDialog
 export const LaterMeetingDialog = ({
@@ -36,6 +37,7 @@ export const LaterMeetingDialog = ({
   return (
     <Dialog isOpen={!!room} {...dialogProps} title={t('heading')}>
       <P>{t('description')}</P>
+      <ParticipantLimit />
       {!!roomUrl && (
         <>
           {isTelephonyReadyForUse ? (

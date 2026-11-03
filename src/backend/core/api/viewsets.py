@@ -288,6 +288,8 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
     API endpoints to access and perform actions on rooms.
     """
 
+    # pylint: disable=too-many-public-methods
+
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
@@ -1008,6 +1010,32 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
             {"status": "success"},
             status=drf_status.HTTP_200_OK,
         )
+
+    @decorators.action(
+        detail=True,
+        methods=["get"],
+        url_path="capacity",
+        url_name="capacity",
+        permission_classes=[permissions.HasLiveKitRoomAccess],
+        authentication_classes=[LiveKitTokenAuthentication],
+    )
+    def capacity(self, request, pk=None):  # pylint: disable=unused-argument
+        """Tell whether the room has reached its participant limit.
+
+        LiveKit refuses a participant joining a full room without saying why,
+        so the frontend asks here once a join has failed.
+        """
+        room = self.get_object()
+
+        try:
+            is_full = RoomManagement.is_full(str(room.pk))
+        except RoomManagementException:
+            return drf_response.Response(
+                {"error": "Failed to read room capacity"},
+                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return drf_response.Response({"is_full": is_full})
 
     @decorators.action(
         detail=True,

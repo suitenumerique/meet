@@ -115,6 +115,8 @@
       "pinCode": "Code :"
     }
   },
+  "participantLimit_one": "Jusqu'à {{count}} personne peut rejoindre cette réunion.",
+  "participantLimit_other": "Jusqu'à {{count}} personnes peuvent rejoindre cette réunion.",
   "pagination": {
     "label": "Pages des participants",
     "count": "{{currentPage}} sur {{totalPageCount}}",
@@ -223,6 +225,12 @@
     "deletedRoom": {
       "heading": "Réunion supprimée",
       "body": "Cette réunion a été supprimée et n'est plus accessible."
+    },
+    "roomFull": {
+      "heading": "Cette réunion est complète",
+      "body": "La réunion a atteint son nombre maximum de participants. Réessayez plus tard.",
+      "bodyWithLimit_one": "La réunion a atteint sa limite de {{count}} participant. Réessayez plus tard.",
+      "bodyWithLimit_other": "La réunion a atteint sa limite de {{count}} participants. Réessayez plus tard."
     },
     "screenShare": {
       "title": "Impossible de partager votre écran",
