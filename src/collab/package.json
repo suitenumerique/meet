@@ -1,0 +1,17 @@
+{
+  "name": "meet-whiteboard-collab",
+  "version": "1.0.0",
+  "description": "Real-time collaborative WebSocket service for whiteboard",
+  "type": "module",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "lib0": "^0.2.102",
+    "ws": "^8.18.0",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.27"
+  }
+}
