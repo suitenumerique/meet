@@ -256,6 +256,11 @@ def delete_dispatch_rule():
             id="delete_room",
         ),
         pytest.param(
+            lambda: RoomManagement.is_full("room"),
+            RoomManagementException,
+            id="is_full",
+        ),
+        pytest.param(
             lambda: SIPManagement().create_dispatch_rule(
                 mock.Mock(pk="room", pin_code="1")
             ),
