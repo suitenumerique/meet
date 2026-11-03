@@ -7,6 +7,8 @@ from logging import getLogger
 from django.contrib.auth.hashers import identify_hasher, make_password
 from django.db import models
 
+from .hashers import CLIENT_SECRET_HASH_PATTERN
+
 logger = getLogger(__name__)
 
 
@@ -24,6 +26,14 @@ class SecretField(models.CharField):
 
         secret = getattr(model_instance, self.attname)
 
+        if CLIENT_SECRET_HASH_PATTERN.fullmatch(secret):
+            logger.debug(
+                "%s: %s is already hashed with sha256.",
+                model_instance,
+                self.attname,
+            )
+            return secret
+
         try:
             hasher = identify_hasher(secret)
             logger.debug(
@@ -40,4 +50,4 @@ class SecretField(models.CharField):
             setattr(model_instance, self.attname, hashed_secret)
             return hashed_secret
 
-        return super().pre_save(model_instance, add)
+        return super().pre_save(model_instance, add)  # pylint: disable=no-member

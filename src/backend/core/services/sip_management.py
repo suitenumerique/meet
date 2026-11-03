@@ -54,8 +54,8 @@ class SIPManagement:
 
         try:
             await lkapi.sip.create_sip_dispatch_rule(create=request)
-        except TwirpError as e:
-            if e.code == TwirpErrorCode.ALREADY_EXISTS:
+        except (TwirpError, TimeoutError) as e:
+            if isinstance(e, TwirpError) and e.code == TwirpErrorCode.ALREADY_EXISTS:
                 raise DispatchRuleConflictError("Dispatch rule already exists") from e
             logger.exception(
                 "Unexpected error creating dispatch rule for room %s", room.id
@@ -83,7 +83,7 @@ class SIPManagement:
             existing_rules = await lkapi.sip.list_sip_dispatch_rule(
                 list=ListSIPDispatchRuleRequest()
             )
-        except TwirpError as e:
+        except (TwirpError, TimeoutError) as e:
             logger.exception("Failed to list dispatch rules for room %s", room_id)
             raise SIPException("Could not list dispatch rules") from e
         finally:
@@ -124,7 +124,11 @@ class SIPManagement:
 
     @async_to_sync
     async def delete_dispatch_rule(self, room_id):
-        """Delete all SIP inbound dispatch rules associated with a specific room."""
+        """Delete all SIP inbound dispatch rules associated with a specific room.
+
+        A rule deleted meanwhile (e.g. by both a room deletion and its
+        room_finished webhook) is not an error.
+        """
 
         rules_ids = await self._list_dispatch_rules_ids(room_id)
 
@@ -138,13 +142,20 @@ class SIPManagement:
         lkapi = utils.create_livekit_client()
         try:
             for rule_id in rules_ids:
-                await lkapi.sip.delete_sip_dispatch_rule(
-                    delete=DeleteSIPDispatchRuleRequest(sip_dispatch_rule_id=rule_id)
-                )
+                try:
+                    await lkapi.sip.delete_sip_dispatch_rule(
+                        delete=DeleteSIPDispatchRuleRequest(
+                            sip_dispatch_rule_id=rule_id
+                        )
+                    )
+                except TwirpError as e:
+                    if e.code != TwirpErrorCode.NOT_FOUND:
+                        raise
+                    logger.info("Dispatch rule %s was already deleted", rule_id)
 
             return True
 
-        except TwirpError as e:
+        except (TwirpError, TimeoutError) as e:
             logger.exception("Failed to delete dispatch rules for room %s", room_id)
             raise SIPException("Could not delete dispatch rules") from e
 

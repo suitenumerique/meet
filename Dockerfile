@@ -1,14 +1,16 @@
 # Django Meet
 
 # ---- base image to inherit from ----
-FROM python:3.13.15-alpine3.24 AS base
+FROM python:3.13.16-alpine3.24 AS base
 
 # Upgrade pip to its latest release to speed up dependencies installation
 RUN python -m pip install --upgrade pip
 
 # Upgrade system packages to install security updates
 RUN apk update && \
-  apk upgrade
+  apk upgrade && \
+  apk add --no-cache --upgrade 'ca-certificates>=20261020-r0' && \
+  update-ca-certificates
 
 # ---- Back-end builder image ----
 FROM base AS back-builder
@@ -23,7 +25,7 @@ ENV UV_LINK_MODE=copy
 ENV UV_PYTHON_DOWNLOADS=0
 
 # install uv
-COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /uvx /bin/
 
 WORKDIR /app
 
@@ -37,7 +39,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync --locked --no-dev
 
 # ---- mails ----
-FROM node:22-alpine AS mail-builder
+FROM node:22.23.4-alpine AS mail-builder
+
+RUN apk upgrade --no-cache ca-certificates
 
 COPY ./src/mail /mail/app
 
@@ -83,7 +87,8 @@ RUN apk --no-cache add \
   libffi-dev \
   pango \
   libmagic \
-  shared-mime-info
+  shared-mime-info \
+  'brotli-libs>=1.2.1-r0'
 
 
 # Copy entrypoint
@@ -120,7 +125,7 @@ USER root:root
 RUN apk add postgresql-client
 
 # Install development dependencies
-RUN --mount=from=ghcr.io/astral-sh/uv:0.10.9,source=/uv,target=/bin/uv \
+RUN --mount=from=ghcr.io/astral-sh/uv:0.13.4,source=/uv,target=/bin/uv \
   uv sync --all-extras --locked
 
 # Restore the un-privileged user running the application

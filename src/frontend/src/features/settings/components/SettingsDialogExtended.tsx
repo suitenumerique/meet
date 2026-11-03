@@ -13,6 +13,7 @@ import {
   RiVideoOnLine,
   RiEyeLine,
   RiKeyboardBoxLine,
+  RiRecordCircleLine,
 } from '@remixicon/react'
 import { AccountTab } from './tabs/AccountTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
@@ -26,6 +27,12 @@ import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
 import { AccessibilityTab } from './tabs/AccessibilityTab'
+import { RecordingTab } from './tabs/RecordingTab'
+import {
+  RecordingMode,
+  useIsRecordingModeEnabled,
+  useRecordingEncoding,
+} from '@/features/recording'
 
 const tabsStyle = css({
   maxHeight: '40.625rem', // fixme size copied from meet settings modal
@@ -67,6 +74,12 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
 
   const isAdminOrOwner = useIsAdminOrOwner()
+  const isScreenRecordingEnabled = useIsRecordingModeEnabled(
+    RecordingMode.ScreenRecording
+  )
+  const { isCustomEncodingEnabled } = useRecordingEncoding()
+  const showRecordingTab =
+    isAdminOrOwner && !!isScreenRecordingEnabled && isCustomEncodingEnabled
 
   return (
     <Dialog innerRef={dialogEl} {...props} role="dialog" type="flex">
@@ -121,6 +134,13 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
                   t(`tabs.${SettingsDialogExtendedKey.TRANSCRIPTION}`)}
               </Tab>
             )}
+            {showRecordingTab && (
+              <Tab icon highlight id={SettingsDialogExtendedKey.RECORDING}>
+                <RiRecordCircleLine />
+                {isWideScreen &&
+                  t(`tabs.${SettingsDialogExtendedKey.RECORDING}`)}
+              </Tab>
+            )}
             <Tab icon highlight id={SettingsDialogExtendedKey.ACCESSIBILITY}>
               <RiEyeLine />
               {isWideScreen &&
@@ -140,6 +160,8 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
           <ShortcutTab id={SettingsDialogExtendedKey.SHORTCUTS} />
           {/* Transcription tab won't be accessible if the tab is not active in the tab list */}
           <TranscriptionTab id={SettingsDialogExtendedKey.TRANSCRIPTION} />
+          {/* Recording tab won't be accessible if the tab is not active in the tab list */}
+          <RecordingTab id={SettingsDialogExtendedKey.RECORDING} />
           <AccessibilityTab id={SettingsDialogExtendedKey.ACCESSIBILITY} />
         </div>
       </Tabs>

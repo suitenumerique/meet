@@ -53,7 +53,23 @@ class AnalyticsBackend(ABC):
 
 
 class NoOpAnalytics(AnalyticsBackend):
-    """Default backend: silently discards everything."""
+    """
+    Default backend: discards events and serves static feature flags.
+
+    Feature flags can be declared without any analytics provider, e.g.:
+
+        ANALYTICS_BACKEND_SETTINGS = {"feature_flags": {"summary-enabled": True}}
+    """
+
+    def __init__(
+        self,
+        *,
+        feature_flags: Mapping[str, bool | str | None] | None = None,
+        **_kwargs: Any,
+    ) -> None:
+        # Other settings are ignored, so that settings meant for another
+        # backend never break an instance running without one.
+        self._feature_flags = dict(feature_flags or {})
 
     def identify(self, user: User, properties=None) -> None:
         """No-op: discards identify calls."""
@@ -63,3 +79,10 @@ class NoOpAnalytics(AnalyticsBackend):
 
     def shutdown(self) -> None:
         """No-op: nothing to flush."""
+
+    def get_user_feature_flags(
+        self,
+        user: User,
+    ) -> Mapping[UserFeatureFlag, bool | str | None]:
+        """Return the feature flags declared in settings, for any user."""
+        return self._feature_flags

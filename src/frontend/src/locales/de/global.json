@@ -27,6 +27,15 @@
   },
   "selected": "ausgewählt",
   "submit": "OK",
+  "support": {
+    "buttonLabel": "Support kontaktieren",
+    "openError": "Das Kontaktformular konnte nicht geöffnet werden. Bitte versuchen Sie es später erneut.",
+    "sent": {
+      "title": "Nachricht gesendet",
+      "body": "Das Support-Team hat Ihre Nachricht erhalten.",
+      "close": "Schließen"
+    }
+  },
   "footer": {
     "links": {
       "legifrance": "legifrance.gouv.fr",

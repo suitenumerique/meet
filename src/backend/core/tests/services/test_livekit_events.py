@@ -1,7 +1,7 @@
 """
 Test LiveKitEvents service.
 """
-# pylint: disable=W0621,W0613, W0212, E0611
+# pylint: disable=W0621,W0613, W0212, E0611, C0302
 
 import logging
 import uuid
@@ -13,6 +13,7 @@ from django.utils import timezone
 import pytest
 from livekit.api import EgressStatus
 
+from core.audit.testing import find_events
 from core.factories import RecordingFactory, RoomFactory
 from core.models import Room
 from core.recording.enums import RecordingWorkerEvent
@@ -27,7 +28,10 @@ from core.services.livekit_events import (
     to_recording_event,
 )
 from core.services.lobby import LobbyService
-from core.services.room_management import RoomManagementException
+from core.services.room_management import (
+    RoomManagementException,
+    RoomNotFoundException,
+)
 from core.services.sip_management import (
     SIPException,
     SIPManagement,
@@ -796,6 +800,61 @@ def test_handle_room_started_raises_error_for_nonexistent_room(service):
         service._handle_room_started(mock_data)
 
 
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_handle_room_started_closes_deleted_room(
+    mock_delete_room, mock_ensure_dispatch_rule, service, settings
+):
+    """Should close a LiveKit room recreated for a soft-deleted room."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    room.soft_delete()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+    mock_ensure_dispatch_rule.assert_not_called()
+
+
+@mock.patch(
+    "core.services.room_management.RoomManagement.delete_room",
+    side_effect=RoomNotFoundException("Room does not exist"),
+)
+def test_handle_room_started_ignores_already_closed_deleted_room(
+    mock_delete_room, service
+):
+    """Should proceed silently when the deleted room is already closed in LiveKit."""
+    room = RoomFactory()
+    room.soft_delete()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    service._handle_room_started(mock_data)
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+
+
+@mock.patch(
+    "core.services.room_management.RoomManagement.delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_handle_room_started_raises_error_when_closing_deleted_room_fails(
+    mock_delete_room, service
+):
+    """Should raise ActionFailedError when the deleted room cannot be closed."""
+    room = RoomFactory()
+    room.soft_delete()
+    mock_data = mock.MagicMock()
+    mock_data.room.name = str(room.id)
+
+    expected_error = f"Failed to close deleted room {room.id}"
+
+    with pytest.raises(ActionFailedError, match=expected_error):
+        service._handle_room_started(mock_data)
+
+
 @mock.patch.object(
     api.WebhookReceiver, "receive", side_effect=Exception("Invalid payload")
 )
@@ -994,3 +1053,76 @@ def test_participant_left_without_identity_is_ignored(mock_delete, service, sett
 
     service._handle_participant_left(data)  # pylint: disable=protected-access
     mock_delete.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("egress_status", "worker_event", "outcome"),
+    (
+        (EgressStatus.EGRESS_COMPLETE, "completed", "success"),
+        (EgressStatus.EGRESS_LIMIT_REACHED, "limit reached", "success"),
+        (EgressStatus.EGRESS_ABORTED, "aborted", "failure"),
+        (EgressStatus.EGRESS_FAILED, "failed", "failure"),
+    ),
+)
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services"
+)
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_is_audited(  # noqa: PLR0913, PLR0917
+    mock_update_metadata,
+    mock_notify,
+    mock_notify_external_services,
+    egress_status,
+    worker_event,
+    outcome,
+    service,
+    audit_events,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """The end of a recording is audited as LiveKit reports it."""
+
+    recording = RecordingFactory(
+        worker_id="worker-1",
+        status="active",
+        mode="screen_recording",
+        options={"transcribe": True},
+    )
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = egress_status
+    mock_data.egress_info.error_code = 0
+
+    service._handle_egress_ended(mock_data)
+
+    [event] = find_events(audit_events, "recording.end")
+
+    assert event["event"]["type"] == ["end"]
+    assert event["lasuite"]["outcome"] == outcome
+    assert event["lasuite"]["actor"] == {"type": "service"}
+    assert event["service"]["origin"] == {"name": "livekit"}
+    assert event["lasuite"]["auth"] == {"method": "shared_secret"}
+    assert event["entity"]["target"]["id"] == str(recording.id)
+    assert event["entity"]["target"]["raw"]["is_transcribed"] is True
+    assert event["lasuite"]["details"] == {"worker_event": worker_event}
+
+
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_with_an_unmapped_status_is_audited_as_unknown(
+    mock_update_metadata, service, audit_events
+):
+    """An egress status the backend does not map has an unknown outcome."""
+    recording = RecordingFactory(worker_id="worker-1", status="active")
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = 999
+    mock_data.egress_info.error_code = 0
+
+    service._handle_egress_ended(mock_data)
+
+    [event] = find_events(audit_events, "recording.end")
+
+    assert event["event"]["outcome"] == "unknown"
+    assert event["lasuite"]["outcome"] == "unknown"
+    assert event["log"]["level"] == "warning"
+    assert "details" not in event["lasuite"]

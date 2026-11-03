@@ -1,5 +1,6 @@
-import { readFileSync } from 'node:fs'
-import { defineConfig, loadEnv } from 'vite'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import svgr from 'vite-plugin-svgr'
@@ -24,6 +25,23 @@ if (mediapipeVersion !== livekitMediapipeVersion) {
       `"${livekitMediapipeVersion}" in package.json.`
   )
 }
+
+const NOINDEX_TAG = '<meta name="robots" content="noindex, nofollow" />'
+
+const homePage = (): Plugin => ({
+  name: 'home-page',
+  apply: 'build',
+  writeBundle({ dir = 'dist' }) {
+    const html = readFileSync(join(dir, 'index.html'), 'utf-8')
+    if (!html.includes(NOINDEX_TAG)) {
+      throw new Error(
+        `${dir}/index.html does not contain ${NOINDEX_TAG}, so home.html ` +
+          `cannot be generated from it. The two must stay in sync.`
+      )
+    }
+    writeFileSync(join(dir, 'home.html'), html.replace(NOINDEX_TAG, ''))
+  },
+})
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -66,6 +84,7 @@ export default defineConfig(({ mode }) => {
           },
         ],
       }),
+      homePage(),
       env.VITE_ANALYZE === 'true' &&
         visualizer({
           open: true,

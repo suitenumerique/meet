@@ -6,7 +6,8 @@ import { useRoomContext } from '@livekit/components-react'
 import {
   RecordingMode,
   useHasRecordingAccess,
-  useHasFeatureWithoutAdminRights,
+  useHasFeatureWithoutRecordingRights,
+  useIsRecordingOpenToParticipants,
   useRecordingStatuses,
 } from '../index'
 import { useState } from 'react'
@@ -29,6 +30,7 @@ import { NoAccessView } from './NoAccessView'
 import { ControlsButton } from './ControlsButton'
 import { RowWrapper } from './RowWrapper'
 import { useMutateRecording } from '../hooks/useMutateRecording'
+import { useRecordingEncoding } from '../hooks/useRecordingEncoding'
 import { useIsMetadataCollectorEnabled } from '../hooks/useMetadataCollectorEnabled'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
@@ -57,14 +59,17 @@ export const TranscriptSidePanel = () => {
     RecordingMode.ScreenRecording,
     FeatureFlags.ScreenRecording
   )
-  const hasFeatureWithoutAdminRights = useHasFeatureWithoutAdminRights(
+  const hasFeatureWithoutRecordingRights = useHasFeatureWithoutRecordingRights(
     RecordingMode.Transcript,
     FeatureFlags.Transcript
   )
 
   const isAdminOrOwner = useIsAdminOrOwner()
+  const isRecordingOpenToParticipants = useIsRecordingOpenToParticipants()
 
   const isMetadataCollectorEnabled = useIsMetadataCollectorEnabled()
+
+  const { encoding } = useRecordingEncoding()
 
   const roomId = useRoomId()
 
@@ -114,6 +119,7 @@ export const TranscriptSidePanel = () => {
           ...(withScreenRecording && {
             transcribe: true,
             original_mode: RecordingMode.Transcript,
+            ...(encoding && { encoding }),
           }),
           collect_metadata: isMetadataCollectorEnabled,
         }
@@ -139,11 +145,13 @@ export const TranscriptSidePanel = () => {
     }
   }
 
-  if (hasFeatureWithoutAdminRights) {
+  if (hasFeatureWithoutRecordingRights) {
     return (
       <NoAccessView
         i18nKeyPrefix={keyPrefix}
-        i18nKey="notAdminOrOwner"
+        i18nKey={
+          isRecordingOpenToParticipants ? 'notLoggedIn' : 'notAdminOrOwner'
+        }
         helpArticle={data?.support?.help_article_transcript}
         imagePath="/assets/intro-slider/3.png"
         handleRequest={handleRequestTranscription}

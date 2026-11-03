@@ -1,6 +1,5 @@
 import { useConfig } from '@/api/useConfig'
 import { useAnalytics } from '@/features/analytics/hooks/useAnalytics'
-import { useSupport } from '@/features/support/hooks/useSupport'
 import { useSyncUserPreferencesWithBackend } from '@/features/auth/api/useSyncUserPreferencesWithBackend'
 import { useEffect } from 'react'
 
@@ -8,10 +7,9 @@ export const AppInitialization = () => {
   const { data } = useConfig()
   useSyncUserPreferencesWithBackend()
 
-  const { analytics = {}, support = {}, custom_css_url = '' } = data ?? {}
+  const { analytics = {}, custom_css_url = '' } = data ?? {}
 
   useAnalytics(analytics)
-  useSupport(support)
 
   useEffect(() => {
     if (custom_css_url) {

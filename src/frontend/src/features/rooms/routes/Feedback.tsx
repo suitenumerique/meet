@@ -31,6 +31,7 @@ const buttonClass = css({
 enum DisconnectReasonKey {
   DuplicateIdentity = 'duplicateIdentity',
   ParticipantRemoved = 'participantRemoved',
+  RoomDeleted = 'roomDeleted',
 }
 
 const FeedbackRoute = () => {
@@ -46,6 +47,8 @@ const FeedbackRoute = () => {
         return DisconnectReasonKey.DuplicateIdentity
       case DisconnectReason.PARTICIPANT_REMOVED:
         return DisconnectReasonKey.ParticipantRemoved
+      case DisconnectReason.ROOM_DELETED:
+        return DisconnectReasonKey.RoomDeleted
     }
   }, [])
 
@@ -56,7 +59,10 @@ const FeedbackRoute = () => {
     }
   }, [])
 
-  const showBackButton = reasonKey !== DisconnectReasonKey.ParticipantRemoved
+  // Rejoining is not possible once removed or once the room is deleted
+  const showBackButton =
+    reasonKey !== DisconnectReasonKey.ParticipantRemoved &&
+    reasonKey !== DisconnectReasonKey.RoomDeleted
 
   return (
     <Screen layout="centered" footer={false}>

@@ -9,6 +9,7 @@ from django.core.management import call_command
 from django.utils import timezone
 
 import pytest
+from rest_framework.test import APIClient
 
 from core import factories, models
 
@@ -19,12 +20,23 @@ COMMAND_MODULE = "core.management.commands.purge_inactive_rooms"
 BEFORE_PERIOD = timedelta(days=366)
 WITHIN_PERIOD = timedelta(days=364)
 
+BEFORE_RETENTION = timedelta(days=31)
+WITHIN_RETENTION = timedelta(days=29)
+
 
 @pytest.fixture(name="purge_enabled", autouse=True)
 def fixture_purge_enabled(settings):
     """Enable the purge of the rooms inactive for a year."""
     settings.ROOM_INACTIVITY_DELETION_DAYS = 365
+    settings.ROOM_DELETED_RETENTION_DAYS = None
     settings.RECORDING_EXPIRATION_DAYS = 30
+
+
+@pytest.fixture(name="retention_only")
+def fixture_retention_only(settings):
+    """Only purge the rooms soft deleted more than 30 days ago."""
+    settings.ROOM_INACTIVITY_DELETION_DAYS = None
+    settings.ROOM_DELETED_RETENTION_DAYS = 30
 
 
 def create_at(date, factory, **kwargs):
@@ -41,12 +53,12 @@ def call_purge(*args):
 
 
 def room_exists(room):
-    """Tell whether the room is still in database."""
-    return models.Room.objects.filter(pk=room.pk).exists()
+    """Tell whether the room is still in database, soft deleted or not."""
+    return models.Room.all_objects.filter(pk=room.pk).exists()
 
 
 def test_purge_inactive_rooms_disabled(settings):
-    """Should delete nothing when no inactivity period is configured."""
+    """Should delete nothing when neither period is configured."""
     settings.ROOM_INACTIVITY_DELETION_DAYS = None
     room = create_at(timezone.now() - BEFORE_PERIOD, factories.RoomFactory)
 
@@ -68,7 +80,7 @@ def test_purge_inactive_rooms_without_recording_expiration(settings):
         status=models.RecordingStatusChoices.SAVED,
     )
 
-    assert call_purge() == "Purged 1 inactive room(s).\n"
+    assert call_purge() == "Purged 1 room(s).\n"
 
     assert not room_exists(room)
     assert room_exists(room_with_recording)
@@ -97,7 +109,7 @@ def test_purge_inactive_rooms_started_before_period(caplog):
     with caplog.at_level(logging.INFO, logger=COMMAND_MODULE):
         output = call_purge()
 
-    assert output == "Purged 1 inactive room(s).\n"
+    assert output == "Purged 1 room(s).\n"
     assert not room_exists(room)
     assert f"Purging inactive room {room.pk} ({room.slug})" in caplog.text
 
@@ -120,7 +132,7 @@ def test_purge_inactive_rooms_started_within_period():
         last_started_at=now - WITHIN_PERIOD,
     )
 
-    assert call_purge() == "No inactive room to purge.\n"
+    assert call_purge() == "No room to purge.\n"
 
     assert room_exists(room)
 
@@ -129,7 +141,7 @@ def test_purge_inactive_rooms_never_started_created_within_period():
     """Should keep a room that was never started but created within the period."""
     room = create_at(timezone.now() - WITHIN_PERIOD, factories.RoomFactory)
 
-    assert call_purge() == "No inactive room to purge.\n"
+    assert call_purge() == "No room to purge.\n"
 
     assert room_exists(room)
 
@@ -221,7 +233,7 @@ def test_purge_inactive_rooms_dry_run():
     factories.RoomFactory(name="Recent room")
 
     assert call_purge("--dry-run") == (
-        "[dry-run] 2 inactive room(s) would be purged:\n- Alpha room\n- Beta room\n"
+        "[dry-run] 2 room(s) would be purged:\n- Alpha room\n- Beta room\n"
     )
 
     assert all(room_exists(room) for room in rooms)
@@ -235,5 +247,134 @@ def test_purge_inactive_rooms_several_chunks():
     with mock.patch(f"{COMMAND_MODULE}.CHUNK_SIZE", 2):
         output = call_purge()
 
-    assert output == "Purged 5 inactive room(s).\n"
+    assert output == "Purged 5 room(s).\n"
     assert not any(room_exists(room) for room in rooms)
+
+
+def test_purge_inactive_rooms_soft_deleted(caplog):
+    """Should delete an inactive room even if it was soft deleted recently."""
+    now = timezone.now()
+    room = create_at(
+        now - BEFORE_PERIOD,
+        factories.RoomFactory,
+        deleted_at=now - timedelta(days=1),
+    )
+
+    with caplog.at_level(logging.INFO, logger=COMMAND_MODULE):
+        output = call_purge()
+
+    assert output == "Purged 1 room(s).\n"
+    assert not room_exists(room)
+    assert f"Purging deleted room {room.pk} ({room.slug})" in caplog.text
+
+
+@pytest.mark.usefixtures("retention_only")
+def test_purge_deleted_rooms_before_retention(caplog):
+    """Should delete a room soft deleted before the retention period."""
+    room = factories.RoomFactory(deleted_at=timezone.now() - BEFORE_RETENTION)
+
+    with caplog.at_level(logging.INFO, logger=COMMAND_MODULE):
+        output = call_purge()
+
+    assert output == "Purged 1 room(s).\n"
+    assert not room_exists(room)
+    assert f"Purging deleted room {room.pk} ({room.slug})" in caplog.text
+
+
+@pytest.mark.usefixtures("retention_only")
+def test_purge_deleted_rooms_within_retention():
+    """Should keep a room soft deleted within the retention period."""
+    room = factories.RoomFactory(deleted_at=timezone.now() - WITHIN_RETENTION)
+
+    assert call_purge() == "No room to purge.\n"
+
+    assert room_exists(room)
+
+
+@pytest.mark.usefixtures("retention_only")
+def test_purge_deleted_rooms_retention_only_keeps_inactive_rooms():
+    """Should keep inactive rooms that are not deleted when only retention is set."""
+    room = create_at(timezone.now() - BEFORE_PERIOD, factories.RoomFactory)
+
+    assert call_purge() == "No room to purge.\n"
+
+    assert room_exists(room)
+
+
+def test_purge_deleted_rooms_within_retention_but_inactive(settings):
+    """Should delete an inactive room even if it was deleted within the retention."""
+    settings.ROOM_DELETED_RETENTION_DAYS = 30
+    now = timezone.now()
+    room = create_at(
+        now - BEFORE_PERIOD,
+        factories.RoomFactory,
+        deleted_at=now - WITHIN_RETENTION,
+    )
+
+    call_purge()
+
+    assert not room_exists(room)
+
+
+@pytest.mark.usefixtures("retention_only")
+def test_purge_deleted_rooms_recording_not_expired():
+    """Should keep a deleted room holding a saved recording that has not expired."""
+    room = factories.RoomFactory(deleted_at=timezone.now() - BEFORE_RETENTION)
+    factories.RecordingFactory(room=room, status=models.RecordingStatusChoices.SAVED)
+
+    assert call_purge() == "No room to purge.\n"
+
+    assert room_exists(room)
+
+
+@pytest.mark.usefixtures("retention_only")
+def test_purge_deleted_rooms_recording_expired():
+    """Should delete a deleted room along with its expired recordings."""
+    now = timezone.now()
+    room = create_at(
+        now - timedelta(days=40),
+        factories.RoomFactory,
+        deleted_at=now - BEFORE_RETENTION,
+    )
+    recording = create_at(
+        now - timedelta(days=40),
+        factories.RecordingFactory,
+        room=room,
+        status=models.RecordingStatusChoices.SAVED,
+    )
+
+    call_purge()
+
+    assert not room_exists(room)
+    assert not models.Recording.objects.filter(pk=recording.pk).exists()
+
+
+def test_purge_rooms_dry_run_flags_deleted_rooms(settings):
+    """Should flag the soft-deleted rooms listed on a dry run."""
+    settings.ROOM_DELETED_RETENTION_DAYS = 30
+    now = timezone.now()
+    rooms = [
+        create_at(now - BEFORE_PERIOD, factories.RoomFactory, name="Alpha room"),
+        factories.RoomFactory(name="Beta room", deleted_at=now - BEFORE_RETENTION),
+    ]
+    factories.RoomFactory(name="Gamma room", deleted_at=now - WITHIN_RETENTION)
+
+    assert call_purge("--dry-run") == (
+        "[dry-run] 2 room(s) would be purged:\n- Alpha room\n- Beta room (deleted)\n"
+    )
+
+    assert all(room_exists(room) for room in rooms)
+
+
+@pytest.mark.usefixtures("retention_only")
+def test_purge_deleted_rooms_frees_slug():
+    """Should let a new room take the slug of a purged deleted room."""
+    factories.RoomFactory(name="my room", deleted_at=timezone.now() - BEFORE_RETENTION)
+    client = APIClient()
+    client.force_login(factories.UserFactory())
+
+    call_purge()
+    response = client.post("/api/v1.0/rooms/", {"name": "My Room!"})
+
+    assert response.status_code == 201
+    assert models.Room.objects.get().slug == "my-room"

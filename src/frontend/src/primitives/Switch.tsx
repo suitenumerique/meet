@@ -9,6 +9,8 @@ import { RiCheckLine, RiCloseFill } from '@remixicon/react'
 const StyledSwitch = styled(RACSwitch, {
   base: {
     display: 'flex',
+    // anchor the visually hidden input, so it scrolls with the switch
+    position: 'relative',
     alignItems: 'center',
     gap: '0.571rem',
     color: 'black',

@@ -82,9 +82,6 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
                 "User info contained an invalid sub claim"
             ) from err
 
-        if len(sub) > 255:
-            raise SuspiciousOperation("User info contained an invalid sub claim")
-
         try:
             return User.objects.get(sub=sub)
         except User.DoesNotExist:

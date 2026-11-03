@@ -24,6 +24,8 @@ def test_successful_authentication(settings):
     user, token = RecordingProcessWebhookAuthentication().authenticate(request)
     assert token == "valid-test-token"
     assert isinstance(user, MachineUser)
+    # Names the summary service in the audit log
+    assert user.get_username() == "summary"
 
 
 def test_authentication_fails_when_token_not_configured(settings):
