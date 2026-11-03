@@ -103,12 +103,18 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.VITE_PORT) || 3000,
       host: env.VITE_HOST ?? 'localhost',
       allowedHosts: ['.nip.io'],
-      // In a local dev setup, we proxy the media server ourselves to avoid CORS issues
+      // In a local dev setup, we proxy the media server and whiteboard collab service
       proxy: {
         '/media': {
           target: 'http://localhost:8083',
           changeOrigin: true,
           secure: false,
+        },
+        '/collab': {
+          target: 'http://localhost:1234',
+          ws: true,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/collab/, ''),
         },
       },
     },
