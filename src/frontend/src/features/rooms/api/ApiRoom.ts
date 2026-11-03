@@ -16,6 +16,7 @@ export enum ApiAccessLevel {
 export type RoomConfiguration = {
   can_publish_sources?: Source[] | null
   everyone_can_mute?: boolean | null
+  allow_whiteboard?: boolean | null
 }
 
 export type ParticipantRole = 'member' | 'administrator' | 'owner'

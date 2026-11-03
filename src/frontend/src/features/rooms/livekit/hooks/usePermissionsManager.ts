@@ -11,6 +11,7 @@ export const usePermissionsManager = () => {
   const roomId = data?.slug
 
   const isMutingEnabled = configuration?.everyone_can_mute ?? true
+  const isWhiteboardAllowed = configuration?.allow_whiteboard ?? true
 
   const toggleMuting = useCallback(
     async (enabled: boolean) => {
@@ -38,8 +39,36 @@ export const usePermissionsManager = () => {
     [configuration, roomId, patchRoom]
   )
 
+  const toggleWhiteboard = useCallback(
+    async (enabled: boolean) => {
+      if (!roomId) return
+
+      try {
+        const newConfiguration = {
+          ...configuration,
+          allow_whiteboard: enabled,
+        }
+
+        await patchRoom({
+          roomId,
+          room: { configuration: newConfiguration },
+        })
+
+        return { configuration: newConfiguration }
+      } catch (error) {
+        reportError('permissions_api_failure', error, {
+          context: 'Failed to update whiteboard permission:',
+        })
+        return { success: false, error }
+      }
+    },
+    [configuration, roomId, patchRoom]
+  )
+
   return {
     toggleMuting,
     isMutingEnabled,
+    toggleWhiteboard,
+    isWhiteboardAllowed,
   }
 }

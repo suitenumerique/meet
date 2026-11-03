@@ -138,6 +138,12 @@ const SettingsPopup = () => {
       everyone_can_mute: enabled,
     })
 
+  const toggleWhiteboard = (enabled: boolean) =>
+    patchConfiguration({
+      ...configuration,
+      allow_whiteboard: enabled,
+    })
+
   const isMicrophoneEnabled = isSubsetOf(
     [Track.Source.Microphone],
     currentSources
@@ -148,6 +154,7 @@ const SettingsPopup = () => {
     currentSources
   )
   const isMutingEnabled = configuration?.everyone_can_mute ?? true
+  const isWhiteboardAllowed = configuration?.allow_whiteboard ?? true
 
   const renderCentered = (children: ReactNode) => (
     <div
@@ -285,6 +292,17 @@ const SettingsPopup = () => {
               description={tRooms('moderation.screenshare.description')}
               isSelected={isScreenShareEnabled}
               onChange={toggleScreenShare}
+              wrapperProps={{
+                noMargin: true,
+                fullWidth: true,
+              }}
+            />
+            <Field
+              type="switch"
+              label={tRooms('moderation.whiteboard.label')}
+              description={tRooms('moderation.whiteboard.description')}
+              isSelected={isWhiteboardAllowed}
+              onChange={toggleWhiteboard}
               wrapperProps={{
                 noMargin: true,
                 fullWidth: true,

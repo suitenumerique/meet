@@ -284,6 +284,11 @@
       "start": "Partager l'écran",
       "stop": "Arrêter le partage"
     },
+    "whiteboard": {
+      "start": "Utiliser le tableau blanc",
+      "stop": "Fermer le tableau blanc",
+      "disabled": "Le tableau blanc est désactivé par l'administrateur"
+    },
     "leave": "Quitter",
     "participants": {
       "open": "Masquer les participants",
@@ -461,6 +466,10 @@
       "transcript": {
         "title": "Transcrire",
         "body": "Transcrire la réunion."
+      },
+      "whiteboard": {
+        "title": "Tableau blanc",
+        "body": "Dessinez et collaborez en temps réel."
       },
       "screenRecording": {
         "title": "Enregistrer",
@@ -667,6 +676,10 @@
         "label": "Partager leur écran",
         "description": "En désactivant cette option, les participants ne pourront plus partager leur écran et tout partage en cours sera immédiatement interrompu."
       },
+      "whiteboard": {
+        "label": "Utiliser le tableau blanc",
+        "description": "En désactivant cette option, les participants ne pourront pas utiliser ou modifier le tableau blanc."
+      },
       "mute": {
         "label": "Muter les autres",
         "description": "En désactivant cette option, les participants ne pourront plus muter d'autres participants."
@@ -870,5 +883,11 @@
   },
   "participantTile": {
     "screenShare": "Écran de {{name}}"
+  },
+  "whiteboard": {
+    "heading": "Tableau blanc partagé",
+    "close": "Fermer le tableau blanc",
+    "sharedBy": "Partagé par {{name}}",
+    "readOnly": "Lecture seule"
   }
 }

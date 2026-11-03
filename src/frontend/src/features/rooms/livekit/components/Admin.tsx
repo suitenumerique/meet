@@ -50,7 +50,12 @@ export const Admin = () => {
     isScreenShareEnabled,
   } = usePublishSourcesManager()
 
-  const { toggleMuting, isMutingEnabled } = usePermissionsManager()
+  const {
+    toggleMuting,
+    isMutingEnabled,
+    toggleWhiteboard,
+    isWhiteboardAllowed,
+  } = usePermissionsManager()
 
   return (
     <Div
@@ -139,6 +144,17 @@ export const Admin = () => {
             description={t('moderation.screenshare.description')}
             isSelected={isScreenShareEnabled}
             onChange={toggleScreenShare}
+            wrapperProps={{
+              noMargin: true,
+              fullWidth: true,
+            }}
+          />
+          <Field
+            type="switch"
+            label={t('moderation.whiteboard.label')}
+            description={t('moderation.whiteboard.description')}
+            isSelected={isWhiteboardAllowed}
+            onChange={toggleWhiteboard}
             wrapperProps={{
               noMargin: true,
               fullWidth: true,

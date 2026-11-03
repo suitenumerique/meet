@@ -100,6 +100,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
     currentSources
   )
   const isMutingEnabled = configuration?.everyone_can_mute ?? true
+  const isWhiteboardAllowed = configuration?.allow_whiteboard ?? true
 
   const saveAccessLevel = (newAccessLevel: ApiAccessLevel) => {
     if (!user) return
@@ -162,6 +163,14 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
         isSelected={isScreenShareEnabled}
         onChange={(enabled) =>
           updateSource([Source.ScreenShare, Source.ScreenShareAudio], enabled)
+        }
+      />
+      <Field
+        type="switch"
+        label={tAdmin('moderation.whiteboard.label')}
+        isSelected={isWhiteboardAllowed}
+        onChange={(enabled) =>
+          saveConfiguration({ ...configuration, allow_whiteboard: enabled })
         }
       />
       <Field

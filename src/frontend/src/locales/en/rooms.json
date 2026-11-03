@@ -284,6 +284,11 @@
       "start": "Share screen",
       "stop": "Stop screen share"
     },
+    "whiteboard": {
+      "start": "Use whiteboard",
+      "stop": "Close whiteboard",
+      "disabled": "Whiteboard is disabled by the administrator"
+    },
     "leave": "Leave",
     "participants": {
       "open": "Hide everyone",
@@ -461,6 +466,10 @@
       "transcript": {
         "title": "Transcribe",
         "body": "Turn meetings into text."
+      },
+      "whiteboard": {
+        "title": "Whiteboard",
+        "body": "Draw and brainstorm together in real time."
       },
       "screenRecording": {
         "title": "Record",
@@ -667,6 +676,10 @@
         "label": "Share their screen",
         "description": "Disabling this option will prevent participants from sharing their screen, and any ongoing screen sharing will be stopped immediately."
       },
+      "whiteboard": {
+        "label": "Use whiteboard",
+        "description": "Disabling this option will prevent participants from using or editing the whiteboard."
+      },
       "mute": {
         "label": "Mute others",
         "description": "When disabled, participants will no longer be able to mute other participants."
@@ -870,5 +883,11 @@
   },
   "participantTile": {
     "screenShare": "{{name}}'s screen"
+  },
+  "whiteboard": {
+    "heading": "Shared Whiteboard",
+    "close": "Close whiteboard",
+    "sharedBy": "Shared by {{name}}",
+    "readOnly": "View only"
   }
 }
