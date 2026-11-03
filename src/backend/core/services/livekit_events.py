@@ -307,6 +307,8 @@ class LiveKitEventsService:
         # tokens allow users who already entered a room to re-create it,
         # even if it was closed.
         if room.is_deleted:
+            # The LiveKit room goes with it, so the key needs no removal.
+            breakout_services.close_active_sessions(room_id)
             self._close_deleted_room(room_id)
             return
 

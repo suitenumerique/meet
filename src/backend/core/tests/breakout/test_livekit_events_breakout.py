@@ -111,6 +111,23 @@ def test_handle_room_started_closes_a_stale_breakout_session(
     assert json.loads(request.metadata) == {"access_level": "public"}
 
 
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_handle_room_started_closes_a_deleted_room_split(
+    mock_delete_room, livekit, service
+):
+    """A deleted room LiveKit brings back ends its split with the room."""
+    room = RoomFactory()
+    session = open_session(room)
+    room.soft_delete()
+
+    started(service, room)
+
+    session.refresh_from_db()
+    assert not session.is_active
+    mock_delete_room.assert_called_once_with(str(room.id))
+    livekit.room.update_room_metadata.assert_not_called()
+
+
 @override_settings(ROOM_TELEPHONY_ENABLED=True)
 @mock.patch.object(SIPManagement, "ensure_dispatch_rule")
 def test_handle_room_started_keeps_a_split_whose_key_stays(
