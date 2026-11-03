@@ -19,6 +19,7 @@ and this project adheres to
 - ✨(backend) expose LiveKit reconnection settings in the config
 - ✨(backend) keep recordings cut short by LiveKit egress
 - ⬆️(dev) upgrade LiveKit server to v1.13.11 and egress to v1.15.0
+- ⬆️(backend) update python dependencies
 
 ### Fixed
 
