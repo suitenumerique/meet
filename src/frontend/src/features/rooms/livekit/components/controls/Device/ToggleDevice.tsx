@@ -44,7 +44,7 @@ export type ToggleDeviceProps<T extends ToggleSource> = {
   toggle: (
     forceState?: boolean,
     captureOptions?: CaptureOptionsBySource<T>
-  ) => Promise<void | boolean | undefined>
+  ) => Promise<boolean | undefined>
   context?: 'room' | 'join'
   kind: 'audioinput' | 'videoinput'
   overrideToggleButtonProps?: Partial<ToggleButtonProps>
@@ -155,8 +155,8 @@ export const ToggleDevice = <T extends ToggleSource>({
     handler: async () => {
       const nextState = !enabled
       try {
-        const didChange = await toggle(nextState)
-        if (didChange === false) return
+        const enabledAfter = await toggle(nextState)
+        if (enabledAfter !== nextState) return
 
         const message = t(nextState ? 'turnedOn' : 'turnedOff', {
           keyPrefix: `selectDevice.${kind}`,

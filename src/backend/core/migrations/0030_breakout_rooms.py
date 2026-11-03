@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0027_user_email_upper_idx'),
+        ('core', '0029_alter_application_client_secret_sha256'),
     ]
 
     operations = [

@@ -67,6 +67,19 @@ def test_resource_server_backend_get_or_create_user_no_creation(settings):
     assert not User.objects.filter(sub="new-sub").exists()
 
 
+def test_resource_server_backend_get_or_create_user_invalid_sub(settings):
+    """A sub longer than 255 characters should be rejected without creating a user."""
+
+    settings.OIDC_CREATE_USER = True
+
+    with pytest.raises(SuspiciousOperation, match="invalid sub claim"):
+        ResourceServerBackend().get_or_create_user(
+            access_token="token", id_token=None, payload=_payload("a" * 256)
+        )
+
+    assert not User.objects.exists()
+
+
 @responses.activate
 def test_api_rooms_list_resource_server_inactive_user(settings):
     """End to end: a valid introspected token for an inactive user should get 401."""

@@ -286,9 +286,16 @@ class RoomAdmin(admin.ModelAdmin):
         "get_owner",
         "created_at",
         "last_started_at",
+        "deleted_at",
     ]
-    list_filter = ["access_level", "created_at", "last_started_at"]
-    readonly_fields = ["id", "created_at", "updated_at", "last_started_at"]
+    list_filter = ["access_level", "created_at", "last_started_at", "deleted_at"]
+    readonly_fields = [
+        "id",
+        "created_at",
+        "updated_at",
+        "last_started_at",
+        "deleted_at",
+    ]
 
     def get_queryset(self, request):
         """Optimize queries by prefetching related access and user data to avoid N+1 queries."""

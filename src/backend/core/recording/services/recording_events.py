@@ -84,7 +84,7 @@ class RecordingEventsService:
     @staticmethod
     def _notify_participants(recording: Recording, event: RecordingWorkerEvent):
         """Notify the room's participants that a recording ended on the given event."""
-        recording_mode = recording.options.get("original_mode", None) or recording.mode
+        recording_mode = recording.requested_mode
 
         notification_type = get_notification_type(recording_mode, event)
         if not notification_type:

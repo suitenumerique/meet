@@ -8,9 +8,62 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.37.0] - 2026-11-01
+
+### Changed
+
+- ⬆️(summary) update ffmpeg to 8.1.3-r0
+- ✨(frontend) replace the Crisp chat with the La Suite support form
+- 🔒️(frontend) keep rooms out of search engine and AI indexes
+- ⬆️(backend) upgrade django-lasuite to v1.0.0
+- ⚡️(docker) build frontend assets natively for arm64 images
+
+## [1.36.3] - 2026-10-23
+
+### Fixed
+
+- 🔒️(backend) upgrade brotli to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) upgrade nginx to 1.30.6 to fix CVE-2026-15176
+- 🔒️(docker) upgrade brotli-libs to 1.2.1 to fix CVE-2026-111497
+- 🔒️(frontend) build the Outlook add-in on Node 22.23.4
+- 🔒️(backend) upgrade djangorestframework to 3.18.2 to fix CVE-2026-114136,
+  CVE-2026-114137 and CVE-2026-114138
+
+## [1.36.2] - 2026-10-21
+
+### Fixed
+
+- 🔒️(frontend) upgrade Node to 22.23.4 and 24.22.1 security releases
+
+## [1.36.1] - 2026-10-21
+
+### Changed
+
+- 🔖(helm) release chart 0.0.28
+
+### Fixed
+
+- 🔒️(docker) distrust compromised eMudhra emSign G3 CA roots
+- 🔒️(backend) upgrade pillow to 13.0.0 to fix CVE-2026-112403
+
+## [1.36.0] - 2026-10-20
+
 ### Added
 
 - ⚡️(backend) add UPPER(email) index for case-insensitive user lookups
+- ✨(backend) add room soft-deletion to the external API
+- ✨(all) allow any authenticated user to start a recording
+- ✨(backend) authenticate external API calls with Menshen exchanged tokens
+- ✨(backend) audit Menshen calls and users created from introspected tokens
+
+### Fixed
+
+- 🔒️(frontend) upgrade libx11 to fix CVE-2026-88806
+- 🔒️(backend) throttle the start recording endpoint
+- 🐛(backend) put a timeout on every LiveKit API call
+- 🔒️(backend) upgrade aiohttp to 3.14.5 to fix CVE-2026-111064
+- ♿️(frontend) announce the microphone turning off on shortcut #1816
+- 🐛(release) use env bash in prepare-release script for NixOS
 
 ## [1.35.0] - 2026-10-13
 
@@ -20,6 +73,7 @@ and this project adheres to
 - ✨(backend) introduce a token exchange endpoint for iframe embeds
 - ⚡️(backend) send recording notification emails from a Celery task
 - ✨(backend) allow static feature flags without an analytics backend #1809
+- ⚡️(backend) add an opt-in psycopg connection pool
 
 ### Changed
 
@@ -28,6 +82,7 @@ and this project adheres to
 - ♻️️️(backend) use a dedicated auth scheme for LiveKit token auth
 - ♻️(all) stop relying on cookies for the lobby flow
 - ♿️(frontend) show a visible focus outline on menu items #1797
+- ⬆️(backend) upgrade pylint to 4.1.3
 
 ### Fixed
 
@@ -51,6 +106,11 @@ and this project adheres to
 - ✨(backend) expose `allow_unregistered_rooms` in the frontend configuration
 - ✅(frontend) add vitest so the frontend can carry unit tests
 - ♿️(frontend) make participant pagination readable and keyboard reachable #1775
+- ✨(backend) add structured audit logging facility
+- ✨(backend) audit external API token and room operations
+- 🔒️(backend) audit writes and bulk actions made in the Django admin
+- ✨(backend) audit recordings, transcripts and summaries
+- ✨(backend) audit transit code issuance and exchange
 - ✨(fullstack) split a meeting into breakout rooms and bring everyone back
 - ✨(frontend) move someone to another breakout room while rooms are open
 
@@ -130,7 +190,7 @@ and this project adheres to
 
 ### Fixed
 
-- 🐛(helm) probe liveness on __lbheartbeat__ and readiness on __heartbeat__
+- 🐛(helm) probe liveness on `__lbheartbeat__` and readiness on `__heartbeat__`
 - 🐛(helm) render periodSeconds and failureThreshold on probes
 - 🐛(backend) report the app release to Sentry instead of "NA"
 - 🐛(frontend) play the waiting room notification sound on every arrival

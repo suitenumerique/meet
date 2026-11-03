@@ -189,6 +189,21 @@ def test_models_rooms_is_public_property():
     assert private_room.is_public is False
 
 
+def test_models_rooms_soft_delete_concurrent():
+    """A deletion racing another one on a stale instance matches no row and fails,
+    so the winner's timestamp is never overwritten."""
+    room = RoomFactory()
+    stale_room = Room.all_objects.get(pk=room.pk)
+
+    room.soft_delete()
+
+    assert stale_room.deleted_at is None
+    with pytest.raises(RuntimeError, match="This room is already deleted."):
+        stale_room.soft_delete()
+
+    assert Room.all_objects.get(pk=room.pk).deleted_at == room.deleted_at
+
+
 @mock.patch.object(Room, "generate_unique_pin_code")
 def test_telephony_and_roomkit_disabled_skips_pin_generation(
     mock_generate_unique_pin_code, settings

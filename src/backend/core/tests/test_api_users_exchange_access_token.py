@@ -4,15 +4,18 @@ Test users API endpoints in the Meet core app: exchange transit code.
 
 # pylint: disable=W0621
 
+import json
 import secrets
 
 import jwt
 import pytest
 from rest_framework.test import APIClient
 
+from core.audit.testing import find_events
 from core.factories import ApplicationFactory, UserFactory
 from core.models import ApplicationScope
 from core.services.transit_code import TransitCodeService
+from core.tests.utils import random_remote_addr, transit_code_target
 
 pytestmark = pytest.mark.django_db
 
@@ -35,18 +38,8 @@ def generate_unknown_code(settings):
 
 @pytest.fixture
 def client():
-    """Return an anonymous API client with a random source IP.
-
-    A fresh IP per test isolates the anonymous throttle history, both
-    between the tests of this module and between test runs.
-    """
-    # `secrets` rather than `random`: the global random module is seeded
-    # deterministically by the factories, its sequence repeats across runs.
-    remote_addr = (
-        f"10.{secrets.randbelow(256)}.{secrets.randbelow(256)}"
-        f".{secrets.randbelow(254) + 1}"
-    )
-    return APIClient(REMOTE_ADDR=remote_addr)
+    """Return an anonymous API client with a random source IP."""
+    return APIClient(REMOTE_ADDR=random_remote_addr())
 
 
 def test_exchange_access_token_missing_code(client):
@@ -151,29 +144,26 @@ def test_exchange_access_token_feature_disabled(client, settings):
     assert response.status_code == 404
 
 
-def test_exchange_access_token_throttled(client, settings):
+def test_exchange_access_token_throttled(client, settings, monkeypatch):
     """Anonymous exchange attempts should be rate limited."""
-    throttle_rates = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]
-    initial_rate = throttle_rates["exchange_access_token"]
-    # The rates dict is mutated in place: restore it explicitly, the
-    # `settings` fixture only rolls back attribute assignments.
-    throttle_rates["exchange_access_token"] = "2/minute"
+    monkeypatch.setitem(
+        settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],
+        "exchange_access_token",
+        "2/minute",
+    )
 
-    try:
-        for _ in range(2):
-            response = client.post(
-                "/api/v1.0/users/exchange-access-token/",
-                {"code": generate_unknown_code(settings)},
-            )
-            assert response.status_code == 403
-
+    for _ in range(2):
         response = client.post(
             "/api/v1.0/users/exchange-access-token/",
             {"code": generate_unknown_code(settings)},
         )
-        assert response.status_code == 429
-    finally:
-        throttle_rates["exchange_access_token"] = initial_rate
+        assert response.status_code == 403
+
+    response = client.post(
+        "/api/v1.0/users/exchange-access-token/",
+        {"code": generate_unknown_code(settings)},
+    )
+    assert response.status_code == 429
 
 
 def test_exchange_access_token_refused_when_already_authenticated(client):
@@ -260,3 +250,209 @@ def test_exchange_access_token_end_to_end(client):
 
     assert me.status_code == 200
     assert me.data["email"] == user.email
+
+
+def test_exchange_access_token_success_is_audited(client, audit_events, settings):
+    """An exchange is the application that minted a code acting for its user."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+    code = TransitCodeService().create_code(user, client_id=application.client_id)
+
+    response = client.post("/api/v1.0/users/exchange-access-token/", {"code": code})
+
+    assert response.status_code == 200
+
+    [event] = find_events(audit_events, "transit_code.exchange")
+
+    assert event["event"]["category"] == ["authentication"]
+    assert event["event"]["type"] == ["start"]
+    assert event["event"]["outcome"] == "success"
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
+    assert event["lasuite"]["auth"] == {"method": "transit_code"}
+    assert event["lasuite"]["application"] == {"client_id": application.client_id}
+    assert event["user"] == {
+        "id": str(user.pk),
+        "domain": "winterfell.com",
+        "target": {"id": str(user.pk), "domain": "winterfell.com"},
+    }
+    assert event["organization"] == {"id": application.client_id}
+    assert event["entity"]["target"] == transit_code_target(code)
+    assert event["lasuite"]["details"] == {"expires_in": settings.USER_ACCESS_TOKEN_TTL}
+    assert event["http"]["response"] == {"status_code": 200}
+    assert event["log"]["level"] == "info"
+
+    serialized = json.dumps(event)
+    assert code not in serialized
+    assert response.data["access_token"] not in serialized
+
+
+def test_exchange_access_token_unknown_code_is_audited(client, audit_events, settings):
+    """A code that does not verify is a failed authentication, by its digest."""
+    code = generate_unknown_code(settings)
+
+    response = client.post("/api/v1.0/users/exchange-access-token/", {"code": code})
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "transit_code.exchange")
+
+    # ECS expects no ``denied`` type for an authentication
+    assert event["event"]["category"] == ["authentication"]
+    assert event["event"]["type"] == ["start"]
+    assert event["event"]["outcome"] == "failure"
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert event["lasuite"]["auth"] == {"method": "transit_code"}
+    assert "application" not in event["lasuite"]
+    assert "user" not in event
+    assert "organization" not in event
+    assert event["entity"]["target"] == transit_code_target(code)
+    assert event["http"]["response"] == {"status_code": 403}
+    assert event["error"] == {
+        "message": "Invalid, expired or already used transit code."
+    }
+    assert event["log"]["level"] == "warning"
+    assert code not in json.dumps(event)
+
+
+def test_exchange_access_token_replay_is_audited(client, audit_events):
+    """A replayed code is refused under the digest of its successful exchange."""
+    user = UserFactory()
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+    code = TransitCodeService().create_code(user, client_id=application.client_id)
+
+    for _ in range(2):
+        client.post("/api/v1.0/users/exchange-access-token/", {"code": code})
+
+    exchanged, replayed = find_events(audit_events, "transit_code.exchange")
+
+    assert exchanged["event"]["outcome"] == "success"
+    assert replayed["event"]["reason"] == "authentication_failed"
+    assert replayed["entity"]["target"] == exchanged["entity"]["target"]
+
+
+@pytest.mark.parametrize(
+    "revoked, message",
+    [
+        ("user", "This account can no longer access the application."),
+        ("application", "This application can no longer create user sessions."),
+    ],
+)
+def test_exchange_access_token_refused_verified_code_is_audited(
+    client, audit_events, revoked, message
+):
+    """Once the code verified, its application is refused, naming its user."""
+    user = UserFactory(email="jean-neige@winterfell.com")
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+    code = TransitCodeService().create_code(user, client_id=application.client_id)
+
+    if revoked == "user":
+        user.is_active = False
+        user.save()
+    else:
+        application.scopes = []
+        application.save()
+
+    response = client.post("/api/v1.0/users/exchange-access-token/", {"code": code})
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "transit_code.exchange")
+
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["lasuite"]["auth"] == {"method": "transit_code"}
+    assert event["lasuite"]["application"] == {"client_id": application.client_id}
+    assert event["user"] == {"target": {"id": str(user.pk), "domain": "winterfell.com"}}
+    assert event["organization"] == {"id": application.client_id}
+    assert event["entity"]["target"] == transit_code_target(code)
+    assert event["error"] == {"message": message}
+
+
+def test_exchange_access_token_deleted_user_is_audited(client, audit_events):
+    """The code of a deleted account still names its application."""
+    user = UserFactory()
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+    code = TransitCodeService().create_code(user, client_id=application.client_id)
+    user.delete()
+
+    response = client.post("/api/v1.0/users/exchange-access-token/", {"code": code})
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "transit_code.exchange")
+
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["application"] == {"client_id": application.client_id}
+    assert "user" not in event
+
+
+def test_exchange_access_token_already_authenticated_is_audited(client, audit_events):
+    """A signed-in browser is refused as itself, before its code is read."""
+    session_user = UserFactory(email="sansa@winterfell.com")
+    application = ApplicationFactory(scopes=[ApplicationScope.USERS_SESSION])
+    code = TransitCodeService().create_code(
+        UserFactory(), client_id=application.client_id
+    )
+
+    client.force_login(session_user)
+    response = client.post("/api/v1.0/users/exchange-access-token/", {"code": code})
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "transit_code.exchange")
+
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["actor"] == {"type": "user", "sub": session_user.sub}
+    assert event["lasuite"]["auth"] == {"method": "session"}
+    assert "application" not in event["lasuite"]
+    assert event["user"] == {"id": str(session_user.pk), "domain": "winterfell.com"}
+    assert "entity" not in event
+
+
+def test_exchange_access_token_malformed_code_is_audited(client, audit_events):
+    """A malformed code is a validation error, never recorded."""
+    response = client.post(
+        "/api/v1.0/users/exchange-access-token/",
+        {"code": "not-a-valid-code"},
+    )
+
+    assert response.status_code == 400
+
+    [event] = find_events(audit_events, "transit_code.exchange")
+
+    assert event["event"]["reason"] == "validation_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert event["lasuite"]["auth"] == {"method": "transit_code"}
+    assert "entity" not in event
+    assert "not-a-valid-code" not in json.dumps(event)
+
+
+def test_exchange_access_token_throttled_is_audited(
+    client, audit_events, settings, monkeypatch
+):
+    """A throttled attempt is denied as rate limited, before its code is read."""
+    monkeypatch.setitem(
+        settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"],
+        "exchange_access_token",
+        "1/minute",
+    )
+
+    for _ in range(2):
+        response = client.post(
+            "/api/v1.0/users/exchange-access-token/",
+            {"code": generate_unknown_code(settings)},
+        )
+
+    assert response.status_code == 429
+
+    _, event = find_events(audit_events, "transit_code.exchange")
+
+    assert event["event"]["reason"] == "rate_limited"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert "entity" not in event

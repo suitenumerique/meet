@@ -18,14 +18,21 @@ class TransitCodeService:
     """Create and consume single-use transit codes."""
 
     @staticmethod
-    def _cache_key(code):
+    def digest(code):
+        """Return the SHA-256 hex digest of a code.
+
+        It identifies a code, in the cache and in audit events
+        """
+        return hashlib.sha256(code.encode("utf-8")).hexdigest()
+
+    @classmethod
+    def _cache_key(cls, code):
         """Build the cache key for a code.
 
         The code is hashed so that a dump of the cache never reveals
         directly usable codes.
         """
-        digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
-        return f"{settings.TRANSIT_CODE_CACHE_PREFIX}:{digest}"
+        return f"{settings.TRANSIT_CODE_CACHE_PREFIX}:{cls.digest(code)}"
 
     def create_code(self, user, client_id):
         """Generate a transit code for a user, and store it.

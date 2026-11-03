@@ -13,6 +13,8 @@ export enum ApiLobbyStatus {
   DENIED = 'denied',
   TIMEOUT = 'timeout',
   ACCEPTED = 'accepted',
+  // Client-side only: the room was deleted while waiting
+  DELETED = 'deleted',
 }
 
 export interface ApiRequestEntry {

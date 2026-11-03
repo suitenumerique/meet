@@ -12,9 +12,10 @@ from django.utils import timezone
 
 from livekit import api
 
-from core import models
+from core import audit, auditing, models
 from core.breakout import services as breakout_services
-from core.recording.enums import RecordingWorkerEvent
+from core.recording.enums import UNSUCCESSFUL_EVENTS, RecordingWorkerEvent
+from core.recording.event.authentication import MachineUser
 from core.recording.services.metadata_collector import (
     MetadataCollectorException,
     MetadataCollectorService,
@@ -31,6 +32,8 @@ from .room_management import (
 from .sip_management import SIPException, SIPManagement
 
 logger = getLogger(__name__)
+
+SERVICE_ORIGIN = "livekit"
 
 
 class LiveKitWebhookError(Exception):
@@ -220,6 +223,7 @@ class LiveKitEventsService:
             ) from err
 
         event = to_recording_event(data.egress_info.status)
+        self._audit_recording_end(recording, event, data.egress_info.error_code)
 
         # Log if/why the recording failed
         self.recording_events.log_worker_error(
@@ -256,6 +260,28 @@ class LiveKitEventsService:
         self.recording_events.handle_terminal_event(recording, event)
 
     @staticmethod
+    def _audit_recording_end(recording, event, error_code=None):
+        """Audit the end of a recording, as LiveKit reports it.
+
+        An egress status the backend does not map has an unknown outcome.
+        """
+        if event is None:
+            outcome = audit.Outcome.UNKNOWN
+        elif event in UNSUCCESSFUL_EVENTS:
+            outcome = audit.Outcome.FAILURE
+        else:
+            outcome = audit.Outcome.SUCCESS
+        audit.log(
+            auditing.RECORDING_END,
+            actor=MachineUser(SERVICE_ORIGIN),
+            auth_method="shared_secret",
+            target=recording,
+            outcome=outcome,
+            worker_event=event.value if event is not None else None,
+            error_code=error_code or None,
+        )
+
+    @staticmethod
     def _is_connection_test_room(room_name: str) -> bool:
         """Return True for ephemeral rooms created by the connection test endpoint."""
         return room_name.startswith(settings.CONNECTION_TEST_ROOM_PREFIX)
@@ -272,35 +298,60 @@ class LiveKitEventsService:
             )
             raise ActionFailedError("Failed to process room started event") from e
 
-        room_updated_count = models.Room.objects.filter(pk=room_id).update(
+        try:
+            room = models.Room.all_objects.get(id=room_id)
+        except models.Room.DoesNotExist as err:
+            raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
+
+        # The block below is intended to fix the issue where long-lived livekit
+        # tokens allow users who already entered a room to re-create it,
+        # even if it was closed.
+        if room.is_deleted:
+            self._close_deleted_room(room_id)
+            return
+
+        # Update through the queryset to skip the full_clean run by save()
+        models.Room.all_objects.filter(pk=room.pk).update(
             last_started_at=timezone.now()
         )
-        if not room_updated_count:
-            raise ActionFailedError(f"Room with ID {room_id} does not exist")
 
         # A split still open when the room starts again ends, its key included.
         # It runs after the dial-in rule, so a failed key removal never leaves
         # the room without one, and runs even when that rule fails.
         try:
-            self._ensure_dispatch_rule(room_id)
+            self._ensure_dispatch_rule(room)
         finally:
             breakout_services.close_active_sessions(room_id, clear_metadata=True)
 
-    def _ensure_dispatch_rule(self, room_id):
+    def _ensure_dispatch_rule(self, room):
         """Give the room its phone dial-in rule, where telephony is on."""
         if not (settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED):
             return
         try:
-            room = models.Room.objects.get(pk=room_id)
-        except models.Room.DoesNotExist as err:
-            raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
-
-        try:
             self.sip_management.ensure_dispatch_rule(room)
         except SIPException as e:
             raise ActionFailedError(
-                f"Failed to create sip dispatch rule for room {room_id}"
+                f"Failed to create sip dispatch rule for room {room.id}"
             ) from e
+
+    @staticmethod
+    def _close_deleted_room(room_id):
+        """Close a LiveKit room recreated after its room was soft deleted.
+
+        LiveKit auto-creates a room on join, so a participant still holding a
+        valid token can bring a deleted room back to life until the token expires.
+        """
+
+        logger.warning(
+            "LiveKit room %s started for a deleted room, closing it", room_id
+        )
+
+        try:
+            RoomManagement.delete_room(str(room_id))
+        except RoomNotFoundException:
+            logger.info("LiveKit room %s is already closed", room_id)
+        except RoomManagementException as e:
+            raise ActionFailedError(f"Failed to close deleted room {room_id}") from e
 
     def _handle_room_finished(self, data):
         """Handle 'room_finished' event."""

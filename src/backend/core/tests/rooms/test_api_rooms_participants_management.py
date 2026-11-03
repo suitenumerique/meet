@@ -2,7 +2,8 @@
 Test rooms API endpoints in the Meet core app: participants management.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument,protected-access,no-name-in-module,too-many-lines
+# pylint: disable=redefined-outer-name,unused-argument,protected-access
+# pylint: disable=no-name-in-module,too-many-lines
 
 import random
 from unittest import mock

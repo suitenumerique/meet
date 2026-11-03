@@ -16,6 +16,7 @@ from celery.exceptions import OperationalError as CeleryOperationalError
 
 from core import factories, models
 from core.analytics import UserFeatureFlag
+from core.audit.testing import find_events
 from core.recording.event.notification import NotificationService, notification_service
 
 pytestmark = pytest.mark.django_db
@@ -100,7 +101,7 @@ def test_notify_external_services_unknown_mode(caplog):
 
 # pylint: disable=too-many-locals
 def test_notify_user_by_email_success(mocked_current_site, settings):
-    """Test successful email notification to recording owners."""
+    """Test successful email notification to every user with access to the recording."""
     settings.EMAIL_BRAND_NAME = "ACME"
     settings.EMAIL_SUPPORT_EMAIL = "support@acme.com"
     settings.EMAIL_LOGO_IMG = "https://acme.com/logo"
@@ -133,12 +134,10 @@ def test_notify_user_by_email_success(mocked_current_site, settings):
         recording=recording, role=models.RoleChoices.OWNER, user=english_user
     )
 
-    # Create non-owner users to verify they don't receive emails
+    # Members (e.g. a starter with no privileged room role) are notified too
+    member = factories.UserFactory(email="member@test.com", language="en-us")
     factories.UserRecordingAccessFactory(
-        recording=recording, role=models.RoleChoices.MEMBER
-    )
-    factories.UserRecordingAccessFactory(
-        recording=recording, role=models.RoleChoices.ADMIN
+        recording=recording, role=models.RoleChoices.MEMBER, user=member
     )
 
     notification_service = NotificationService()
@@ -147,7 +146,7 @@ def test_notify_user_by_email_success(mocked_current_site, settings):
         result = notification_service._notify_user_by_email(recording)
 
         assert result is True
-        assert mock_send_mail.call_count == 3
+        assert mock_send_mail.call_count == 4
 
         call_args_list = mock_send_mail.call_args_list
 
@@ -210,6 +209,9 @@ def test_notify_user_by_email_success(mocked_current_site, settings):
 
         assert recipients3 == ["john@test.com"]
         assert sender3 == "notifications@acme.com"
+
+        _, _, _, recipients4 = call_args_list[3][0]
+        assert recipients4 == ["member@test.com"]
 
 
 def test_notify_user_by_email_no_owners(mocked_current_site, caplog):
@@ -534,3 +536,98 @@ def test_notify_summary_service_v2_payload_json_serializable_without_timestamps(
     assert isinstance(title, str)
     # ...so the payload serializes exactly the way ``requests`` serializes it.
     json.dumps(payload)
+
+
+def test_summary_recipient_is_oldest_access():
+    """With several accesses, the summary goes to the oldest one."""
+    recording = factories.RecordingFactory()
+    oldest = factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
+    for _ in range(2):
+        factories.UserRecordingAccessFactory(
+            recording=recording, role=models.RoleChoices.OWNER
+        )
+
+    assert NotificationService._get_summary_recipient(recording) == oldest.user
+
+
+def test_summary_recipient_is_member_starter():
+    """A starter holding a MEMBER access still receives the summary."""
+    recording = factories.RecordingFactory()
+    starter = factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.MEMBER
+    )
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
+
+    assert NotificationService._get_summary_recipient(recording) == starter.user
+
+
+def test_summary_recipient_none_without_access():
+    """No access: nobody to send the summary to."""
+    recording = factories.RecordingFactory()
+
+    assert NotificationService._get_summary_recipient(recording) is None
+
+
+@pytest.mark.parametrize("summary_requested", [True, False])
+@mock.patch("core.recording.event.notification.requests.post")
+@mock.patch("core.recording.event.notification.generate_download_s3_url")
+@mock.patch.object(
+    NotificationService, "_get_recording_timestamps", new_callable=mock.AsyncMock
+)
+def test_notify_summary_service_is_audited(  # noqa: PLR0913, PLR0917
+    mock_get_recording_timestamps,
+    mock_generate_download_s3_url,
+    mock_post,
+    summary_requested,
+    settings,
+    audit_events,
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    """Sending a recording to be transcribed says whether a summary is asked for."""
+    settings.SUMMARY_SERVICE_VERSION = 2
+    settings.SUMMARY_SERVICE_ENDPOINT = "https://summary.test/api/v2/tasks"
+    settings.SUMMARY_SERVICE_API_TOKEN = "summary-token"
+    settings.METADATA_COLLECTOR_ENABLED = False
+
+    recording = factories.RecordingFactory(mode="transcript")
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
+    mock_get_recording_timestamps.return_value = (None, None)
+    mock_generate_download_s3_url.return_value = "https://storage.test/recording.ogg"
+    mock_post.return_value.json.return_value = {"job_id": "job-7"}
+
+    with mock.patch(
+        "core.recording.event.notification.is_user_feature_flag_enabled",
+        return_value=summary_requested,
+    ):
+        assert NotificationService._notify_summary_service(recording) is True
+
+    [event] = find_events(audit_events, "recording.transcript.request")
+
+    assert event["lasuite"]["outcome"] == "success"
+    assert event["lasuite"]["actor"] == {"type": "system"}
+    assert event["entity"]["target"]["id"] == str(recording.id)
+    assert event["service"]["target"] == {"name": "summary"}
+    assert event["lasuite"]["details"] == {
+        "job_id": "job-7",
+        "summary_requested": summary_requested,
+    }
+
+
+def test_notify_summary_service_failure_is_audited(settings, audit_events):
+    """A recording the summary service never received is a failure."""
+    settings.SUMMARY_SERVICE_VERSION = 2
+    settings.SUMMARY_SERVICE_ENDPOINT = None
+
+    recording = factories.RecordingFactory(mode="transcript")
+
+    assert NotificationService._notify_summary_service(recording) is False
+
+    [event] = find_events(audit_events, "recording.transcript.request")
+
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(recording.id)

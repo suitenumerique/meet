@@ -50,4 +50,4 @@ class SecretField(models.CharField):
             setattr(model_instance, self.attname, hashed_secret)
             return hashed_secret
 
-        return super().pre_save(model_instance, add)
+        return super().pre_save(model_instance, add)  # pylint: disable=no-member

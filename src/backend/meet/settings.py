@@ -17,6 +17,7 @@ import warnings
 from os import path
 from socket import gethostbyname, gethostname
 
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 
 import dj_database_url
@@ -139,7 +140,7 @@ class Base(Configuration):
         )
         else {
             "ENGINE": values.Value(
-                "django.db.backends.postgresql_psycopg2",
+                "django.db.backends.postgresql",
                 environ_name="DB_ENGINE",
                 environ_prefix=None,
             ),
@@ -154,6 +155,21 @@ class Base(Configuration):
             "PORT": values.Value(5432, environ_name="DB_PORT", environ_prefix=None),
         }
     }
+    DB_PSYCOPG_POOL_ENABLED = values.BooleanValue(
+        False, environ_name="DB_PSYCOPG_POOL_ENABLED", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MIN_SIZE = values.PositiveIntegerValue(
+        1, environ_name="DB_PSYCOPG_POOL_MIN_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_SIZE = values.PositiveIntegerValue(
+        3, environ_name="DB_PSYCOPG_POOL_MAX_SIZE", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_TIMEOUT = values.FloatValue(
+        30.0, environ_name="DB_PSYCOPG_POOL_TIMEOUT", environ_prefix=None
+    )
+    DB_PSYCOPG_POOL_MAX_IDLE = values.FloatValue(
+        600.0, environ_name="DB_PSYCOPG_POOL_MAX_IDLE", environ_prefix=None
+    )
     DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
     # Static files (CSS, JavaScript, Images)
@@ -311,6 +327,7 @@ class Base(Configuration):
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
         "dockerflow.django.middleware.DockerflowMiddleware",
+        "core.audit.request.AuditLogMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",
@@ -331,8 +348,10 @@ class Base(Configuration):
     INSTALLED_APPS = [
         # Meet
         "core",
+        "core.audit.apps.AuditConfig",
         "demo",
         "drf_spectacular",
+        "core.audit.apps.AuditedAdminConfig",
         # Third party apps
         "corsheaders",
         "dockerflow.django",
@@ -340,7 +359,6 @@ class Base(Configuration):
         "parler",
         "easy_thumbnails",
         # Django
-        "django.contrib.admin",
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "django.contrib.postgres",
@@ -384,6 +402,13 @@ class Base(Configuration):
         "PAGE_SIZE": 20,
         "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        # Trusted proxies appending to X-Forwarded-For in front of the backend.
+        # Throttles and audit events identify the client as the entry that many
+        # positions from the right; unset, DRF would use the raw header, which a
+        # client can vary to escape its throttle.
+        "NUM_PROXIES": values.IntegerValue(
+            1, environ_name="NUM_PROXIES", environ_prefix=None
+        ),
         "DEFAULT_THROTTLE_RATES": {
             "room_creation": values.Value(
                 default="50/minute",
@@ -393,6 +418,16 @@ class Base(Configuration):
             "room_creation_daily": values.Value(
                 default="1000/day",
                 environ_name="ROOM_CREATION_DAILY_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "start_recording": values.Value(
+                default="10/minute",
+                environ_name="START_RECORDING_THROTTLE_RATES",
+                environ_prefix=None,
+            ),
+            "start_recording_daily": values.Value(
+                default="100/day",
+                environ_name="START_RECORDING_DAILY_THROTTLE_RATES",
                 environ_prefix=None,
             ),
             "request_entry": values.Value(
@@ -709,6 +744,20 @@ class Base(Configuration):
         default=None, environ_name="OIDC_RS_SCOPES_PREFIX", environ_prefix=None
     )
 
+    # Menshen, La Suite's OAuth 2.0 token exchange server
+    MENSHEN_ENABLED = values.BooleanValue(
+        False, environ_name="MENSHEN_ENABLED", environ_prefix=None
+    )
+    MENSHEN_SERVER_URL = values.Value(
+        None, environ_name="MENSHEN_SERVER_URL", environ_prefix=None
+    )
+    MENSHEN_CLIENT_ID = values.Value(
+        None, environ_name="MENSHEN_CLIENT_ID", environ_prefix=None
+    )
+    MENSHEN_CLIENT_SECRET = SecretFileValue(
+        None, environ_name="MENSHEN_CLIENT_SECRET", environ_prefix=None
+    )
+
     # Video conference configuration
     LIVEKIT_CONFIGURATION = {
         "api_key": SecretFileValue(environ_name="LIVEKIT_API_KEY", environ_prefix=None),
@@ -765,6 +814,9 @@ class Base(Configuration):
     LIVEKIT_VERIFY_SSL = values.BooleanValue(
         True, environ_name="LIVEKIT_VERIFY_SSL", environ_prefix=None
     )
+    LIVEKIT_API_TIMEOUT_SECONDS = values.PositiveIntegerValue(
+        10, environ_name="LIVEKIT_API_TIMEOUT_SECONDS", environ_prefix=None
+    )
     # Regex to filter webhook events by room name. Only matching events are processed.
     LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = values.Value(
         None, environ_name="LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX", environ_prefix=None
@@ -777,6 +829,9 @@ class Base(Configuration):
     )
     ROOM_INACTIVITY_DELETION_DAYS = values.PositiveIntegerValue(
         None, environ_name="ROOM_INACTIVITY_DELETION_DAYS", environ_prefix=None
+    )
+    ROOM_DELETED_RETENTION_DAYS = values.PositiveIntegerValue(
+        None, environ_name="ROOM_DELETED_RETENTION_DAYS", environ_prefix=None
     )
     # if provided, treat as suspicious (possible privilege escalation attempt).
     PARTICIPANT_FORBIDDEN_PERMISSION_FIELDS = values.ListValue(
@@ -793,6 +848,14 @@ class Base(Configuration):
     # Recording settings
     RECORDING_ENABLE = values.BooleanValue(
         False, environ_name="RECORDING_ENABLE", environ_prefix=None
+    )
+    # Let any authenticated participant connected to a trusted or public room
+    # start/stop recordings. Disable to keep recording reserved to room
+    # admins/owners.
+    RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED = values.BooleanValue(
+        True,
+        environ_name="RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED",
+        environ_prefix=None,
     )
     RECORDING_OUTPUT_FOLDER = values.Value(
         "recordings", environ_name="RECORDING_OUTPUT_FOLDER", environ_prefix=None
@@ -1277,6 +1340,31 @@ class Base(Configuration):
         environ_prefix=None,
     )
 
+    AUDIT_LOG_LEVEL = values.Value(
+        "INFO", environ_name="AUDIT_LOG_LEVEL", environ_prefix=None
+    )
+    AUDIT_LOG_STREAM = values.Value(
+        "ext://sys.stdout", environ_name="AUDIT_LOG_STREAM", environ_prefix=None
+    )
+    AUDIT_LOG_SERVICE_NAME = values.Value(
+        "meet", environ_name="AUDIT_LOG_SERVICE_NAME", environ_prefix=None
+    )
+    AUDIT_LOG_DATA_STREAM_NAMESPACE = values.Value(
+        "default", environ_name="AUDIT_LOG_DATA_STREAM_NAMESPACE", environ_prefix=None
+    )
+    # Reuse the inbound request id as the trace id
+    # Only enable it when the ingress overwrites the header
+    # When off, the backend generates the id.
+    REQUEST_ID_TRUST_HEADER = values.BooleanValue(
+        False, environ_name="REQUEST_ID_TRUST_HEADER", environ_prefix=None
+    )
+
+    DOCKERFLOW_REQUEST_ID_HEADER_NAME = values.Value(
+        "X-Request-ID",
+        environ_name="DOCKERFLOW_REQUEST_ID_HEADER_NAME",
+        environ_prefix=None,
+    )
+
     LOGGING_SILENCED_401_PATHS = values.ListValue(
         default=["/api/v1.0/users/me/"],
         environ_name="LOGGING_SILENCED_401_PATHS",
@@ -1294,6 +1382,9 @@ class Base(Configuration):
                 "format": "{asctime} {name} {levelname} {message}",
                 "style": "{",
             },
+            "audit_json": {
+                "()": "core.audit.formatter.AuditJsonFormatter",
+            },
         },
         "filters": {
             "silence_expected_401": {
@@ -1305,6 +1396,11 @@ class Base(Configuration):
                 "class": "logging.StreamHandler",
                 "formatter": "simple",
                 "filters": ["silence_expected_401"],
+            },
+            "audit_console": {
+                "class": "logging.StreamHandler",
+                "stream": AUDIT_LOG_STREAM,
+                "formatter": "audit_json",
             },
         },
         # Override root logger to send it to console
@@ -1336,6 +1432,11 @@ class Base(Configuration):
                     environ_name="LOGGING_LEVEL_LOGGERS_APP",
                     environ_prefix=None,
                 ),
+                "propagate": False,
+            },
+            "audit": {
+                "handlers": ["audit_console"],
+                "level": AUDIT_LOG_LEVEL,
                 "propagate": False,
             },
         },
@@ -1452,6 +1553,62 @@ class Base(Configuration):
             )
 
     @classmethod
+    def _check_audit_log_data_stream_namespace(cls):
+        """Ensure the audit data stream namespace contains no ``-``.
+
+        ECS splits data stream names ``<type>-<dataset>-<namespace>`` on -
+        """
+        if "-" in cls.AUDIT_LOG_DATA_STREAM_NAMESPACE:
+            raise ValueError(
+                "AUDIT_LOG_DATA_STREAM_NAMESPACE "
+                f"'{cls.AUDIT_LOG_DATA_STREAM_NAMESPACE}' must not contain '-'."
+            )
+
+    @classmethod
+    def _configure_database_pool(cls):
+        """Inject the psycopg pool options into the default database when enabled."""
+        if not cls.DB_PSYCOPG_POOL_ENABLED:
+            return
+
+        database = cls.DATABASES["default"]
+        if database.get("ENGINE") not in (
+            "django.db.backends.postgresql",
+            "django.db.backends.postgresql_psycopg2",
+        ):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED requires the django.db.backends.postgresql "
+                f"engine, got {database.get('ENGINE')!r}."
+            )
+        if database.get("CONN_MAX_AGE"):
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_ENABLED cannot be combined with persistent "
+                "connections; set CONN_MAX_AGE to 0."
+            )
+        if cls.DB_PSYCOPG_POOL_MIN_SIZE > cls.DB_PSYCOPG_POOL_MAX_SIZE:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_MIN_SIZE cannot be greater than "
+                "DB_PSYCOPG_POOL_MAX_SIZE."
+            )
+        if cls.DB_PSYCOPG_POOL_TIMEOUT <= 0 or cls.DB_PSYCOPG_POOL_MAX_IDLE <= 0:
+            raise ImproperlyConfigured(
+                "DB_PSYCOPG_POOL_TIMEOUT and DB_PSYCOPG_POOL_MAX_IDLE must be positive."
+            )
+
+        database["OPTIONS"] = {
+            "keepalives_idle": 60,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+            **database.get("OPTIONS", {}),
+            "pool": {
+                "min_size": cls.DB_PSYCOPG_POOL_MIN_SIZE,
+                "max_size": cls.DB_PSYCOPG_POOL_MAX_SIZE,
+                "timeout": cls.DB_PSYCOPG_POOL_TIMEOUT,
+                "max_idle": cls.DB_PSYCOPG_POOL_MAX_IDLE,
+            },
+        }
+        database["CONN_HEALTH_CHECKS"] = True
+
+    @classmethod
     def post_setup(cls):
         """Post setup configuration.
         This is the place where you can configure settings that require other
@@ -1465,6 +1622,11 @@ class Base(Configuration):
             )
 
         cls._check_recording_encoding_maps()
+        cls._check_audit_log_data_stream_namespace()
+        cls._configure_database_pool()
+
+        if cls.LIVEKIT_API_TIMEOUT_SECONDS < 1:
+            raise ValueError("LIVEKIT_API_TIMEOUT_SECONDS must be at least 1")
 
         if (
             cls.SUMMARY_SERVICE_VERSION == 1
@@ -1480,21 +1642,26 @@ class Base(Configuration):
                 stacklevel=2,
             )
 
-        if cls.ROOM_INACTIVITY_DELETION_DAYS:
+        for setting_name, rooms, period in (
+            ("ROOM_INACTIVITY_DELETION_DAYS", "Inactive rooms", "inactivity period"),
+            ("ROOM_DELETED_RETENTION_DAYS", "Deleted rooms", "retention period"),
+        ):
+            purge_days = getattr(cls, setting_name)
+            if not purge_days:
+                continue
             if not cls.RECORDING_EXPIRATION_DAYS:
                 warnings.warn(
-                    "ROOM_INACTIVITY_DELETION_DAYS is set but "
-                    "RECORDING_EXPIRATION_DAYS is not. Recordings never expire, so "
-                    "inactive rooms holding a saved recording will never be purged.",
+                    f"{setting_name} is set but RECORDING_EXPIRATION_DAYS is not. "
+                    f"Recordings never expire, so {rooms.lower()} holding a saved "
+                    "recording will never be purged.",
                     UserWarning,
                     stacklevel=2,
                 )
-            elif cls.RECORDING_EXPIRATION_DAYS >= cls.ROOM_INACTIVITY_DELETION_DAYS:
+            elif cls.RECORDING_EXPIRATION_DAYS >= purge_days:
                 warnings.warn(
                     "RECORDING_EXPIRATION_DAYS is greater than or equal to "
-                    "ROOM_INACTIVITY_DELETION_DAYS. Inactive rooms holding a saved "
-                    "recording will be kept past the inactivity period, until their "
-                    "recordings expire.",
+                    f"{setting_name}. {rooms} holding a saved recording will be "
+                    f"kept past the {period}, until their recordings expire.",
                     UserWarning,
                     stacklevel=2,
                 )
@@ -1532,6 +1699,8 @@ class Base(Configuration):
 
             # Ignore the logs added by the DockerflowMiddleware
             ignore_logger("request.summary")
+            # Audit events are a data stream, not errors to report
+            ignore_logger("audit")
 
 
 class Build(Base):
@@ -1583,15 +1752,30 @@ class Test(Base):
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "formatters": {
+                "audit_json": {
+                    "()": "core.audit.formatter.AuditJsonFormatter",
+                },
+            },
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
+                },
+                "audit_console": {
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                    "formatter": "audit_json",
                 },
             },
             "loggers": {
                 "meet": {
                     "handlers": ["console"],
                     "level": "DEBUG",
+                },
+                "audit": {
+                    "handlers": ["audit_console"],
+                    "level": "INFO",
+                    "propagate": False,
                 },
             },
         }

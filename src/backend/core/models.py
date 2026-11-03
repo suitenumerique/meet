@@ -410,6 +410,33 @@ class ResourceAccess(BaseModel):
         return super().delete(*args, **kwargs)
 
 
+class RoomQuerySet(models.QuerySet):
+    """QuerySet exposing the room lifecycle filters."""
+
+    def active(self):
+        """Rooms that have not been soft deleted."""
+        return self.filter(deleted_at__isnull=True)
+
+    def deleted(self):
+        """Rooms that have been soft deleted."""
+        return self.filter(deleted_at__isnull=False)
+
+
+class RoomManager(models.Manager.from_queryset(RoomQuerySet)):
+    """Manager hiding soft-deleted rooms, exposed as ``Room.objects``.
+
+    It is deliberately not the model's default manager: Django relies on
+    ``_default_manager`` for unique validation, which must see deleted rooms as
+    they still guard their slug and pin code. Other object relations (e.g.
+    ``recording.room``) go through the base manager and still resolve deleted
+    rooms, which keeps recordings and their notifications working.
+    """
+
+    def get_queryset(self):
+        """Exclude soft-deleted rooms."""
+        return super().get_queryset().active()
+
+
 class Room(Resource):
     """Model for one room"""
 
@@ -433,6 +460,7 @@ class Room(Resource):
         verbose_name=_("Visio room configuration"),
         help_text=_("Values for Visio parameters to configure the room."),
     )
+    deleted_at = models.DateTimeField(null=True, blank=True)
     pin_code = models.CharField(
         max_length=None,
         unique=True,
@@ -449,8 +477,13 @@ class Room(Resource):
         editable=False,
     )
 
+    # Managers
+    objects = RoomManager()
+    all_objects = models.Manager.from_queryset(RoomQuerySet)()
+
     class Meta:
         db_table = "meet_room"
+        default_manager_name = "all_objects"
         ordering = ("name",)
         verbose_name = _("Room")
         verbose_name_plural = _("Rooms")
@@ -472,6 +505,28 @@ class Room(Resource):
                 length=settings.ROOM_TELEPHONY_PIN_LENGTH
             )
         super().save(*args, **kwargs)
+
+    @property
+    def is_deleted(self):
+        """Whether the room has been soft deleted."""
+        return self.deleted_at is not None
+
+    def soft_delete(self):
+        """Soft delete the room.
+
+        The room is hidden from the default manager making it impossible to
+        list, join or update.
+        """
+        deleted_at = timezone.now()
+
+        updated = Room.all_objects.filter(pk=self.pk, deleted_at__isnull=True).update(
+            deleted_at=deleted_at
+        )
+
+        if not updated:
+            raise RuntimeError("This room is already deleted.")
+
+        self.deleted_at = deleted_at
 
     def clean_fields(self, exclude=None):
         """
@@ -508,7 +563,7 @@ class Room(Resource):
 
         for _ in range(settings.ROOM_TELEPHONY_PIN_MAX_RETRIES):
             pin_code = str(secrets.randbelow(max_value)).zfill(length)
-            if not Room.objects.filter(pin_code=pin_code).exists():
+            if not Room.all_objects.filter(pin_code=pin_code).exists():
                 return pin_code
 
         # Log a warning as a temporary measure until backend observability is implemented.
@@ -688,10 +743,37 @@ class Recording(BaseModel):
         return {
             "destroy": is_owner_or_admin and is_final_status,
             "partial_update": False,
-            "retrieve": is_owner_or_admin,
+            "retrieve": bool(roles),
             "stop": is_owner_or_admin and not is_final_status,
             "update": False,
         }
+
+    def grant_initial_accesses(self, starter):
+        """Grant the starter and the room's owners/administrators access to the recording.
+
+        The starter's access is created first, so it is the oldest one: the
+        transcript summary, which goes to a single user, is sent to them.
+
+        Room roles are copied when the recording starts: later changes to the
+        room's accesses do not affect existing recordings.
+        """
+        room_privileged_user_ids = set(
+            self.room.accesses.filter(
+                role__in=[RoleChoices.OWNER, RoleChoices.ADMIN]
+            ).values_list("user_id", flat=True)
+        )
+        starter_is_privileged = starter.id in room_privileged_user_ids
+        room_privileged_user_ids.discard(starter.id)
+
+        RecordingAccess.objects.create(
+            user=starter,
+            role=RoleChoices.OWNER if starter_is_privileged else RoleChoices.MEMBER,
+            recording=self,
+        )
+        RecordingAccess.objects.bulk_create(
+            RecordingAccess(user_id=user_id, role=RoleChoices.OWNER, recording=self)
+            for user_id in room_privileged_user_ids
+        )
 
     def is_savable(self) -> bool:
         """Determine if the recording can be saved based on its current status."""
@@ -705,6 +787,22 @@ class Recording(BaseModel):
     def is_saved(self) -> bool:
         """Check if the recording is in a saved state."""
         return self.status in RecordingStatusChoices.saved_statuses()
+
+    @property
+    def requested_mode(self) -> str:
+        """Return the mode the user asked for.
+
+        A transcript started with a screen capture is stored as a screen
+        recording, which keeps the transcript as its original mode.
+        """
+        return (self.options or {}).get("original_mode") or self.mode
+
+    @property
+    def is_transcribed(self) -> bool:
+        """Tell whether the recording is sent to the summary service."""
+        return self.mode == RecordingModeChoices.TRANSCRIPT or bool(
+            (self.options or {}).get("transcribe", False)
+        )
 
     @property
     def extension(self):

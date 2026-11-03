@@ -20,8 +20,37 @@ the following command inside your docker container:
 
 This release adds breakout rooms, off by default behind `BREAKOUT_ROOMS_ENABLED`. See [the breakout rooms documentation](docs/features/breakout_rooms.md).
 
-- **Rolling back.** Migration `0028_breakout_rooms` adds tables whose foreign keys point at rooms and users. The previous release does not know them, so it cannot delete a room or a user that a breakout session references, and `purge_inactive_rooms` fails on such a room. Before deploying the previous image, run `python manage.py migrate core 0027`, which drops the breakout tables and every session in them.
+- **Rolling back.** Migration `0030_breakout_rooms` adds tables whose foreign keys point at rooms and users. The previous release does not know them, so it cannot delete a room or a user that a breakout session references, and `purge_inactive_rooms` fails on such a room. Before deploying the previous image, run `python manage.py migrate core 0024`, which drops the breakout tables and every session in them.
 - **Tabs loaded before the release.** A browser tab opened before this release knows nothing of a split: it shows every participant and lets anyone receive its audio and video. Turn `BREAKOUT_ROOMS_ENABLED` on once the meetings started before the release have ended.
+
+## v1.37.0
+
+### Crisp support chat replaced by the La Suite support form
+
+The Crisp chat is gone, the support button, now open the La Suite support form. They are hidden unless these `FRONTEND_SUPPORT` keys are all set.
+The former help links for recording/transcription are now redirecting to the adhoc page in the official documentation
+
+### Pages hidden from search engines
+
+Every page except `/` now carries a `noindex` tag and, with the provided nginx configurations, an `X-Robots-Tag` header to stay out of search indexes.
+A new `robots.txt` also blocks the main AI crawlers. If you maintain your own nginx configuration, copy the `location = /` and `location = /home.html` blocks from `src/frontend/default.conf`, and the `X-Robots-Tag` header from its `location /`.
+
+## [v1.35.0]
+
+### Purging deleted rooms
+
+Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/features/room-purge.md).
+
+- Inactive soft-deleted rooms are purged along with the other inactive rooms: if `ROOM_INACTIVITY_DELETION_DAYS` is already set, nothing else is needed.
+- The new `ROOM_DELETED_RETENTION_DAYS` setting purges soft-deleted rooms that many days after their deletion, whether they are inactive or not. It is unset by default.
+- As for inactive rooms, a deleted room holding a saved recording its users may still access is kept until that recording expires.
+
+### Recording permission
+
+We've introduced the ability for any authenticated participant to start a recording or transcription, but this behavior remains configurable.
+You can keep recording and transcription restricted to room admins and owners by setting `RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED` to `false`.
+
+## [v1.34.0]
 
 ### Marketing / Brevo integration now uses `django-lasuite`
 

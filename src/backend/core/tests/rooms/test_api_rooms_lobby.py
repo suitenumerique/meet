@@ -974,3 +974,19 @@ def test_request_entry_accepts_signed_credential(generate_config, _notify):
     assert response.json()["livekit"] == {"token": "test-token"}
     generate_config.assert_called_once()
     assert generate_config.call_args.kwargs["participant_id"] == public_id
+
+
+@mock.patch(
+    "core.services.participants_management.ParticipantsManagement.check_if_in_meeting",
+    return_value=True,
+)
+def test_lobby_not_affected_by_recording_setting(mock_check, settings):
+    """The recording opt-out must not leak into the lobby capability."""
+    settings.RECORDING_AUTHENTICATED_PARTICIPANTS_ENABLED = False
+    room = RoomFactory(access_level=RoomAccessLevel.TRUSTED)
+    user = UserFactory()
+    client = APIClient()
+    client.force_login(user)
+    response = client.get(f"/api/v1.0/rooms/{room.id}/waiting-participants/")
+
+    assert response.status_code == 200

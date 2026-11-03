@@ -2,23 +2,18 @@ import { RiQuestionLine } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { menuRecipe } from '@/primitives/menuRecipe'
-import {
-  useIsSupportEnabled,
-  openSupportChat,
-} from '@/features/support/hooks/useSupport'
+import { useSupportWidget } from '@/features/support/hooks/useSupportWidget'
 
 export const SupportMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
-  const isSupportEnabled = useIsSupportEnabled()
+  const { isEnabled, open } = useSupportWidget()
 
-  if (!isSupportEnabled) {
-    return
-  }
+  if (!isEnabled) return
 
   return (
     <MenuItem
       className={menuRecipe({ icon: true, variant: 'dark' }).item}
-      onAction={openSupportChat}
+      onAction={open}
     >
       <RiQuestionLine size={20} />
       {t('support')}
