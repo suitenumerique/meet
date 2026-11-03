@@ -2,19 +2,22 @@
 # Review regularly and remove entries once Debian ships a fix.
 
 # util-linux
-CVE-2026-76642
-CVE-2026-78408
-CVE-2026-78409
-CVE-2026-78410
+CVE-2026-76642 exp:2026-12-05
+CVE-2026-78408 exp:2026-12-05
+CVE-2026-78409 exp:2026-12-05
+CVE-2026-78410 exp:2026-12-05
 
 # acl
-CVE-2026-54369
+CVE-2026-54369 exp:2026-12-05
 
 # ncurses
-CVE-2025-69720
+CVE-2025-69720 exp:2026-12-05
 
 # systemd
-CVE-2026-16742
+CVE-2026-16742 exp:2026-12-05
 
 # perl-base (fix deferred by Debian)
-CVE-2026-9538
+CVE-2026-9538 exp:2026-12-05
+
+# libsqlite3-0 (fixed in sid 3.54.1-1; trixie marked no-dsa / minor)
+CVE-2026-119373 exp:2026-12-05
