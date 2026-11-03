@@ -1,4 +1,5 @@
 export * from './types'
 export * from './hooks/useWhiteboard'
+export * from './hooks/useWhiteboardCollab'
 export * from './components/WhiteboardStage'
 export * from './components/WhiteboardToggle'

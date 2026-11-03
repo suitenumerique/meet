@@ -7,12 +7,18 @@ import { RiCloseLine } from '@remixicon/react'
 import { Button } from '@/primitives/Button'
 import { css } from '@/styled-system/css'
 import { useWhiteboard } from '../hooks/useWhiteboard'
+import { useWhiteboardCollab } from '../hooks/useWhiteboardCollab'
 
 export const WhiteboardStage = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'whiteboard' })
   const { closeWhiteboard, sharerName, canToggleWhiteboard, isReadOnly } =
     useWhiteboard()
-  const [, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null)
+  const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null)
+
+  const { onChange, onPointerUpdate } = useWhiteboardCollab({
+    excalidrawAPI,
+    isReadOnly,
+  })
 
   return (
     <div
@@ -95,6 +101,8 @@ export const WhiteboardStage = () => {
         <Excalidraw
           viewModeEnabled={isReadOnly}
           excalidrawAPI={(api) => setExcalidrawAPI(api)}
+          onChange={onChange}
+          onPointerUpdate={onPointerUpdate}
           UIOptions={{
             canvasActions: {
               toggleTheme: true,
