@@ -2,11 +2,9 @@ import { RiArtboardLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ToggleButton } from '@/primitives'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
-import type { ButtonRecipeProps } from '@/primitives/buttonRecipe'
 import { useWhiteboard } from '../hooks/useWhiteboard'
 
 type Props = Partial<ToggleButtonProps> & {
-  variant?: ButtonRecipeProps['variant']
   onPress?: () => void
 }
 

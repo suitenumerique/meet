@@ -6,4 +6,6 @@ export interface NotificationPayload {
     emoji?: string
     removedSources?: string[]
   }
+  sharerName?: string
+  sharerIdentity?: string
 }

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { useMove } from 'react-aria'
-import type { MoveMoveEvent } from '@react-types/shared'
+import type { DOMAttributes, FocusableElement, MoveMoveEvent } from '@react-types/shared'
 import {
   FULL_PICTURE_RATIO,
   MAX_ZOOM,
@@ -33,7 +33,22 @@ import {
  * Arrow key panning and +/-/0 zoom are on a keydown listener attached to the
  * tile container (which has tabIndex=0 and focus).
  */
-export const useScreenShareZoom = () => {
+export type ScreenShareZoomResult = {
+  zoomPercentage: number
+  isZoomed: boolean
+  canZoomIn: boolean
+  canZoomOut: boolean
+  transformElRef: React.MutableRefObject<HTMLDivElement | null>
+  surfaceElRef: React.MutableRefObject<HTMLDivElement | null>
+  moveProps: DOMAttributes<FocusableElement>
+  zoomIn: () => void
+  zoomOut: () => void
+  resetZoom: () => void
+  handleWheel: (e: WheelEvent) => void
+  handleKeyDown: (e: KeyboardEvent) => void
+}
+
+export const useScreenShareZoom = (): ScreenShareZoomResult => {
   const zoomRef = useRef(MIN_ZOOM)
   const panRef = useRef<PanOffset>({ x: 0, y: 0 })
   const draggingRef = useRef(false)
