@@ -21,6 +21,7 @@ and this project adheres to
 - ⬆️(dev) upgrade LiveKit server to v1.13.11 and egress to v1.15.0
 - ⬆️(backend) update python dependencies
 - ⬆️(agents) update python dependencies
+- ⬆️(summary) update python dependencies
 
 ### Fixed
 
