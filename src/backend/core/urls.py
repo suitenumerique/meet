@@ -59,6 +59,16 @@ urlpatterns = [
         f"api/{settings.API_VERSION}/",
         include(
             [
+                path(
+                    "rooms/<str:room_slug>/whiteboard-assets/<str:file_id>/",
+                    viewsets.WhiteboardAssetDetailView.as_view(),
+                    name="room_whiteboard_asset_detail",
+                ),
+                path(
+                    "rooms/<str:room_slug>/whiteboard-assets/",
+                    viewsets.WhiteboardAssetView.as_view(),
+                    name="room_whiteboard_assets",
+                ),
                 *router.urls,
                 *oidc_urls,
                 path("config/", get_frontend_configuration, name="config"),

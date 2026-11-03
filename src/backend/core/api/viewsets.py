@@ -4,6 +4,7 @@
 import uuid
 from datetime import timedelta
 from logging import getLogger
+from os.path import splitext
 from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
@@ -12,7 +13,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
 from django.db import IntegrityError, transaction
 from django.db.models import Q
-from django.http import Http404
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.text import slugify
@@ -24,6 +25,8 @@ from rest_framework import (
     filters,
     mixins,
     pagination,
+    parsers,
+    views,
     viewsets,
 )
 from rest_framework import (
@@ -1710,3 +1713,124 @@ class DiagnosticsViewSet(viewsets.ViewSet):
                 },
             }
         )
+
+
+class WhiteboardAssetView(views.APIView):
+    """
+    Handle uploading whiteboard image assets for a given room.
+    POST /api/v1.0/rooms/<room_slug>/whiteboard-assets/
+    """
+
+    permission_classes = [drf_permissions.AllowAny]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "svg", "webp", "gif", "bmp", "avif"}
+    MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
+
+    def post(self, request, room_slug):
+        file = request.FILES.get("file")
+        file_id = request.data.get("file_id")
+
+        if not file_id:
+            return drf_response.Response(
+                {"detail": "file_id is required."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not file:
+            return drf_response.Response(
+                {"detail": "file is required."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Return existing asset if already uploaded (idempotency)
+        existing = models.WhiteboardAsset.objects.filter(
+            room_slug=room_slug, file_id=file_id
+        ).first()
+        if existing:
+            return drf_response.Response(
+                {
+                    "file_id": existing.file_id,
+                    "url": f"/api/v1.0/rooms/{room_slug}/whiteboard-assets/{existing.file_id}/",
+                },
+                status=drf_status.HTTP_200_OK,
+            )
+
+        if file.size > self.MAX_FILE_SIZE:
+            return drf_response.Response(
+                {"detail": "File size exceeds the 25MB limit."},
+                status=drf_status.HTTP_400_BAD_REQUEST,
+            )
+
+        _, ext = splitext(file.name)
+        ext = ext.lstrip(".").lower()
+        if ext not in self.ALLOWED_EXTENSIONS:
+            content_type = file.content_type or ""
+            if "png" in content_type:
+                ext = "png"
+            elif "jpeg" in content_type or "jpg" in content_type:
+                ext = "jpg"
+            elif "svg" in content_type:
+                ext = "svg"
+            elif "webp" in content_type:
+                ext = "webp"
+            elif "gif" in content_type:
+                ext = "gif"
+            else:
+                return drf_response.Response(
+                    {
+                        "detail": f"File extension '.{ext}' is not an allowed image format."
+                    },
+                    status=drf_status.HTTP_400_BAD_REQUEST,
+                )
+
+        key = f"whiteboard/{room_slug}/{file_id}.{ext}"
+
+        # Save to S3/Garage storage
+        saved_key = default_storage.save(key, file)
+
+        room = models.Room.objects.filter(slug=room_slug).first()
+
+        asset = models.WhiteboardAsset.objects.create(
+            room=room,
+            room_slug=room_slug,
+            file_id=file_id,
+            filename=file.name,
+            mimetype=file.content_type or f"image/{ext}",
+            size=file.size,
+            key=saved_key,
+        )
+
+        return drf_response.Response(
+            {
+                "file_id": asset.file_id,
+                "url": f"/api/v1.0/rooms/{room_slug}/whiteboard-assets/{asset.file_id}/",
+            },
+            status=drf_status.HTTP_201_CREATED,
+        )
+
+
+class WhiteboardAssetDetailView(views.APIView):
+    """
+    Retrieve/download a whiteboard image asset.
+    GET /api/v1.0/rooms/<room_slug>/whiteboard-assets/<file_id>/
+    """
+
+    permission_classes = [drf_permissions.AllowAny]
+
+    def get(self, request, room_slug, file_id):
+        asset = models.WhiteboardAsset.objects.filter(
+            room_slug=room_slug, file_id=file_id
+        ).first()
+
+        if not asset:
+            raise drf_exceptions.NotFound("Whiteboard asset not found.")
+
+        if not default_storage.exists(asset.key):
+            raise drf_exceptions.NotFound("Whiteboard asset file missing from storage.")
+
+        file_obj = default_storage.open(asset.key, "rb")
+        response = FileResponse(file_obj, content_type=asset.mimetype)
+        response["Cache-Control"] = "public, max-age=86400, immutable"
+        return response
+

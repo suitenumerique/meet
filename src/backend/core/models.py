@@ -1262,3 +1262,42 @@ class File(BaseModel):
 
         self.hard_deleted_at = timezone.now()
         self.save(update_fields=["hard_deleted_at"])
+
+
+class WhiteboardAsset(BaseModel):
+    """Stores binary image assets uploaded to an Excalidraw whiteboard."""
+
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="whiteboard_assets",
+        null=True,
+        blank=True,
+    )
+    room_slug = models.CharField(max_length=100, db_index=True)
+    file_id = models.CharField(max_length=128, db_index=True)
+    filename = models.CharField(max_length=255, blank=True, default="")
+    mimetype = models.CharField(max_length=100, default="image/png")
+    size = models.BigIntegerField(default=0)
+    key = models.CharField(max_length=500)
+
+    class Meta:
+        db_table = "meet_whiteboard_asset"
+        verbose_name = _("Whiteboard asset")
+        verbose_name_plural = _("Whiteboard assets")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["room_slug", "file_id"],
+                name="unique_whiteboard_asset_per_room",
+            )
+        ]
+        indexes = [
+            models.Index(
+                fields=["room_slug", "file_id"],
+                name="wb_asset_room_file_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.room_slug}:{self.file_id}"
+
