@@ -13,6 +13,7 @@ from django.utils import timezone
 from livekit import api
 
 from core import audit, auditing, models
+from core.breakout import services as breakout_services
 from core.recording.enums import UNSUCCESSFUL_EVENTS, RecordingWorkerEvent
 from core.recording.event.authentication import MachineUser
 from core.recording.services.metadata_collector import (
@@ -306,6 +307,8 @@ class LiveKitEventsService:
         # tokens allow users who already entered a room to re-create it,
         # even if it was closed.
         if room.is_deleted:
+            # The LiveKit room goes with it, so the key needs no removal.
+            breakout_services.close_active_sessions(room_id)
             self._close_deleted_room(room_id)
             return
 
@@ -314,13 +317,24 @@ class LiveKitEventsService:
             last_started_at=timezone.now()
         )
 
-        if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
-            try:
-                self.sip_management.ensure_dispatch_rule(room)
-            except SIPException as e:
-                raise ActionFailedError(
-                    f"Failed to create sip dispatch rule for room {room_id}"
-                ) from e
+        # A split still open when the room starts again ends, its key included.
+        # It runs after the dial-in rule, so a failed key removal never leaves
+        # the room without one, and runs even when that rule fails.
+        try:
+            self._ensure_dispatch_rule(room)
+        finally:
+            breakout_services.close_active_sessions(room_id, clear_metadata=True)
+
+    def _ensure_dispatch_rule(self, room):
+        """Give the room its phone dial-in rule, where telephony is on."""
+        if not (settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED):
+            return
+        try:
+            self.sip_management.ensure_dispatch_rule(room)
+        except SIPException as e:
+            raise ActionFailedError(
+                f"Failed to create sip dispatch rule for room {room.id}"
+            ) from e
 
     @staticmethod
     def _close_deleted_room(room_id):
@@ -352,6 +366,9 @@ class LiveKitEventsService:
                 data.room.name,
             )
             raise ActionFailedError("Failed to process room finished event") from e
+
+        # The split's metadata ended with the room, and nobody is left to close it.
+        breakout_services.close_active_sessions(room_id)
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:

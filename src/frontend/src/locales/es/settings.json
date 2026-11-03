@@ -105,6 +105,9 @@
       },
       "participantWaiting": {
         "label": "Una persona en la sala de espera"
+      },
+      "breakoutRoomChanged": {
+        "label": "Cambio de sala"
       }
     }
   },

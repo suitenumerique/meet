@@ -105,6 +105,9 @@
       },
       "participantWaiting": {
         "label": "Participant waiting"
+      },
+      "breakoutRoomChanged": {
+        "label": "Breakout room changed"
       }
     }
   },

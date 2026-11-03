@@ -18,6 +18,7 @@ class FeatureFlag:
         "roomkit": "ROOMKIT_ENABLED",
         "connection_test": "CONNECTION_TEST_ENABLED",
         "user_access_token": "USER_ACCESS_TOKEN_ENABLED",
+        "breakout_rooms": "BREAKOUT_ROOMS_ENABLED",
     }
 
     @classmethod

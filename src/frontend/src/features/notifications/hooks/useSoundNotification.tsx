@@ -13,6 +13,7 @@ export const useNotificationSound = () => {
       messageReceived: [1580, 300],
       participantWaiting: [2039, 710],
       success: [2740, 1304],
+      breakoutRoomChanged: [2740, 1304],
     },
     volume: notificationsSnap.soundNotificationVolume,
   })

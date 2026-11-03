@@ -105,6 +105,9 @@
       },
       "participantWaiting": {
         "label": "Deelnemer in de wachtkamer"
+      },
+      "breakoutRoomChanged": {
+        "label": "Ruimte gewijzigd"
       }
     }
   },

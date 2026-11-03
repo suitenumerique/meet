@@ -105,6 +105,9 @@
       },
       "participantWaiting": {
         "label": "Person im Warteraum"
+      },
+      "breakoutRoomChanged": {
+        "label": "Raumwechsel"
       }
     }
   },

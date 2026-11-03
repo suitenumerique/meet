@@ -15,4 +15,5 @@ export const NotificationDuration = {
   REACTION_RECEIVED: ToastDuration.SHORT,
   RECORDING_REQUESTED: ToastDuration.LONG,
   ROLE_CHANGED: ToastDuration.LONG,
+  BREAKOUT_ROOM_CHANGED: ToastDuration.LONG,
 } as const

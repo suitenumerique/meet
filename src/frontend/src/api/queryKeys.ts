@@ -7,4 +7,5 @@ export const keys = {
   roomCreationCallback: 'roomCreationCallback',
   files: 'files',
   startRecording: 'startRecording',
+  breakoutSession: 'breakoutSession',
 }
