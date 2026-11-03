@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useRef, useMemo } from 'react'
+import { useParams } from 'wouter'
 import { reconcileElements, CaptureUpdateAction } from '@excalidraw/excalidraw'
 import type {
   ExcalidrawImperativeAPI,
@@ -55,6 +56,7 @@ export const useWhiteboardCollab = ({
   isReadOnly = false,
   onChange,
 }: UseWhiteboardCollabOptions) => {
+  const { roomId: urlRoomId } = useParams()
   const room = useRoomContext()
   const roomData = useRoomData()
   const { username } = useSnapshot(userStore)
@@ -64,12 +66,14 @@ export const useWhiteboardCollab = ({
   const isUpdatingFromRemote = useRef(false)
   const localVersions = useRef(new Map<string, number>())
   const lastPointerUpdate = useRef(0)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   // Resolve room document ID and WebSocket connection URL
   const roomId = useMemo(() => {
-    const slug = roomData?.slug || room?.name || 'default-room'
+    const slug = roomData?.slug || urlRoomId || room?.name || 'default-room'
     return `meet-room-${slug}`
-  }, [room?.name, roomData?.slug])
+  }, [room?.name, roomData?.slug, urlRoomId])
 
   const collabWsUrl = useMemo(() => {
     if (import.meta.env.VITE_COLLAB_WS_URL) {
@@ -140,6 +144,7 @@ export const useWhiteboardCollab = ({
         captureUpdate: CaptureUpdateAction.NEVER,
       })
       isUpdatingFromRemote.current = false
+      onChangeRef.current?.(reconciled, appState, excalidrawAPI.getFiles())
     }
 
     provider.on('sync', handleSync)
@@ -174,6 +179,7 @@ export const useWhiteboardCollab = ({
         captureUpdate: CaptureUpdateAction.NEVER,
       })
       isUpdatingFromRemote.current = false
+      onChangeRef.current?.(reconciled, appState, excalidrawAPI.getFiles())
     }
 
     ydoc.on('afterTransaction', transactionHandler)
@@ -219,7 +225,7 @@ export const useWhiteboardCollab = ({
       appState: AppState,
       files: BinaryFiles
     ) => {
-      onChange?.(elements, appState, files)
+      onChangeRef.current?.(elements, appState, files)
 
       // In read-only mode or while remote updates are applying, do not push changes
       if (isReadOnly || isUpdatingFromRemote.current) return
@@ -295,7 +301,7 @@ export const useWhiteboardCollab = ({
         }
       }, 'local')
     },
-    [isReadOnly, onChange]
+    [isReadOnly]
   )
 
   // Broadcast throttled pointer movement to awareness (~35ms = ~30fps)
