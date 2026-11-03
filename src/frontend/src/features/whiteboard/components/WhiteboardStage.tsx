@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Excalidraw, MainMenu, WelcomeScreen } from '@excalidraw/excalidraw'
 import '@excalidraw/excalidraw/index.css'
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types'
 import { useTranslation } from 'react-i18next'
 import { RiCloseLine } from '@remixicon/react'
+import { useRoomContext } from '@livekit/components-react'
 import { Button } from '@/primitives/Button'
 import { css } from '@/styled-system/css'
+import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { useWhiteboard } from '../hooks/useWhiteboard'
 import { useWhiteboardCollab } from '../hooks/useWhiteboardCollab'
+import { useWhiteboardStorage } from '../hooks/useWhiteboardStorage'
+import { MeetWhiteboardStorageAdapter } from '../adapters/MeetWhiteboardStorageAdapter'
 
 export const WhiteboardStage = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'whiteboard' })
@@ -15,9 +19,24 @@ export const WhiteboardStage = () => {
     useWhiteboard()
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null)
 
+  const room = useRoomContext()
+  const roomData = useRoomData()
+  const roomSlug = useMemo(() => {
+    return roomData?.slug || room?.name || 'default-room'
+  }, [room?.name, roomData?.slug])
+
+  const storageAdapter = useMemo(() => new MeetWhiteboardStorageAdapter(), [])
+
+  const { onFilesChange } = useWhiteboardStorage({
+    excalidrawAPI,
+    roomId: roomSlug,
+    storage: storageAdapter,
+  })
+
   const { onChange, onPointerUpdate } = useWhiteboardCollab({
     excalidrawAPI,
     isReadOnly,
+    onChange: onFilesChange,
   })
 
   return (
