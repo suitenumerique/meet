@@ -17,6 +17,7 @@ import {
   saveAudioInputDeviceId,
   saveAudioOutputDeviceId,
   saveNoiseReductionEnabled,
+  saveAudioLevelEqualizationEnabled,
   userChoicesStore,
 } from '@/stores/userChoices'
 import { captureEvent } from '@/features/analytics/telemetry'
@@ -30,7 +31,7 @@ export const AudioTab = ({ id }: AudioTabProps) => {
   const { t } = useTranslation('settings')
   const { localParticipant } = useRoomContext()
 
-  const { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId } =
+  const { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId, audioLevelEqualizationEnabled } =
     useSnapshot(userChoicesStore)
 
   const isSpeaking = useIsSpeaking(localParticipant)
@@ -136,6 +137,22 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           <div />
         </RowWrapper>
       )}
+      {/* Audio level equalization — issue #1345 */}
+      <RowWrapper heading={t('audio.audioLevelEqualization.heading')} beta>
+        <Switch
+          aria-label={t(
+            `audio.audioLevelEqualization.ariaLabel.${audioLevelEqualizationEnabled ? 'disable' : 'enable'}`
+          )}
+          isSelected={audioLevelEqualizationEnabled}
+          onChange={(v) => {
+            saveAudioLevelEqualizationEnabled(v)
+            if (v) captureEvent('audio-level-equalization-init')
+          }}
+        >
+          {t('audio.audioLevelEqualization.label')}
+        </Switch>
+        <div />
+      </RowWrapper>
     </TabPanel>
   )
 }
