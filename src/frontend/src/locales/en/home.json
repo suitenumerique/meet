@@ -59,5 +59,14 @@
     },
     "carouselLabel": "Introduction slideshow",
     "slidePosition": "Slide {{current}} of {{total}}"
+  },
+  "quickAccessRooms": {
+    "heading": "Your meeting links",
+    "empty": "You haven't created any meetings yet.",
+    "access": {
+      "open": "Open",
+      "trusted": "Trusted",
+      "restricted": "Restricted"
+    }
   }
 }
