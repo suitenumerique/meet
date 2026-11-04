@@ -174,6 +174,22 @@ def test_api_rooms_retrieve_anonymous_unregistered_empty_slug(lookup):
     assert response.json() == {"detail": "No Room matches the given query."}
 
 
+@override_settings(ALLOW_UNREGISTERED_ROOMS=True)
+@pytest.mark.parametrize("template", ["{}!", "_{}", "{}~"])
+def test_api_rooms_retrieve_anonymous_unregistered_uuid_slug(template):
+    """
+    Retrieving an unregistered room whose slug is a UUID once normalized should
+    return a 404.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+
+    client = APIClient()
+    response = client.get(f"/api/v1.0/rooms/{template.format(room.id)}/")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No Room matches the given query."}
+
+
 @pytest.mark.parametrize("allow_unregistered_rooms", [True, False])
 @pytest.mark.parametrize("lookup", ["id", "slug"])
 @mock.patch("core.utils.generate_token", return_value="foo")

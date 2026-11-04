@@ -32,6 +32,7 @@ and this project adheres to
 - 🐛(frontend) show the transcript mic hint when every mic is muted
 - 🐛(frontend) show join errors instead of silently waiting in the lobby
 - 🐛(frontend) send users who cannot enter directly back to the lobby
+- 🔒️(backend) refuse unregistered rooms whose slug is a UUID
 
 ## [1.37.0] - 2026-11-01
 

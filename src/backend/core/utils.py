@@ -16,7 +16,7 @@ import string
 from datetime import timedelta
 from functools import lru_cache
 from typing import List, Optional
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -334,6 +334,15 @@ def generate_room_slug():
         for size in sizes
     ]
     return "-".join(parts)
+
+
+def is_uuid(value: str) -> bool:
+    """Tell whether a value parses as a UUID."""
+    try:
+        UUID(value)
+    except ValueError:
+        return False
+    return True
 
 
 def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
