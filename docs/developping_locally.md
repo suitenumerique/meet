@@ -12,7 +12,7 @@ Visio consists of four main components that run simultaneously:
 These components rely on a few key services:
 
 - PostgreSQL for storing data (users, rooms, recordings)
-- Redis for caching and inter-service communication
+- Valkey for caching and inter-service communication
 - Garage for storing files (room recordings)
 - Celery workers for meeting transcript (optional, required for AI beta features)
 
