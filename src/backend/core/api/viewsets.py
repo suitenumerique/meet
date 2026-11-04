@@ -315,7 +315,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
             return self.get_object(), None
         except Http404:
             slug = slugify(self.kwargs["pk"])
-            if not settings.ALLOW_UNREGISTERED_ROOMS or not slug:
+            if not settings.ALLOW_UNREGISTERED_ROOMS or not slug or utils.is_uuid(slug):
                 raise
             return None, slug
 

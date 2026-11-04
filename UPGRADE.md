@@ -35,6 +35,16 @@ participant identity each time.
 - Unregistered rooms are always entered directly: joining one always returns a `livekit` block.
 - Unregistered rooms are no longer described with an `is_administrable` field,
 
+### Unregistered rooms can no longer be named after a UUID
+
+When `ALLOW_UNREGISTERED_ROOMS` is enabled, reading or joining a room whose identifier normalizes to an empty slug or to
+a UUID now returns a 404 instead of describing or letting callers join the unregistered room.
+
+This closes a lobby bypass since a registered LiveKit room is named after its room id. An identifier crafted to not
+parse as a UUID, yet to normalize to an existing room's id, matched no registered room and was treated as an
+unregistered one. The token minted for that unregistered room was valid for the registered room: anyone could join a
+trusted or restricted room without being admitted through the lobby.
+
 ## v1.37.0
 
 ### Crisp support chat replaced by the La Suite support form

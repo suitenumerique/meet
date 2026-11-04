@@ -312,6 +312,30 @@ def test_api_rooms_join_unregistered_empty_slug(mock_token, lookup, settings):
     mock_token.assert_not_called()
 
 
+@pytest.mark.parametrize("template", ["{}!", "_{}", "{}~", "{}!!"])
+@pytest.mark.parametrize(
+    "access_level", [RoomAccessLevel.TRUSTED, RoomAccessLevel.RESTRICTED]
+)
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_unregistered_uuid_slug(
+    mock_token, access_level, template, settings
+):
+    """
+    Joining an unregistered room whose slug is a UUID once normalized should
+    return a 404 rather than credentials for the registered room with that id.
+    """
+    settings.ALLOW_UNREGISTERED_ROOMS = True
+    room = RoomFactory(access_level=access_level)
+
+    response = APIClient().post(
+        join_url(template.format(str(room.id).upper())), {}, format="json"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No Room matches the given query."}
+    mock_token.assert_not_called()
+
+
 @pytest.mark.parametrize("allow_unregistered_rooms", [True, False])
 @pytest.mark.parametrize("lookup", ["id", "slug"])
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
