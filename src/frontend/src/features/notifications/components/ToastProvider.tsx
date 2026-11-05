@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { ToastQueue, useToastQueue } from 'react-stately'
+import { ToastQueue, type ToastOptions, useToastQueue } from 'react-stately'
 import { ToastRegion } from './ToastRegion'
 import { Participant } from 'livekit-client'
 import type { NotificationType } from '../NotificationType'
@@ -12,10 +12,24 @@ export interface ToastData {
   [key: string]: any
 }
 
-// Using a global queue for toasts allows for centralized management and queuing of notifications
-// from anywhere in the app, providing greater flexibility in complex scenarios.
-export const toastQueue = new ToastQueue<ToastData>({
-  maxVisibleToasts: 5,
+const MAX_TOASTS = 5
+
+class NotificationToastQueue extends ToastQueue<ToastData> {
+  add(content: ToastData, options?: ToastOptions): string {
+    // maxVisibleToasts alone leaves older notifications queued out of sight.
+    if (this.visibleToasts.length >= MAX_TOASTS) {
+      const oldestToast = this.visibleToasts[MAX_TOASTS - 1]
+      // Discarding a prompt must not run its action, such as lowering a hand.
+      oldestToast.onClose = undefined
+      oldestToast.timer?.pause()
+      this.close(oldestToast.key)
+    }
+    return super.add(content, options)
+  }
+}
+
+export const toastQueue = new NotificationToastQueue({
+  maxVisibleToasts: MAX_TOASTS,
 })
 
 export const ToastProvider = ({ ...props }) => {
