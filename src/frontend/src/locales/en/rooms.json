@@ -425,6 +425,8 @@
     }
   },
   "sidePanel": {
+    "detachParticipants": "Open participants in separate window",
+    "returnParticipants": "Return participants to meeting",
     "ariaLabel": "Sidepanel - {{title}}",
     "backToTools": "Back to meeting tools",
     "heading": {

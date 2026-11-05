@@ -425,6 +425,8 @@
     }
   },
   "sidePanel": {
+    "detachParticipants": "Abrir participantes en otra ventana",
+    "returnParticipants": "Volver a mostrar participantes en la reunión",
     "ariaLabel": "Panel lateral - {{title}}",
     "backToTools": "Volver a las herramientas de reunión",
     "heading": {

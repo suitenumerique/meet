@@ -425,6 +425,8 @@
     }
   },
   "sidePanel": {
+    "detachParticipants": "Deelnemers in apart venster openen",
+    "returnParticipants": "Deelnemers terugzetten in vergadering",
     "ariaLabel": "Zijbalk - {{title}}",
     "backToTools": "Terug naar vergadertools",
     "heading": {

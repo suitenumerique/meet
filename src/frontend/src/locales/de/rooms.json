@@ -425,6 +425,8 @@
     }
   },
   "sidePanel": {
+    "detachParticipants": "Teilnehmer in separatem Fenster öffnen",
+    "returnParticipants": "Teilnehmer zur Besprechung zurückbringen",
     "ariaLabel": "Seitenleiste - {{title}}",
     "backToTools": "Zurück zu den Meeting-Tools",
     "heading": {

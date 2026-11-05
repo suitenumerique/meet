@@ -425,6 +425,8 @@
     }
   },
   "sidePanel": {
+    "detachParticipants": "Détacher les participants",
+    "returnParticipants": "Réintégrer les participants dans la réunion",
     "ariaLabel": "Panneau latéral - {{title}}",
     "backToTools": "Retour aux outils de réunion",
     "heading": {

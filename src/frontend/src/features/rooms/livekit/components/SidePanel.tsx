@@ -3,9 +3,15 @@ import { css } from '@/styled-system/css'
 import { Heading } from 'react-aria-components'
 import { text } from '@/primitives/Text'
 import { Button, Div } from '@/primitives'
-import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
+import {
+  RiArrowLeftLine,
+  RiCloseLine,
+  RiExternalLinkLine,
+} from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from '@/features/participants/components/ParticipantsList'
+import { useParticipantsWindow } from '@/features/participants/hooks/useParticipantsWindow'
+import { ParticipantsWindowPortal } from '@/features/participants/components/ParticipantsWindowPortal'
 import { PanelId, useSidePanel } from '../hooks/useSidePanel'
 import React, { ReactNode, useCallback, useRef } from 'react'
 import { Chat } from '@/features/chat/components/Chat'
@@ -30,6 +36,8 @@ type StyledSidePanelProps = {
   isSubmenu: boolean
   onBack: () => void
   backButtonLabel: string
+  onDetachParticipants?: () => void
+  detachParticipantsLabel?: string
   isReactionToolbarOpen?: boolean
 }
 
@@ -47,6 +55,8 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
       isSubmenu = false,
       onBack,
       backButtonLabel,
+      onDetachParticipants,
+      detachParticipantsLabel,
     },
     ref
   ) => (
@@ -120,6 +130,18 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
         >
           {title}
         </Heading>
+        {onDetachParticipants && (
+          <Button
+            variant="tertiaryText"
+            size="sm"
+            square
+            onPress={onDetachParticipants}
+            aria-label={detachParticipantsLabel}
+            tooltip={detachParticipantsLabel}
+          >
+            <RiExternalLinkLine size={20} aria-hidden="true" />
+          </Button>
+        )}
       </HStack>
       <Div
         position="absolute"
@@ -179,6 +201,11 @@ export const SidePanel = () => {
     activeSubPanelId,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
+  const {
+    container,
+    open: openParticipantsWindow,
+    close: closeParticipantsWindow,
+  } = useParticipantsWindow()
   const title = t(`heading.${activeSubPanelId || activePanelId}`)
 
   const { isOpen: isReactionToolbarOpen } = useReactionsToolbar()
@@ -204,40 +231,57 @@ export const SidePanel = () => {
 
   useEscapeToClose(isSidePanelOpen, asideRef, closeSidePanel)
 
+  // Reopening the participants panel from the meeting brings its list back.
+  React.useEffect(() => {
+    if (container && isParticipantsOpen) closeParticipantsWindow(false)
+  }, [container, isParticipantsOpen, closeParticipantsWindow])
+
   return (
-    <StyledSidePanel
-      ref={asideRef}
-      title={title}
-      ariaLabel={t('ariaLabel', { title })}
-      onClose={closeSidePanel}
-      closeButtonTooltip={t('closeButton', {
-        content: t(`content.${activeSubPanelId || activePanelId}`),
-      })}
-      escapeHint={t('escapeHint')}
-      isClosed={!isSidePanelOpen}
-      isSubmenu={isSubPanelOpen}
-      isReactionToolbarOpen={isReactionToolbarOpen}
-      backButtonLabel={t('backToTools')}
-      onBack={() => (layoutStore.activeSubPanelId = null)}
-    >
-      <Panel isOpen={isParticipantsOpen}>
-        <ParticipantsList />
-      </Panel>
-      <Panel isOpen={isEffectsOpen}>
-        <Effects />
-      </Panel>
-      <Panel isOpen={isChatOpen}>
-        <Chat />
-      </Panel>
-      <Panel isOpen={isToolsOpen} keepAlive={true}>
-        <Tools />
-      </Panel>
-      <Panel isOpen={isAdminOpen}>
-        <Admin />
-      </Panel>
-      <Panel isOpen={isInfoOpen}>
-        <Info />
-      </Panel>
-    </StyledSidePanel>
+    <>
+      <StyledSidePanel
+        ref={asideRef}
+        title={title}
+        ariaLabel={t('ariaLabel', { title })}
+        onClose={closeSidePanel}
+        closeButtonTooltip={t('closeButton', {
+          content: t(`content.${activeSubPanelId || activePanelId}`),
+        })}
+        escapeHint={t('escapeHint')}
+        isClosed={!isSidePanelOpen}
+        isSubmenu={isSubPanelOpen}
+        isReactionToolbarOpen={isReactionToolbarOpen}
+        backButtonLabel={t('backToTools')}
+        onBack={() => (layoutStore.activeSubPanelId = null)}
+        onDetachParticipants={
+          isParticipantsOpen
+            ? () => openParticipantsWindow(t('heading.participants'))
+            : undefined
+        }
+        detachParticipantsLabel={t('detachParticipants')}
+      >
+        <Panel isOpen={isParticipantsOpen && !container}>
+          <ParticipantsList />
+        </Panel>
+        <Panel isOpen={isEffectsOpen}>
+          <Effects />
+        </Panel>
+        <Panel isOpen={isChatOpen}>
+          <Chat />
+        </Panel>
+        <Panel isOpen={isToolsOpen} keepAlive={true}>
+          <Tools />
+        </Panel>
+        <Panel isOpen={isAdminOpen}>
+          <Admin />
+        </Panel>
+        <Panel isOpen={isInfoOpen}>
+          <Info />
+        </Panel>
+      </StyledSidePanel>
+      <ParticipantsWindowPortal
+        container={container}
+        onReturn={() => closeParticipantsWindow()}
+      />
+    </>
   )
 }
