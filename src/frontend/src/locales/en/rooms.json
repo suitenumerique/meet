@@ -426,6 +426,7 @@
   },
   "sidePanel": {
     "detachParticipants": "Open participants in separate window",
+    "detachParticipantsError": "Unable to open a separate window. Allow pop-ups and try again.",
     "returnParticipants": "Return participants to meeting",
     "ariaLabel": "Sidepanel - {{title}}",
     "backToTools": "Back to meeting tools",

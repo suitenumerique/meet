@@ -11,10 +11,11 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { ParticipantsList } from '@/features/participants/components/ParticipantsList'
+import { canDetachParticipants } from '@/features/participants/utils/canDetachParticipants'
 import { useParticipantsWindow } from '@/features/participants/hooks/useParticipantsWindow'
 import { ParticipantsWindowPortal } from '@/features/participants/components/ParticipantsWindowPortal'
 import { PanelId, useSidePanel } from '../hooks/useSidePanel'
-import React, { ReactNode, useCallback, useRef } from 'react'
+import React, { ReactNode, useCallback, useRef, useState } from 'react'
 import { Chat } from '@/features/chat/components/Chat'
 import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
@@ -202,6 +203,7 @@ export const SidePanel = () => {
     activeSubPanelId,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
+  const [windowError, setWindowError] = useState(false)
   const isMobile = useIsMobile()
   const isTouchPrimary =
     typeof window !== 'undefined' &&
@@ -236,6 +238,10 @@ export const SidePanel = () => {
 
   useEscapeToClose(isSidePanelOpen, asideRef, closeSidePanel)
 
+  const detachParticipants = useCallback(() => {
+    setWindowError(!openParticipantsWindow(t('heading.participants')))
+  }, [openParticipantsWindow, t])
+
   // Reopening the participants panel from the meeting brings its list back.
   React.useEffect(() => {
     if (container && isParticipantsOpen) closeParticipantsWindow(false)
@@ -258,12 +264,20 @@ export const SidePanel = () => {
         backButtonLabel={t('backToTools')}
         onBack={() => (layoutStore.activeSubPanelId = null)}
         onDetachParticipants={
-          isParticipantsOpen && !isMobile && !isTouchPrimary
-            ? () => openParticipantsWindow(t('heading.participants'))
+          isParticipantsOpen && canDetachParticipants(isMobile, isTouchPrimary)
+            ? detachParticipants
             : undefined
         }
         detachParticipantsLabel={t('detachParticipants')}
       >
+        {windowError && isParticipantsOpen && (
+          <div
+            role="alert"
+            className={css({ padding: '0.5rem 1rem', color: 'red.600' })}
+          >
+            {t('detachParticipantsError')}
+          </div>
+        )}
         <Panel isOpen={isParticipantsOpen && !container}>
           <ParticipantsList />
         </Panel>

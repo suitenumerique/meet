@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { layoutStore } from '@/stores/layout'
 import { PanelId } from '@/features/rooms/livekit/hooks/useSidePanel'
+import { useSnapshot } from 'valtio'
+import { muteDialogStore } from '@/stores/muteDialog'
 
 /**
  * A same-origin auxiliary window, rendering the existing LiveKit-connected
@@ -10,6 +12,9 @@ import { PanelId } from '@/features/rooms/livekit/hooks/useSidePanel'
 export const useParticipantsWindow = () => {
   const popupRef = useRef<Window | null>(null)
   const [container, setContainer] = useState<HTMLElement | null>(null)
+  const openerControl = useRef<HTMLElement | null>(null)
+  const { participant: muteDialogParticipant } = useSnapshot(muteDialogStore)
+  const hadMuteDialog = useRef(false)
 
   const close = useCallback((restorePanel = true) => {
     const popup = popupRef.current
@@ -17,25 +22,45 @@ export const useParticipantsWindow = () => {
     popupRef.current = null
     // Unmount the portal before its document disappears.
     flushSync(() => setContainer(null))
-    if (restorePanel) layoutStore.activePanelId = PanelId.PARTICIPANTS
+    if (restorePanel) {
+      layoutStore.activePanelId = PanelId.PARTICIPANTS
+      window.focus()
+      requestAnimationFrame(() => {
+        const preferred = openerControl.current
+        if (preferred?.isConnected) {
+          preferred.focus({ preventScroll: true })
+        } else {
+          document
+            .querySelector<HTMLElement>('aside[aria-hidden="false"]')
+            ?.focus({
+              preventScroll: true,
+            })
+        }
+      })
+    }
+    openerControl.current = null
     if (!popup.closed) popup.close()
   }, [])
 
   const open = useCallback((title: string) => {
-    if (popupRef.current) return
+    if (popupRef.current) return true
     // Must be called synchronously from the button's user gesture.
     const popup = window.open(
       '',
       '_blank',
       'popup=yes,width=390,height=620,resizable=yes,scrollbars=yes'
     )
-    if (!popup) return
+    if (!popup) return false
 
     try {
       // about:blank inherits the opener's origin, retaining the React context.
       // Never navigate this window to a remote URL or interpolate HTML.
       // The popup needs no reference back to the opener.
       popup.opener = null
+      openerControl.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null
       popup.document.title = title
       popup.document.documentElement.lang = document.documentElement.lang
       popup.document.documentElement.className =
@@ -60,8 +85,13 @@ export const useParticipantsWindow = () => {
       layoutStore.activePanelId = null
       layoutStore.activeSubPanelId = null
       popup.focus()
+      return true
     } catch {
+      popupRef.current = null
+      openerControl.current = null
+      setContainer(null)
       popup.close()
+      return false
     }
   }, [])
 
@@ -77,6 +107,19 @@ export const useParticipantsWindow = () => {
       window.removeEventListener('pagehide', onMeetingClosed)
     }
   }, [container, close])
+
+  // The mute confirmation dialog lives in the main conference document.
+  // Bring that window forward so the dialog remains perceivable and usable.
+  useEffect(() => {
+    if (!popupRef.current) return
+    if (muteDialogParticipant) {
+      hadMuteDialog.current = true
+      window.focus()
+    } else if (hadMuteDialog.current) {
+      hadMuteDialog.current = false
+      if (!popupRef.current.closed) popupRef.current.focus()
+    }
+  }, [muteDialogParticipant])
 
   // Disconnect/unmount can happen without navigating away.
   useEffect(

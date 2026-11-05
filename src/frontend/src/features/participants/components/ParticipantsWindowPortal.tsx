@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import { useEffect } from 'react'
 import { UNSAFE_PortalProvider } from '@react-aria/overlays'
 import { RiArrowGoBackLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +16,17 @@ export const ParticipantsWindowPortal = ({
   onReturn: () => void
 }) => {
   const { t } = useTranslation('rooms')
+  useEffect(() => {
+    if (!container?.isConnected) return
+    const focusId = requestAnimationFrame(() => {
+      container
+        .querySelector<HTMLElement>('[data-attr="participants-return"]')
+        ?.focus({
+          preventScroll: true,
+        })
+    })
+    return () => cancelAnimationFrame(focusId)
+  }, [container])
   if (!container?.isConnected) return null
 
   return createPortal(
@@ -47,6 +59,7 @@ export const ParticipantsWindowPortal = ({
             <Button
               size="sm"
               variant="tertiaryText"
+              data-attr="participants-return"
               onPress={onReturn}
               aria-label={t('sidePanel.returnParticipants')}
               tooltip={t('sidePanel.returnParticipants')}

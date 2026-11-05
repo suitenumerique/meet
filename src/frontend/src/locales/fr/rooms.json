@@ -426,6 +426,7 @@
   },
   "sidePanel": {
     "detachParticipants": "Détacher les participants",
+    "detachParticipantsError": "Impossible d’ouvrir une fenêtre séparée. Autorisez les fenêtres pop-up et réessayez.",
     "returnParticipants": "Réintégrer les participants dans la réunion",
     "ariaLabel": "Panneau latéral - {{title}}",
     "backToTools": "Retour aux outils de réunion",

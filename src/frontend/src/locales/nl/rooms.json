@@ -426,6 +426,7 @@
   },
   "sidePanel": {
     "detachParticipants": "Deelnemers in apart venster openen",
+    "detachParticipantsError": "Kan geen apart venster openen. Sta pop-ups toe en probeer het opnieuw.",
     "returnParticipants": "Deelnemers terugzetten in vergadering",
     "ariaLabel": "Zijbalk - {{title}}",
     "backToTools": "Terug naar vergadertools",

@@ -426,6 +426,7 @@
   },
   "sidePanel": {
     "detachParticipants": "Abrir participantes en otra ventana",
+    "detachParticipantsError": "No se pudo abrir otra ventana. Permite las ventanas emergentes y vuelve a intentarlo.",
     "returnParticipants": "Volver a mostrar participantes en la reunión",
     "ariaLabel": "Panel lateral - {{title}}",
     "backToTools": "Volver a las herramientas de reunión",
