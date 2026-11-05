@@ -9,6 +9,7 @@ import {
   RiExternalLinkLine,
 } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
+import { useIsMobile } from '@/utils/useIsMobile'
 import { ParticipantsList } from '@/features/participants/components/ParticipantsList'
 import { useParticipantsWindow } from '@/features/participants/hooks/useParticipantsWindow'
 import { ParticipantsWindowPortal } from '@/features/participants/components/ParticipantsWindowPortal'
@@ -201,6 +202,10 @@ export const SidePanel = () => {
     activeSubPanelId,
   } = useSidePanel()
   const { t } = useTranslation('rooms', { keyPrefix: 'sidePanel' })
+  const isMobile = useIsMobile()
+  const isTouchPrimary =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(pointer: coarse)').matches
   const {
     container,
     open: openParticipantsWindow,
@@ -253,7 +258,7 @@ export const SidePanel = () => {
         backButtonLabel={t('backToTools')}
         onBack={() => (layoutStore.activeSubPanelId = null)}
         onDetachParticipants={
-          isParticipantsOpen
+          isParticipantsOpen && !isMobile && !isTouchPrimary
             ? () => openParticipantsWindow(t('heading.participants'))
             : undefined
         }
