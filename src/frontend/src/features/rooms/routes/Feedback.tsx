@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/primitives'
+import { Button, LinkButton } from '@/primitives'
 import { Screen } from '@/layout/Screen'
 import { Center, Stack, styled, VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Rating } from '@/features/rooms/components/Rating.tsx'
-import { useLocation } from 'wouter'
+import { Link as WouterLink } from 'wouter'
 import { useMemo } from 'react'
 import { DisconnectReason } from 'livekit-client'
 import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
@@ -39,7 +39,6 @@ enum DisconnectReasonKey {
 
 const FeedbackRoute = () => {
   const { t } = useTranslation('rooms')
-  const [, setLocation] = useLocation()
 
   const reasonKey = useMemo(() => {
     const state = window.history.state
@@ -90,13 +89,11 @@ const FeedbackRoute = () => {
                 {t('feedback.back')}
               </Button>
             )}
-            <Button
-              variant="primary"
-              className={buttonClass}
-              onPress={() => setLocation('/')}
-            >
-              {t('feedback.home')}
-            </Button>
+            <WouterLink to="/" asChild>
+              <LinkButton variant="primary" className={buttonClass}>
+                {t('feedback.home')}
+              </LinkButton>
+            </WouterLink>
           </Stack>
           {reasonKey !== DisconnectReasonKey.ConnectionFailed && (
             <Rating metadata={metadata} />
