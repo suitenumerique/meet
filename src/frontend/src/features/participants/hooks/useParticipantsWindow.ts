@@ -20,25 +20,24 @@ export const useParticipantsWindow = () => {
     const popup = popupRef.current
     if (!popup) return
     popupRef.current = null
+    const previousControl = openerControl.current
+    openerControl.current = null
+    hadMuteDialog.current = false
     // Unmount the portal before its document disappears.
     flushSync(() => setContainer(null))
     if (restorePanel) {
       layoutStore.activePanelId = PanelId.PARTICIPANTS
       window.focus()
       requestAnimationFrame(() => {
-        const preferred = openerControl.current
-        if (preferred?.isConnected) {
-          preferred.focus({ preventScroll: true })
+        if (previousControl?.isConnected) {
+          previousControl.focus({ preventScroll: true })
         } else {
           document
             .querySelector<HTMLElement>('aside[aria-hidden="false"]')
-            ?.focus({
-              preventScroll: true,
-            })
+            ?.focus({ preventScroll: true })
         }
       })
     }
-    openerControl.current = null
     if (!popup.closed) popup.close()
   }, [])
 

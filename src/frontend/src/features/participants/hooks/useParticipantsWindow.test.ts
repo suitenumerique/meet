@@ -125,6 +125,27 @@ describe('useParticipantsWindow', () => {
     expect(state.setContainer).toHaveBeenLastCalledWith(null)
   })
 
+  it('restores focus to the button that opened the separate window', () => {
+    const popup = fakePopup()
+    const control = Object.assign(new HTMLElement(), {
+      isConnected: true,
+      focus: vi.fn(),
+    })
+    Object.defineProperty(document, 'activeElement', {
+      configurable: true,
+      value: control,
+    })
+    vi.stubGlobal('window', {
+      open: vi.fn(() => popup),
+      focus: vi.fn(),
+      addEventListener: vi.fn(),
+    })
+    const { open, close } = useParticipantsWindow()
+    expect(open('Participants')).toBe(true)
+    close()
+    expect(control.focus).toHaveBeenCalledWith({ preventScroll: true })
+  })
+
   it('closes the popup without reopening the panel during a meeting teardown', () => {
     const popup = fakePopup()
     vi.stubGlobal('window', {
