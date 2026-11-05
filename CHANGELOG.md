@@ -33,6 +33,7 @@ and this project adheres to
 - 🐛(frontend) show join errors instead of silently waiting in the lobby
 - 🐛(frontend) send users who cannot enter directly back to the lobby
 - 🔒️(backend) refuse unregistered rooms whose slug is a UUID
+- 🔒️(agents) upgrade python to 3.14.10 to fix CVE-2026-109518
 
 ## [1.37.0] - 2026-11-01
 
