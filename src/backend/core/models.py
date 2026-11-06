@@ -27,6 +27,7 @@ from lasuite.tools.email import get_domain_from_email
 from timezone_field import TimeZoneField
 
 from . import fields, hashers, utils
+from .livekit.specs import LIVEKIT_CLUSTER_NAME_MAX_LENGTH
 from .recording.enums import FileExtension
 from .validators import sub_validator
 
@@ -1311,3 +1312,68 @@ class File(BaseModel):
 
         self.hard_deleted_at = timezone.now()
         self.save(update_fields=["hard_deleted_at"])
+
+
+class Placement(BaseModel):
+    """The record that a LiveKit room lives on a given LiveKit cluster."""
+
+    room_name = models.CharField(
+        max_length=255,
+        unique=True,
+        verbose_name=_("LiveKit room name"),
+    )
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="placements",
+        verbose_name=_("Room"),
+    )
+    cluster = models.CharField(
+        max_length=LIVEKIT_CLUSTER_NAME_MAX_LENGTH,
+        db_index=True,
+        verbose_name=_("LiveKit cluster"),
+        help_text=_("Name of the LiveKit cluster the LiveKit room lives on."),
+    )
+    sid = models.CharField(
+        max_length=63,
+        blank=True,
+        default="",
+        verbose_name=_("LiveKit room SID"),
+        help_text=_("SID of the LiveKit room on its cluster, empty until known."),
+    )
+    epoch = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Epoch"),
+        help_text=_("Incremented on every relocation."),
+    )
+    previous_cluster = models.CharField(
+        max_length=LIVEKIT_CLUSTER_NAME_MAX_LENGTH,
+        blank=True,
+        default="",
+        verbose_name=_("Previous LiveKit cluster"),
+        help_text=_("Name of the LiveKit cluster the room was last relocated from."),
+    )
+    relocated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Relocated at"),
+        help_text=_("Date and time at which the room was last relocated."),
+    )
+    absent_since = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Absent since"),
+        help_text=_(
+            "Date and time since which the LiveKit room is missing from its cluster."
+        ),
+    )
+
+    class Meta:
+        db_table = "meet_placement"
+        verbose_name = _("Placement")
+        verbose_name_plural = _("Placements")
+
+    def __str__(self):
+        return f"{self.room_name} on {self.cluster}"
