@@ -36,6 +36,8 @@ from livekit.api import (  # pylint: disable=E0611
     VideoGrants,
 )
 
+from core.livekit.clusters import LiveKitClusterConfig, get_default_livekit_cluster
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,6 +72,8 @@ def generate_token(  # noqa: PLR0917
     role: Optional[str] = None,
     participant_id: Optional[str] = None,
     ttl: Optional[timedelta] = None,
+    *,
+    cluster: Optional[LiveKitClusterConfig] = None,
 ) -> str:
     """Generate a LiveKit access token for a user in a specific room.
 
@@ -86,10 +90,16 @@ def generate_token(  # noqa: PLR0917
         participant_id (Optional[str]): Stable identifier for anonymous users;
                          used as identity when user.is_anonymous.
         ttl (Optional[timedelta]): Token validity duration. Defaults to LiveKit SDK default.
+        cluster (Optional[LiveKitClusterConfig]): The LiveKit cluster the token is for,
+                         signed with its API key and secret. Defaults to the default
+                         cluster.
 
     Returns:
         str: The LiveKit JWT access token.
     """
+
+    if cluster is None:
+        cluster = get_default_livekit_cluster()
 
     is_admin_or_owner = role in ("owner", "administrator")
     if is_admin_or_owner:
@@ -124,10 +134,7 @@ def generate_token(  # noqa: PLR0917
     display_name = (username or default_username) if can_edit else default_username
 
     token = (
-        AccessToken(
-            api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
-            api_secret=settings.LIVEKIT_CONFIGURATION["api_secret"],
-        )
+        AccessToken(api_key=cluster.api_key, api_secret=cluster.api_secret)
         .with_grants(video_grants)
         .with_identity(identity)
         .with_name(display_name)
@@ -153,6 +160,8 @@ def generate_livekit_config(  # noqa: PLR0917
     color: Optional[str] = None,
     configuration: Optional[dict] = None,
     participant_id: Optional[str] = None,
+    *,
+    cluster: Optional[LiveKitClusterConfig] = None,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -165,17 +174,23 @@ def generate_livekit_config(  # noqa: PLR0917
         configuration (Optional[dict]): Room configuration dict that can override default settings.
         participant_id (Optional[str]): Stable identifier for anonymous users;
                          used as identity when user.is_anonymous.
+        cluster (Optional[LiveKitClusterConfig]): The LiveKit cluster to connect to.
+                         Defaults to the default cluster.
 
     Returns:
-        dict: LiveKit configuration with URL, room and access token
+        dict: LiveKit configuration with the URL browsers connect to on the
+        cluster, the room and an access token signed for that cluster
     """
+
+    if cluster is None:
+        cluster = get_default_livekit_cluster()
 
     sources = None
     if configuration is not None:
         sources = configuration.get("can_publish_sources", None)
 
     return {
-        "url": settings.LIVEKIT_CONFIGURATION["url"],
+        "url": cluster.url,
         "room": room_id,
         "token": generate_token(
             room=room_id,
@@ -185,6 +200,7 @@ def generate_livekit_config(  # noqa: PLR0917
             sources=sources,
             role=role,
             participant_id=participant_id,
+            cluster=cluster,
         ),
     }
 
@@ -219,16 +235,21 @@ def generate_s3_authorization_headers(key):
     return request
 
 
-async def bound_livekit_request(request, handler):
-    """Give up on a LiveKit request, its answer included, after the set timeout.
+def bound_livekit_requests(timeout: float):
+    """Return a client middleware giving up on a LiveKit request, its answer
+    included, after `timeout` seconds.
 
     The SDK passes timeout=None to aiohttp on every call, which means no limit,
     so a timeout set on the session never applies.
     """
-    async with asyncio.timeout(settings.LIVEKIT_API_TIMEOUT_SECONDS):
-        response = await handler(request)
-        await response.read()
-    return response
+
+    async def bound_livekit_request(request, handler):
+        async with asyncio.timeout(timeout):
+            response = await handler(request)
+            await response.read()
+        return response
+
+    return bound_livekit_request
 
 
 class LiveKitClient(LiveKitAPI):
@@ -239,15 +260,45 @@ class LiveKitClient(LiveKitAPI):
         await self._session.close()
 
 
-def create_livekit_client(custom_configuration=None):
-    """Create and return a configured LiveKit API client."""
+def livekit_api_configuration(cluster: Optional[LiveKitClusterConfig] = None) -> dict:
+    """Return the URL, API key and secret Django calls a LiveKit cluster with.
+
+    The URL is the cluster's api_url, not the one browsers connect to. The
+    default cluster is used when none is given.
+    """
+    if cluster is None:
+        cluster = get_default_livekit_cluster()
+    return {
+        "url": cluster.api_url,
+        "api_key": cluster.api_key,
+        "api_secret": cluster.api_secret,
+    }
+
+
+def create_livekit_client(
+    custom_configuration: Optional[dict] = None,
+    *,
+    cluster: Optional[LiveKitClusterConfig] = None,
+    timeout: Optional[float] = None,
+) -> LiveKitClient:
+    """Create a LiveKit API client calling a LiveKit cluster.
+
+    Args:
+        custom_configuration (Optional[dict]): The URL, API key and secret to call
+                         LiveKit with, in place of the cluster's.
+        cluster (Optional[LiveKitClusterConfig]): The LiveKit cluster to call.
+                         Defaults to the default cluster.
+        timeout (Optional[float]): Seconds after which each request of this client
+                         gives up. Defaults to LIVEKIT_API_TIMEOUT_SECONDS.
+    """
+    configuration = custom_configuration or livekit_api_configuration(cluster)
+    if timeout is None:
+        timeout = settings.LIVEKIT_API_TIMEOUT_SECONDS
+
     connector = None if settings.LIVEKIT_VERIFY_SSL else aiohttp.TCPConnector(ssl=False)
     session = aiohttp.ClientSession(
-        connector=connector, middlewares=(bound_livekit_request,)
+        connector=connector, middlewares=(bound_livekit_requests(timeout),)
     )
-
-    # Use default configuration if none provided
-    configuration = custom_configuration or settings.LIVEKIT_CONFIGURATION
 
     return LiveKitClient(session=session, **configuration)
 

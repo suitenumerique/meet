@@ -8,6 +8,7 @@ from rest_framework import views as drf_views
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from core.livekit.clusters import get_default_livekit_cluster
 from core.utils import build_telephony_config
 
 
@@ -81,7 +82,7 @@ def get_frontend_configuration(request):
         "subtitle": {"enabled": settings.ROOM_SUBTITLE_ENABLED},
         "diagnostics": {"connection_test_enabled": settings.CONNECTION_TEST_ENABLED},
         "livekit": {
-            "url": settings.LIVEKIT_CONFIGURATION["url"],
+            "url": get_default_livekit_cluster().url,
             "force_wss_protocol": settings.LIVEKIT_FORCE_WSS_PROTOCOL,
             "enable_firefox_proxy_workaround": settings.LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND,
             "default_sources": settings.LIVEKIT_DEFAULT_SOURCES,

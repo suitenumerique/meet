@@ -1,5 +1,6 @@
 """Test diagnostics API endpoints."""
 
+import json
 import uuid
 from unittest import mock
 
@@ -15,6 +16,7 @@ from core.api.throttling import (
     ConnectionTestUserRateThrottle,
 )
 from core.factories import UserFactory
+from core.tests.utils import livekit_cluster_entry, random_remote_addr
 
 pytestmark = pytest.mark.django_db
 
@@ -109,6 +111,26 @@ def test_api_diagnostics_connection_token_for_authenticated_user(settings, clien
     assert payload["sub"] == str(user.sub)
     assert payload["video"]["roomAdmin"] is False
     assert payload["exp"] - payload["nbf"] == 300
+
+
+def test_api_diagnostics_connection_default_cluster(settings):
+    """The connection is tested on the default LiveKit cluster.
+
+    Browsers are given its URL, not the API URL Django calls it on.
+    """
+    paris = livekit_cluster_entry("paris", api_url="http://livekit.paris.svc:7880")
+    settings.LIVEKIT_CLUSTERS = json.dumps([paris, livekit_cluster_entry("lyon")])
+
+    response = APIClient(REMOTE_ADDR=random_remote_addr()).post(
+        "/api/v1.0/diagnostics/connection/"
+    )
+
+    assert response.status_code == 200
+    config = response.json()["livekit"]
+    assert config["url"] == paris["url"]
+    payload = jwt.decode(config["token"], paris["api_secret"], algorithms=["HS256"])
+    assert payload["iss"] == paris["api_key"]
+    assert payload["video"]["room"] == config["room"]
 
 
 @mock.patch("core.api.viewsets.delete_connection_test_room.apply_async")

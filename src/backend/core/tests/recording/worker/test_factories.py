@@ -4,6 +4,7 @@ Test worker service factories.
 
 # pylint: disable=protected-access,redefined-outer-name,unused-argument,no-member
 
+import json
 from dataclasses import FrozenInstanceError
 from unittest.mock import Mock
 
@@ -19,6 +20,7 @@ from core.recording.worker.factories import (
     WorkerServiceConfig,
     get_worker_service,
 )
+from core.tests.utils import livekit_cluster_entry
 
 
 @pytest.fixture(autouse=True)
@@ -30,11 +32,16 @@ def clear_lru_cache():
 
 
 @pytest.fixture
-def test_settings():
+def test_settings(settings):
     """Fixture to provide test Django settings"""
     mocked_settings = {
         "RECORDING_OUTPUT_FOLDER": "/test/output",
-        "LIVEKIT_CONFIGURATION": {"server": "test.example.com"},
+        "LIVEKIT_CLUSTERS": json.dumps(
+            [
+                livekit_cluster_entry("paris", api_url="http://livekit.paris.svc:7880"),
+                livekit_cluster_entry("lyon"),
+            ]
+        ),
         "AWS_S3_ENDPOINT_URL": "https://s3.test.com",
         "AWS_S3_ACCESS_KEY_ID": "test_key",
         "AWS_S3_SECRET_ACCESS_KEY": "test_secret",
@@ -52,9 +59,8 @@ def test_settings():
         "RECORDING_ENCODING_KEY_FRAME_INTERVAL_S": 4.0,
     }
 
-    # Use override_settings to properly patch Django settings
-    with override_settings(**mocked_settings):
-        yield test_settings
+    for name, value in mocked_settings.items():
+        setattr(settings, name, value)
 
 
 @pytest.fixture
@@ -67,7 +73,11 @@ def default_config(test_settings):
 def test_config_initialization(default_config):
     """Test that WorkerServiceConfig is properly initialized from settings"""
     assert default_config.output_folder == "/test/output"
-    assert default_config.server_configurations == {"server": "test.example.com"}
+    assert default_config.server_configurations == {
+        "url": "http://livekit.paris.svc:7880",
+        "api_key": "key-paris",
+        "api_secret": "secret-paris-padded-for-minimum-len!-livekit",
+    }
     assert default_config.bucket_args == {
         "endpoint": "https://s3.test.com",
         "access_key": "test_key",
@@ -90,6 +100,14 @@ def test_config_initialization(default_config):
     }
 
 
+def test_config_server_configurations_from_livekit_configuration(settings):
+    """Without LIVEKIT_CLUSTERS, LiveKit is called as LIVEKIT_CONFIGURATION says."""
+    config = WorkerServiceConfig.from_settings()
+
+    assert settings.LIVEKIT_CLUSTERS is None
+    assert config.server_configurations == settings.LIVEKIT_CONFIGURATION
+
+
 def test_config_immutability(default_config):
     """Test that config instances are immutable after creation"""
     with pytest.raises(FrozenInstanceError):
@@ -99,7 +117,6 @@ def test_config_immutability(default_config):
 @pytest.mark.parametrize("custom_encoding_enabled", [True, False])
 @override_settings(
     RECORDING_OUTPUT_FOLDER="/test/output",
-    LIVEKIT_CONFIGURATION={"server": "test.example.com"},
     AWS_S3_ENDPOINT_URL="https://s3.test.com",
     AWS_S3_ACCESS_KEY_ID="test_key",
     AWS_S3_SECRET_ACCESS_KEY="test_secret",
@@ -161,7 +178,6 @@ def test_config_encoding_options_none_when_default_missing(
 
 @override_settings(
     RECORDING_OUTPUT_FOLDER="/test/output",
-    LIVEKIT_CONFIGURATION={"server": "test.example.com"},
     AWS_S3_ENDPOINT_URL="https://s3.test.com",
     AWS_S3_ACCESS_KEY_ID="test_key",
     AWS_S3_SECRET_ACCESS_KEY="test_secret",

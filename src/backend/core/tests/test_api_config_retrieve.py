@@ -1,9 +1,36 @@
-"""Test the LiveKit reconnection settings exposed by the config endpoint."""
+"""Test the LiveKit settings exposed by the config endpoint."""
+
+import json
 
 import pytest
 from rest_framework.test import APIClient
 
+from core.tests.utils import livekit_cluster_entry
+
 pytestmark = pytest.mark.django_db
+
+
+def test_api_config_retrieve_livekit_url(settings):
+    """Without LIVEKIT_CLUSTERS, browsers connect to LIVEKIT_CONFIGURATION's URL."""
+    response = APIClient().get("/api/v1.0/config/")
+
+    assert response.status_code == 200
+    assert response.json()["livekit"]["url"] == settings.LIVEKIT_CONFIGURATION["url"]
+
+
+def test_api_config_retrieve_livekit_url_default_cluster(settings):
+    """Browsers are given the URL of the default LiveKit cluster, not its API URL."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [
+            livekit_cluster_entry("paris", api_url="http://livekit.paris.svc:7880"),
+            livekit_cluster_entry("lyon"),
+        ]
+    )
+
+    response = APIClient().get("/api/v1.0/config/")
+
+    assert response.status_code == 200
+    assert response.json()["livekit"]["url"] == "wss://paris.livekit.test"
 
 
 def test_api_config_retrieve_livekit_reconnect_defaults():

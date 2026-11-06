@@ -20,6 +20,7 @@ from ...factories import (
     UserFactory,
     UserResourceAccessFactory,
 )
+from ...livekit.clusters import get_default_livekit_cluster
 from ...models import RoleChoices, RoomAccessLevel
 from ..utils import generate_user_access_token
 
@@ -128,6 +129,7 @@ def test_api_rooms_join_access(mock_token, access_level, requester, can_join_dir
             sources=["camera"],
             role=role,
             participant_id=None,
+            cluster=get_default_livekit_cluster(),
         )
     else:
         mock_token.assert_not_called()
@@ -231,6 +233,7 @@ def test_api_rooms_join_unregistered_allowed(mock_token, authenticated, settings
         sources=None,
         role=None,
         participant_id=None,
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -263,6 +266,7 @@ def test_api_rooms_join_unregistered_allowed_not_normalized(mock_token, settings
         sources=None,
         role=None,
         participant_id=None,
+        cluster=get_default_livekit_cluster(),
     )
 
 
