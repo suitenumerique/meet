@@ -62,5 +62,5 @@ The command prints ✓ or ✗ for each check, then a verdict; [Check your instal
 
 ## Next
 
-- To see what the script set up, read [`install.sh`](https://github.com/suitenumerique/meet/blob/main/docs/install.sh) itself: one labelled section per stack.
+- To see what the script set up, read [`install.sh`](../../install.sh) itself: one labelled section per stack.
 - Before production, work through the Deployment Guide's [After installation](deployment-guide.md#after-installation) steps.
