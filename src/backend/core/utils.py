@@ -307,11 +307,31 @@ class NotificationError(Exception):
     """Notification delivery to room participants fails."""
 
 
-@async_to_sync
-async def notify_participants(room_name: str, notification_data: dict):
-    """Send notification data to all participants in a LiveKit room."""
+def notify_participants(
+    room_name: str,
+    notification_data: dict,
+    *,
+    cluster: Optional[LiveKitClusterConfig] = None,
+):
+    """Send notification data to all participants in a LiveKit room.
 
-    lkapi = create_livekit_client()
+    The LiveKit room is reached on `cluster`, by default the LiveKit cluster it
+    is placed on.
+    """
+    # pylint: disable-next=import-outside-toplevel,cyclic-import
+    from core.livekit.placements import PlacementService  # noqa: PLC0415
+
+    cluster = cluster or PlacementService.cluster_for(room_name)
+    _notify_participants(room_name, notification_data, cluster=cluster)
+
+
+@async_to_sync
+async def _notify_participants(
+    room_name: str, notification_data: dict, *, cluster: LiveKitClusterConfig
+):
+    """Send notification data to a LiveKit room on a LiveKit cluster."""
+
+    lkapi = create_livekit_client(cluster=cluster)
 
     try:
         room_response = await lkapi.room.list_rooms(
