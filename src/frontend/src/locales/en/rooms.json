@@ -316,6 +316,16 @@
         "party-popper": "party popper",
         "folded-hands": "folded hands"
       }
+    },
+    "away": {
+      "leave": "Away",
+      "return": "Back",
+      "status": "Coffee break",
+      "activated": "Coffee break enabled. Microphone and camera stopped.",
+      "returned": "You are back.",
+      "failure": "Could not change away status. Check your microphone and camera.",
+      "retryRestore": "Retry restoring microphone and camera",
+      "captureFailure": "Camera or microphone capture is still active during your break. Check your devices."
     }
   },
   "pictureInPicture": {

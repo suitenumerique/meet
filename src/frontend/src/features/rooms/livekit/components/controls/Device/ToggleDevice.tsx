@@ -117,6 +117,7 @@ export const ToggleDevice = <T extends ToggleSource>({
   const mediaPath = context === 'join' ? 'join_preview' : 'room'
 
   const onPress = async () => {
+    if (isDisabled) return
     if (!enabled && deviceMissing) {
       setAlertError(MediaDeviceFailure.NotFound)
       return
@@ -166,7 +167,7 @@ export const ToggleDevice = <T extends ToggleSource>({
         // no announce
       }
     },
-    isDisabled: cannotUseDevice,
+    isDisabled: cannotUseDevice || isDisabled,
   })
 
   const pushToTalkShortcut = getShortcutDescriptorById('push-to-talk')
@@ -174,7 +175,7 @@ export const ToggleDevice = <T extends ToggleSource>({
     keyCode: kind === 'audioinput' ? pushToTalkShortcut?.code : undefined,
     onKeyDown,
     onKeyUp,
-    isDisabled: cannotUseDevice,
+    isDisabled: cannotUseDevice || isDisabled,
   })
 
   const toggleLabel = useMemo(() => {

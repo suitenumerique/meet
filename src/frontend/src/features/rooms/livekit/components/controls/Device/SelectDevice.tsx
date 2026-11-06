@@ -24,6 +24,7 @@ type SelectDeviceProps = {
   kind: MediaDeviceKind
   context?: 'join' | 'room'
   track?: LocalAudioTrack
+  isDisabled?: boolean
 }
 
 type SelectDevicePermissionsProps<T> = SelectDeviceProps &
@@ -35,6 +36,7 @@ const SelectDevicePermissions = <T extends string | number>({
   onSubmit,
   iconComponent,
   track,
+  isDisabled,
   ...props
 }: SelectDevicePermissionsProps<T>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
@@ -71,13 +73,13 @@ const SelectDevicePermissions = <T extends string | number>({
     <Select
       aria-label={t(`${kind}.choose`)}
       label=""
-      isDisabled={items.length === 0}
+      isDisabled={items.length === 0 || isDisabled}
       items={items}
       iconComponent={iconComponent}
       placeholder={items.length === 0 ? t('loading') : t('select')}
       selectedKey={selectedKey}
       onSelectionChange={async (key) => {
-        if (key === selectedKey) return
+        if (isDisabled || key === selectedKey) return
         await setActiveMediaDevice(key as string)
         onSubmit?.(key as string)
       }}
@@ -102,6 +104,7 @@ export const SelectDevice = ({
   kind,
   context = 'join',
   track,
+  isDisabled,
 }: SelectDeviceProps) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
 
@@ -154,6 +157,7 @@ export const SelectDevice = ({
       onSubmit={onSubmit}
       kind={kind}
       track={track}
+      isDisabled={isDisabled}
       iconComponent={deviceIcons.select}
       {...contextProps}
     />

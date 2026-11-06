@@ -316,6 +316,16 @@
         "party-popper": "confeti",
         "folded-hands": "manos juntas"
       }
+    },
+    "away": {
+      "leave": "Ausente",
+      "return": "He vuelto",
+      "status": "Pausa para café",
+      "activated": "Pausa activada. Micrófono y cámara desactivados.",
+      "returned": "Has vuelto.",
+      "failure": "No se pudo cambiar el estado de ausencia. Comprueba el micrófono y la cámara.",
+      "retryRestore": "Reintentar restaurar el micrófono y la cámara",
+      "captureFailure": "La cámara o el micrófono sigue activo durante la pausa. Comprueba los dispositivos."
     }
   },
   "pictureInPicture": {

@@ -316,6 +316,16 @@
         "party-popper": "feestknaller",
         "folded-hands": "gevouwen handen"
       }
+    },
+    "away": {
+      "leave": "Afwezig",
+      "return": "Terug",
+      "status": "Koffiepauze",
+      "activated": "Koffiepauze ingeschakeld. Microfoon en camera uit.",
+      "returned": "U bent terug.",
+      "failure": "De afwezigheidsstatus kon niet worden gewijzigd. Controleer microfoon en camera.",
+      "retryRestore": "Opnieuw proberen microfoon en camera te herstellen",
+      "captureFailure": "Camera of microfoon is nog actief tijdens de pauze. Controleer uw apparaten."
     }
   },
   "pictureInPicture": {

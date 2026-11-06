@@ -316,6 +316,16 @@
         "party-popper": "Konfettikanone",
         "folded-hands": "Gefaltete Hände"
       }
+    },
+    "away": {
+      "leave": "Abwesend",
+      "return": "Zurück",
+      "status": "Kaffeepause",
+      "activated": "Kaffeepause aktiviert. Mikrofon und Kamera ausgeschaltet.",
+      "returned": "Sie sind zurück.",
+      "failure": "Der Abwesenheitsstatus konnte nicht geändert werden. Prüfen Sie Mikrofon und Kamera.",
+      "retryRestore": "Mikrofon und Kamera erneut wiederherstellen",
+      "captureFailure": "Kamera oder Mikrofon ist trotz Pause noch aktiv. Überprüfen Sie Ihre Geräte."
     }
   },
   "pictureInPicture": {

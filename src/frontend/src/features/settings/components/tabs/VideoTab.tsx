@@ -1,13 +1,18 @@
 import { DialogProps, Field } from '@/primitives'
 
 import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
-import { useMediaDeviceSelect, useRoomContext } from '@livekit/components-react'
+import {
+  useMediaDeviceSelect,
+  useParticipantAttribute,
+  useRoomContext,
+} from '@livekit/components-react'
 import { useTranslation } from 'react-i18next'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
+import { startAwaySafePreview } from '@/features/rooms/livekit/utils/awayPreview'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { css } from '@/styled-system/css'
 import {
   createLocalVideoTrack,
-  type LocalVideoTrack,
   Track,
   VideoPresets,
   VideoQuality,
@@ -35,6 +40,10 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   const { t } = useTranslation('settings', { keyPrefix: 'video' })
   const room = useRoomContext()
   const { localParticipant } = room
+  const isAway =
+    useParticipantAttribute(AWAY_ATTRIBUTE, {
+      participant: localParticipant,
+    }) === 'away'
 
   const {
     videoDeviceId,
@@ -72,6 +81,7 @@ export const VideoTab = ({ id }: VideoTabProps) => {
       }
 
   const handleVideoResolutionChange = async (key: VideoResolution) => {
+    if (isAway) return
     saveVideoPublishResolution(key)
     const videoTrack = localParticipant.getTrackPublication(
       Track.Source.Camera
@@ -89,24 +99,11 @@ export const VideoTab = ({ id }: VideoTabProps) => {
   }
 
   useEffect(() => {
-    let videoTrack: LocalVideoTrack | null = null
-
-    const setUpVideoTrack = async () => {
-      if (videoElement) {
-        videoTrack = await createLocalVideoTrack({ deviceId: videoDeviceId })
-        videoTrack.attach(videoElement)
-      }
-    }
-
-    setUpVideoTrack()
-
-    return () => {
-      if (videoElement && videoTrack) {
-        videoTrack.detach()
-        videoTrack.stop()
-      }
-    }
-  }, [videoDeviceId, videoElement])
+    if (!videoElement || isAway) return
+    return startAwaySafePreview(videoElement, () =>
+      createLocalVideoTrack({ deviceId: videoDeviceId })
+    )
+  }, [videoDeviceId, videoElement, isAway])
 
   const resolutionItems = useMemo(() => {
     const labels: Record<VideoResolution, string> = {
@@ -143,7 +140,9 @@ export const VideoTab = ({ id }: VideoTabProps) => {
           label={t('camera.label')}
           items={itemsIn}
           selectedKey={videoDeviceId}
+          isDisabled={isAway}
           onSelectionChange={async (key) => {
+            if (isAway) return
             await setActiveMediaDeviceIn(key as string)
             saveVideoInputDeviceId(key as string)
           }}

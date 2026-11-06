@@ -10,6 +10,9 @@ and this project adheres to
 
 ### Added
 
+- ✨(frontend) add accessible coffee-break mode with safe media restoration
+- ✨(backend) authorize coffee-break state for registered and ad-hoc rooms
+
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
 - ✨(frontend) tell participants when a recording is interrupted
 

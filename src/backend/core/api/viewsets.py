@@ -1014,6 +1014,49 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
     @decorators.action(
         detail=True,
         methods=["post"],
+        url_path="set-away-status",
+        url_name="set-away-status",
+        permission_classes=[permissions.HasLiveKitRoomAccess],
+        authentication_classes=[LiveKitTokenAuthentication],
+    )
+    def set_away_status(self, request, pk=None):  # pylint: disable=unused-argument
+        """Set the requesting participant's away status with server-side authorization."""
+        room, slug = self._get_object_or_unregistered_slug()
+        room_name = str(room.pk) if room else slug
+        # Unregistered rooms have no database object, so object permissions are
+        # not evaluated. Check the signed LiveKit grant explicitly in both paths.
+        grant = getattr(request.auth, "video", None)
+        if not grant or not grant.room_join or grant.room != room_name:
+            raise drf_exceptions.PermissionDenied("Invalid LiveKit room grant")
+
+        serializer = serializers.SetAwayStatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            ParticipantsManagement().update(
+                room_name=room_name,
+                identity=request.auth.identity,
+                attributes={
+                    "awayStatus": "away" if serializer.validated_data["away"] else ""
+                },
+            )
+        except ParticipantNotFoundException:
+            return drf_response.Response(
+                {"error": "Participant not found"},
+                status=drf_status.HTTP_404_NOT_FOUND,
+            )
+        except ParticipantsManagementException:
+            return drf_response.Response(
+                {"error": "Failed to update participant away status"},
+                status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        return drf_response.Response(
+            {"status": "success"}, status=drf_status.HTTP_200_OK
+        )
+
+    @decorators.action(
+        detail=True,
+        methods=["post"],
         url_path="toggle-hand",
         url_name="toggle-hand",
         permission_classes=[permissions.HasLiveKitRoomAccess],

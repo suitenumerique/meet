@@ -41,6 +41,7 @@ import { useSnapshot } from 'valtio'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { userStore } from '@/stores/user'
 import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
+import { AwayMediaGuard } from '@/features/rooms/livekit/components/AwayMediaGuard'
 import { MeetDevtools } from '@/features/devtools'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
@@ -324,6 +325,7 @@ export const Conference = ({
           onConnected={handleConnected}
           onDisconnected={handleDisconnected}
         >
+          <AwayMediaGuard />
           <WatchMediaDeviceErrors />
           <VideoConference />
           {!isMobile && <InviteDialog mode={mode} />}

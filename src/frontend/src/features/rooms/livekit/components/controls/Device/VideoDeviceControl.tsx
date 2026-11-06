@@ -1,4 +1,9 @@
 import { useTranslation } from 'react-i18next'
+import {
+  useParticipantAttribute,
+  useRoomContext,
+} from '@livekit/components-react'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine, RiImageCircleAiFill } from '@remixicon/react'
@@ -106,6 +111,11 @@ export const VideoDeviceControl = ({
 
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.VIDEO}`)
   const canPublishTrack = useCanPublishTrack(TrackSource.CAMERA)
+  const localParticipant = useRoomContext().localParticipant
+  const isAway =
+    useParticipantAttribute(AWAY_ATTRIBUTE, {
+      participant: localParticipant,
+    }) === 'away'
 
   return (
     <div
@@ -116,7 +126,7 @@ export const VideoDeviceControl = ({
     >
       <ToggleDevice
         {...trackProps}
-        isDisabled={!canPublishTrack}
+        isDisabled={!canPublishTrack || isAway}
         kind={kind}
         toggle={toggleWithProcessor}
         overrideToggleButtonProps={{
@@ -160,6 +170,7 @@ export const VideoDeviceControl = ({
                 <SelectDevice
                   context="room"
                   kind={kind}
+                  isDisabled={isAway}
                   id={videoDeviceId}
                   onSubmit={saveVideoInputDeviceId}
                 />

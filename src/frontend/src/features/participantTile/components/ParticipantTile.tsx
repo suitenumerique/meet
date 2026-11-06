@@ -10,6 +10,7 @@ import {
   TrackRefContext,
   ParticipantContextIfNeeded,
   useParticipantInfo,
+  useParticipantAttribute,
 } from '@livekit/components-react'
 import {
   isEqualTrackRef,
@@ -28,6 +29,8 @@ import { KeyboardShortcutHint } from './KeyboardShortcutHint'
 import { layoutStore, clearPinnedTrack } from '@/stores/layout'
 import { ParticipantMetadata } from './ParticipantMetadata'
 import { getParticipantColor } from '@/features/rooms/utils/getParticipantColor'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
+import { css } from '@/styled-system/css'
 
 export function TrackRefContextIfNeeded(
   props: React.PropsWithChildren<{
@@ -95,6 +98,12 @@ export const ParticipantTile: (
   const [hasKeyboardFocus, setHasKeyboardFocus] = React.useState(false)
 
   const participantColor = getParticipantColor(trackReference.participant)
+  const awayStatus = useParticipantAttribute(AWAY_ATTRIBUTE, {
+    participant: trackReference.participant,
+  })
+  const showAway =
+    trackReference.source === Track.Source.Camera && awayStatus === 'away'
+  const { t: translateRoom } = useTranslation('rooms')
 
   const { identity, name } = useParticipantInfo({
     participant: trackReference.participant,
@@ -177,7 +186,7 @@ export const ParticipantTile: (
           )}
           {children ?? (
             <>
-              {trackMedia}
+              {!showAway && trackMedia}
               <div className="lk-participant-placeholder">
                 <ParticipantPlaceholder
                   color={participantColor}
@@ -192,6 +201,35 @@ export const ParticipantTile: (
                 />
               )}
             </>
+          )}
+          {showAway && (
+            <div
+              role="img"
+              aria-label={translateRoom('controls.away.status')}
+              className={css({
+                position: 'absolute',
+                inset: 0,
+                zIndex: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                backgroundColor: 'primaryDark.75',
+                color: 'white',
+                pointerEvents: 'none',
+              })}
+            >
+              <span
+                aria-hidden="true"
+                className={css({ fontSize: 'clamp(3rem, 12cqi, 6rem)' })}
+              >
+                ☕
+              </span>
+              <span className={css({ fontSize: 'lg', fontWeight: 'semibold' })}>
+                {translateRoom('controls.away.status')}
+              </span>
+            </div>
           )}
           {!disableMetadata && !disableTileControls && (
             <ParticipantTileFocus

@@ -4,10 +4,12 @@ import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import {
   useIsSpeaking,
   useMediaDeviceSelect,
+  useParticipantAttribute,
   useRoomContext,
 } from '@livekit/components-react'
 import { isSafari } from '@/utils/livekit'
 import { useTranslation } from 'react-i18next'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
 import { SoundTester } from '@/components/SoundTester'
 import { ActiveSpeaker } from '@/features/rooms/components/ActiveSpeaker'
 import { useNoiseReductionAvailable } from '@/features/rooms/livekit/hooks/useNoiseReductionAvailable'
@@ -29,6 +31,10 @@ type DeviceItems = Array<{ value: string; label: string }>
 export const AudioTab = ({ id }: AudioTabProps) => {
   const { t } = useTranslation('settings')
   const { localParticipant } = useRoomContext()
+  const isAway =
+    useParticipantAttribute(AWAY_ATTRIBUTE, {
+      participant: localParticipant,
+    }) === 'away'
 
   const { noiseReductionEnabled, audioDeviceId, audioOutputDeviceId } =
     useSnapshot(userChoicesStore)
@@ -74,7 +80,9 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           label={t('audio.microphone.label')}
           items={itemsIn}
           selectedKey={audioDeviceId}
+          isDisabled={isAway}
           onSelectionChange={async (key) => {
+            if (isAway) return
             await setActiveMediaDeviceIn(key as string)
             saveAudioInputDeviceId(key as string)
           }}
