@@ -12,6 +12,8 @@ from django.utils.module_loading import import_string
 
 from livekit import api as livekit_api
 
+from ... import utils
+
 logger = logging.getLogger(__name__)
 
 # Codec / frequency constants matching LiveKit's H264_720P_30 preset.
@@ -91,7 +93,7 @@ class WorkerServiceConfig:
 
         return cls(
             output_folder=settings.RECORDING_OUTPUT_FOLDER,
-            server_configurations=settings.LIVEKIT_CONFIGURATION,
+            server_configurations=utils.livekit_api_configuration(),
             bucket_args={
                 "endpoint": settings.AWS_S3_ENDPOINT_URL,
                 "access_key": settings.AWS_S3_ACCESS_KEY_ID,

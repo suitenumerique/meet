@@ -46,6 +46,7 @@ from core.api.exceptions import ensure_room_not_deleted
 from core.api.filters import ListFileFilter
 from core.api.locks import room_locked_for_update
 from core.enums import MEDIA_STORAGE_URL_PATTERN
+from core.livekit.clusters import get_default_livekit_cluster
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import RecordingProcessWebhookAuthentication
 from core.recording.services.metadata_collector import (
@@ -1730,6 +1731,7 @@ class DiagnosticsViewSet(viewsets.ViewSet):
         """
         room = f"{settings.CONNECTION_TEST_ROOM_PREFIX}-{uuid4()}"
         expires_in = settings.CONNECTION_TEST_TOKEN_TTL_SECONDS
+        cluster = get_default_livekit_cluster()
 
         # LiveKit refreshes tokens for connected clients, so JWT TTL alone does not
         # eject someone who stays connected. Schedule a hard DeleteRoom when Celery
@@ -1747,13 +1749,14 @@ class DiagnosticsViewSet(viewsets.ViewSet):
         return drf_response.Response(
             {
                 "livekit": {
-                    "url": settings.LIVEKIT_CONFIGURATION["url"],
+                    "url": cluster.url,
                     "room": room,
                     "token": generate_token(
                         room=room,
                         user=request.user,
                         username="Connection Test",
                         ttl=timedelta(seconds=expires_in),
+                        cluster=cluster,
                     ),
                     "expires_in": expires_in,
                 },

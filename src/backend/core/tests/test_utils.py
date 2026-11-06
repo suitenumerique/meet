@@ -3,9 +3,12 @@ Test utils functions
 """
 
 # pylint: disable=W0621
+import asyncio
+import contextlib
 import json
 import socket
 import threading
+import time
 from unittest import mock
 
 from django.conf import settings
@@ -14,18 +17,24 @@ from django.contrib.auth.models import AnonymousUser
 import jwt
 import pytest
 from asgiref.sync import async_to_sync
-from livekit.api import TwirpError
+from livekit.api import (  # pylint: disable=no-name-in-module
+    DeleteRoomRequest,
+    TwirpError,
+)
 
 from core.factories import UserFactory
+from core.livekit.clusters import get_livekit_cluster
 from core.services.participants_management import (
     ParticipantsManagement,
     ParticipantsManagementException,
 )
 from core.services.room_management import RoomManagement, RoomManagementException
 from core.services.sip_management import SIPException, SIPManagement
+from core.tests.utils import livekit_cluster_entry
 from core.utils import (
     NotificationError,
     create_livekit_client,
+    generate_livekit_config,
     generate_token,
     normalize_email,
     notify_participants,
@@ -40,6 +49,20 @@ def decode_token(token: str) -> dict:
         token,
         settings.LIVEKIT_CONFIGURATION["api_secret"],
         algorithms=["HS256"],
+    )
+
+
+@pytest.fixture
+def two_clusters(settings):
+    """Register the Paris and Lyon LiveKit clusters, Paris being the default.
+
+    Django calls each of them on an API URL apart from the one browsers use.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [
+            livekit_cluster_entry("paris", api_url="http://livekit.paris.svc:7880"),
+            livekit_cluster_entry("lyon", api_url="http://livekit.lyon.svc:7880"),
+        ]
     )
 
 
@@ -117,6 +140,47 @@ def test_anonymous_falls_back_to_anonymous_label():
     assert claims["name"] == "Anonymous"
 
 
+@pytest.mark.usefixtures("two_clusters")
+@pytest.mark.parametrize(
+    ("name", "expected"), [(None, "paris"), ("paris", "paris"), ("lyon", "lyon")]
+)
+def test_generate_token_cluster(name, expected):
+    """A token is signed with the API key and secret of its cluster.
+
+    It is for the default cluster when none is given.
+    """
+    cluster = get_livekit_cluster(name) if name else None
+    expected_cluster = get_livekit_cluster(expected)
+
+    token = generate_token(room="my-room", user=AnonymousUser(), cluster=cluster)
+
+    claims = jwt.decode(token, expected_cluster.api_secret, algorithms=["HS256"])
+    assert claims["iss"] == expected_cluster.api_key
+
+
+@pytest.mark.usefixtures("two_clusters")
+@pytest.mark.parametrize(("name", "expected"), [(None, "paris"), ("lyon", "lyon")])
+def test_generate_livekit_config_cluster(name, expected):
+    """Browsers get the URL of the cluster and a token signed for it.
+
+    The default cluster is used when none is given.
+    """
+    cluster = get_livekit_cluster(name) if name else None
+    expected_cluster = get_livekit_cluster(expected)
+
+    config = generate_livekit_config(
+        room_id="my-room", user=AnonymousUser(), username="Guest42", cluster=cluster
+    )
+
+    assert config["url"] == expected_cluster.url
+    assert config["room"] == "my-room"
+    claims = jwt.decode(
+        config["token"], expected_cluster.api_secret, algorithms=["HS256"]
+    )
+    assert claims["iss"] == expected_cluster.api_key
+    assert claims["video"]["room"] == "my-room"
+
+
 @pytest.fixture
 def fake_livekit(request):
     """A LiveKit address that takes the connection, sends `request.param`, then waits."""
@@ -186,6 +250,63 @@ def test_create_livekit_client_lets_an_answer_through(fake_livekit, settings):
     settings.LIVEKIT_API_TIMEOUT_SECONDS = 1
 
     RoomManagement.delete_room("room-abc")
+
+
+@pytest.fixture
+def slow_livekit():
+    """A LiveKit address that answers every call half a second after it is made."""
+    server = socket.create_server(("127.0.0.1", 0))
+    held = []
+
+    def answer_later(connection):
+        time.sleep(0.5)
+        with contextlib.suppress(OSError):
+            connection.sendall(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+
+    def accept():
+        while True:
+            try:
+                connection, _ = server.accept()
+            except OSError:
+                return
+            held.append(connection)
+            threading.Thread(
+                target=answer_later, args=(connection,), daemon=True
+            ).start()
+
+    threading.Thread(target=accept, daemon=True).start()
+    yield f"http://127.0.0.1:{server.getsockname()[1]:d}"
+    server.close()
+    for connection in held:
+        connection.close()
+
+
+def test_create_livekit_client_timeout(slow_livekit, settings):
+    """A client given a timeout gives up after it, other clients keep the set one."""
+    settings.LIVEKIT_CONFIGURATION = {
+        **settings.LIVEKIT_CONFIGURATION,
+        "url": slow_livekit,
+    }
+    settings.LIVEKIT_API_TIMEOUT_SECONDS = 5
+
+    async def delete_room(client):
+        try:
+            return await client.room.delete_room(DeleteRoomRequest(room="room-abc"))
+        finally:
+            await client.aclose()
+
+    @async_to_sync
+    async def delete_rooms():
+        patient = create_livekit_client()
+        hasty = create_livekit_client(timeout=0.1)
+        return await asyncio.gather(
+            delete_room(patient), delete_room(hasty), return_exceptions=True
+        )
+
+    patient, hasty = delete_rooms()
+
+    assert not isinstance(patient, BaseException)
+    assert isinstance(hasty, TimeoutError)
 
 
 class TimingOutClient:
@@ -319,6 +440,34 @@ def test_create_livekit_client_custom_configuration():
         return url
 
     assert url_of_new_client().startswith("http://mock-url.com")
+
+
+@pytest.mark.usefixtures("two_clusters")
+@pytest.mark.parametrize(("name", "expected"), [(None, "paris"), ("lyon", "lyon")])
+def test_create_livekit_client_cluster(name, expected):
+    """A client calls its cluster on the API URL, with the cluster's key and secret.
+
+    The default cluster is called when none is given.
+    """
+    cluster = get_livekit_cluster(name) if name else None
+    expected_cluster = get_livekit_cluster(expected)
+
+    @async_to_sync
+    async def target_of_new_client():
+        client = create_livekit_client(cluster=cluster)
+        room_service = client.room
+        await client.aclose()
+        return (
+            room_service._client.host,  # pylint: disable=protected-access
+            room_service.api_key,
+            room_service.api_secret,
+        )
+
+    assert target_of_new_client() == (
+        expected_cluster.api_url,
+        expected_cluster.api_key,
+        expected_cluster.api_secret,
+    )
 
 
 @mock.patch("core.utils.create_livekit_client")
