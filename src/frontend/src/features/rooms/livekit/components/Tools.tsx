@@ -123,7 +123,7 @@ export const Tools = () => {
 
   const isTranscriptEnabled = useIsRecordingModeEnabled(
     RecordingMode.Transcript
-  )
+  ) && data?.show_transcription_button
 
   const isScreenRecordingEnabled = useIsRecordingModeEnabled(
     RecordingMode.ScreenRecording
