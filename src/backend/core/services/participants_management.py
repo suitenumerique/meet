@@ -19,6 +19,8 @@ from livekit.api import (
 from livekit.protocol.models import ParticipantInfo
 
 from core import utils
+from core.livekit.clusters import LiveKitClusterConfig
+from core.livekit.placements import PlacementService
 
 from .lobby import LobbyService
 from .presence import PresenceCache
@@ -37,11 +39,31 @@ class ParticipantNotFoundException(ParticipantsManagementException):
 class ParticipantsManagement:
     """Service for managing participants."""
 
-    @async_to_sync
-    async def mute(self, room_name: str, identity: str, track_sid: str):
+    def mute(
+        self,
+        room_name: str,
+        identity: str,
+        track_sid: str,
+        *,
+        cluster: Optional[LiveKitClusterConfig] = None,
+    ):
         """Mute a specific audio or video track for a participant in a room."""
 
-        lkapi = utils.create_livekit_client()
+        cluster = cluster or PlacementService.cluster_for(room_name)
+        self._mute(room_name, identity, track_sid, cluster=cluster)
+
+    @async_to_sync
+    async def _mute(
+        self,
+        room_name: str,
+        identity: str,
+        track_sid: str,
+        *,
+        cluster: LiveKitClusterConfig,
+    ):
+        """Mute a participant's track in a LiveKit room on a LiveKit cluster."""
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
 
         try:
             await lkapi.room.mute_published_track(
@@ -72,9 +94,23 @@ class ParticipantsManagement:
         finally:
             await lkapi.aclose()
 
-    @async_to_sync
-    async def remove(self, room_name: str, identity: str):
+    def remove(
+        self,
+        room_name: str,
+        identity: str,
+        *,
+        cluster: Optional[LiveKitClusterConfig] = None,
+    ):
         """Remove a participant from a room and clear their lobby/presence cache."""
+
+        cluster = cluster or PlacementService.cluster_for(room_name)
+        self._remove(room_name, identity, cluster=cluster)
+
+    @async_to_sync
+    async def _remove(
+        self, room_name: str, identity: str, *, cluster: LiveKitClusterConfig
+    ):
+        """Remove a participant from a LiveKit room on a LiveKit cluster."""
 
         PresenceCache().clear(room_name, identity)
 
@@ -90,7 +126,7 @@ class ParticipantsManagement:
                 exc_info=exc,
             )
 
-        lkapi = utils.create_livekit_client()
+        lkapi = utils.create_livekit_client(cluster=cluster)
 
         try:
             await lkapi.room.remove_participant(
@@ -115,8 +151,7 @@ class ParticipantsManagement:
         finally:
             await lkapi.aclose()
 
-    @async_to_sync
-    async def update(  # noqa: PLR0917
+    def update(  # noqa: PLR0917
         self,
         room_name: str,
         identity: str,
@@ -124,10 +159,37 @@ class ParticipantsManagement:
         attributes: Optional[Dict] = None,
         permission: Optional[Dict] = None,
         name: Optional[str] = None,
+        *,
+        cluster: Optional[LiveKitClusterConfig] = None,
     ):
         """Update participant properties such as metadata, attributes, permissions, or name."""
 
-        lkapi = utils.create_livekit_client()
+        cluster = cluster or PlacementService.cluster_for(room_name)
+        self._update(
+            room_name,
+            identity,
+            cluster=cluster,
+            metadata=metadata,
+            attributes=attributes,
+            permission=permission,
+            name=name,
+        )
+
+    @async_to_sync
+    async def _update(
+        self,
+        room_name: str,
+        identity: str,
+        *,
+        cluster: LiveKitClusterConfig,
+        metadata: Optional[Dict],
+        attributes: Optional[Dict],
+        permission: Optional[Dict],
+        name: Optional[str],
+    ):
+        """Update a participant of a LiveKit room on a LiveKit cluster."""
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
 
         try:
             await lkapi.room.update_participant(
@@ -184,8 +246,13 @@ class ParticipantsManagement:
 
         return present
 
-    @async_to_sync
-    async def check_if_in_meeting(self, room_name: str, identity: str) -> bool:
+    def check_if_in_meeting(
+        self,
+        room_name: str,
+        identity: str,
+        *,
+        cluster: Optional[LiveKitClusterConfig] = None,
+    ) -> bool:
         """Check whether `identity` is currently a participant in `room_name`.
 
         Raises ParticipantsManagementException for unexpected LiveKit errors
@@ -195,7 +262,16 @@ class ParticipantsManagement:
         if not room_name or not identity:
             return False
 
-        lkapi = utils.create_livekit_client()
+        cluster = cluster or PlacementService.cluster_for(room_name)
+        return self._check_if_in_meeting(room_name, identity, cluster=cluster)
+
+    @async_to_sync
+    async def _check_if_in_meeting(
+        self, room_name: str, identity: str, *, cluster: LiveKitClusterConfig
+    ) -> bool:
+        """Check whether `identity` is a participant of a LiveKit room on a cluster."""
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
 
         try:
             participant = await lkapi.room.get_participant(

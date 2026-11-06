@@ -24,6 +24,7 @@ from livekit.api import (  # pylint: disable=no-name-in-module
 
 from core.factories import UserFactory
 from core.livekit.clusters import get_livekit_cluster
+from core.models import Placement
 from core.services.participants_management import (
     ParticipantsManagement,
     ParticipantsManagementException,
@@ -581,3 +582,37 @@ def test_normalize_email():
     assert normalize_email("Élise@Example.com") == "Élise@example.com"
     assert normalize_email("") == ""
     assert normalize_email(None) == ""
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_notify_participants_on_the_placed_cluster(
+    mock_create_livekit_client, two_livekit_clusters, django_assert_num_queries
+):
+    """Participants are notified on the LiveKit cluster their room is placed on."""
+    _paris, lyon = two_livekit_clusters
+    Placement.objects.create(room_name="room-number-1", cluster="lyon")
+    mock_create_livekit_client.return_value = mock.AsyncMock()
+
+    with django_assert_num_queries(1):
+        notify_participants(room_name="room-number-1", notification_data={"foo": "foo"})
+
+    mock_create_livekit_client.assert_called_once_with(cluster=lyon)
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_notify_participants_on_the_given_cluster(
+    mock_create_livekit_client, two_livekit_clusters, django_assert_num_queries
+):
+    """Participants are notified on the cluster given, whatever the placement."""
+    paris, _lyon = two_livekit_clusters
+    Placement.objects.create(room_name="room-number-1", cluster="lyon")
+    mock_create_livekit_client.return_value = mock.AsyncMock()
+
+    with django_assert_num_queries(0):
+        notify_participants(
+            room_name="room-number-1",
+            notification_data={"foo": "foo"},
+            cluster=paris,
+        )
+
+    mock_create_livekit_client.assert_called_once_with(cluster=paris)

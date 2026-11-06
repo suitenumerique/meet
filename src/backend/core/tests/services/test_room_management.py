@@ -8,7 +8,7 @@ import pytest
 from livekit.api import TwirpError
 
 from core.factories import RoomFactory
-from core.models import Room, RoomAccessLevel
+from core.models import Placement, Room, RoomAccessLevel
 from core.services.room_management import (
     RoomManagement,
     RoomManagementException,
@@ -297,3 +297,61 @@ def test_sync_room_metadata_pushes_configuration_and_access_level(mock_update_me
             "access_level": RoomAccessLevel.RESTRICTED,
         },
     )
+
+
+def live_room_client():
+    """Return a LiveKit client mock on which the room is live, without metadata."""
+    client = mock.AsyncMock()
+    client.room.list_rooms.return_value = mock.Mock(rooms=[mock.Mock(metadata="")])
+    return client
+
+
+ROOM_CALLS = [
+    pytest.param(
+        lambda room_name, **kwargs: RoomManagement.update_metadata(
+            room_name, {"key": "value"}, **kwargs
+        ),
+        id="update_metadata",
+    ),
+    pytest.param(RoomManagement.delete_room, id="delete_room"),
+]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("manage_room", ROOM_CALLS)
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_room_managed_on_the_placed_cluster(
+    mock_create_livekit_client,
+    manage_room,
+    two_livekit_clusters,
+    django_assert_num_queries,
+):
+    """A LiveKit room is managed on the LiveKit cluster it is placed on."""
+    _paris, lyon = two_livekit_clusters
+    Placement.objects.create(room_name="room-abc", cluster="lyon")
+    mock_create_livekit_client.return_value = live_room_client()
+
+    with django_assert_num_queries(1):
+        manage_room("room-abc")
+
+    mock_create_livekit_client.assert_called_once_with(cluster=lyon)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("manage_room", ROOM_CALLS)
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_room_managed_on_the_given_cluster(
+    mock_create_livekit_client,
+    manage_room,
+    two_livekit_clusters,
+    django_assert_num_queries,
+):
+    """A LiveKit room is managed on the cluster given, whatever its placement."""
+    paris, _lyon = two_livekit_clusters
+    Placement.objects.create(room_name="room-abc", cluster="lyon")
+    mock_create_livekit_client.return_value = live_room_client()
+
+    with django_assert_num_queries(0):
+        manage_room("room-abc", cluster=paris)
+
+    mock_create_livekit_client.assert_called_once_with(cluster=paris)

@@ -19,6 +19,8 @@ from livekit.api import (
 )
 
 from core import utils
+from core.livekit.clusters import LiveKitClusterConfig
+from core.livekit.placements import PlacementService
 from core.models import Room
 
 from .sip_management import SIPException, SIPManagement
@@ -38,24 +40,41 @@ class RoomManagement:
     """Service for managing LiveKit rooms."""
 
     @classmethod
-    @async_to_sync
-    async def update_metadata(
+    def update_metadata(
         cls,
         room_name: str,
         metadata: Optional[Dict] = None,
         remove_keys: Optional[list[str]] = None,
+        *,
+        cluster: Optional[LiveKitClusterConfig] = None,
     ):
         """Merge values into a LiveKit room's metadata.
 
         The `room_name` corresponds to the LiveKit room identifier
-        (i.e. the Room model's UUID as a string).
+        (i.e. the Room model's UUID as a string). The LiveKit room is
+        updated on `cluster`, by default the LiveKit cluster it is placed on.
 
         Raises:
             RoomNotFoundException: the room does not exist in LiveKit.
             RoomManagementException: the metadata update otherwise fails.
         """
 
-        lkapi = utils.create_livekit_client()
+        cluster = cluster or PlacementService.cluster_for(room_name)
+        cls._update_metadata(room_name, metadata, remove_keys, cluster=cluster)
+
+    @classmethod
+    @async_to_sync
+    async def _update_metadata(
+        cls,
+        room_name: str,
+        metadata: Optional[Dict],
+        remove_keys: Optional[list[str]],
+        *,
+        cluster: LiveKitClusterConfig,
+    ):
+        """Merge values into a LiveKit room's metadata on a LiveKit cluster."""
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
 
         try:
             response = await lkapi.room.list_rooms(ListRoomsRequest(names=[room_name]))
@@ -95,16 +114,28 @@ class RoomManagement:
             await lkapi.aclose()
 
     @classmethod
-    @async_to_sync
-    async def delete_room(cls, room_name: str):
+    def delete_room(
+        cls, room_name: str, *, cluster: Optional[LiveKitClusterConfig] = None
+    ):
         """Delete a LiveKit room and disconnect all participants.
+
+        The LiveKit room is deleted on `cluster`, by default the LiveKit
+        cluster it is placed on.
 
         Raises:
             RoomNotFoundException: the room does not exist in LiveKit.
             RoomManagementException: the deletion otherwise fails.
         """
 
-        lkapi = utils.create_livekit_client()
+        cluster = cluster or PlacementService.cluster_for(room_name)
+        cls._delete_room(room_name, cluster=cluster)
+
+    @classmethod
+    @async_to_sync
+    async def _delete_room(cls, room_name: str, *, cluster: LiveKitClusterConfig):
+        """Delete a LiveKit room on a LiveKit cluster."""
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
 
         try:
             await lkapi.room.delete_room(DeleteRoomRequest(room=room_name))
