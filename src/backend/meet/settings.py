@@ -1613,9 +1613,26 @@ class Base(Configuration):
 
         Unset, the registry holds a single cluster built from
         LIVEKIT_CONFIGURATION, so every source of clusters is covered.
+
+        Telephony and roomkit need a single cluster, so LIVEKIT_CLUSTERS may list
+        more than one only while both are disabled.
         """
-        if cls.LIVEKIT_CLUSTERS is not None:
-            parse_livekit_clusters(cls.LIVEKIT_CLUSTERS)
+        if cls.LIVEKIT_CLUSTERS is None:
+            return
+        clusters = parse_livekit_clusters(cls.LIVEKIT_CLUSTERS)
+        enabled = [
+            name
+            for name in ("ROOM_TELEPHONY_ENABLED", "ROOMKIT_ENABLED")
+            if getattr(cls, name)
+        ]
+        if len(clusters) > 1 and enabled:
+            raise ValueError(
+                f"{' and '.join(enabled)} cannot be combined with more than one "
+                f"LiveKit cluster, and LIVEKIT_CLUSTERS lists {len(clusters)}: "
+                "phone and roomkit callers reach the SIP server of one cluster "
+                "before their PIN is known, so Django cannot route them to the "
+                "cluster their room is placed on."
+            )
 
     @classmethod
     def _configure_database_pool(cls):
