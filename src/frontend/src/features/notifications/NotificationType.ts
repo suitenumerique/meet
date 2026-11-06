@@ -1,5 +1,6 @@
 export enum NotificationType {
   AutoMuteLargeRoom = 'autoMuteLargeRoom',
+  AwayModeFailure = 'awayModeFailure',
   ParticipantJoined = 'participantJoined',
   HandRaised = 'handRaised',
   ParticipantMuted = 'participantMuted',

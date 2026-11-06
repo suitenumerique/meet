@@ -672,6 +672,12 @@ class RaiseHandSerializer(BaseValidationOnlySerializer):
     raised = serializers.BooleanField()
 
 
+class SetAwayStatusSerializer(BaseValidationOnlySerializer):
+    """Allow only a boolean away status, never a participant identity."""
+
+    away = serializers.BooleanField()
+
+
 class RenameParticipantSerializer(BaseValidationOnlySerializer):
     """Serializer for renaming a participant in a room."""
 

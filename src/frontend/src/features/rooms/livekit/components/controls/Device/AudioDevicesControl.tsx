@@ -1,8 +1,11 @@
 import { useTranslation } from 'react-i18next'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
 import {
+  useParticipantAttribute,
+  useRoomContext,
   useLocalParticipant,
   useTrackToggle,
-  UseTrackToggleProps,
+  type UseTrackToggleProps,
 } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine } from '@remixicon/react'
@@ -66,6 +69,11 @@ export const AudioDevicesControl = ({
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.AUDIO}`)
 
   const canPublishTrack = useCanPublishTrack(TrackSource.MICROPHONE)
+  const localParticipant = useRoomContext().localParticipant
+  const isAway =
+    useParticipantAttribute(AWAY_ATTRIBUTE, {
+      participant: localParticipant,
+    }) === 'away'
 
   return (
     <div
@@ -76,7 +84,7 @@ export const AudioDevicesControl = ({
     >
       <ToggleDevice
         {...trackProps}
-        isDisabled={!canPublishTrack}
+        isDisabled={!canPublishTrack || isAway}
         kind={kind}
         toggle={trackProps.toggle as () => Promise<boolean | undefined>}
         overrideToggleButtonProps={{
@@ -120,6 +128,7 @@ export const AudioDevicesControl = ({
                 <SelectDevice
                   context="room"
                   kind={kind}
+                  isDisabled={isAway}
                   id={audioDeviceId}
                   track={localAudioTrack}
                   onSubmit={saveAudioInputDeviceId}

@@ -16,6 +16,7 @@ import { VideoDeviceControl } from '../../components/controls/Device/VideoDevice
 import { AudioDevicesControl } from '../../components/controls/Device/AudioDevicesControl'
 import { ReactionsToggle } from '@/features/reactions/components/ReactionsToggle'
 import { ControlBarRegion } from '@/features/layout/components/ControlBarRegion'
+import { AwayToggle } from '../../components/controls/AwayToggle'
 
 export function DesktopControlBar({
   onDeviceError,
@@ -90,6 +91,7 @@ export function DesktopControlBar({
         )}
         <SubtitlesToggle />
         <HandToggle />
+        <AwayToggle />
         <OptionsButton />
         <LeaveButton />
         <StartMediaButton />

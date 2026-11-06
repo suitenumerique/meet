@@ -1,5 +1,10 @@
 import { Button } from '@/primitives'
-import { useMediaDeviceSelect } from '@livekit/components-react'
+import {
+  useMediaDeviceSelect,
+  useParticipantAttribute,
+  useRoomContext,
+} from '@livekit/components-react'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
 import { RiCameraSwitchLine } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 import type { ButtonProps } from 'react-aria-components'
@@ -13,6 +18,11 @@ enum FacingMode {
 
 export const CameraSwitchButton = (props: Partial<ButtonProps>) => {
   const { t } = useTranslation('rooms')
+  const localParticipant = useRoomContext().localParticipant
+  const isAway =
+    useParticipantAttribute(AWAY_ATTRIBUTE, {
+      participant: localParticipant,
+    }) === 'away'
 
   const { devices, activeDeviceId, setActiveMediaDevice } =
     useMediaDeviceSelect({
@@ -113,7 +123,9 @@ export const CameraSwitchButton = (props: Partial<ButtonProps>) => {
   }
   return (
     <Button
+      isDisabled={isAway}
       onPress={(e) => {
+        if (isAway) return
         toggle()
         props.onPress?.(e)
       }}

@@ -7,13 +7,21 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { StyledToastContainer } from './StyledToastContainer'
-import { useRoomContext } from '@livekit/components-react'
+import {
+  useParticipantAttribute,
+  useRoomContext,
+} from '@livekit/components-react'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
 
 export function ToastAutoMuteLargeRoom({
   state,
   ...props
 }: Readonly<ToastProps>) {
   const room = useRoomContext()
+  const isAway =
+    useParticipantAttribute(AWAY_ATTRIBUTE, {
+      participant: room.localParticipant,
+    }) === 'away'
   const { t } = useTranslation('notifications', {
     keyPrefix: 'autoMuteLargeRoom',
   })
@@ -22,6 +30,10 @@ export function ToastAutoMuteLargeRoom({
   const toast = props.toast
 
   const handleDismiss = async () => {
+    if (isAway) {
+      state.close(toast.key)
+      return
+    }
     room.localParticipant
       .setMicrophoneEnabled(true)
       .finally(() => state.close(toast.key))
