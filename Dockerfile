@@ -9,7 +9,8 @@ RUN python -m pip install --upgrade pip
 # Upgrade system packages to install security updates
 RUN apk update && \
   apk upgrade && \
-  apk add --no-cache --upgrade 'ca-certificates>=20261020-r0' && \
+  apk add --no-cache --upgrade 'ca-certificates>=20261020-r0' \
+    'musl-utils>=1.2.6-r3' && \
   update-ca-certificates
 
 # ---- Back-end builder image ----

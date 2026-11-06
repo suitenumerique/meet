@@ -1,6 +1,7 @@
 FROM python:3.13.16-alpine3.24 AS base
 
-RUN apk add --no-cache --upgrade 'ca-certificates>=20261020-r0'
+RUN apk add --no-cache --upgrade 'ca-certificates>=20261020-r0' \
+    'musl-utils>=1.2.6-r3'
 
 
 # Install ffmpeg for audio/video processing (format conversion, extraction, compression)
