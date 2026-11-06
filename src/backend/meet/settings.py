@@ -29,6 +29,8 @@ from pydantic import ValidationError as PydanticValidationError
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
+from core.livekit.specs import parse_livekit_clusters
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
 
@@ -778,6 +780,10 @@ class Base(Configuration):
         ),
         "url": values.Value(environ_name="LIVEKIT_API_URL", environ_prefix=None),
     }
+    LIVEKIT_CLUSTERS = SecretFileValue(
+        None, environ_name="LIVEKIT_CLUSTERS", environ_prefix=None
+    )
+
     LIVEKIT_FORCE_WSS_PROTOCOL = values.BooleanValue(
         False, environ_name="LIVEKIT_FORCE_WSS_PROTOCOL", environ_prefix=None
     )
@@ -1594,6 +1600,16 @@ class Base(Configuration):
             )
 
     @classmethod
+    def _check_livekit_clusters(cls):
+        """Ensure LIVEKIT_CLUSTERS, when set, lists valid LiveKit clusters.
+
+        Unset, the registry holds a single cluster built from
+        LIVEKIT_CONFIGURATION, so every source of clusters is covered.
+        """
+        if cls.LIVEKIT_CLUSTERS is not None:
+            parse_livekit_clusters(cls.LIVEKIT_CLUSTERS)
+
+    @classmethod
     def _configure_database_pool(cls):
         """Inject the psycopg pool options into the default database when enabled."""
         if not cls.DB_PSYCOPG_POOL_ENABLED:
@@ -1653,6 +1669,7 @@ class Base(Configuration):
         cls._check_recording_encoding_maps()
         cls._check_audit_log_data_stream_namespace()
         cls._configure_database_pool()
+        cls._check_livekit_clusters()
 
         if cls.LIVEKIT_API_TIMEOUT_SECONDS < 1:
             raise ValueError("LIVEKIT_API_TIMEOUT_SECONDS must be at least 1")
@@ -1821,6 +1838,7 @@ class Test(Base):
         "api_secret": "secret-key-padded-for-minimum-len!-livekit",
         "url": "http://127.0.0.1.nip.io:7880",
     }
+    LIVEKIT_CLUSTERS = None
 
     APPLICATION_ENABLED = True
     APPLICATION_JWT_SECRET_KEY = "secret-key-padded-for-minimum-len!-application"  # noqa:S105
