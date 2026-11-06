@@ -1,5 +1,6 @@
 """Shared helpers for tests in the Meet core application"""
 
+import base64
 import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -7,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 from django.conf import settings
 
 import jwt
+from livekit.api import AccessToken
 
 from core.factories import ApplicationFactory
 from core.models import ApplicationScope
@@ -69,6 +71,18 @@ def livekit_cluster_entry(name, **overrides):
         "api_secret": f"secret-{name}-padded-for-minimum-len!-livekit",
         **overrides,
     }
+
+
+def livekit_webhook_token(body, api_key, api_secret):
+    """Return the token a LiveKit cluster sends with a webhook body.
+
+    It is signed with this API key and secret, and holds the body's SHA-256.
+    """
+    token = AccessToken(api_key, api_secret)
+    token.claims.sha256 = base64.b64encode(
+        hashlib.sha256(body.encode()).digest()
+    ).decode()
+    return token.to_jwt()
 
 
 def transit_code_target(code):

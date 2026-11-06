@@ -1,9 +1,17 @@
-"""Registry of the LiveKit clusters on which Django places rooms."""
+"""Registry of the LiveKit clusters on which Django places rooms.
+
+The first registered cluster is the default one. Each cluster has an API key of
+its own, so the issuer of a token or webhook tells which cluster signed it.
+"""
 
 from dataclasses import dataclass, field
 from functools import lru_cache
 
 from django.conf import settings
+
+import jwt
+from livekit.api import TokenVerifier
+from livekit.api.access_token import Claims
 
 from .exceptions import UnknownLiveKitClusterError
 from .specs import parse_livekit_clusters
@@ -96,3 +104,47 @@ def get_livekit_cluster_by_api_key(api_key: str | None) -> LiveKitClusterConfig 
         if cluster.api_key == api_key:
             return cluster
     return None
+
+
+def _get_livekit_cluster_by_issuer(token: str) -> LiveKitClusterConfig:
+    """Return the registered LiveKit cluster whose API key is a token's issuer.
+
+    The issuer is read without verifying the token. A missing issuer, or one
+    that is no registered cluster's API key, raises the error PyJWT raises when
+    an issuer is missing or is not the expected one.
+    """
+    payload = jwt.decode(token, options={"verify_signature": False})
+    if "iss" not in payload:
+        raise jwt.MissingRequiredClaimError("iss")
+    cluster = get_livekit_cluster_by_api_key(payload["iss"])
+    if cluster is None:
+        raise jwt.InvalidIssuerError("Invalid issuer")
+    return cluster
+
+
+class LiveKitClusterTokenVerifier(TokenVerifier):
+    """Verify tokens signed by any registered LiveKit cluster.
+
+    A token's issuer is the API key it was signed with, and each cluster has an
+    API key of its own, so the issuer names the cluster whose API key and secret
+    verify the token. A token without issuer, or issued by no registered
+    cluster, is refused as a TokenVerifier refuses a token without issuer or
+    issued with another API key than its own.
+
+    The claims returned carry that cluster as their `cluster`. The verifier
+    also keeps the cluster of the last token it accepted as its own `cluster`,
+    for callers that never see the claims, such as those of a webhook receiver,
+    which returns the event alone.
+    """
+
+    cluster: LiveKitClusterConfig | None = None
+
+    def verify(self, token: str, *, verify_signature: bool = True) -> Claims:
+        """Return the claims of a token, verified for the cluster that signed it."""
+        cluster = _get_livekit_cluster_by_issuer(token)
+        claims = TokenVerifier(
+            cluster.api_key, cluster.api_secret, leeway=self._leeway
+        ).verify(token, verify_signature=verify_signature)
+        claims.cluster = cluster
+        self.cluster = cluster
+        return claims

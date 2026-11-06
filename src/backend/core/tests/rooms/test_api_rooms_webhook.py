@@ -15,6 +15,7 @@ from livekit import api
 
 from ...factories import RecordingFactory
 from ...services.livekit_events import ActionFailedError, LiveKitEventsService
+from ..utils import livekit_webhook_token
 
 
 @pytest.fixture
@@ -138,6 +139,52 @@ def test_handled_event_type(
     mock_handler.assert_called_once()
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
+
+
+@mock.patch.object(LiveKitEventsService, "_handle_room_finished", autospec=True)
+def test_handled_event_from_another_cluster(
+    mock_handler, client, serialized_event_data, two_livekit_clusters
+):
+    """Should process a webhook signed by any registered LiveKit cluster.
+
+    The service handling it knows which cluster sent it.
+    """
+    _paris, lyon = two_livekit_clusters
+
+    response = client.post(
+        "/api/v1.0/rooms/webhooks-livekit/",
+        data=serialized_event_data,
+        content_type="application/json",
+        HTTP_AUTHORIZATION=livekit_webhook_token(
+            serialized_event_data, lyon.api_key, lyon.api_secret
+        ),
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "success"}
+    mock_handler.assert_called_once()
+    service = mock_handler.call_args.args[0]
+    assert service.cluster == lyon
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+@mock.patch.object(LiveKitEventsService, "_handle_room_finished")
+def test_event_from_an_unknown_cluster(mock_handler, client, serialized_event_data):
+    """Should return 400 for a webhook signed with an API key no cluster uses."""
+    response = client.post(
+        "/api/v1.0/rooms/webhooks-livekit/",
+        data=serialized_event_data,
+        content_type="application/json",
+        HTTP_AUTHORIZATION=livekit_webhook_token(
+            serialized_event_data,
+            "key-lille",
+            "secret-lille-padded-for-minimum-len!-livekit",
+        ),
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"status": "error"}
+    mock_handler.assert_not_called()
 
 
 def test_unhandled_event_type(client, mock_livekit_config):

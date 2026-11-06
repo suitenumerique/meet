@@ -7,6 +7,7 @@ import uuid
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 
 import pytest
 from livekit.api import AccessToken, TwirpError, VideoGrants
@@ -14,6 +15,7 @@ from rest_framework.test import APIClient
 
 from core.factories import RoomFactory, UserFactory
 from core.tests.utils import generate_user_access_token
+from core.utils import generate_token
 
 pytestmark = pytest.mark.django_db
 
@@ -232,6 +234,58 @@ def test_start_subtitle_wrong_signature(settings, mock_livekit_token):
     assert response.json() == {
         "detail": "Invalid LiveKit token: Signature verification failed"
     }
+
+
+def test_start_subtitle_token_from_another_cluster(
+    settings, mock_livekit_client, two_livekit_clusters
+):
+    """Test that a token signed by any registered LiveKit cluster is accepted."""
+
+    settings.ROOM_SUBTITLE_ENABLED = True
+    _paris, lyon = two_livekit_clusters
+
+    room = RoomFactory()
+    token = generate_token(room=str(room.id), user=AnonymousUser(), cluster=lyon)
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-subtitle/",
+        {},
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "success"}
+    mock_livekit_client.agent_dispatch.create_dispatch.assert_called_once()
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+def test_start_subtitle_token_from_an_unknown_cluster(settings, mock_livekit_client):
+    """Test that a token signed with an API key no cluster uses is rejected."""
+
+    settings.ROOM_SUBTITLE_ENABLED = True
+
+    room = RoomFactory()
+    token = (
+        AccessToken(
+            api_key="key-lille",
+            api_secret="secret-lille-padded-for-minimum-len!-livekit",
+        )
+        .with_grants(VideoGrants(room=str(room.id), room_join=True))
+        .with_identity(str(uuid.uuid4()))
+        .to_jwt()
+    )
+    client = APIClient()
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-subtitle/",
+        {},
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
+    )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Invalid LiveKit token: Invalid issuer"}
+    mock_livekit_client.agent_dispatch.create_dispatch.assert_not_called()
 
 
 @pytest.fixture

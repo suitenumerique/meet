@@ -3,6 +3,7 @@ Test LiveKitEvents service.
 """
 # pylint: disable=W0621,W0613, W0212, E0611, E1101, C0302
 
+import json
 import logging
 import uuid
 from datetime import timedelta
@@ -16,6 +17,10 @@ from livekit.api import EgressStatus
 
 from core.audit.testing import find_events
 from core.factories import RecordingFactory, RoomFactory
+from core.livekit.clusters import (
+    LiveKitClusterTokenVerifier,
+    get_default_livekit_cluster,
+)
 from core.models import Room
 from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.recording_events import RecordingEventsService
@@ -40,6 +45,7 @@ from core.services.sip_management import (
     SIPException,
     SIPManagement,
 )
+from core.tests.utils import livekit_webhook_token
 from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
@@ -63,23 +69,68 @@ def service(mock_livekit_config):
     return LiveKitEventsService()
 
 
-@mock.patch("livekit.api.TokenVerifier")
-@mock.patch("livekit.api.WebhookReceiver")
-def test_initialization(
-    mock_webhook_receiver, mock_token_verifier, mock_livekit_config
-):
-    """Should correctly initialize the service with required dependencies."""
+def test_initialization():
+    """Should correctly initialize the service with required dependencies.
 
-    api_key = mock_livekit_config["api_key"]
-    api_secret = mock_livekit_config["api_secret"]
+    Webhooks are verified with the keys of whichever LiveKit cluster signed them.
+    """
 
     service = LiveKitEventsService()
 
-    mock_token_verifier.assert_called_once_with(api_key, api_secret)
-    mock_webhook_receiver.assert_called_once_with(mock_token_verifier.return_value)
+    assert isinstance(service.token_verifier, LiveKitClusterTokenVerifier)
     assert isinstance(service.lobby_service, LobbyService)
     assert isinstance(service.sip_management, SIPManagement)
     assert isinstance(service.recording_events, RecordingEventsService)
+
+
+def test_cluster_defaults_to_the_default_cluster(service):
+    """Before any webhook is received, the service's cluster is the default one.
+
+    Handlers called directly therefore act on the default cluster.
+    """
+    assert service.cluster == get_default_livekit_cluster()
+    assert service.cluster.name == "default"
+
+
+def webhook_request(body, api_key, api_secret):
+    """Return a webhook request whose body is signed with this API key and secret."""
+    request = mock.MagicMock()
+    request.headers = {
+        "Authorization": livekit_webhook_token(body, api_key, api_secret)
+    }
+    request.body = body.encode()
+    return request
+
+
+@mock.patch.object(LiveKitEventsService, "_handle_room_finished")
+def test_receive_identifies_the_cluster(
+    mock_handle_room_finished, two_livekit_clusters
+):
+    """The cluster whose API key signed a webhook becomes the service's cluster."""
+    _paris, lyon = two_livekit_clusters
+    body = json.dumps({"event": "room_finished", "room": {"name": str(uuid.uuid4())}})
+
+    service = LiveKitEventsService()
+    service.receive(webhook_request(body, lyon.api_key, lyon.api_secret))
+
+    mock_handle_room_finished.assert_called_once()
+    assert service.cluster == lyon
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+@mock.patch.object(LiveKitEventsService, "_handle_room_finished")
+def test_receive_unknown_cluster(mock_handle_room_finished):
+    """A webhook signed with an API key no cluster uses is an invalid payload."""
+    body = json.dumps({"event": "room_finished", "room": {"name": str(uuid.uuid4())}})
+    request = webhook_request(
+        body, "key-lille", "secret-lille-padded-for-minimum-len!-livekit"
+    )
+
+    service = LiveKitEventsService()
+    with pytest.raises(InvalidPayloadError, match="Invalid webhook payload"):
+        service.receive(request)
+
+    mock_handle_room_finished.assert_not_called()
 
 
 @pytest.mark.parametrize(
