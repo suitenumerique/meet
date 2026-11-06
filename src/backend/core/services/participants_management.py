@@ -16,7 +16,7 @@ from livekit.api import (
     TwirpErrorCode,
     UpdateParticipantRequest,
 )
-from livekit.protocol.models import ParticipantInfo
+from livekit.protocol.models import ParticipantInfo, ParticipantPermission
 
 from core import utils
 
@@ -122,7 +122,7 @@ class ParticipantsManagement:
         identity: str,
         metadata: Optional[Dict] = None,
         attributes: Optional[Dict] = None,
-        permission: Optional[Dict] = None,
+        permission: Optional[Dict | ParticipantPermission] = None,
         name: Optional[str] = None,
     ):
         """Update participant properties such as metadata, attributes, permissions, or name."""
@@ -224,3 +224,43 @@ class ParticipantsManagement:
             participant is not None
             and participant.state != ParticipantInfo.State.DISCONNECTED
         )
+
+    @async_to_sync
+    async def get_participant(self, room_name: str, identity: str) -> ParticipantInfo:
+        """Fetch participant info from LiveKit."""
+
+        if not room_name or not identity:
+            raise ParticipantNotFoundException("Room name and identity are required")
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            participant = await lkapi.room.get_participant(
+                RoomParticipantIdentity(
+                    room=room_name,
+                    identity=identity,
+                )
+            )
+        except (TwirpError, TimeoutError) as e:
+            if isinstance(e, TwirpError) and e.code == TwirpErrorCode.NOT_FOUND:
+                raise ParticipantNotFoundException("Participant does not exist") from e
+
+            logger.exception(
+                "Unexpected error getting participant %s in room %s",
+                identity,
+                room_name,
+            )
+            raise ParticipantsManagementException(
+                "Could not retrieve participant"
+            ) from e
+
+        finally:
+            await lkapi.aclose()
+
+        if (
+            participant is None
+            or participant.state == ParticipantInfo.State.DISCONNECTED
+        ):
+            raise ParticipantNotFoundException("Participant does not exist")
+
+        return participant
