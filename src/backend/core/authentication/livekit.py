@@ -1,11 +1,11 @@
 """Authentication using LiveKit token for the Meet core app."""
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 
-from livekit.api import TokenVerifier
 from rest_framework import authentication, exceptions
+
+from core.livekit.clusters import LiveKitClusterTokenVerifier
 
 UserModel = get_user_model()
 
@@ -13,7 +13,11 @@ LIVEKIT_AUTH_SCHEME = "X-LiveKit-Token"
 
 
 class LiveKitTokenAuthentication(authentication.BaseAuthentication):
-    """Authenticate using LiveKit token and load the associated Django user."""
+    """Authenticate using LiveKit token and load the associated Django user.
+
+    The token may be signed by any registered LiveKit cluster. The request's
+    auth is the token's claims, which carry that cluster as their `cluster`.
+    """
 
     def authenticate(self, request):
         auth_header = request.headers.get("Authorization")
@@ -35,11 +39,7 @@ class LiveKitTokenAuthentication(authentication.BaseAuthentication):
         token = parts[1]
 
         try:
-            verifier = TokenVerifier(
-                api_key=settings.LIVEKIT_CONFIGURATION["api_key"],
-                api_secret=settings.LIVEKIT_CONFIGURATION["api_secret"],
-            )
-            claims = verifier.verify(token)
+            claims = LiveKitClusterTokenVerifier().verify(token)
 
             user_id = claims.identity
             if not user_id:

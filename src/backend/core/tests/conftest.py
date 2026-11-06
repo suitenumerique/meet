@@ -1,11 +1,14 @@
 """Fixtures for tests in the Meet core application"""
 
+import json
 from unittest import mock
 
 import pytest
 from dockerflow.logging import request_id_context
 
 from core.audit.testing import capture_audit
+from core.livekit.clusters import get_livekit_clusters
+from core.tests.utils import livekit_cluster_entry
 
 USER = "user"
 TEAM = "team"
@@ -37,3 +40,15 @@ def isolated_request_id():
     token = request_id_context.set(None)
     yield
     request_id_context.reset(token)
+
+
+@pytest.fixture
+def two_livekit_clusters(settings):
+    """Register the Paris and Lyon LiveKit clusters, Paris being the default.
+
+    Each has its own API key and secret. Return both clusters, Paris first.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry("paris"), livekit_cluster_entry("lyon")]
+    )
+    return get_livekit_clusters()

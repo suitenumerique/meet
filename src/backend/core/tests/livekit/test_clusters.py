@@ -2,11 +2,17 @@
 
 import dataclasses
 import json
+import time
+from datetime import timedelta
 
+import jwt
 import pytest
+from livekit.api import AccessToken, VideoGrants
+from livekit.api.access_token import Claims
 
 from core.livekit.clusters import (
     LiveKitClusterConfig,
+    LiveKitClusterTokenVerifier,
     get_default_livekit_cluster,
     get_livekit_cluster,
     get_livekit_cluster_by_api_key,
@@ -165,3 +171,90 @@ def test_livekit_cluster_config_is_frozen():
     """A cluster is shared between callers, so it cannot be changed."""
     with pytest.raises(dataclasses.FrozenInstanceError):
         PARIS.url = "wss://elsewhere.livekit.test"
+
+
+def livekit_token(api_key, api_secret, ttl_minutes=60):
+    """Return a participant token signed with this API key and secret."""
+    return (
+        AccessToken(api_key=api_key, api_secret=api_secret)
+        .with_identity("participant-1")
+        .with_grants(VideoGrants(room="my-room", room_join=True))
+        .with_ttl(timedelta(minutes=ttl_minutes))
+        .to_jwt()
+    )
+
+
+@pytest.mark.usefixtures("two_clusters")
+@pytest.mark.parametrize("cluster", [PARIS, LYON], ids=["paris", "lyon"])
+def test_livekit_cluster_token_verifier(cluster):
+    """A token signed by any registered cluster is verified with its keys.
+
+    The claims carry that cluster, and so does the verifier.
+    """
+    verifier = LiveKitClusterTokenVerifier()
+
+    claims = verifier.verify(livekit_token(cluster.api_key, cluster.api_secret))
+
+    assert isinstance(claims, Claims)
+    assert claims.identity == "participant-1"
+    assert claims.video.room == "my-room"
+    assert claims.cluster == cluster
+    assert verifier.cluster == cluster
+
+
+def test_livekit_cluster_token_verifier_from_livekit_configuration(settings):
+    """Without LIVEKIT_CLUSTERS, tokens are verified with LIVEKIT_CONFIGURATION."""
+    configuration = settings.LIVEKIT_CONFIGURATION
+
+    claims = LiveKitClusterTokenVerifier().verify(
+        livekit_token(configuration["api_key"], configuration["api_secret"])
+    )
+
+    assert claims.cluster == get_default_livekit_cluster()
+    assert claims.cluster.name == "default"
+
+
+@pytest.mark.usefixtures("two_clusters")
+def test_livekit_cluster_token_verifier_unknown_api_key():
+    """A token whose API key no cluster uses is refused as having a wrong issuer."""
+    verifier = LiveKitClusterTokenVerifier()
+    token = livekit_token("key-lille", "secret-lille-padded-for-minimum-len!-livekit")
+
+    with pytest.raises(jwt.InvalidIssuerError, match="Invalid issuer"):
+        verifier.verify(token)
+
+    assert verifier.cluster is None
+
+
+@pytest.mark.usefixtures("two_clusters")
+def test_livekit_cluster_token_verifier_missing_issuer():
+    """A token without issuer names no cluster and is refused."""
+    token = jwt.encode(
+        {"sub": "participant-1", "exp": int(time.time()) + 3600},
+        PARIS.api_secret,
+        algorithm="HS256",
+    )
+
+    with pytest.raises(jwt.MissingRequiredClaimError, match='"iss"'):
+        LiveKitClusterTokenVerifier().verify(token)
+
+
+@pytest.mark.usefixtures("two_clusters")
+def test_livekit_cluster_token_verifier_signed_by_another_cluster():
+    """A token issued with the API key of a cluster must be signed with its secret.
+
+    A cluster cannot sign tokens in the name of another one.
+    """
+    token = livekit_token(LYON.api_key, PARIS.api_secret)
+
+    with pytest.raises(jwt.InvalidSignatureError):
+        LiveKitClusterTokenVerifier().verify(token)
+
+
+@pytest.mark.usefixtures("two_clusters")
+def test_livekit_cluster_token_verifier_expired():
+    """A token from a registered cluster is still checked as any token is."""
+    token = livekit_token(LYON.api_key, LYON.api_secret, ttl_minutes=-5)
+
+    with pytest.raises(jwt.ExpiredSignatureError):
+        LiveKitClusterTokenVerifier().verify(token)

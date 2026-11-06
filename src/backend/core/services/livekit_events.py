@@ -13,6 +13,11 @@ from django.utils import timezone
 from livekit import api
 
 from core import audit, auditing, models
+from core.livekit.clusters import (
+    LiveKitClusterConfig,
+    LiveKitClusterTokenVerifier,
+    get_default_livekit_cluster,
+)
 from core.recording.enums import UNSUCCESSFUL_EVENTS, RecordingWorkerEvent
 from core.recording.event.authentication import MachineUser
 from core.recording.services.metadata_collector import (
@@ -154,11 +159,7 @@ class LiveKitEventsService:
             "participant_left": self._handle_participant_left,
         }
 
-        token_verifier = api.TokenVerifier(
-            settings.LIVEKIT_CONFIGURATION["api_key"],
-            settings.LIVEKIT_CONFIGURATION["api_secret"],
-        )
-        self.webhook_receiver = api.WebhookReceiver(token_verifier)
+        self.token_verifier = LiveKitClusterTokenVerifier()
         self.lobby_service = LobbyService()
         self.presence_cache = PresenceCache()
         self.sip_management = SIPManagement()
@@ -175,6 +176,15 @@ class LiveKitEventsService:
                     "Invalid LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX. Webhook filtering disabled."
                 )
 
+    @property
+    def cluster(self) -> LiveKitClusterConfig:
+        """Return the LiveKit cluster that signed the webhook received.
+
+        It is the default cluster until a webhook is received, as when a
+        handler is called directly.
+        """
+        return self.token_verifier.cluster or get_default_livekit_cluster()
+
     def receive(self, request):
         """Process webhook and route to appropriate handler."""
 
@@ -183,7 +193,7 @@ class LiveKitEventsService:
             raise AuthenticationError("Authorization header missing")
 
         try:
-            data = self.webhook_receiver.receive(
+            data = api.WebhookReceiver(self.token_verifier).receive(
                 request.body.decode("utf-8"), auth_token
             )
         except Exception as e:
