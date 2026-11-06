@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
 import {
   useParticipantAttribute,
   useRoomContext,
+  useTrackToggle,
+  type UseTrackToggleProps,
 } from '@livekit/components-react'
-import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
-import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine, RiImageCircleAiFill } from '@remixicon/react'
 import { Track, type VideoCaptureOptions, VideoPresets } from 'livekit-client'

@@ -24,10 +24,10 @@ const busyRooms = new WeakSet<object>()
 export function AwayToggle({
   onPress,
   mobile = false,
-}: {
+}: Readonly<{
   onPress?: () => void
   mobile?: boolean
-}) {
+}>) {
   const room = useRoomContext()
   const participant = room.localParticipant
   const awayAttribute = useParticipantAttribute(AWAY_ATTRIBUTE, { participant })
@@ -67,12 +67,9 @@ export function AwayToggle({
     }
   }
 
+  const labelKey = isAway ? 'controls.away.return' : 'controls.away.leave'
   const label = t(
-    hasPendingMediaRestore(room)
-      ? 'controls.away.retryRestore'
-      : isAway
-        ? 'controls.away.return'
-        : 'controls.away.leave'
+    hasPendingMediaRestore(room) ? 'controls.away.retryRestore' : labelKey
   )
   return (
     <ToggleButton

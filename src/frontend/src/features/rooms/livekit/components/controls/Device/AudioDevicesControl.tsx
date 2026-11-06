@@ -1,13 +1,11 @@
 import { useTranslation } from 'react-i18next'
+import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
 import {
   useParticipantAttribute,
   useRoomContext,
-} from '@livekit/components-react'
-import { AWAY_ATTRIBUTE } from '@/features/rooms/livekit/constants/awayStatus'
-import {
   useLocalParticipant,
   useTrackToggle,
-  UseTrackToggleProps,
+  type UseTrackToggleProps,
 } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
 import { RiArrowUpSLine } from '@remixicon/react'
