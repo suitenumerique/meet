@@ -57,6 +57,20 @@ def random_remote_addr():
     )
 
 
+def livekit_cluster_entry(name, **overrides):
+    """Describe a LiveKit cluster as an entry of LIVEKIT_CLUSTERS.
+
+    Each cluster gets its own API key, and a secret long enough to sign tokens.
+    """
+    return {
+        "name": name,
+        "url": f"wss://{name}.livekit.test",
+        "api_key": f"key-{name}",
+        "api_secret": f"secret-{name}-padded-for-minimum-len!-livekit",
+        **overrides,
+    }
+
+
 def transit_code_target(code):
     """Return the audit target of a code: its SHA-256, never the code itself."""
     return {
