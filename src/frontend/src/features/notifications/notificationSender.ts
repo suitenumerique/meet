@@ -4,6 +4,9 @@ import {
   type RoomEventCallbacks,
   RoomEvent,
 } from 'livekit-client'
+import type { ApiConfig } from '@/api/useConfig'
+import { isRecordingOpenToParticipants } from '@/features/recording/hooks/useCanRecord'
+import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 import type { NotificationPayload } from './NotificationPayload'
 import { NotificationType } from './NotificationType'
@@ -17,6 +20,21 @@ export type SenderRules = {
 const HOSTS_ONLY: SenderRules = {
   isRecordingOpenToParticipants: false,
   everyoneCanMute: false,
+}
+
+export const senderRulesFor = (
+  config?: ApiConfig,
+  roomData?: ApiRoom
+): SenderRules => {
+  const everyoneCanMute = roomData?.configuration?.everyone_can_mute
+  return {
+    isRecordingOpenToParticipants: isRecordingOpenToParticipants(
+      config,
+      roomData
+    ),
+    // The backend reads a missing setting as on and a stored null as off.
+    everyoneCanMute: everyoneCanMute === undefined || !!everyoneCanMute,
+  }
 }
 
 export const isAllowedNotificationSender = (
@@ -39,7 +57,7 @@ export const isAllowedNotificationSender = (
     case NotificationType.ParticipantWaiting:
       // A participant the roster has not listed yet also comes with no sender,
       // so only the identity the media server stamped tells them from the backend.
-      return senderIdentity === ''
+      return senderIdentity === '' && !sender
     case NotificationType.PermissionsRemoved:
       return isHost
     case NotificationType.ParticipantMuted:

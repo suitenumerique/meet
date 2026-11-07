@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
 import type { NotificationPayload } from './NotificationPayload'
-import { subscribeToNotifications } from './notificationSender'
+import { senderRulesFor, subscribeToNotifications } from './notificationSender'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
 import { toastQueue } from './components/ToastProvider'
 import { layoutStore } from '@/stores/layout'
@@ -20,7 +20,6 @@ import { useParams } from 'wouter'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
-import { isRecordingOpenToParticipants } from '@/features/recording/hooks/useCanRecord'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -72,16 +71,14 @@ export const MainNotificationToast = () => {
   )
 
   // Read when a message arrives: the room's settings change during a meeting.
-  const getSenderRules = useCallback(() => {
-    const roomData = queryClient.getQueryData<ApiRoom>([keys.room, roomId])
-    return {
-      isRecordingOpenToParticipants: isRecordingOpenToParticipants(
+  const getSenderRules = useCallback(
+    () =>
+      senderRulesFor(
         data,
-        roomData
+        queryClient.getQueryData<ApiRoom>([keys.room, roomId])
       ),
-      everyoneCanMute: roomData?.configuration?.everyone_can_mute !== false,
-    }
-  }, [data, roomId])
+    [data, roomId]
+  )
 
   useEffect(() => {
     const handleNotification = (

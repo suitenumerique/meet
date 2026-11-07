@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { type RemoteParticipant, Room } from 'livekit-client'
 import { NotificationType } from './NotificationType'
+import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import {
   isAllowedNotificationSender,
   type SenderRules,
+  senderRulesFor,
   subscribeToNotifications,
 } from './notificationSender'
 
@@ -48,6 +50,7 @@ describe('isAllowedNotificationSender', () => {
       isAllowedNotificationSender(type, sender, identity, OPEN)
 
     expect(allowed(undefined, '')).toBe(true)
+    expect(allowed(owner, '')).toBe(false)
     expect(allowed(guest, 'someone')).toBe(false)
     expect(allowed(owner, 'someone')).toBe(false)
     expect(allowed(undefined, 'not-on-the-roster-yet')).toBe(false)
@@ -130,6 +133,22 @@ describe('isAllowedNotificationSender', () => {
         OPEN
       )
     ).toBe(false)
+  })
+})
+
+describe('senderRulesFor', () => {
+  const room = (everyone_can_mute?: boolean | null) =>
+    ({
+      id: 'room',
+      configuration:
+        everyone_can_mute === undefined ? {} : { everyone_can_mute },
+    }) as unknown as ApiRoom
+
+  it('reads the mute setting the way the backend does', () => {
+    expect(senderRulesFor(undefined, room()).everyoneCanMute).toBe(true)
+    expect(senderRulesFor(undefined, room(true)).everyoneCanMute).toBe(true)
+    expect(senderRulesFor(undefined, room(false)).everyoneCanMute).toBe(false)
+    expect(senderRulesFor(undefined, room(null)).everyoneCanMute).toBe(false)
   })
 })
 
