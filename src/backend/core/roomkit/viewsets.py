@@ -16,6 +16,7 @@ from rest_framework import (
 from core import analytics, models
 from core.api import permissions, throttling
 from core.api.feature_flag import FeatureFlag
+from core.livekit.placements import PlacementService
 from core.services.sip_management import SIPException, SIPManagement
 
 from . import authentication, serializers
@@ -51,6 +52,10 @@ class RoomKitViewSet(viewsets.ViewSet):
 
         The webhook-based creation path is kept: both converge on the same rule
         through the shared SIPManagement.
+
+        The device may be the room's first participant, so the LiveKit room is
+        placed and created first, since LiveKit clusters need not create rooms on
+        their own. When it cannot be, the response is a 503.
         """
 
         serializer = serializers.RoomKitJoinSerializer(data=request.data)
@@ -62,6 +67,8 @@ class RoomKitViewSet(viewsets.ViewSet):
             )
         except models.Room.DoesNotExist as e:
             raise drf_exceptions.NotFound("No room found for this PIN code.") from e
+
+        PlacementService.place(str(room.id), room)
 
         try:
             created = SIPManagement().ensure_dispatch_rule(room)

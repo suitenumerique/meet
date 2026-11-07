@@ -9,14 +9,17 @@ from unittest import mock
 from django.core import signing
 from django.core.cache import cache
 
+import jwt
 import pytest
 from freezegun import freeze_time
 from rest_framework.test import APIClient
 
 from ... import utils
 from ...factories import RoomFactory, UserFactory
-from ...models import RoomAccessLevel
+from ...livekit.exceptions import LiveKitRoomCreationError
+from ...models import Placement, RoomAccessLevel
 from ...services.lobby import LobbyService
+from ..utils import random_remote_addr
 
 pytestmark = pytest.mark.django_db
 
@@ -345,6 +348,112 @@ def test_request_entry_waiting_participant_public_room(settings):
 
     assert not cache.keys(f"mocked-cache-prefix_{room.id}_*")
     assert not LobbyService()._index_members(room.id)
+
+
+def test_request_entry_public_room_placed_cluster(
+    two_livekit_clusters, fake_livekit_room_creation
+):
+    """Entry granted at once should come with credentials for the LiveKit cluster
+    the LiveKit room is placed on, where it is created: its URL, and a token it
+    signed."""
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
+        response = APIClient(REMOTE_ADDR=random_remote_addr()).post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/", {"username": "Guest"}
+        )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "accepted"
+    assert Placement.objects.get(room=room).cluster == "lyon"
+    fake_livekit_room_creation.assert_called_once_with(str(room.id), cluster=lyon)
+
+    config = response.json()["livekit"]
+    assert config["url"] == lyon.url
+
+    claims = jwt.decode(config["token"], lyon.api_secret, algorithms=["HS256"])
+    assert claims["iss"] == lyon.api_key
+    assert claims["video"]["room"] == str(room.id)
+
+
+def test_request_entry_accepted_participant_placed_cluster(
+    two_livekit_clusters, fake_livekit_room_creation
+):
+    """A participant admitted from the lobby should be handed out credentials for
+    the LiveKit cluster the LiveKit room is placed on, where it is created: its
+    URL, and a token it signed."""
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    Placement.objects.create(room_name=str(room.id), room=room, cluster="lyon")
+    client = APIClient(REMOTE_ADDR=random_remote_addr())
+
+    with mock.patch.object(utils, "notify_participants", return_value=None):
+        response = client.post(
+            f"/api/v1.0/rooms/{room.id}/request-entry/", {"username": "Guest"}
+        )
+    assert response.json()["livekit"] is None
+    fake_livekit_room_creation.assert_not_called()
+    participant_id = response.json()["id"]
+    LobbyService().handle_participant_entry(
+        room.id, _lobby_signer().unsign(participant_id), True
+    )
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "Guest", "participant_id": participant_id},
+    )
+    fake_livekit_room_creation.assert_called_once_with(str(room.id), cluster=lyon)
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "accepted"
+
+    config = response.json()["livekit"]
+    assert config["url"] == lyon.url
+
+    claims = jwt.decode(config["token"], lyon.api_secret, algorithms=["HS256"])
+    assert claims["iss"] == lyon.api_key
+    assert claims["video"]["room"] == str(room.id)
+
+
+@pytest.mark.parametrize("access_level", ["public", "restricted"])
+def test_request_entry_room_creation_failure(
+    access_level, settings, fake_livekit_room_creation
+):
+    """Entry granted to a room whose LiveKit room cannot be created should be
+    answered with a 503, leaving the participant where they were in the lobby."""
+    settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
+    room = RoomFactory(access_level=access_level)
+    participant_id = str(uuid.uuid4())
+    status = "waiting" if access_level == "public" else "accepted"
+    cache.set(
+        f"mocked-cache-prefix_{room.id}_{participant_id}",
+        {
+            "id": participant_id,
+            "username": "Guest",
+            "status": status,
+            "color": "#123456",
+            "entered_at": "2025-01-01T10:00:00+00:00",
+        },
+    )
+    fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
+
+    response = APIClient(REMOTE_ADDR=random_remote_addr()).post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {
+            "username": "Guest",
+            "participant_id": _lobby_signer().sign(participant_id),
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    assert (
+        cache.get(f"mocked-cache-prefix_{room.id}_{participant_id}")["status"] == status
+    )
+    assert not Placement.objects.exists()
 
 
 def test_request_entry_invalid_data():

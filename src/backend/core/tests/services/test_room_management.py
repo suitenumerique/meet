@@ -1,13 +1,18 @@
 """Tests for the RoomManagement service."""
 
+import logging
 from unittest import mock
 
 from django.db import connection
 
+import aiohttp
 import pytest
 from livekit.api import TwirpError
+from livekit.protocol.models import Room as LiveKitRoom  # pylint: disable=E0611
+from livekit.protocol.room import CreateRoomRequest  # pylint: disable=E0611
 
 from core.factories import RoomFactory
+from core.livekit.exceptions import LiveKitRoomCreationError
 from core.models import Placement, Room, RoomAccessLevel
 from core.services.room_management import (
     RoomManagement,
@@ -15,6 +20,7 @@ from core.services.room_management import (
     RoomNotFoundException,
 )
 from core.services.sip_management import SIPException, SIPManagement
+from core.tests.utils import livekit_room
 
 
 @mock.patch("core.services.room_management.utils.create_livekit_client")
@@ -355,3 +361,68 @@ def test_room_managed_on_the_given_cluster(
         manage_room("room-abc", cluster=paris)
 
     mock_create_livekit_client.assert_called_once_with(cluster=paris)
+
+
+def livekit_client(create_room):
+    """Return a fake LiveKit API client whose room service creates rooms with
+    this mock."""
+    client = mock.MagicMock()
+    client.room.create_room = create_room
+    client.aclose = mock.AsyncMock()
+    return client
+
+
+@pytest.mark.real_livekit_room_creation
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room(create_livekit_client, two_livekit_clusters):
+    """A LiveKit room is created on its cluster, without metadata, which would
+    replace a live LiveKit room's, and returned as the cluster describes it,
+    with its SID and the time the cluster created it."""
+    _paris, lyon = two_livekit_clusters
+    create_room = mock.AsyncMock(
+        return_value=livekit_room("RM_new", name="my-room", creation_time_ms=1234)
+    )
+    client = livekit_client(create_room)
+    create_livekit_client.return_value = client
+
+    assert RoomManagement.create_room("my-room", cluster=lyon) == LiveKitRoom(
+        sid="RM_new", name="my-room", creation_time_ms=1234
+    )
+
+    create_livekit_client.assert_called_once_with(cluster=lyon)
+    create_room.assert_awaited_once_with(CreateRoomRequest(name="my-room"))
+    assert create_room.await_args.args[0].metadata == ""
+    client.aclose.assert_awaited_once()
+
+
+@pytest.mark.real_livekit_room_creation
+@pytest.mark.parametrize(
+    "error",
+    (
+        TwirpError("unavailable", "no node available", status=503),
+        TimeoutError(),
+        aiohttp.ClientConnectionError("Connection refused"),
+    ),
+)
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room_failure(
+    create_livekit_client, error, two_livekit_clusters, caplog
+):
+    """A cluster that cannot be reached, does not answer in time or answers with
+    an error fails to create the LiveKit room, which is logged."""
+    _paris, lyon = two_livekit_clusters
+    client = livekit_client(mock.AsyncMock(side_effect=error))
+    create_livekit_client.return_value = client
+
+    with (
+        caplog.at_level(logging.ERROR, logger="core.services.room_management"),
+        pytest.raises(
+            LiveKitRoomCreationError,
+            match="LiveKit cluster lyon failed to create LiveKit room my-room",
+        ) as raised,
+    ):
+        RoomManagement.create_room("my-room", cluster=lyon)
+
+    assert raised.value.__cause__ is error
+    client.aclose.assert_awaited_once()
+    assert "LiveKit cluster lyon failed to create LiveKit room my-room" in caplog.text

@@ -15,6 +15,15 @@ class RoomSoftDeleted(exceptions.APIException):
     default_code = "room_deleted"
 
 
+class LiveKitRoomUnavailable(exceptions.APIException):
+    """Raised when the LiveKit room to hand out credentials for cannot be
+    joined for now: it cannot be placed, or created on its LiveKit cluster."""
+
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _("This room cannot be joined for now, please try again.")
+    default_code = "livekit_room_unavailable"
+
+
 def ensure_room_not_deleted(resource):
     """Raise a 410 Gone if the resource is a soft-deleted room.
 

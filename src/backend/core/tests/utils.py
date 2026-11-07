@@ -9,9 +9,27 @@ from django.conf import settings
 
 import jwt
 from livekit.api import AccessToken
+from livekit.protocol.models import Room as LiveKitRoom  # pylint: disable=E0611
 
 from core.factories import ApplicationFactory
 from core.models import ApplicationScope
+
+CREATED_LIVEKIT_ROOM_SID = "RM_created"
+CREATED_LIVEKIT_ROOM_TIME_MS = 1_763_550_000_123
+
+
+def livekit_room(
+    sid=CREATED_LIVEKIT_ROOM_SID,
+    *,
+    creation_time_ms=CREATED_LIVEKIT_ROOM_TIME_MS,
+    name="",
+):
+    """Return a LiveKit room as a LiveKit cluster describes it.
+
+    It has this SID, and was created at CREATED_LIVEKIT_ROOM_TIME_MS unless
+    told otherwise, 0 standing for an unknown creation time.
+    """
+    return LiveKitRoom(sid=sid, name=name, creation_time_ms=creation_time_ms)
 
 
 def generate_user_access_token(user, application=None, **overrides):

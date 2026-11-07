@@ -9,7 +9,11 @@ from unittest import mock
 import pytest
 
 from ...factories import RoomFactory
+from ...livekit.clusters import get_default_livekit_cluster
+from ...livekit.exceptions import LiveKitRoomCreationError
+from ...models import Placement
 from ...services.sip_management import SIPException
+from ..utils import CREATED_LIVEKIT_ROOM_SID
 
 pytestmark = pytest.mark.django_db
 
@@ -303,3 +307,71 @@ def test_join_sip_failure(mock_sip_management, mock_capture, settings, client):
     assert response.status_code == 500
     mock_sip_instance.ensure_dispatch_rule.assert_called_once_with(room)
     mock_capture.assert_not_called()
+
+
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_places_the_room_first(
+    mock_sip_management, settings, client, fake_livekit_room_creation
+):
+    """The LiveKit room should be placed and created before the dispatch rule, as
+    the device may be the room's first participant."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
+    settings.ROOMKIT_ENABLED = True
+    settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
+
+    room = RoomFactory(pin_code="1234567890")
+    placements_at_rule_creation = []
+
+    def ensure_dispatch_rule(rule_room):
+        placements_at_rule_creation.extend(
+            Placement.objects.filter(room=rule_room).values_list("cluster", "sid")
+        )
+        return True
+
+    mock_sip_instance.ensure_dispatch_rule.side_effect = ensure_dispatch_rule
+
+    response = client.post(
+        "/api/v1.0/roomkit/join/",
+        {"pin_code": room.pin_code},
+        HTTP_AUTHORIZATION="Bearer testAuthToken",
+    )
+
+    assert response.status_code == 200
+    fake_livekit_room_creation.assert_called_once_with(
+        str(room.id), cluster=get_default_livekit_cluster()
+    )
+    assert placements_at_rule_creation == [("default", CREATED_LIVEKIT_ROOM_SID)]
+    mock_sip_instance.ensure_dispatch_rule.assert_called_once_with(room)
+
+
+@mock.patch("core.roomkit.viewsets.analytics.capture")
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_room_creation_failure(
+    mock_sip_management, mock_capture, settings, client, fake_livekit_room_creation
+):
+    """Requests should fail with a 503, without any dispatch rule, when the
+    LiveKit room cannot be created."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
+    settings.ROOMKIT_ENABLED = True
+    settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
+
+    room = RoomFactory(pin_code="1234567890")
+    fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
+
+    response = client.post(
+        "/api/v1.0/roomkit/join/",
+        {"pin_code": room.pin_code},
+        HTTP_AUTHORIZATION="Bearer testAuthToken",
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
+    mock_capture.assert_not_called()
+    assert not Placement.objects.exists()

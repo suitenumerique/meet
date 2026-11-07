@@ -5,5 +5,22 @@ class UnknownLiveKitClusterError(LookupError):
     """Raised when no registered LiveKit cluster has the requested name."""
 
 
-class NoCandidateLiveKitClusterError(Exception):
+class LiveKitRoomUnavailableError(Exception):
+    """Raised when a LiveKit room cannot be joined for now.
+
+    Either it cannot be placed on any LiveKit cluster, or it cannot be created
+    on the one it is placed on. Asking again later may succeed.
+    """
+
+
+class NoCandidateLiveKitClusterError(LiveKitRoomUnavailableError):
     """Raised when no LiveKit cluster may receive new placements."""
+
+
+class LiveKitRoomCreationError(LiveKitRoomUnavailableError):
+    """Raised when a LiveKit cluster fails to create a LiveKit room."""
+
+
+class PlacementChangedError(LiveKitRoomUnavailableError):
+    """Raised when the placement of a LiveKit room keeps changing while
+    credentials are handed out for it."""

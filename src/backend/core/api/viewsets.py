@@ -47,6 +47,7 @@ from core.api.filters import ListFileFilter
 from core.api.locks import room_locked_for_update
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.livekit.clusters import get_default_livekit_cluster
+from core.livekit.placements import PlacementService
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import RecordingProcessWebhookAuthentication
 from core.recording.services.metadata_collector import (
@@ -89,7 +90,6 @@ from core.services.subtitle import SubtitleException, SubtitleService
 from core.services.transit_code import TransitCodeService
 from core.tasks.connection_test import delete_connection_test_room
 from core.tasks.file import process_file_deletion
-from core.utils import generate_token
 
 from ..authentication.livekit import LiveKitTokenAuthentication
 from ..models import RoomAccessLevel
@@ -311,7 +311,10 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         return obj
 
     def _get_object_or_unregistered_slug(self):
-        """Return the requested room, or the slug of an unregistered room."""
+        """Return the requested room, or the slug of an unregistered room.
+
+        An empty or UUID-shaped slug is no unregistered room.
+        """
         try:
             return self.get_object(), None
         except Http404:
@@ -588,7 +591,14 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         going through the lobby. Otherwise, it has no livekit object and the
         client should request entry through the lobby.
 
-        Unregistered rooms, when allowed, are always joined directly.
+        Unregistered rooms, when allowed, are always joined directly. They are
+        never placed, since Django does not follow their lifecycle: they live on
+        the default LiveKit cluster.
+
+        The credentials are for the LiveKit cluster the LiveKit room is placed
+        on, or the default one for an unregistered room, where it is created
+        first. When it cannot be, the response is a 503, and asking again later
+        may succeed.
         """
 
         serializer = serializers.JoinRoomSerializer(data=request.data)
@@ -597,11 +607,16 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
 
         room, slug = self._get_object_or_unregistered_slug()
         if room is None:
+            cluster = get_default_livekit_cluster()
+            RoomManagement.create_room(slug, cluster=cluster)
             return drf_response.Response(
                 {
                     **self._get_unregistered_room_data(slug),
                     "livekit": utils.generate_livekit_config(
-                        room_id=slug, user=request.user, username=username
+                        room_id=slug,
+                        user=request.user,
+                        username=username,
+                        cluster=cluster,
                     ),
                 }
             )
@@ -612,12 +627,14 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         ).data
 
         if LobbyService.can_bypass_lobby(room=room, user=request.user, role=role):
+            cluster = PlacementService.place(str(room.id), room)
             data["livekit"] = utils.generate_livekit_config(
                 room_id=str(room.id),
                 user=request.user,
                 username=username,
                 configuration=data["configuration"],
                 role=role,
+                cluster=cluster,
             )
 
         return drf_response.Response(data)
@@ -1728,10 +1745,15 @@ class DiagnosticsViewSet(viewsets.ViewSet):
         Going through the room API is not an option here: it is tied to
         registered meetings, lobby rules and longer-lived tokens. Each call
         gets its own room so two people testing at the same time never meet.
+
+        The room is created on the LiveKit cluster the placement strategy
+        picks, but has no placement: no one else ever joins it. When it cannot
+        be created, the response is a 503.
         """
         room = f"{settings.CONNECTION_TEST_ROOM_PREFIX}-{uuid4()}"
         expires_in = settings.CONNECTION_TEST_TOKEN_TTL_SECONDS
-        cluster = get_default_livekit_cluster()
+        cluster = PlacementService.choose_cluster(room)
+        RoomManagement.create_room(room, cluster=cluster)
 
         # LiveKit refreshes tokens for connected clients, so JWT TTL alone does not
         # eject someone who stays connected. Schedule a hard DeleteRoom when Celery
@@ -1742,7 +1764,7 @@ class DiagnosticsViewSet(viewsets.ViewSet):
                 + settings.CONNECTION_TEST_ROOM_EXTRA_AGE_SECONDS
             )
             delete_connection_test_room.apply_async(
-                args=[room],
+                args=[room, cluster.name],
                 countdown=max_age,
             )
 
@@ -1751,7 +1773,7 @@ class DiagnosticsViewSet(viewsets.ViewSet):
                 "livekit": {
                     "url": cluster.url,
                     "room": room,
-                    "token": generate_token(
+                    "token": utils.generate_token(
                         room=room,
                         user=request.user,
                         username="Connection Test",

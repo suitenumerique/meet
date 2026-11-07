@@ -9,17 +9,21 @@ from typing import Dict, Optional
 
 from django.conf import settings
 
+import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import (
+    CreateRoomRequest,
     DeleteRoomRequest,
     ListRoomsRequest,
     TwirpError,
     TwirpErrorCode,
     UpdateRoomMetadataRequest,
 )
+from livekit.protocol.models import Room as LiveKitRoom
 
 from core import utils
 from core.livekit.clusters import LiveKitClusterConfig
+from core.livekit.exceptions import LiveKitRoomCreationError
 from core.livekit.placements import PlacementService
 from core.models import Room
 
@@ -38,6 +42,39 @@ class RoomNotFoundException(RoomManagementException):
 
 class RoomManagement:
     """Service for managing LiveKit rooms."""
+
+    @classmethod
+    @async_to_sync
+    async def create_room(
+        cls, room_name: str, *, cluster: LiveKitClusterConfig
+    ) -> LiveKitRoom:
+        """Create a LiveKit room on a LiveKit cluster and return it.
+
+        It is returned as the cluster describes it, with its SID and the time
+        the cluster created it. A LiveKit room live on the cluster already is
+        returned as it is.
+        """
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
+
+        try:
+            livekit_room = await lkapi.room.create_room(
+                CreateRoomRequest(name=room_name)
+            )
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
+            logger.exception(
+                "LiveKit cluster %s failed to create LiveKit room %s",
+                cluster.name,
+                room_name,
+            )
+            raise LiveKitRoomCreationError(
+                f"LiveKit cluster {cluster.name} failed to create LiveKit room "
+                f"{room_name}."
+            ) from e
+        finally:
+            await lkapi.aclose()
+
+        return livekit_room
 
     @classmethod
     def update_metadata(

@@ -8,11 +8,21 @@ from dockerflow.logging import request_id_context
 
 from core.audit.testing import capture_audit
 from core.livekit.clusters import get_livekit_clusters
-from core.tests.utils import livekit_cluster_entry
+from core.services.room_management import RoomManagement
+from core.tests.utils import livekit_cluster_entry, livekit_room
 
 USER = "user"
 TEAM = "team"
 VIA = [USER, TEAM]
+
+
+def pytest_configure(config):
+    """Register the markers of the tests in the Meet core application."""
+    config.addinivalue_line(
+        "markers",
+        "real_livekit_room_creation: create LiveKit rooms through the LiveKit "
+        "API rather than the fake_livekit_room_creation fixture",
+    )
 
 
 @pytest.fixture
@@ -27,6 +37,28 @@ def audit_events():
     """Collect the audit events emitted during the test, as dicts."""
     with capture_audit() as events:
         yield events
+
+
+@pytest.fixture(autouse=True)
+def fake_livekit_room_creation(request):
+    """Create LiveKit rooms without calling LiveKit.
+
+    Credentials are handed out only once the LiveKit room is created on its
+    cluster, so every join would otherwise call LiveKit. Each LiveKit room
+    created is described by livekit_room(), with CREATED_LIVEKIT_ROOM_SID as
+    SID and CREATED_LIVEKIT_ROOM_TIME_MS as creation time. Return the mock
+    standing for RoomManagement.create_room, or None in tests marked
+    real_livekit_room_creation, which go through the real one.
+    """
+    if request.node.get_closest_marker("real_livekit_room_creation"):
+        yield None
+        return
+    with mock.patch.object(
+        RoomManagement,
+        "create_room",
+        return_value=livekit_room(),
+    ) as create_room:
+        yield create_room
 
 
 @pytest.fixture(autouse=True)

@@ -9,11 +9,15 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from core.livekit.clusters import get_default_livekit_cluster
+from core.livekit.exceptions import LiveKitRoomUnavailableError
 from core.utils import build_telephony_config
+
+from .exceptions import LiveKitRoomUnavailable
 
 
 def exception_handler(exc, context):
-    """Handle Django ValidationError as an accepted exception.
+    """Handle Django ValidationError as an accepted exception, and answer a
+    LiveKit room that cannot be joined for now with a 503.
 
     For the parameters, see ``exception_handler``
     This code comes from twidi's gist:
@@ -30,6 +34,9 @@ def exception_handler(exc, context):
             detail = ""
 
         exc = drf_exceptions.ValidationError(detail=detail)
+
+    elif isinstance(exc, LiveKitRoomUnavailableError):
+        exc = LiveKitRoomUnavailable()
 
     return drf_views.exception_handler(exc, context)
 
