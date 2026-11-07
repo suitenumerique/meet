@@ -2,16 +2,19 @@
 Test rooms API endpoints in the Meet core app: stop recording.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,no-member,protected-access
 
 from unittest import mock
 
 import pytest
+from livekit import api as livekit_api
 from rest_framework.test import APIClient
 
+from ... import utils
 from ...audit.testing import find_events
 from ...factories import RecordingFactory, RoomFactory, UserFactory
-from ...models import Recording, RecordingStatusChoices, RoomAccessLevel
+from ...livekit.clusters import get_default_livekit_cluster
+from ...models import Placement, Recording, RecordingStatusChoices, RoomAccessLevel
 from ...recording.worker.exceptions import RecordingStopError
 
 pytestmark = pytest.mark.django_db
@@ -143,7 +146,9 @@ def test_stop_recording_worker_error(
 
     response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
 
-    mock_worker_service_factory.assert_called_once_with(mode="screen_recording")
+    mock_worker_service_factory.assert_called_once_with(
+        mode="screen_recording", cluster=get_default_livekit_cluster()
+    )
     mock_stop.assert_called_once_with(recording)
 
     assert response.status_code == 500
@@ -179,7 +184,9 @@ def test_stop_recording_success(
 
     response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
 
-    mock_worker_service_factory.assert_called_once_with(mode="screen_recording")
+    mock_worker_service_factory.assert_called_once_with(
+        mode="screen_recording", cluster=get_default_livekit_cluster()
+    )
     mock_stop.assert_called_once_with(recording)
 
     assert response.status_code == 200
@@ -187,6 +194,76 @@ def test_stop_recording_success(
 
     # Verify the recording still exists
     assert Recording.objects.count() == 1
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_stop_recording_on_the_recording_cluster(
+    mock_create_livekit_client, settings, two_livekit_clusters
+):
+    """A recording is stopped on the LiveKit cluster recording the room, even
+    once the room was placed elsewhere."""
+    settings.RECORDING_ENABLE = True
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    recording = RecordingFactory(
+        room=room,
+        status=RecordingStatusChoices.ACTIVE,
+        worker_id="EG_lyon",
+        livekit_cluster="lyon",
+    )
+    Placement.objects.create(room_name=str(room.id), room=room, cluster="paris")
+    client = mock.AsyncMock()
+    client._egress.stop_egress.return_value = mock.Mock(
+        status=livekit_api.EgressStatus.EGRESS_ENDING
+    )
+    mock_create_livekit_client.return_value = client
+    api_client = APIClient()
+    api_client.force_login(user)
+
+    response = api_client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
+
+    assert response.status_code == 200
+    mock_create_livekit_client.assert_called_once_with(
+        utils.livekit_api_configuration(lyon)
+    )
+    client._egress.stop_egress.assert_awaited_once_with(
+        livekit_api.StopEgressRequest(egress_id="EG_lyon")
+    )
+    recording.refresh_from_db()
+    assert recording.status == RecordingStatusChoices.STOPPED
+
+
+@pytest.mark.usefixtures("mock_worker_manager")
+@pytest.mark.parametrize("livekit_cluster", ["", "lille"])
+def test_stop_recording_on_the_default_cluster(
+    livekit_cluster, mock_worker_service_factory, settings, two_livekit_clusters
+):
+    """A recording naming no LiveKit cluster, as one started before recordings
+    kept theirs, or naming a cluster no longer registered, is stopped on the
+    default cluster, wherever the room is placed."""
+    settings.RECORDING_ENABLE = True
+    paris, _lyon = two_livekit_clusters
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    RecordingFactory(
+        room=room,
+        status=RecordingStatusChoices.ACTIVE,
+        mode="screen_recording",
+        livekit_cluster=livekit_cluster,
+    )
+    Placement.objects.create(room_name=str(room.id), room=room, cluster="lyon")
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(f"/api/v1.0/rooms/{room.id}/stop-recording/")
+
+    assert response.status_code == 200
+    mock_worker_service_factory.assert_called_once_with(
+        mode="screen_recording", cluster=paris
+    )
 
 
 def test_stop_recording_is_audited(

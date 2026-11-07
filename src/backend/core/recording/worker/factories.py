@@ -3,7 +3,7 @@
 # pylint: disable=no-member
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 from typing import Any, ClassVar, Dict, Optional, Protocol, Type
 
@@ -13,6 +13,7 @@ from django.utils.module_loading import import_string
 from livekit import api as livekit_api
 
 from ... import utils
+from ...livekit.clusters import LiveKitClusterConfig
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +127,15 @@ class WorkerService(Protocol):
         """Stop recording for a specified worker."""
 
 
-def get_worker_service(mode: str) -> WorkerService:
-    """Instantiate a worker service by its mode."""
+def get_worker_service(
+    mode: str, *, cluster: Optional[LiveKitClusterConfig] = None
+) -> WorkerService:
+    """Instantiate a worker service by its mode, recording on a LiveKit cluster.
+
+    The worker service calls `cluster`, by default the default cluster as
+    registered now, with the URL, API key and secret Django calls it with. The
+    rest of its configuration comes from the settings, read once.
+    """
 
     worker_registry: Dict[str, str] = settings.RECORDING_WORKER_CLASSES
 
@@ -141,5 +149,8 @@ def get_worker_service(mode: str) -> WorkerService:
 
     worker_class: Type[WorkerService] = import_string(worker_class_path)
 
-    config = WorkerServiceConfig.from_settings()
+    config = replace(
+        WorkerServiceConfig.from_settings(),
+        server_configurations=utils.livekit_api_configuration(cluster),
+    )
     return worker_class(config=config)

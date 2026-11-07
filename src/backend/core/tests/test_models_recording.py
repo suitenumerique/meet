@@ -2,7 +2,11 @@
 Unit tests for the Recording model
 """
 
+import logging
+import uuid
+
 from django.core.exceptions import ValidationError
+from django.db import connection
 
 import pytest
 
@@ -290,3 +294,66 @@ def test_models_recording_is_saved_false_error_states(status):
     """Test is_saved property returns False for error statuses."""
     recording = RecordingFactory(status=status)
     assert recording.is_saved is False
+
+
+def test_models_recording_livekit_cluster_default():
+    """A recording names no LiveKit cluster by default."""
+    recording = RecordingFactory()
+    assert recording.livekit_cluster == ""
+
+
+def test_models_recording_livekit_cluster_unnamed_by_previous_release():
+    """
+    Before multiclustering, the previous release inserted recordings
+    without naming a LiveKit cluster, which should leave them on the
+    default cluster.
+    """
+    room = RoomFactory()
+    recording_id = uuid.uuid4()
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO meet_recording (id, created_at, updated_at, room_id, "
+            "status, worker_id, mode, options, external_process_id) VALUES "
+            "(%s, NOW(), NOW(), %s, 'initiated', NULL, 'screen_recording', '{}', NULL)",
+            [recording_id, room.id],
+        )
+
+    assert Recording.objects.get(id=recording_id).livekit_cluster == ""
+
+
+def test_models_recording_get_livekit_cluster(two_livekit_clusters):
+    """A recording is on the registered LiveKit cluster it names."""
+    _paris, lyon = two_livekit_clusters
+    recording = RecordingFactory(livekit_cluster="lyon")
+
+    assert recording.get_livekit_cluster() == lyon
+
+
+def test_models_recording_get_livekit_cluster_unnamed(two_livekit_clusters, caplog):
+    """A recording naming no LiveKit cluster, as one started before recordings
+    kept theirs, is on the default cluster."""
+    paris, _lyon = two_livekit_clusters
+    recording = RecordingFactory(livekit_cluster="")
+
+    with caplog.at_level(logging.WARNING, logger="core.models"):
+        assert recording.get_livekit_cluster() == paris
+
+    assert "not registered" not in caplog.text
+
+
+def test_models_recording_get_livekit_cluster_unregistered(
+    two_livekit_clusters, caplog
+):
+    """A recording on a LiveKit cluster no longer registered is on the default
+    cluster, which is logged."""
+    paris, _lyon = two_livekit_clusters
+    recording = RecordingFactory(livekit_cluster="lille")
+
+    with caplog.at_level(logging.WARNING, logger="core.models"):
+        assert recording.get_livekit_cluster() == paris
+
+    assert (
+        f"Recording {recording.id} is on LiveKit cluster lille, which is not "
+        "registered: managing it on the default cluster paris"
+    ) in caplog.text

@@ -8,7 +8,8 @@ from unittest.mock import Mock
 import pytest
 
 from core.factories import RecordingFactory
-from core.models import RecordingStatusChoices
+from core.livekit.clusters import get_default_livekit_cluster
+from core.models import Placement, RecordingStatusChoices
 from core.recording.worker.exceptions import (
     RecordingStartError,
     RecordingStopError,
@@ -61,6 +62,29 @@ def test_start_recording_success(mock_update_metadata, mediator, mock_worker_ser
     mock_update_metadata.assert_called_once_with(
         str(mock_recording.room.id),
         {"recording_mode": mock_recording.mode, "recording_status": "starting"},
+        cluster=get_default_livekit_cluster(),
+    )
+
+
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_start_recording_on_the_recording_cluster(
+    mock_update_metadata, mediator, mock_worker_service, two_livekit_clusters
+):
+    """The room's metadata is updated on the LiveKit cluster recording it, even
+    once the room was placed elsewhere."""
+    _paris, lyon = two_livekit_clusters
+    mock_worker_service.start.return_value = "test-worker-123"
+    recording = RecordingFactory(
+        status=RecordingStatusChoices.INITIATED, worker_id=None, livekit_cluster="lyon"
+    )
+    Placement.objects.create(room_name=str(recording.room.id), cluster="paris")
+
+    mediator.start(recording)
+
+    mock_update_metadata.assert_called_once_with(
+        str(recording.room.id),
+        {"recording_mode": recording.mode, "recording_status": "starting"},
+        cluster=lyon,
     )
 
 

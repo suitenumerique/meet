@@ -10,6 +10,8 @@ from unittest import mock
 import pytest
 
 from core.factories import RecordingFactory
+from core.livekit.clusters import get_default_livekit_cluster
+from core.models import Placement
 from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.recording_events import (
     RecordingEventsError,
@@ -46,7 +48,9 @@ def test_handle_limit_reached_success(mock_notify, mode, notification_type, serv
 
     assert recording.status == "stopped"
     mock_notify.assert_called_once_with(
-        room_name=str(recording.room.id), notification_data={"type": notification_type}
+        room_name=str(recording.room.id),
+        notification_data={"type": notification_type},
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -66,7 +70,9 @@ def test_handle_interrupted_success(mock_notify, mode, notification_type, servic
 
     assert recording.status == "stopped"
     mock_notify.assert_called_once_with(
-        room_name=str(recording.room.id), notification_data={"type": notification_type}
+        room_name=str(recording.room.id),
+        notification_data={"type": notification_type},
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -86,7 +92,9 @@ def test_handle_failed_success(mock_notify, mode, notification_type, service):
 
     assert recording.status == "failed"
     mock_notify.assert_called_once_with(
-        room_name=str(recording.room.id), notification_data={"type": notification_type}
+        room_name=str(recording.room.id),
+        notification_data={"type": notification_type},
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -106,7 +114,9 @@ def test_handle_aborted_success(mock_notify, mode, notification_type, service):
 
     assert recording.status == "aborted"
     mock_notify.assert_called_once_with(
-        room_name=str(recording.room.id), notification_data={"type": notification_type}
+        room_name=str(recording.room.id),
+        notification_data={"type": notification_type},
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -152,6 +162,7 @@ def test_handle_event_notification_error(  # noqa: PLR0913, PLR0917
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id),
         notification_data={"type": f"{notification_prefix}{notification_suffix}"},
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -232,7 +243,9 @@ def test_handle_update_syncs_room_metadata(
     service.handle_update(recording, event)
 
     mock_update_metadata.assert_called_once_with(
-        str(recording.room.id), {"recording_status": recording_status}
+        str(recording.room.id),
+        {"recording_status": recording_status},
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -308,6 +321,7 @@ def test_handle_terminal_event_dispatches_on_event_and_status(  # noqa: PLR0913,
         mock_notify.assert_called_once_with(
             room_name=str(recording.room.id),
             notification_data={"type": f"screenRecording{notification_type}"},
+            cluster=get_default_livekit_cluster(),
         )
 
 
@@ -488,3 +502,46 @@ def test_log_worker_error_stays_quiet_on_anything_else(event, service, caplog):
         service.log_worker_error(recording, event, error="some error", error_code=500)
 
     assert "Recording worker reported" not in caplog.text
+
+
+def live_room_client():
+    """Return a LiveKit client mock on which the room is live, without metadata."""
+    client = mock.AsyncMock()
+    client.room.list_rooms.return_value = mock.Mock(rooms=[mock.Mock(metadata="")])
+    return client
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_handle_update_on_the_recording_cluster(
+    mock_create_livekit_client, two_livekit_clusters, service
+):
+    """The room's metadata is updated on the LiveKit cluster recording it, even
+    once the room was placed elsewhere."""
+    _paris, lyon = two_livekit_clusters
+    recording = RecordingFactory(status="active", livekit_cluster="lyon")
+    Placement.objects.create(room_name=str(recording.room.id), cluster="paris")
+    client = live_room_client()
+    mock_create_livekit_client.return_value = client
+
+    service.handle_update(recording, RecordingWorkerEvent.STARTED)
+
+    mock_create_livekit_client.assert_called_once_with(cluster=lyon)
+    client.room.update_room_metadata.assert_awaited_once()
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_notify_participants_on_the_recording_cluster(
+    mock_create_livekit_client, two_livekit_clusters, service
+):
+    """Participants are notified on the LiveKit cluster recording the room, even
+    once the room was placed elsewhere."""
+    _paris, lyon = two_livekit_clusters
+    recording = RecordingFactory(status="active", livekit_cluster="lyon")
+    Placement.objects.create(room_name=str(recording.room.id), cluster="paris")
+    client = live_room_client()
+    mock_create_livekit_client.return_value = client
+
+    service._handle_limit_reached(recording)
+
+    mock_create_livekit_client.assert_called_once_with(cluster=lyon)
+    client.room.send_data.assert_awaited_once()

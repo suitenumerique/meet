@@ -10,6 +10,7 @@ from livekit.protocol.agent_dispatch import (
 )
 
 from core import utils
+from core.livekit.clusters import LiveKitClusterConfig
 from core.models import Recording
 
 logger = getLogger(__name__)
@@ -20,13 +21,22 @@ class MetadataCollectorException(Exception):
 
 
 class MetadataCollectorService:
-    """Service for dispatching and managing the metadata collector agent."""
+    """Service for dispatching and managing the metadata collector agent.
 
-    @async_to_sync
-    async def start(self, recording: Recording):
+    The agent is dispatched to the LiveKit room on the LiveKit cluster
+    recording it, where its dispatch is deleted too.
+    """
+
+    def start(self, recording: Recording):
         """Explicitly dispatch the metadata collector agent to a room."""
 
-        lkapi = utils.create_livekit_client()
+        return self._start(recording, recording.get_livekit_cluster())
+
+    @async_to_sync
+    async def _start(self, recording: Recording, cluster: LiveKitClusterConfig):
+        """Dispatch the metadata collector agent to a room on a LiveKit cluster."""
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
         room_id = str(recording.room.id)
 
         try:
@@ -60,13 +70,18 @@ class MetadataCollectorService:
 
         return dispatch_id
 
-    @async_to_sync
-    async def stop(self, recording: Recording):
+    def stop(self, recording: Recording):
         """Stop and delete the agent dispatch associated to the room."""
+
+        return self._stop(recording, recording.get_livekit_cluster())
+
+    @async_to_sync
+    async def _stop(self, recording: Recording, cluster: LiveKitClusterConfig):
+        """Delete the agent dispatch associated to the room on a LiveKit cluster."""
 
         room_id = str(recording.room.id)
         dispatch_id = recording.options.get("metadata_collector_dispatch_id")
-        lkapi = utils.create_livekit_client()
+        lkapi = utils.create_livekit_client(cluster=cluster)
 
         try:
             if not dispatch_id:

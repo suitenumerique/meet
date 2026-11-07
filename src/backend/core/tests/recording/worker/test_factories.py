@@ -5,7 +5,7 @@ Test worker service factories.
 # pylint: disable=protected-access,redefined-outer-name,unused-argument,no-member
 
 import json
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 from unittest.mock import Mock
 
 from django.test import override_settings
@@ -15,6 +15,7 @@ from livekit import (
     api as livekit_api_codec,
 )
 
+from core.livekit.clusters import get_livekit_cluster
 from core.recording.worker.factories import (
     WorkerService,
     WorkerServiceConfig,
@@ -222,6 +223,43 @@ def test_factory_valid_mode(mock_import_string, settings, default_config):
     mock_import_string.assert_called_once_with("path.to.MockWorkerService")
     assert isinstance(worker, MockWorkerService)
     assert worker.config == default_config
+
+
+def test_factory_given_cluster(mock_import_string, settings, default_config):
+    """The worker service calls the LiveKit cluster it is given, with the URL,
+    API key and secret Django calls that cluster with."""
+    settings.RECORDING_WORKER_CLASSES = {"test_mode": "path.to.MockWorkerService"}
+
+    worker = get_worker_service("test_mode", cluster=get_livekit_cluster("lyon"))
+
+    assert worker.config == replace(
+        default_config,
+        server_configurations={
+            "url": "wss://lyon.livekit.test",
+            "api_key": "key-lyon",
+            "api_secret": "secret-lyon-padded-for-minimum-len!-livekit",
+        },
+    )
+
+
+def test_factory_default_cluster_registered_now(
+    mock_import_string, settings, default_config
+):
+    """Without a cluster, the worker service calls the default LiveKit cluster
+    registered now, though the rest of its configuration is cached."""
+    settings.RECORDING_WORKER_CLASSES = {"test_mode": "path.to.MockWorkerService"}
+    settings.LIVEKIT_CLUSTERS = json.dumps([livekit_cluster_entry("marseille")])
+
+    worker = get_worker_service("test_mode")
+
+    assert worker.config == replace(
+        default_config,
+        server_configurations={
+            "url": "wss://marseille.livekit.test",
+            "api_key": "key-marseille",
+            "api_secret": "secret-marseille-padded-for-minimum-len!-livekit",
+        },
+    )
 
 
 def test_factory_invalid_mode(settings, mock_import_string, default_config):

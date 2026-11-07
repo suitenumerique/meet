@@ -278,7 +278,9 @@ class LiveKitEventsService:
         try:
             room_name = str(recording.room.id)
             RoomManagement.update_metadata(
-                room_name, remove_keys=["recording_mode", "recording_status"]
+                room_name,
+                remove_keys=["recording_mode", "recording_status"],
+                cluster=recording.get_livekit_cluster(),
             )
         except RoomNotFoundException:
             logger.info(

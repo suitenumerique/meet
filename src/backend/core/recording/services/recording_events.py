@@ -108,6 +108,7 @@ class RecordingEventsService:
             utils.notify_participants(
                 room_name=str(recording.room.id),
                 notification_data={"type": notification_type},
+                cluster=recording.get_livekit_cluster(),
             )
         except utils.NotificationError as e:
             raise RecordingEventsError(
@@ -139,7 +140,9 @@ class RecordingEventsService:
         if recording_status:
             try:
                 RoomManagement.update_metadata(
-                    room_name, {"recording_status": recording_status}
+                    room_name,
+                    {"recording_status": recording_status},
+                    cluster=recording.get_livekit_cluster(),
                 )
             except RoomNotFoundException:
                 logger.info(
