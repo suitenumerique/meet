@@ -1,6 +1,6 @@
 import { createPortal } from 'react-dom'
 import { useEffect } from 'react'
-import { UNSAFE_PortalProvider } from '@react-aria/overlays'
+import { UNSAFE_PortalProvider as PortalProvider } from '@react-aria/overlays'
 import { RiArrowGoBackLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/primitives'
@@ -30,7 +30,7 @@ export const ParticipantsWindowPortal = ({
   if (!container?.isConnected) return null
 
   return createPortal(
-    <UNSAFE_PortalProvider getContainer={() => container}>
+    <PortalProvider getContainer={() => container}>
       <CrossDocumentOverlaysContext.Provider value={true}>
         <section
           className={css({
@@ -72,7 +72,7 @@ export const ParticipantsWindowPortal = ({
           </div>
         </section>
       </CrossDocumentOverlaysContext.Provider>
-    </UNSAFE_PortalProvider>,
+    </PortalProvider>,
     container
   )
 }
