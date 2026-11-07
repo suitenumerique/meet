@@ -6,9 +6,11 @@ credentials handed out for it until the LiveKit room finishes.
 
 from logging import getLogger
 
-from core.models import Placement
+from core.models import Placement, Room
 
 from .clusters import LiveKitClusterConfig, get_livekit_clusters
+from .exceptions import NoCandidateLiveKitClusterError
+from .strategies import PlacementContext, get_placement_strategy
 
 logger = getLogger(__name__)
 
@@ -52,3 +54,39 @@ class PlacementService:
             default_cluster.name,
         )
         return default_cluster
+
+    @classmethod
+    def candidates(cls) -> tuple[LiveKitClusterConfig, ...]:
+        """Return the LiveKit clusters that may receive new placements.
+
+        They are the registered clusters, in registry order, but for those
+        weighing 0, which keep their live rooms and receive no new placement.
+        """
+        return tuple(
+            cluster for cluster in get_livekit_clusters() if cluster.weight > 0
+        )
+
+    @classmethod
+    def choose_cluster(
+        cls, room_name: str, room: Room | None = None
+    ) -> LiveKitClusterConfig:
+        """Return the LiveKit cluster on which to place a LiveKit room.
+
+        The placement strategy named by LIVEKIT_PLACEMENT_STRATEGY picks it
+        among the candidates, knowing the LiveKit room's name and the room it is
+        named after, if any. Without any candidate, no LiveKit room can be
+        placed anywhere: this is logged as critical and raises
+        NoCandidateLiveKitClusterError.
+        """
+        candidates = cls.candidates()
+        if not candidates:
+            logger.critical(
+                "No LiveKit cluster may receive new placements: LiveKit room %s "
+                "cannot be placed",
+                room_name,
+            )
+            raise NoCandidateLiveKitClusterError(
+                "No LiveKit cluster may receive new placements."
+            )
+        context = PlacementContext(room_name=room_name, room=room)
+        return get_placement_strategy().choose(candidates, context)
