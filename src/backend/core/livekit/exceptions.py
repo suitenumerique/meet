@@ -24,3 +24,15 @@ class LiveKitRoomCreationError(LiveKitRoomUnavailableError):
 class PlacementChangedError(LiveKitRoomUnavailableError):
     """Raised when the placement of a LiveKit room keeps changing while
     credentials are handed out for it."""
+
+
+class LiveKitRoomCloseError(Exception):
+    """Raised when a LiveKit cluster fails to close a LiveKit room live on it."""
+
+
+class RelocationRefusedError(Exception):
+    """Raised when a room cannot be relocated, nothing having changed.
+
+    Its LiveKit room is not placed, or no other LiveKit cluster may receive it,
+    or its placement changed meanwhile.
+    """

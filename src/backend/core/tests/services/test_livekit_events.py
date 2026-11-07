@@ -21,6 +21,7 @@ from core.livekit.clusters import (
     LiveKitClusterTokenVerifier,
     get_default_livekit_cluster,
 )
+from core.livekit.placements import PlacementService
 from core.models import Placement, Room
 from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.recording_events import RecordingEventsService
@@ -1470,6 +1471,40 @@ def test_receive_room_finished_elsewhere_than_placed(
         f"LiveKit room {room_id} finished on LiveKit cluster lyon with SID {SID}, "
         f"but is placed on LiveKit cluster {cluster} with SID {sid!r}: ignoring "
         "the event"
+    ) in caplog.text
+
+
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_receive_room_finished_after_a_relocation(
+    mock_delete_room, two_livekit_clusters, room_cleanup, caplog
+):
+    """The LiveKit room a room was relocated from, finishing on the cluster it
+    left with the SID it had there, leaves the placement on the new cluster and
+    the room as they are: participants admitted from the lobby, reconnecting on
+    the new cluster, must not be queued again."""
+    paris, _lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+    Placement.objects.create(room_name=str(room_id), cluster="paris", sid=SID)
+    PlacementService.relocate(str(room_id), "lyon", actor=None)
+    mock_delete_room.assert_called_once_with(str(room_id), cluster=paris)
+    relocated = Placement.objects.get()
+
+    with caplog.at_level(logging.INFO, logger="core.services.livekit_events"):
+        LiveKitEventsService().receive(
+            room_event_request(paris, "room_finished", str(room_id))
+        )
+
+    kept_placement = Placement.objects.get()
+    assert kept_placement.pk == relocated.pk
+    assert kept_placement.cluster == "lyon"
+    assert kept_placement.sid == ""
+    assert kept_placement.epoch == 1
+    assert kept_placement.updated_at == relocated.updated_at
+    for cleanup in room_cleanup:
+        cleanup.assert_not_called()
+    assert (
+        f"LiveKit room {room_id} finished on LiveKit cluster paris with SID {SID}, "
+        "but is placed on LiveKit cluster lyon with SID '': ignoring the event"
     ) in caplog.text
 
 

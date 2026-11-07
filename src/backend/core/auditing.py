@@ -45,6 +45,10 @@ RECORDING_TRANSCRIPT_REPORT = audit.Action(
 RECORDING_SUMMARY_REPORT = audit.Action(
     "recording.summary.report", types=(EventType.END,)
 )
+LIVEKIT_PLACEMENT_RELOCATE = audit.Action(
+    "livekit.placement.relocate", types=(EventType.CHANGE,)
+)
+LIVEKIT_ROOM_CLOSE = audit.Action("livekit.room.close", types=(EventType.END,))
 
 # Targets that are not models
 
@@ -52,3 +56,8 @@ RECORDING_SUMMARY_REPORT = audit.Action(
 def transit_code_target(code: str) -> dict[str, str]:
     """Describe a transit code as a target, by its digest: never the code itself."""
     return {"id": TransitCodeService.digest(code), "sub_type": "transit_code"}
+
+
+def livekit_room_target(room_name: str) -> dict[str, str]:
+    """Describe a LiveKit room as a target, by its name."""
+    return {"id": room_name, "sub_type": "livekit_room"}
