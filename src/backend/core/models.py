@@ -27,6 +27,12 @@ from lasuite.tools.email import get_domain_from_email
 from timezone_field import TimeZoneField
 
 from . import fields, hashers, utils
+from .livekit.clusters import (
+    LiveKitClusterConfig,
+    get_default_livekit_cluster,
+    get_livekit_cluster,
+)
+from .livekit.exceptions import UnknownLiveKitClusterError
 from .livekit.specs import LIVEKIT_CLUSTER_NAME_MAX_LENGTH
 from .recording.enums import FileExtension
 from .validators import sub_validator
@@ -757,6 +763,17 @@ class Recording(BaseModel):
         verbose_name=_("External Process ID"),
         help_text=_("ID of the external process associated with the recording."),
     )
+    livekit_cluster = models.CharField(
+        max_length=LIVEKIT_CLUSTER_NAME_MAX_LENGTH,
+        blank=True,
+        default="",
+        db_default="",
+        verbose_name=_("LiveKit cluster"),
+        help_text=_(
+            "Name of the LiveKit cluster recording the room, the default "
+            "cluster when empty."
+        ),
+    )
 
     class Meta:
         db_table = "meet_recording"
@@ -824,6 +841,30 @@ class Recording(BaseModel):
             RecordingAccess(user_id=user_id, role=RoleChoices.OWNER, recording=self)
             for user_id in room_privileged_user_ids
         )
+
+    def get_livekit_cluster(self) -> LiveKitClusterConfig:
+        """Return the LiveKit cluster recording the room.
+
+        It is the cluster the room was placed on when the recording started,
+        wherever the room was placed since. A recording naming no cluster, as
+        one started before recordings kept theirs, is on the default cluster.
+        So is a recording on a cluster no longer registered, which is logged.
+        """
+        if not self.livekit_cluster:
+            return get_default_livekit_cluster()
+
+        try:
+            return get_livekit_cluster(self.livekit_cluster)
+        except UnknownLiveKitClusterError:
+            cluster = get_default_livekit_cluster()
+            logger.warning(
+                "Recording %s is on LiveKit cluster %s, which is not registered: "
+                "managing it on the default cluster %s",
+                self.id,
+                self.livekit_cluster,
+                cluster.name,
+            )
+            return cluster
 
     def is_savable(self) -> bool:
         """Determine if the recording can be saved based on its current status."""

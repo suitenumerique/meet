@@ -121,7 +121,7 @@ class NotificationService:
         return not has_failures
 
     @staticmethod
-    async def _get_recording_timestamps(worker_id):
+    async def _get_recording_timestamps(worker_id, cluster):
         """Fetch FileInfo.started_at and ended_at from LiveKit's egress API.
 
         FileInfo.started_at is more accurate than EgressInfo.started_at because
@@ -130,6 +130,9 @@ class NotificationService:
         corresponds to when the egress service received the request, not the moment
         the egress worker effectively joined the room.
 
+        The egress is looked up on `cluster`, the LiveKit cluster that recorded
+        the room.
+
         Returns:
             Tuple of (started_at, ended_at) datetimes, either may be None.
         """
@@ -137,7 +140,7 @@ class NotificationService:
         if not worker_id:
             return None, None
 
-        lkapi = utils.create_livekit_client()
+        lkapi = utils.create_livekit_client(cluster=cluster)
         try:
             egress_list = await lkapi.egress.list_egress(
                 livekit_api.ListEgressRequest(egress_id=worker_id)  # pylint: disable=no-member
@@ -266,7 +269,7 @@ class NotificationService:
 
         started_at, ended_at = async_to_sync(
             NotificationService._get_recording_timestamps
-        )(recording.worker_id)
+        )(recording.worker_id, recording.get_livekit_cluster())
 
         payload = {
             "owner_id": str(recipient.id),
@@ -335,7 +338,7 @@ class NotificationService:
 
         started_at, ended_at = async_to_sync(
             NotificationService._get_recording_timestamps
-        )(recording.worker_id)
+        )(recording.worker_id, recording.get_livekit_cluster())
 
         form_base_url = settings.TRANSCRIPTION_SATISFACTION_FORM_BASE_URL
         form_link = (

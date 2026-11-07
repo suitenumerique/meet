@@ -182,10 +182,14 @@ def test_handle_egress_ended_success(  # pylint: disable=too-many-arguments, too
     service._handle_egress_ended(mock_data)
 
     mock_notify.assert_called_once_with(
-        room_name=str(recording.room.id), notification_data={"type": notification_type}
+        room_name=str(recording.room.id),
+        notification_data={"type": notification_type},
+        cluster=get_default_livekit_cluster(),
     )
     mock_update_metadata.assert_called_once_with(
-        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
+        str(recording.room.id),
+        remove_keys=["recording_mode", "recording_status"],
+        cluster=get_default_livekit_cluster(),
     )
 
     recording.refresh_from_db()
@@ -215,7 +219,9 @@ def test_handle_egress_updated_success(
     service._handle_egress_updated(mock_data)
 
     mock_update_metadata.assert_called_once_with(
-        str(recording.room.id), {"recording_status": status}
+        str(recording.room.id),
+        {"recording_status": status},
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -243,7 +249,9 @@ def test_handle_egress_ended_metadata_update_fails(  # pylint: disable=too-many-
     service._handle_egress_ended(mock_data)
 
     mock_notify.assert_called_once_with(
-        room_name=str(recording.room.id), notification_data={"type": notification_type}
+        room_name=str(recording.room.id),
+        notification_data={"type": notification_type},
+        cluster=get_default_livekit_cluster(),
     )
     recording.refresh_from_db()
 
@@ -275,9 +283,12 @@ def test_handle_egress_ended_notification_fails(
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id),
         notification_data={"type": "screenRecordingLimitReached"},
+        cluster=get_default_livekit_cluster(),
     )
     mock_update_metadata.assert_called_once_with(
-        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
+        str(recording.room.id),
+        remove_keys=["recording_mode", "recording_status"],
+        cluster=get_default_livekit_cluster(),
     )
 
     recording.refresh_from_db()
@@ -332,7 +343,9 @@ def test_handle_egress_ended_recording_should_not_be_saved(
 
     mock_notify.assert_not_called()
     mock_update_metadata.assert_called_once_with(
-        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
+        str(recording.room.id),
+        remove_keys=["recording_mode", "recording_status"],
+        cluster=get_default_livekit_cluster(),
     )
 
     recording.refresh_from_db()
@@ -367,7 +380,9 @@ def test_handle_egress_ended_complete_does_not_notify_participants(
 
     mock_notify.assert_not_called()
     mock_update_metadata.assert_called_once_with(
-        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
+        str(recording.room.id),
+        remove_keys=["recording_mode", "recording_status"],
+        cluster=get_default_livekit_cluster(),
     )
     mock_notify_external_services.assert_called_once_with(recording)
 
@@ -430,6 +445,50 @@ def test_handle_egress_ended_does_not_call_metadata_collector_stop_when_conditio
     service._handle_egress_ended(mock_data)
 
     mock_collector.stop.assert_not_called()
+
+
+@mock.patch(
+    "core.recording.services.recording_events.notification_service."
+    "notify_external_services",
+    return_value=True,
+)
+@mock.patch("core.utils.create_livekit_client")
+def test_handle_egress_ended_on_the_recording_cluster(
+    mock_create_livekit_client,
+    mock_notify_external_services,
+    service,
+    two_livekit_clusters,
+):
+    """An ended egress is handled on the LiveKit cluster recording the room.
+
+    The room's metadata is cleaned up, the metadata collector's dispatch deleted
+    and participants notified there, even once the room was placed elsewhere.
+    """
+    paris, lyon = two_livekit_clusters
+    recording = RecordingFactory(
+        worker_id="worker-1",
+        status="active",
+        livekit_cluster="lyon",
+        options={"metadata_collector_dispatch_id": "dispatch-123"},
+    )
+    Placement.objects.create(room_name=str(recording.room.id), cluster="paris")
+    client = mock.AsyncMock()
+    client.room.list_rooms.return_value = mock.Mock(rooms=[mock.Mock(metadata="")])
+    mock_create_livekit_client.return_value = client
+    mock_data = mock.MagicMock()
+    mock_data.egress_info.egress_id = recording.worker_id
+    mock_data.egress_info.status = EgressStatus.EGRESS_LIMIT_REACHED
+
+    assert service.cluster == paris
+    service._handle_egress_ended(mock_data)
+
+    assert mock_create_livekit_client.call_args_list == [mock.call(cluster=lyon)] * 3
+    client.room.update_room_metadata.assert_awaited_once()
+    client.agent_dispatch.delete_dispatch.assert_awaited_once_with(
+        dispatch_id="dispatch-123", room_name=str(recording.room.id)
+    )
+    client.room.send_data.assert_awaited_once()
+    mock_notify_external_services.assert_called_once_with(recording)
 
 
 @pytest.mark.parametrize(
@@ -716,11 +775,15 @@ def test_handle_egress_ended_interrupted_saves_partial_recording(  # noqa: PLR09
         service._handle_egress_ended(data)
 
     mock_notify.assert_called_once_with(
-        room_name=str(recording.room.id), notification_data={"type": notification_type}
+        room_name=str(recording.room.id),
+        notification_data={"type": notification_type},
+        cluster=get_default_livekit_cluster(),
     )
     mock_notify_external_services.assert_called_once_with(recording)
     mock_update_metadata.assert_called_once_with(
-        str(recording.room.id), remove_keys=["recording_mode", "recording_status"]
+        str(recording.room.id),
+        remove_keys=["recording_mode", "recording_status"],
+        cluster=get_default_livekit_cluster(),
     )
     assert (
         f"Recording worker reported interrupted for recording {recording.id}"
@@ -792,6 +855,7 @@ def test_handle_egress_ended_failed_on_another_error_discards_recording(
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id),
         notification_data={"type": "transcriptionFailed"},
+        cluster=get_default_livekit_cluster(),
     )
 
     recording.refresh_from_db()

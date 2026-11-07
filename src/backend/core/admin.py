@@ -482,6 +482,7 @@ class RecordingAdmin(admin.ModelAdmin):
         "status",
         "updated_at",
         "worker_id",
+        "livekit_cluster",
     )
     actions = [resend_notification, mark_as_failed_to_stop]
 

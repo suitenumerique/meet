@@ -486,10 +486,12 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
 
         try:
             with transaction.atomic():
+                cluster = PlacementService.cluster_for(str(room.id))
                 recording = models.Recording.objects.create(
                     room=room,
                     mode=mode,
                     options=options_data,
+                    livekit_cluster=cluster.name,
                 )
                 recording.grant_initial_accesses(starter=self.request.user)
 
@@ -507,7 +509,9 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
                 status=drf_status.HTTP_409_CONFLICT,
             )
 
-        worker_service = get_worker_service(mode=recording.mode)
+        worker_service = get_worker_service(
+            mode=recording.mode, cluster=recording.get_livekit_cluster()
+        )
         worker_manager = WorkerServiceMediator(worker_service=worker_service)
 
         try:
@@ -561,7 +565,9 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
 
         self.audit_target = recording
 
-        worker_service = get_worker_service(mode=recording.mode)
+        worker_service = get_worker_service(
+            mode=recording.mode, cluster=recording.get_livekit_cluster()
+        )
         worker_manager = WorkerServiceMediator(worker_service=worker_service)
 
         try:

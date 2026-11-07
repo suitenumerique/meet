@@ -2,7 +2,7 @@
 Test rooms API endpoints in the Meet core app: start recording.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument,no-member,too-many-lines
+# pylint: disable=redefined-outer-name,unused-argument,no-member,too-many-lines,protected-access
 
 from unittest import mock
 
@@ -10,9 +10,11 @@ import pytest
 from livekit import api as livekit_api
 from rest_framework.test import APIClient
 
+from ... import utils
 from ...audit.testing import capture_audit, find_events
 from ...factories import RoomFactory, UserFactory
-from ...models import Recording, RoomAccessLevel
+from ...livekit.clusters import get_default_livekit_cluster
+from ...models import Placement, Recording, RoomAccessLevel
 from ...recording.worker.exceptions import RecordingStartError
 
 pytestmark = pytest.mark.django_db
@@ -155,7 +157,9 @@ def test_start_recording_worker_error(
         {"mode": "screen_recording"},
     )
 
-    mock_worker_service_factory.assert_called_once_with(mode="screen_recording")
+    mock_worker_service_factory.assert_called_once_with(
+        mode="screen_recording", cluster=get_default_livekit_cluster()
+    )
 
     assert response.status_code == 502
     assert response.json() == {
@@ -265,7 +269,9 @@ def test_start_recording_success(
         {"mode": "screen_recording"},
     )
 
-    mock_worker_service_factory.assert_called_once_with(mode="screen_recording")
+    mock_worker_service_factory.assert_called_once_with(
+        mode="screen_recording", cluster=get_default_livekit_cluster()
+    )
 
     assert response.status_code == 201
     assert response.json() == {
@@ -278,12 +284,62 @@ def test_start_recording_success(
 
     assert recording.room == room
     assert recording.mode == "screen_recording"
+    assert recording.livekit_cluster == get_default_livekit_cluster().name
 
     # Verify recording access details
     assert recording.accesses.count() == 1
     access = recording.accesses.first()
     assert access.user == user
     assert access.role == "owner"
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_start_recording_on_the_placed_cluster(
+    mock_create_livekit_client, settings, two_livekit_clusters
+):
+    """A room is recorded on the LiveKit cluster it is placed on, which the
+    recording keeps: the egress, the room's metadata and the metadata collector
+    agent are all on that cluster."""
+    settings.RECORDING_ENABLE = True
+    settings.METADATA_COLLECTOR_ENABLED = True
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    Placement.objects.create(room_name=str(room.id), room=room, cluster="lyon")
+    client = mock.AsyncMock()
+    client._egress.start_room_composite_egress.return_value = mock.Mock(
+        egress_id="EG_lyon"
+    )
+    client.room.list_rooms.return_value = mock.Mock(rooms=[mock.Mock(metadata="")])
+    client.agent_dispatch.create_dispatch.return_value = mock.Mock(id="AD_lyon")
+    mock_create_livekit_client.return_value = client
+    api_client = APIClient()
+    api_client.force_login(user)
+
+    response = api_client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/",
+        {
+            "mode": "screen_recording",
+            "options": {"transcribe": True, "collect_metadata": True},
+        },
+        format="json",
+    )
+
+    assert response.status_code == 201
+
+    recording = Recording.objects.get(room=room)
+    assert recording.livekit_cluster == "lyon"
+    assert recording.worker_id == "EG_lyon"
+    assert recording.options["metadata_collector_dispatch_id"] == "AD_lyon"
+    assert mock_create_livekit_client.call_args_list == [
+        mock.call(utils.livekit_api_configuration(lyon)),
+        mock.call(cluster=lyon),
+        mock.call(cluster=lyon),
+    ]
+    client._egress.start_room_composite_egress.assert_awaited_once()
+    client.room.update_room_metadata.assert_awaited_once()
+    client.agent_dispatch.create_dispatch.assert_awaited_once()
 
 
 @pytest.mark.parametrize("value", ["fr", "en", "nl", "de"])

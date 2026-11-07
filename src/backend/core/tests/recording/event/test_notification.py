@@ -12,11 +12,13 @@ from unittest import mock
 from django.contrib.sites.models import Site
 
 import pytest
+from asgiref.sync import async_to_sync
 from celery.exceptions import OperationalError as CeleryOperationalError
 
 from core import factories, models
 from core.analytics import UserFeatureFlag
 from core.audit.testing import find_events
+from core.livekit.clusters import get_default_livekit_cluster
 from core.recording.event.notification import NotificationService, notification_service
 
 pytestmark = pytest.mark.django_db
@@ -394,7 +396,9 @@ def test_notify_summary_service_post_args_with_metadata(
         mock.call(metadata_filename, expires_in=60 * 60 * 24, override_domain=False),
         mock.call(recording.key, expires_in=60 * 60 * 24, override_domain=False),
     ]
-    mock_get_recording_timestamps.assert_awaited_once_with("egress-1")
+    mock_get_recording_timestamps.assert_awaited_once_with(
+        "egress-1", get_default_livekit_cluster()
+    )
 
 
 @mock.patch("core.recording.event.notification.requests.post")
@@ -472,7 +476,9 @@ def test_notify_summary_service_post_args_without_metadata(
     mock_generate_download_s3_url.assert_called_once_with(
         recording.key, expires_in=60 * 60 * 24, override_domain=False
     )
-    mock_get_recording_timestamps.assert_awaited_once_with(recording.worker_id)
+    mock_get_recording_timestamps.assert_awaited_once_with(
+        recording.worker_id, get_default_livekit_cluster()
+    )
     mock_is_feature_flag_enabled.assert_called_once_with(
         owner, UserFeatureFlag.TRANSCRIPT_SUMMARY_ENABLED
     )
@@ -536,6 +542,70 @@ def test_notify_summary_service_v2_payload_json_serializable_without_timestamps(
     assert isinstance(title, str)
     # ...so the payload serializes exactly the way ``requests`` serializes it.
     json.dumps(payload)
+
+
+@pytest.mark.parametrize("version", [1, 2])
+@mock.patch.object(
+    NotificationService, "_get_recording_timestamps", new_callable=mock.AsyncMock
+)
+def test_notify_summary_service_timestamps_on_the_recording_cluster(
+    mock_get_recording_timestamps, version, settings, two_livekit_clusters
+):
+    """The recording's egress is looked up on the LiveKit cluster that recorded
+    the room, even once the room was placed elsewhere."""
+    settings.SUMMARY_SERVICE_VERSION = version
+    settings.SUMMARY_SERVICE_ENDPOINT = "https://summary.test/api/v2/tasks"
+    settings.SUMMARY_SERVICE_API_TOKEN = "summary-token"
+    _paris, lyon = two_livekit_clusters
+    recording = factories.RecordingFactory(
+        mode="transcript", worker_id="egress-1", livekit_cluster="lyon"
+    )
+    models.Placement.objects.create(room_name=str(recording.room.id), cluster="paris")
+    factories.UserRecordingAccessFactory(
+        recording=recording, role=models.RoleChoices.OWNER
+    )
+    mock_get_recording_timestamps.return_value = (None, None)
+
+    with (
+        mock.patch("core.recording.event.notification.requests.post") as mock_post,
+        mock.patch(
+            "core.recording.event.notification.generate_download_s3_url",
+            return_value="https://storage.test/recording.ogg",
+        ),
+    ):
+        mock_post.return_value.json.return_value = {"job_id": "job-8"}
+        assert NotificationService._notify_summary_service(recording) is True
+
+    mock_get_recording_timestamps.assert_awaited_once_with("egress-1", lyon)
+
+
+@mock.patch("core.utils.create_livekit_client")
+def test_get_recording_timestamps_on_the_given_cluster(
+    mock_create_livekit_client, two_livekit_clusters
+):
+    """The egress is looked up on the LiveKit cluster given."""
+    _paris, lyon = two_livekit_clusters
+    started_at = datetime.datetime(2026, 1, 2, 10, 30, tzinfo=datetime.timezone.utc)
+    ended_at = datetime.datetime(2026, 1, 2, 11, 45, tzinfo=datetime.timezone.utc)
+    file_result = mock.Mock(
+        started_at=int(started_at.timestamp()) * 10**9,
+        ended_at=int(ended_at.timestamp()) * 10**9,
+    )
+    client = mock.AsyncMock()
+    client.egress.list_egress.return_value = mock.Mock(
+        items=[mock.Mock(file_results=[file_result])]
+    )
+    mock_create_livekit_client.return_value = client
+
+    timestamps = async_to_sync(NotificationService._get_recording_timestamps)(
+        "egress-1", lyon
+    )
+
+    assert timestamps == (started_at, ended_at)
+    mock_create_livekit_client.assert_called_once_with(cluster=lyon)
+    client.egress.list_egress.assert_awaited_once()
+    [request] = client.egress.list_egress.await_args.args
+    assert request.egress_id == "egress-1"
 
 
 def test_summary_recipient_is_oldest_access():

@@ -72,7 +72,9 @@ class WorkerServiceMediator:
 
         try:
             RoomManagement.update_metadata(
-                room_name, {"recording_mode": mode, "recording_status": "starting"}
+                room_name,
+                {"recording_mode": mode, "recording_status": "starting"},
+                cluster=recording.get_livekit_cluster(),
             )
         except RoomNotFoundException:
             logger.info(

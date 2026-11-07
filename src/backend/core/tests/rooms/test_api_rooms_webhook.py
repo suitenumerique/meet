@@ -14,6 +14,7 @@ import pytest
 from livekit import api
 
 from ...factories import RecordingFactory
+from ...livekit.clusters import get_default_livekit_cluster
 from ...services.livekit_events import ActionFailedError, LiveKitEventsService
 from ..utils import livekit_webhook_token
 
@@ -300,6 +301,7 @@ def test_egress_ended_keeps_a_partial_transcript(
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id),
         notification_data={"type": "transcriptionInterrupted"},
+        cluster=get_default_livekit_cluster(),
     )
     mock_notify_external_services.assert_called_once_with(recording)
 
