@@ -37,6 +37,7 @@ and this project adheres to
 - 🔒️(agents) upgrade python to 3.14.10 to fix CVE-2026-109518
 - 🔒️(docker) upgrade musl-utils to 1.2.6-r3 to fix CVE-2026-107891
 - ♿️(frontend) close the invite dialog with the Escape key #1916
+- 🐛(frontend) ignore notifications from people not allowed to send them
 
 ## [1.37.0] - 2026-11-01
 

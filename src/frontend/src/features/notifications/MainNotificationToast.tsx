@@ -5,7 +5,8 @@ import { type ChatMessage, isMobileBrowser } from '@livekit/components-core'
 import { useTranslation } from 'react-i18next'
 import { NotificationType } from './NotificationType'
 import { NotificationDuration } from './NotificationDuration'
-import { decodeNotificationDataReceived } from './utils'
+import type { NotificationPayload } from './NotificationPayload'
+import { senderRulesFor, subscribeToNotifications } from './notificationSender'
 import { useNotificationSound } from '@/features/notifications/hooks/useSoundNotification'
 import { toastQueue } from './components/ToastProvider'
 import { layoutStore } from '@/stores/layout'
@@ -15,10 +16,13 @@ import { Emoji } from '@/features/reactions/types'
 import { useReactions } from '@/features/reactions/hooks/useReactions'
 import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
+import { useParams } from 'wouter'
+import { getRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
   const { data } = useConfig()
+  const { roomId } = useParams()
   const { triggerNotificationSound } = useNotificationSound()
   const { t } = useTranslation('notifications')
   const announce = useScreenReaderAnnounce()
@@ -64,15 +68,17 @@ export const MainNotificationToast = () => {
     [appendReaction]
   )
 
+  // Read when a message arrives: the room's settings change during a meeting.
+  const getSenderRules = useCallback(
+    () => senderRulesFor(data, getRoomData(roomId)),
+    [data, roomId]
+  )
+
   useEffect(() => {
-    const handleDataReceived = (
-      payload: Uint8Array,
+    const handleNotification = (
+      notification: NotificationPayload,
       participant?: RemoteParticipant
     ) => {
-      const notification = decodeNotificationDataReceived(payload)
-
-      if (!notification) return
-
       switch (notification.type) {
         case NotificationType.ParticipantMuted:
           if (participant) {
@@ -137,11 +143,8 @@ export const MainNotificationToast = () => {
           return
       }
     }
-    room.on(RoomEvent.DataReceived, handleDataReceived)
-    return () => {
-      room.off(RoomEvent.DataReceived, handleDataReceived)
-    }
-  }, [room, handleEmoji])
+    return subscribeToNotifications(room, handleNotification, getSenderRules)
+  }, [room, handleEmoji, getSenderRules])
 
   const triggerNotificationSoundIfRoomIsSmall = useCallback(
     (type: NotificationType) => {

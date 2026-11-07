@@ -3,8 +3,10 @@ import { useParams } from 'wouter'
 import { keys } from '@/api/queryKeys'
 import { queryClient } from '@/api/queryClient'
 
+export const getRoomData = (roomId?: string): ApiRoom | undefined =>
+  queryClient.getQueryData<ApiRoom>([keys.room, roomId])
+
 export const useRoomData = (): ApiRoom | undefined => {
   const { roomId } = useParams()
-  const queryKey = [keys.room, roomId]
-  return queryClient.getQueryData<ApiRoom>(queryKey)
+  return getRoomData(roomId)
 }
