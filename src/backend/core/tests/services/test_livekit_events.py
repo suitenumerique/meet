@@ -21,7 +21,7 @@ from core.livekit.clusters import (
     LiveKitClusterTokenVerifier,
     get_default_livekit_cluster,
 )
-from core.models import Room
+from core.models import Placement, Room
 from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.recording_events import RecordingEventsService
 from core.services.livekit_events import (
@@ -37,6 +37,7 @@ from core.services.livekit_events import (
     to_recording_event,
 )
 from core.services.lobby import LobbyService
+from core.services.presence import PresenceCache
 from core.services.room_management import (
     RoomManagementException,
     RoomNotFoundException,
@@ -50,6 +51,9 @@ from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
 fake = Faker()
+
+SID = "RM_hycBMAjmt6Ub"
+OTHER_SID = "RM_dxSBWkfXbe4v"
 
 
 @pytest.fixture
@@ -100,6 +104,29 @@ def webhook_request(body, api_key, api_secret):
     }
     request.body = body.encode()
     return request
+
+
+def room_event_request(cluster, event, room_name, sid=SID):
+    """Return the webhook request a LiveKit cluster sends on an event of a room."""
+    body = json.dumps({"event": event, "room": {"name": room_name, "sid": sid}})
+    return webhook_request(body, cluster.api_key, cluster.api_secret)
+
+
+@pytest.fixture
+def room_cleanup(settings):
+    """Mock the cleanup of a room whose LiveKit room finished.
+
+    Provide the mocks clearing its presence and lobby caches. Telephony and
+    roomkit are disabled, as they are with several LiveKit clusters: the room
+    has no SIP dispatch rule to delete.
+    """
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    with (
+        mock.patch.object(PresenceCache, "clear_room") as clear_presence,
+        mock.patch.object(LobbyService, "clear_room_cache") as clear_lobby,
+    ):
+        yield [clear_presence, clear_lobby]
 
 
 @mock.patch.object(LiveKitEventsService, "_handle_room_finished")
@@ -1092,7 +1119,9 @@ def test_handle_room_started_closes_deleted_room(
 
     service._handle_room_started(mock_data)
 
-    mock_delete_room.assert_called_once_with(str(room.id))
+    mock_delete_room.assert_called_once_with(
+        str(room.id), cluster=get_default_livekit_cluster()
+    )
     mock_ensure_dispatch_rule.assert_not_called()
 
 
@@ -1111,7 +1140,9 @@ def test_handle_room_started_ignores_already_closed_deleted_room(
 
     service._handle_room_started(mock_data)
 
-    mock_delete_room.assert_called_once_with(str(room.id))
+    mock_delete_room.assert_called_once_with(
+        str(room.id), cluster=get_default_livekit_cluster()
+    )
 
 
 @mock.patch(
@@ -1303,6 +1334,111 @@ def test_receive_ignores_connection_test_room(
 
     mock_handle_room_started.assert_not_called()
     mock_handle_room_finished.assert_not_called()
+
+
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_receive_room_started_closes_a_deleted_room_on_its_cluster(
+    mock_delete_room, two_livekit_clusters
+):
+    """A LiveKit room started for a deleted room is closed on the cluster that
+    sent the webhook."""
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room.soft_delete()
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_started", str(room.id))
+    )
+
+    mock_delete_room.assert_called_once_with(str(room.id), cluster=lyon)
+
+
+def test_receive_room_finished_deletes_the_placement(
+    two_livekit_clusters, room_cleanup
+):
+    """A LiveKit room that finished on the cluster and with the SID of its
+    placement deletes it, and its room is cleaned up."""
+    _paris, lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+    Placement.objects.create(room_name=str(room_id), cluster="lyon", sid=SID)
+    Placement.objects.create(room_name="other-room", cluster="lyon", sid=SID)
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_finished", str(room_id))
+    )
+
+    assert list(Placement.objects.values_list("room_name", flat=True)) == ["other-room"]
+    for cleanup in room_cleanup:
+        cleanup.assert_called_once_with(room_id)
+
+
+@pytest.mark.parametrize(
+    ("cluster", "sid"),
+    (("paris", SID), ("lyon", OTHER_SID), ("lyon", "")),
+)
+def test_receive_room_finished_elsewhere_than_placed(
+    cluster, sid, two_livekit_clusters, room_cleanup, caplog
+):
+    """A LiveKit room that finished on another cluster or with another SID than
+    its placement's leaves the placement and the room as they are.
+
+    The placement points at the LiveKit room the room now uses, where
+    participants admitted from the lobby must not be queued again.
+    """
+    _paris, lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+    placement = Placement.objects.create(
+        room_name=str(room_id), cluster=cluster, sid=sid
+    )
+
+    with caplog.at_level(logging.INFO, logger="core.services.livekit_events"):
+        LiveKitEventsService().receive(
+            room_event_request(lyon, "room_finished", str(room_id))
+        )
+
+    kept_placement = Placement.objects.get()
+    assert kept_placement.pk == placement.pk
+    assert kept_placement.cluster == cluster
+    assert kept_placement.sid == sid
+    for cleanup in room_cleanup:
+        cleanup.assert_not_called()
+    assert (
+        f"LiveKit room {room_id} finished on LiveKit cluster lyon with SID {SID}, "
+        f"but is placed on LiveKit cluster {cluster} with SID {sid!r}: ignoring "
+        "the event"
+    ) in caplog.text
+
+
+def test_receive_room_finished_without_placement(two_livekit_clusters, room_cleanup):
+    """A LiveKit room that finished without placement has its room cleaned up,
+    as before placements existed."""
+    _paris, lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+    Placement.objects.create(room_name="other-room", cluster="lyon", sid=SID)
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_finished", str(room_id))
+    )
+
+    assert Placement.objects.filter(room_name="other-room").exists()
+    for cleanup in room_cleanup:
+        cleanup.assert_called_once_with(room_id)
+
+
+def test_receive_room_finished_without_sid(two_livekit_clusters, room_cleanup):
+    """A room event without SID leaves placements as they are, and the room is
+    cleaned up as before placements existed."""
+    _paris, lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+    Placement.objects.create(room_name=str(room_id), cluster="lyon", sid=SID)
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_finished", str(room_id), sid="")
+    )
+
+    assert Placement.objects.filter(room_name=str(room_id)).exists()
+    for cleanup in room_cleanup:
+        cleanup.assert_called_once_with(room_id)
 
 
 @mock.patch("core.services.presence.cache.delete")
