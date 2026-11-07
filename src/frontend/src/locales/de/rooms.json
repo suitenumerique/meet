@@ -425,6 +425,9 @@
     }
   },
   "sidePanel": {
+    "detachParticipants": "Teilnehmer in separatem Fenster öffnen",
+    "detachParticipantsError": "Das separate Fenster konnte nicht geöffnet werden. Erlauben Sie Pop-ups und versuchen Sie es erneut.",
+    "returnParticipants": "Teilnehmer zur Besprechung zurückbringen",
     "ariaLabel": "Seitenleiste - {{title}}",
     "backToTools": "Zurück zu den Meeting-Tools",
     "heading": {
