@@ -4,8 +4,7 @@ import { HStack } from '@/styled-system/jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { NotificationType } from '@/features/notifications'
 import { AdminOrOwnerOnly } from '@/features/rooms/components/AdminOrOwnerOnly'
-import { RoomEvent } from 'livekit-client'
-import { decodeNotificationDataReceived } from '@/features/notifications/utils'
+import { subscribeToNotifications } from '@/features/notifications/notificationSender'
 import { useRoomContext } from '@livekit/components-react'
 import { useHumanizeDuration } from '@/hooks/useHumanizeDuration'
 import { useConfig } from '@/api/useConfig'
@@ -45,22 +44,18 @@ const LimitReachedAlertDialogContent = () => {
   })
   const room = useRoomContext()
 
-  useEffect(() => {
-    const handleLimitNotification = (payload: Uint8Array) => {
-      const notification = decodeNotificationDataReceived(payload)
-      if (
-        notification?.type === NotificationType.TranscriptionLimitReached ||
-        notification?.type === NotificationType.ScreenRecordingLimitReached
-      ) {
-        setIsOpen(true)
-      }
-    }
-    room.on(RoomEvent.DataReceived, handleLimitNotification)
-
-    return () => {
-      room.off(RoomEvent.DataReceived, handleLimitNotification)
-    }
-  }, [room])
+  useEffect(
+    () =>
+      subscribeToNotifications(room, (notification) => {
+        if (
+          notification.type === NotificationType.TranscriptionLimitReached ||
+          notification.type === NotificationType.ScreenRecordingLimitReached
+        ) {
+          setIsOpen(true)
+        }
+      }),
+    [room]
+  )
 
   return (
     <Dialog isOpen={isOpen} role="alertdialog" title={t('title')}>

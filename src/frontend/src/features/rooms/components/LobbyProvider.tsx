@@ -5,7 +5,8 @@ import { useCanManageLobby } from '@/features/rooms/livekit/hooks/useCanManageLo
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { useListWaitingParticipants } from '@/features/participants/api/listWaitingParticipants'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import { decodeNotificationDataReceived } from '@/features/notifications/utils'
+import type { NotificationPayload } from '@/features/notifications/NotificationPayload'
+import { subscribeToNotifications } from '@/features/notifications/notificationSender'
 import { NotificationType } from '@/features/notifications'
 import { usePrevious } from '@/hooks/usePrevious'
 import { keys } from '@/api/queryKeys'
@@ -57,10 +58,9 @@ export const LobbyProvider = () => {
   }, [room, fetchIfManager])
 
   // 2. Someone started waiting (LiveKit broadcast).
-  const handleDataReceived = useCallback(
-    (payload: Uint8Array) => {
-      const notification = decodeNotificationDataReceived(payload)
-      if (notification?.type === NotificationType.ParticipantWaiting) {
+  const handleNotification = useCallback(
+    (notification: NotificationPayload) => {
+      if (notification.type === NotificationType.ParticipantWaiting) {
         fetchIfManager()
       }
     },
@@ -68,13 +68,9 @@ export const LobbyProvider = () => {
   )
 
   useEffect(() => {
-    if (canManageLobby) {
-      room.on(RoomEvent.DataReceived, handleDataReceived)
-    }
-    return () => {
-      room.off(RoomEvent.DataReceived, handleDataReceived)
-    }
-  }, [canManageLobby, room, handleDataReceived])
+    if (!canManageLobby) return
+    return subscribeToNotifications(room, handleNotification)
+  }, [canManageLobby, room, handleNotification])
 
   // 3. Rights regained.
   const prevCanManageLobby = usePrevious(canManageLobby)
