@@ -4,10 +4,13 @@ Test rooms API endpoints in the Meet core app: join.
 
 # pylint: disable=redefined-outer-name
 
+import json
+import logging
 from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.db import connection
 from django.utils.crypto import get_random_string
 
 import jwt
@@ -21,8 +24,13 @@ from ...factories import (
     UserResourceAccessFactory,
 )
 from ...livekit.clusters import get_default_livekit_cluster
-from ...models import RoleChoices, RoomAccessLevel
-from ..utils import generate_user_access_token
+from ...livekit.exceptions import LiveKitRoomCreationError
+from ...models import Placement, RoleChoices, RoomAccessLevel
+from ..utils import (
+    CREATED_LIVEKIT_ROOM_SID,
+    generate_user_access_token,
+    livekit_cluster_entry,
+)
 
 fake = Faker()
 pytestmark = pytest.mark.django_db
@@ -68,11 +76,14 @@ def join_url(room_id):
     ("access_level", "requester", "can_join_directly"), ACCESS_MATRIX
 )
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
-def test_api_rooms_join_access(mock_token, access_level, requester, can_join_directly):
+def test_api_rooms_join_access(
+    mock_token, access_level, requester, can_join_directly, fake_livekit_room_creation
+):
     """
     Joining a room should return LiveKit credentials and the pin code only to
     users who may enter without going through the lobby, and the accesses
-    only to the room's administrators and owners.
+    only to the room's administrators and owners. Its LiveKit room should only
+    be placed and created for those handed out credentials.
     """
     room = RoomFactory(
         access_level=access_level,
@@ -131,8 +142,16 @@ def test_api_rooms_join_access(mock_token, access_level, requester, can_join_dir
             participant_id=None,
             cluster=get_default_livekit_cluster(),
         )
+        fake_livekit_room_creation.assert_called_once_with(
+            str(room.id), cluster=get_default_livekit_cluster()
+        )
     else:
         mock_token.assert_not_called()
+        fake_livekit_room_creation.assert_not_called()
+    assert (
+        Placement.objects.filter(room_name=str(room.id), room=room).exists()
+        is can_join_directly
+    )
 
 
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
@@ -150,14 +169,16 @@ def test_api_rooms_join_by_slug(mock_token):
 
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
 def test_api_rooms_join_members_num_queries(mock_token, django_assert_num_queries):
-    """The role of the requester should only be looked up once."""
+    """The role of the requester should only be looked up once. Placing the
+    LiveKit room takes four more queries: its placement is read, created, read
+    back and given the SID of the LiveKit room created."""
     user = UserFactory()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     UserResourceAccessFactory(resource=room, user=user, role=RoleChoices.MEMBER)
     client = APIClient()
     client.force_login(user)
 
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(7):
         response = client.post(join_url(room.id), {}, format="json")
 
     assert response.status_code == 200
@@ -165,25 +186,211 @@ def test_api_rooms_join_members_num_queries(mock_token, django_assert_num_querie
     assert mock_token.call_args.kwargs["role"] == RoleChoices.MEMBER
 
 
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_placed_room_num_queries(mock_token, django_assert_num_queries):
+    """Once the LiveKit room is placed, its placement is only read and given the
+    SID of the LiveKit room created."""
+    user = UserFactory()
+    room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
+    UserResourceAccessFactory(resource=room, user=user, role=RoleChoices.MEMBER)
+    Placement.objects.create(room_name=str(room.id), room=room, cluster="default")
+    client = APIClient()
+    client.force_login(user)
+
+    with django_assert_num_queries(5):
+        response = client.post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 200
+    assert "livekit" in response.json()
+    mock_token.assert_called_once()
+
+
 @pytest.mark.parametrize("role", [RoleChoices.ADMIN, RoleChoices.OWNER])
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
 def test_api_rooms_join_administrators_num_queries(
     mock_token, role, django_assert_num_queries
 ):
-    """Only the accesses should be queried on top of the role for administrators."""
+    """Only the accesses should be queried on top of the role and the placement
+    of the LiveKit room for administrators."""
     user = UserFactory()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     UserResourceAccessFactory(resource=room, user=user, role=role)
     client = APIClient()
     client.force_login(user)
 
-    with django_assert_num_queries(4):
+    with django_assert_num_queries(8):
         response = client.post(join_url(room.id), {}, format="json")
 
     assert response.status_code == 200
     assert "livekit" in response.json()
     assert "accesses" in response.json()
     assert mock_token.call_args.kwargs["role"] == role
+
+
+def test_api_rooms_join_placed_cluster(
+    two_livekit_clusters, fake_livekit_room_creation
+):
+    """
+    Joining a room should hand out credentials for the LiveKit cluster its
+    LiveKit room is placed on, where the LiveKit room is created: its URL, and
+    a token it signed.
+    """
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    room_name = str(room.id)
+
+    with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
+        response = APIClient().post(join_url(room_name), {}, format="json")
+
+    assert response.status_code == 200
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
+
+    config = response.json()["livekit"]
+    assert config["url"] == lyon.url
+    assert config["room"] == room_name
+
+    claims = jwt.decode(config["token"], lyon.api_secret, algorithms=["HS256"])
+    assert claims["iss"] == lyon.api_key
+    assert claims["video"]["room"] == room_name
+
+    placement = Placement.objects.get()
+    assert placement.room_name == room_name
+    assert placement.room == room
+    assert placement.cluster == "lyon"
+    assert placement.sid == CREATED_LIVEKIT_ROOM_SID
+
+
+def test_api_rooms_join_unregistered_default_cluster(
+    settings, two_livekit_clusters, fake_livekit_room_creation
+):
+    """
+    Joining an unregistered room should hand out credentials for the default
+    LiveKit cluster, whatever the placement strategy would pick, where its
+    LiveKit room is created, and place nothing: Django does not follow the
+    lifecycle of unregistered rooms.
+    """
+    settings.ALLOW_UNREGISTERED_ROOMS = True
+    paris, _lyon = two_livekit_clusters
+
+    with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
+        response = APIClient().post(join_url("unregistered-room"), {}, format="json")
+
+    assert response.status_code == 200
+    assert not Placement.objects.exists()
+    fake_livekit_room_creation.assert_called_once_with(
+        "unregistered-room", cluster=paris
+    )
+
+    config = response.json()["livekit"]
+    assert config["url"] == paris.url
+    assert config["room"] == "unregistered-room"
+
+    claims = jwt.decode(config["token"], paris.api_secret, algorithms=["HS256"])
+    assert claims["iss"] == paris.api_key
+    assert claims["video"]["room"] == "unregistered-room"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_api_rooms_join_creates_livekit_room_outside_transaction(
+    fake_livekit_room_creation,
+):
+    """
+    The LiveKit room should be created outside any transaction, once its
+    placement is committed: other requests see it while LiveKit answers.
+    """
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    in_atomic_block = []
+
+    def create_room(_room_name, **_kwargs):
+        in_atomic_block.append(connection.in_atomic_block)
+        return CREATED_LIVEKIT_ROOM_SID
+
+    fake_livekit_room_creation.side_effect = create_room
+
+    response = APIClient().post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 200
+    assert in_atomic_block == [False]
+
+
+@pytest.mark.parametrize("registered", [True, False])
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_room_creation_failure(
+    mock_token, registered, settings, fake_livekit_room_creation
+):
+    """
+    Joining a room whose LiveKit room cannot be created should return a 503
+    without credentials, and leave the room without placement, so that the
+    next join may place it on another cluster.
+    """
+    settings.ALLOW_UNREGISTERED_ROOMS = True
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC) if registered else None
+    fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
+
+    response = APIClient().post(
+        join_url(room.id if registered else "unregistered-room"), {}, format="json"
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    mock_token.assert_not_called()
+    assert not Placement.objects.exists()
+
+
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_placed_room_creation_failure(
+    mock_token, two_livekit_clusters, fake_livekit_room_creation
+):
+    """
+    Joining a room placed earlier, whose LiveKit cluster cannot create its
+    LiveKit room, should return a 503 without credentials, and keep its
+    placement: participants may be connected there.
+    """
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    placement = Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="lyon", sid="RM_old"
+    )
+    fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
+
+    response = APIClient().post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    mock_token.assert_not_called()
+    fake_livekit_room_creation.assert_called_once_with(str(room.id), cluster=lyon)
+    kept_placement = Placement.objects.get()
+    assert kept_placement.pk == placement.pk
+    assert kept_placement.cluster == "lyon"
+    assert kept_placement.sid == "RM_old"
+    assert kept_placement.updated_at == placement.updated_at
+
+
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_without_candidate(
+    mock_token, settings, fake_livekit_room_creation, caplog
+):
+    """
+    Joining a room should return a 503 without credentials while no LiveKit
+    cluster may receive new placements, which is logged as critical.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps([livekit_cluster_entry("paris", weight=0)])
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    with caplog.at_level(logging.CRITICAL, logger="core.livekit.placements"):
+        response = APIClient().post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    mock_token.assert_not_called()
+    fake_livekit_room_creation.assert_not_called()
+    assert "No LiveKit cluster may receive new placements" in caplog.text
 
 
 def test_api_rooms_join_get_not_allowed():

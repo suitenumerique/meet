@@ -34,8 +34,7 @@ class PlacementContext:
 class PlacementStrategy(ABC):
     """A placement strategy, which picks the LiveKit cluster of a new placement.
 
-    A strategy is instantiated each time a cluster is chosen, so whatever it
-    has to remember goes to the cache or the database.
+    A strategy is instantiated each time a cluster is chosen
     """
 
     @abstractmethod

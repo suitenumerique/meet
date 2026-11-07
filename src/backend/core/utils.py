@@ -161,7 +161,7 @@ def generate_livekit_config(  # noqa: PLR0917
     configuration: Optional[dict] = None,
     participant_id: Optional[str] = None,
     *,
-    cluster: Optional[LiveKitClusterConfig] = None,
+    cluster: LiveKitClusterConfig,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -174,16 +174,13 @@ def generate_livekit_config(  # noqa: PLR0917
         configuration (Optional[dict]): Room configuration dict that can override default settings.
         participant_id (Optional[str]): Stable identifier for anonymous users;
                          used as identity when user.is_anonymous.
-        cluster (Optional[LiveKitClusterConfig]): The LiveKit cluster to connect to.
-                         Defaults to the default cluster.
+        cluster (LiveKitClusterConfig): The LiveKit cluster to connect to,
+                         the one the room's LiveKit room is placed on.
 
     Returns:
         dict: LiveKit configuration with the URL browsers connect to on the
         cluster, the room and an access token signed for that cluster
     """
-
-    if cluster is None:
-        cluster = get_default_livekit_cluster()
 
     sources = None
     if configuration is not None:

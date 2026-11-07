@@ -16,6 +16,9 @@ from core.api.throttling import (
     ConnectionTestUserRateThrottle,
 )
 from core.factories import UserFactory
+from core.livekit.clusters import get_livekit_cluster
+from core.livekit.exceptions import LiveKitRoomCreationError
+from core.models import Placement
 from core.tests.utils import livekit_cluster_entry, random_remote_addr
 
 pytestmark = pytest.mark.django_db
@@ -113,31 +116,78 @@ def test_api_diagnostics_connection_token_for_authenticated_user(settings, clien
     assert payload["exp"] - payload["nbf"] == 300
 
 
-def test_api_diagnostics_connection_default_cluster(settings):
-    """The connection is tested on the default LiveKit cluster.
+def test_api_diagnostics_connection_chosen_cluster(
+    settings, fake_livekit_room_creation
+):
+    """The connection is tested on the LiveKit cluster the placement strategy
+    picks, where the room is created, without any placement.
 
     Browsers are given its URL, not the API URL Django calls it on.
     """
-    paris = livekit_cluster_entry("paris", api_url="http://livekit.paris.svc:7880")
-    settings.LIVEKIT_CLUSTERS = json.dumps([paris, livekit_cluster_entry("lyon")])
+    lyon = livekit_cluster_entry("lyon", api_url="http://livekit.lyon.svc:7880")
+    settings.LIVEKIT_CLUSTERS = json.dumps([livekit_cluster_entry("paris"), lyon])
+
+    with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
+        response = APIClient(REMOTE_ADDR=random_remote_addr()).post(
+            "/api/v1.0/diagnostics/connection/"
+        )
+
+    assert response.status_code == 200
+    config = response.json()["livekit"]
+    assert config["url"] == lyon["url"]
+    payload = jwt.decode(config["token"], lyon["api_secret"], algorithms=["HS256"])
+    assert payload["iss"] == lyon["api_key"]
+    assert payload["video"]["room"] == config["room"]
+    fake_livekit_room_creation.assert_called_once_with(
+        config["room"], cluster=get_livekit_cluster("lyon")
+    )
+    assert not Placement.objects.exists()
+
+
+@mock.patch("core.api.viewsets.delete_connection_test_room.apply_async")
+def test_api_diagnostics_connection_room_creation_failure(
+    mock_apply_async, settings, fake_livekit_room_creation
+):
+    """A connection cannot be tested for now when its LiveKit cluster fails to
+    create the room: no deletion is scheduled then."""
+    settings.CELERY_ENABLED = True
+    fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
 
     response = APIClient(REMOTE_ADDR=random_remote_addr()).post(
         "/api/v1.0/diagnostics/connection/"
     )
 
-    assert response.status_code == 200
-    config = response.json()["livekit"]
-    assert config["url"] == paris["url"]
-    payload = jwt.decode(config["token"], paris["api_secret"], algorithms=["HS256"])
-    assert payload["iss"] == paris["api_key"]
-    assert payload["video"]["room"] == config["room"]
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    mock_apply_async.assert_not_called()
+
+
+def test_api_diagnostics_connection_without_candidate(
+    settings, fake_livekit_room_creation
+):
+    """A connection cannot be tested for now when no LiveKit cluster may receive
+    new placements."""
+    settings.LIVEKIT_CLUSTERS = json.dumps([livekit_cluster_entry("paris", weight=0)])
+
+    response = APIClient(REMOTE_ADDR=random_remote_addr()).post(
+        "/api/v1.0/diagnostics/connection/"
+    )
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    fake_livekit_room_creation.assert_not_called()
 
 
 @mock.patch("core.api.viewsets.delete_connection_test_room.apply_async")
 def test_api_diagnostics_connection_schedules_room_deletion(
     mock_apply_async, settings, client
 ):
-    """When Celery is enabled, schedule a hard room delete after max age."""
+    """When Celery is enabled, schedule a hard room delete after max age, on the
+    LiveKit cluster the room was created on."""
 
     settings.CELERY_ENABLED = True
     settings.CONNECTION_TEST_TOKEN_TTL_SECONDS = 300
@@ -148,7 +198,7 @@ def test_api_diagnostics_connection_schedules_room_deletion(
 
     assert response.status_code == 200
     room = response.json()["livekit"]["room"]
-    mock_apply_async.assert_called_once_with(args=[room], countdown=310)
+    mock_apply_async.assert_called_once_with(args=[room, "default"], countdown=310)
 
 
 @mock.patch("core.api.viewsets.delete_connection_test_room.apply_async")

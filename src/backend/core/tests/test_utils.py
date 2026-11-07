@@ -159,26 +159,28 @@ def test_generate_token_cluster(name, expected):
 
 
 @pytest.mark.usefixtures("two_clusters")
-@pytest.mark.parametrize(("name", "expected"), [(None, "paris"), ("lyon", "lyon")])
-def test_generate_livekit_config_cluster(name, expected):
-    """Browsers get the URL of the cluster and a token signed for it.
-
-    The default cluster is used when none is given.
-    """
-    cluster = get_livekit_cluster(name) if name else None
-    expected_cluster = get_livekit_cluster(expected)
+@pytest.mark.parametrize("name", ["paris", "lyon"])
+def test_generate_livekit_config_cluster(name):
+    """Browsers get the URL of the cluster and a token signed for it."""
+    cluster = get_livekit_cluster(name)
 
     config = generate_livekit_config(
         room_id="my-room", user=AnonymousUser(), username="Guest42", cluster=cluster
     )
 
-    assert config["url"] == expected_cluster.url
+    assert config["url"] == cluster.url
     assert config["room"] == "my-room"
-    claims = jwt.decode(
-        config["token"], expected_cluster.api_secret, algorithms=["HS256"]
-    )
-    assert claims["iss"] == expected_cluster.api_key
+    claims = jwt.decode(config["token"], cluster.api_secret, algorithms=["HS256"])
+    assert claims["iss"] == cluster.api_key
     assert claims["video"]["room"] == "my-room"
+
+
+def test_generate_livekit_config_without_cluster():
+    """No credentials are built without the cluster the LiveKit room is placed on."""
+    arguments = {"room_id": "my-room", "user": AnonymousUser(), "username": "Guest42"}
+
+    with pytest.raises(TypeError, match="cluster"):
+        generate_livekit_config(**arguments)
 
 
 @pytest.fixture

@@ -13,6 +13,8 @@ from livekit.api import AccessToken
 from core.factories import ApplicationFactory
 from core.models import ApplicationScope
 
+CREATED_LIVEKIT_ROOM_SID = "RM_created"
+
 
 def generate_user_access_token(user, application=None, **overrides):
     """Generate a valid user access JWT signed with the token secret.

@@ -17,6 +17,7 @@ from freezegun import freeze_time
 
 from core import utils
 from core.factories import RoomFactory, UserFactory, UserResourceAccessFactory
+from core.livekit.clusters import get_default_livekit_cluster
 from core.models import RoleChoices, RoomAccessLevel
 from core.services.lobby import (
     LobbyParticipant,
@@ -254,6 +255,7 @@ def test_request_entry_public_room(
         configuration=room.configuration,
         participant_id=participant_id,
         role=None,
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -295,6 +297,7 @@ def test_request_entry_trusted_room(
         configuration=room.configuration,
         participant_id=participant_id,
         role=None,
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -401,6 +404,7 @@ def test_request_entry_accepted_participant(
         configuration=room.configuration,
         participant_id="test-participant-id",
         role=None,
+        cluster=get_default_livekit_cluster(),
     )
 
 
@@ -481,6 +485,7 @@ def test_request_entry_participant_with_role(
         configuration=room.configuration,
         participant_id="test-participant-id",
         role="administrator",
+        cluster=get_default_livekit_cluster(),
     )
 
 
