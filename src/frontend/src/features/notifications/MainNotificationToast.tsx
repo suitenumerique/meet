@@ -17,9 +17,7 @@ import { useReactions } from '@/features/reactions/hooks/useReactions'
 import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
 import { useParams } from 'wouter'
-import { keys } from '@/api/queryKeys'
-import { queryClient } from '@/api/queryClient'
-import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import { getRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -72,11 +70,7 @@ export const MainNotificationToast = () => {
 
   // Read when a message arrives: the room's settings change during a meeting.
   const getSenderRules = useCallback(
-    () =>
-      senderRulesFor(
-        data,
-        queryClient.getQueryData<ApiRoom>([keys.room, roomId])
-      ),
+    () => senderRulesFor(data, getRoomData(roomId)),
     [data, roomId]
   )
 

@@ -175,18 +175,21 @@ describe('subscribeToNotifications', () => {
   const receive = (room: Room, identity: string, type: NotificationType) =>
     deliver(room, identity, JSON.stringify({ type }))
 
-  const roomWith = (...listed: RemoteParticipant[]) => {
+  const subscribe = (
+    listed: RemoteParticipant[] = [],
+    getRules?: () => SenderRules
+  ) => {
     const room = new Room()
     listed.forEach((p) => room.remoteParticipants.set(p.identity, p))
-    return room
+    const handler = vi.fn()
+    const unsubscribe = subscribeToNotifications(room, handler, getRules)
+    return { room, handler, unsubscribe }
   }
 
   const limit = NotificationType.ScreenRecordingLimitReached
 
   it('hands over what the backend sent, with no sender', () => {
-    const room = roomWith()
-    const handler = vi.fn()
-    subscribeToNotifications(room, handler)
+    const { room, handler } = subscribe()
 
     receive(room, '', limit)
 
@@ -194,9 +197,7 @@ describe('subscribeToNotifications', () => {
   })
 
   it('drops a backend type from a sender the roster has not listed yet', () => {
-    const room = roomWith()
-    const handler = vi.fn()
-    subscribeToNotifications(room, handler)
+    const { room, handler } = subscribe()
 
     receive(room, 'not-on-the-roster-yet', limit)
 
@@ -205,9 +206,7 @@ describe('subscribeToNotifications', () => {
 
   it('names the listed sender and drops a backend type from them', () => {
     const sender = participant({ is_authenticated: 'false' }, 'listed')
-    const room = roomWith(sender)
-    const handler = vi.fn()
-    subscribeToNotifications(room, handler)
+    const { room, handler } = subscribe([sender])
 
     receive(room, 'listed', limit)
     expect(handler).not.toHaveBeenCalled()
@@ -220,9 +219,9 @@ describe('subscribeToNotifications', () => {
   })
 
   it('holds a sender to host rights when given no rules', () => {
-    const room = roomWith(participant({ is_authenticated: 'true' }, 'listed'))
-    const handler = vi.fn()
-    subscribeToNotifications(room, handler)
+    const { room, handler } = subscribe([
+      participant({ is_authenticated: 'true' }, 'listed'),
+    ])
 
     receive(room, 'listed', NotificationType.ParticipantMuted)
     receive(room, 'listed', NotificationType.ScreenRecordingStopped)
@@ -231,10 +230,11 @@ describe('subscribeToNotifications', () => {
   })
 
   it('reads the rules when a message arrives', () => {
-    const room = roomWith(participant({ is_authenticated: 'false' }, 'listed'))
-    const handler = vi.fn()
     let rules = CLOSED
-    subscribeToNotifications(room, handler, () => rules)
+    const { room, handler } = subscribe(
+      [participant({ is_authenticated: 'false' }, 'listed')],
+      () => rules
+    )
 
     receive(room, 'listed', NotificationType.ParticipantMuted)
     expect(handler).not.toHaveBeenCalled()
@@ -245,9 +245,7 @@ describe('subscribeToNotifications', () => {
   })
 
   it('ignores a payload that decodes to nothing', () => {
-    const room = roomWith()
-    const handler = vi.fn()
-    subscribeToNotifications(room, handler)
+    const { room, handler } = subscribe()
 
     deliver(room, '', 'not json')
     deliver(room, '', 'null')
@@ -256,9 +254,7 @@ describe('subscribeToNotifications', () => {
   })
 
   it('stops listening once unsubscribed', () => {
-    const room = roomWith()
-    const handler = vi.fn()
-    const unsubscribe = subscribeToNotifications(room, handler)
+    const { room, handler, unsubscribe } = subscribe()
 
     unsubscribe()
     receive(room, '', limit)

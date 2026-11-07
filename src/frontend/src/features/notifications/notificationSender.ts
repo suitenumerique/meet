@@ -7,6 +7,7 @@ import {
 import type { ApiConfig } from '@/api/useConfig'
 import { isRecordingOpenToParticipants } from '@/features/recording/hooks/useCanRecord'
 import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
+import { getParticipantIsAuthenticated } from '@/features/rooms/utils/getParticipantIsAuthenticated'
 import { getParticipantIsRoomAdminOrOwner } from '@/features/rooms/utils/getParticipantIsRoomAdminOrOwner'
 import type { NotificationPayload } from './NotificationPayload'
 import { NotificationType } from './NotificationType'
@@ -69,7 +70,8 @@ export const isAllowedNotificationSender = (
       return (
         isHost ||
         (rules.isRecordingOpenToParticipants &&
-          sender?.attributes.is_authenticated === 'true')
+          !!sender &&
+          getParticipantIsAuthenticated(sender))
       )
     case NotificationType.ReactionReceived:
     case NotificationType.TranscriptionRequested:
