@@ -791,6 +791,11 @@ class Base(Configuration):
     LIVEKIT_CLUSTERS = SecretFileValue(
         None, environ_name="LIVEKIT_CLUSTERS", environ_prefix=None
     )
+    LIVEKIT_PLACEMENT_STRATEGY = values.Value(
+        "core.livekit.strategies.WeightedRandomStrategy",
+        environ_name="LIVEKIT_PLACEMENT_STRATEGY",
+        environ_prefix=None,
+    )
 
     LIVEKIT_FORCE_WSS_PROTOCOL = values.BooleanValue(
         False, environ_name="LIVEKIT_FORCE_WSS_PROTOCOL", environ_prefix=None
