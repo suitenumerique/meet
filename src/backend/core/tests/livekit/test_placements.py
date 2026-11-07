@@ -1,20 +1,26 @@
 """Unit tests for the placements of LiveKit rooms on the LiveKit clusters."""
 
+# pylint: disable=too-many-lines
+
 import json
 import logging
+import uuid
 from unittest import mock
 
 from django.db.models import F
 from django.utils import timezone
 
+import aiohttp
 import pytest
 
-from core.factories import RoomFactory
-from core.livekit.clusters import get_default_livekit_cluster
+from core.audit.testing import find_events
+from core.factories import RoomFactory, UserFactory
+from core.livekit.clusters import get_default_livekit_cluster, get_livekit_clusters
 from core.livekit.exceptions import (
     LiveKitRoomCreationError,
     NoCandidateLiveKitClusterError,
     PlacementChangedError,
+    RelocationRefusedError,
 )
 from core.livekit.placements import (
     PLACEMENT_UPDATE_ATTEMPTS,
@@ -22,9 +28,49 @@ from core.livekit.placements import (
 )
 from core.livekit.strategies import PlacementContext, WeightedRandomStrategy
 from core.models import Placement
+from core.services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 from core.tests.utils import CREATED_LIVEKIT_ROOM_SID, livekit_cluster_entry
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(name="room_management")
+def room_management_fixture():
+    """Mock the management of LiveKit rooms on their clusters.
+
+    Return a mock whose update_metadata and delete_room stand for those of
+    RoomManagement, its mock_calls listing their calls in order.
+    """
+    manager = mock.Mock()
+    with (
+        mock.patch.object(RoomManagement, "update_metadata", manager.update_metadata),
+        mock.patch.object(RoomManagement, "delete_room", manager.delete_room),
+    ):
+        yield manager
+
+
+@pytest.fixture(name="three_livekit_clusters")
+def three_livekit_clusters_fixture(settings):
+    """Register the Paris, Lyon and Marseille LiveKit clusters, Paris being the
+    default. Return the three clusters, in that order."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry(name) for name in ("paris", "lyon", "marseille")]
+    )
+    return get_livekit_clusters()
+
+
+def assert_placement_unchanged(placement):
+    """Assert that a placement is the only one, as it was."""
+    kept_placement = Placement.objects.get()
+    assert kept_placement.pk == placement.pk
+    assert kept_placement.cluster == placement.cluster
+    assert kept_placement.sid == placement.sid
+    assert kept_placement.epoch == placement.epoch
+    assert kept_placement.updated_at == placement.updated_at
 
 
 def picking(cluster):
@@ -32,6 +78,44 @@ def picking(cluster):
     return mock.patch.object(
         WeightedRandomStrategy, "choose", autospec=True, return_value=cluster
     )
+
+
+def choosing_while_changed(cluster, change):
+    """
+    Patch the default placement strategy to pick a cluster, the placement of
+    the LiveKit room being changed by another request the first time it is
+    asked.
+    """
+    asked = []
+
+    def choose(_strategy, _candidates, context):
+        if not asked:
+            change(context.room_name)
+        asked.append(context)
+        return cluster
+
+    return mock.patch.object(
+        WeightedRandomStrategy, "choose", autospec=True, side_effect=choose
+    )
+
+
+def closing_calls(cluster, room_name="my-room"):
+    """Return the calls closing a LiveKit room on a cluster: a relocation
+    announced in its metadata, then its deletion."""
+    return [
+        mock.call.update_metadata(
+            room_name, {"relocation": {"id": mock.ANY}}, cluster=cluster
+        ),
+        mock.call.delete_room(room_name, cluster=cluster),
+    ]
+
+
+def announced_relocation_ids(room_management):
+    """Return the relocation ids announced in LiveKit rooms' metadata, in order."""
+    return [
+        call.args[1]["relocation"]["id"]
+        for call in room_management.update_metadata.call_args_list
+    ]
 
 
 def test_cluster_for_single_cluster(django_assert_num_queries):
@@ -435,6 +519,7 @@ def change_during_first_creation(**changes):
     return create_room
 
 
+@pytest.mark.usefixtures("two_livekit_clusters")
 @pytest.mark.parametrize(
     ("changes", "expected_cluster", "expected_epoch"),
     (
@@ -453,25 +538,27 @@ def test_place_changed_meanwhile(
     changes,
     expected_cluster,
     expected_epoch,
-    two_livekit_clusters,
     fake_livekit_room_creation,
+    room_management,
 ):
     """
     A placement that changed while its cluster created the LiveKit room is
     read again, and the LiveKit room created once more where it now says, or
-    placed again when it is gone.
+    placed again when it is gone. When that is another cluster, the LiveKit
+    room created on the first one is left there.
     """
-    paris, lyon = two_livekit_clusters
+    paris, lyon = get_livekit_clusters()
     Placement.objects.create(room_name="my-room", cluster="lyon")
     fake_livekit_room_creation.side_effect = change_during_first_creation(**changes)
+    room_management.attach_mock(fake_livekit_room_creation, "create_room")
 
     with picking(paris):
         cluster = PlacementService.place("my-room")
 
     assert cluster.name == expected_cluster
-    assert fake_livekit_room_creation.call_args_list == [
-        mock.call("my-room", cluster=lyon),
-        mock.call("my-room", cluster=cluster),
+    assert room_management.mock_calls == [
+        mock.call.create_room("my-room", cluster=lyon),
+        mock.call.create_room("my-room", cluster=cluster),
     ]
 
     placement = Placement.objects.get()
@@ -515,6 +602,47 @@ def test_place_given_the_created_sid_meanwhile(
     assert placement.epoch == 0
     assert placement.sid == "RM_first"
     assert placement.absent_since is None
+
+
+def test_place_racing_relocation(
+    two_livekit_clusters, fake_livekit_room_creation, room_management, audit_events
+):
+    """
+    A join racing a relocation, whose LiveKit room creation may bring back to
+    life the LiveKit room the relocation just closed, creates it on the cluster
+    the room moved to, which credentials are handed out for. The LiveKit room
+    brought back to life on the cluster left behind is not closed by the join.
+    """
+    paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
+    Placement.objects.create(
+        room_name=room_name, room=room, cluster="paris", sid="RM_a"
+    )
+    sids = iter(("RM_revived", "RM_new"))
+
+    def create_room(name, *, cluster):
+        if cluster == paris:
+            PlacementService.relocate(name, "lyon", actor=UserFactory())
+        return next(sids)
+
+    fake_livekit_room_creation.side_effect = create_room
+    room_management.attach_mock(fake_livekit_room_creation, "create_room")
+
+    assert PlacementService.place(room_name, room) == lyon
+
+    assert room_management.mock_calls == [
+        mock.call.create_room(room_name, cluster=paris),
+        *closing_calls(paris, room_name),
+        mock.call.create_room(room_name, cluster=lyon),
+    ]
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.previous_cluster == "paris"
+    assert placement.epoch == 1
+    assert placement.sid == "RM_new"
+    (closing_by_relocation,) = find_events(audit_events, "livekit.room.close")
+    assert closing_by_relocation["lasuite"]["actor"]["type"] == "user"
 
 
 def test_place_keeps_changing(two_livekit_clusters, fake_livekit_room_creation, caplog):
@@ -591,3 +719,473 @@ def test_place_without_candidate(settings, fake_livekit_room_creation):
 
     assert not Placement.objects.exists()
     fake_livekit_room_creation.assert_not_called()
+
+
+@pytest.mark.parametrize("registered", (True, False))
+def test_relocate(registered, three_livekit_clusters, room_management, caplog):
+    """A room is relocated to the cluster the placement strategy picks among the
+    candidates other than its own. Its placement moves there, with no SID until
+    the next join creates the LiveKit room there, records the cluster it left
+    and gets a new epoch. The LiveKit room is then closed on the cluster it
+    left, never on the new one: a relocation is announced in its metadata, then
+    it is deleted."""
+    paris, lyon, marseille = three_livekit_clusters
+    room = RoomFactory() if registered else None
+    room_name = str(room.id) if registered else "my-room"
+    placement = Placement.objects.create(
+        room_name=room_name,
+        room=room,
+        cluster="paris",
+        sid="RM_old",
+        epoch=2,
+        absent_since=timezone.now(),
+    )
+
+    with (
+        picking(marseille) as choose,
+        caplog.at_level(logging.INFO, logger="core.livekit.placements"),
+    ):
+        cluster = PlacementService.relocate(room_name, actor=None)
+
+    assert cluster == marseille
+    choose.assert_called_once_with(
+        mock.ANY, (lyon, marseille), PlacementContext(room_name=room_name, room=room)
+    )
+    relocated = Placement.objects.get()
+    assert relocated.pk == placement.pk
+    assert relocated.cluster == "marseille"
+    assert relocated.previous_cluster == "paris"
+    assert relocated.sid == ""
+    assert relocated.absent_since is None
+    assert relocated.epoch == 3
+    assert relocated.relocated_at > placement.updated_at
+    assert relocated.updated_at == relocated.relocated_at
+    assert room_management.mock_calls == closing_calls(paris, room_name)
+    [relocation_id] = announced_relocation_ids(room_management)
+    assert str(uuid.UUID(relocation_id)) == relocation_id
+    assert (
+        f"Relocated LiveKit room {room_name} from LiveKit cluster paris to LiveKit "
+        "cluster marseille"
+    ) in caplog.text
+    assert f"Closed LiveKit room {room_name} on LiveKit cluster paris" in caplog.text
+
+
+def test_relocate_to(three_livekit_clusters, room_management):
+    """A room is relocated to the candidate named, without asking the placement
+    strategy."""
+    paris, lyon, _marseille = three_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="paris")
+
+    with mock.patch.object(WeightedRandomStrategy, "choose") as choose:
+        assert PlacementService.relocate("my-room", "lyon", actor=None) == lyon
+
+    choose.assert_not_called()
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.previous_cluster == "paris"
+    assert placement.epoch == 1
+    assert room_management.mock_calls == closing_calls(paris)
+
+
+def test_relocate_from_cluster_weighing_zero(settings, room_management):
+    """A room placed on a cluster that receives no new placements is relocated
+    to another."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry("paris", weight=0), livekit_cluster_entry("lyon")]
+    )
+    paris, lyon = get_livekit_clusters()
+    Placement.objects.create(room_name="my-room", cluster="paris")
+
+    assert PlacementService.relocate("my-room", actor=None) == lyon
+
+    assert Placement.objects.get().cluster == "lyon"
+    assert room_management.mock_calls == closing_calls(paris)
+
+
+@pytest.mark.parametrize(
+    ("to", "message"),
+    (
+        pytest.param(
+            "paris",
+            "LiveKit room my-room is placed on LiveKit cluster paris already",
+            id="its-cluster",
+        ),
+        pytest.param("lille", "No LiveKit cluster is named 'lille'", id="unregistered"),
+        pytest.param(
+            "marseille",
+            "LiveKit cluster marseille may not receive new placements",
+            id="not-a-candidate",
+        ),
+    ),
+)
+def test_relocate_to_refused(to, message, settings, room_management, audit_events):
+    """A room is not relocated to its own cluster, to a cluster that is not
+    registered or to one that may not receive new placements: nothing changes."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [
+            livekit_cluster_entry("paris"),
+            livekit_cluster_entry("lyon"),
+            livekit_cluster_entry("marseille", weight=0),
+        ]
+    )
+    placement = Placement.objects.create(
+        room_name="my-room", cluster="paris", sid="RM_abc"
+    )
+
+    with pytest.raises(RelocationRefusedError, match=message):
+        PlacementService.relocate("my-room", to, actor=None)
+
+    assert_placement_unchanged(placement)
+    assert not room_management.mock_calls
+    assert not audit_events
+
+
+@pytest.mark.parametrize(
+    ("clusters", "placed_on"),
+    (
+        pytest.param(None, "default", id="single-cluster"),
+        pytest.param(
+            [livekit_cluster_entry("paris"), livekit_cluster_entry("lyon", weight=0)],
+            "paris",
+            id="other-weighing-zero",
+        ),
+    ),
+)
+def test_relocate_without_other_candidate(
+    clusters, placed_on, settings, room_management
+):
+    """A room is not relocated while no other cluster may receive new
+    placements: nothing changes."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(clusters) if clusters else None
+    placement = Placement.objects.create(room_name="my-room", cluster=placed_on)
+
+    with pytest.raises(
+        RelocationRefusedError,
+        match=(
+            f"No LiveKit cluster other than {placed_on} may receive LiveKit room "
+            "my-room"
+        ),
+    ):
+        PlacementService.relocate("my-room", actor=None)
+
+    assert_placement_unchanged(placement)
+    assert not room_management.mock_calls
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+def test_relocate_not_placed(room_management):
+    """A room whose LiveKit room is not placed is not relocated."""
+    Placement.objects.create(room_name="other-room", cluster="paris")
+
+    with pytest.raises(
+        RelocationRefusedError, match="LiveKit room my-room is not placed"
+    ):
+        PlacementService.relocate("my-room", actor=None)
+
+    assert Placement.objects.get().room_name == "other-room"
+    assert not room_management.mock_calls
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+def test_relocate_from_unregistered_cluster(room_management):
+    """A room placed on a cluster that is not registered is not relocated: its
+    participants could not be told."""
+    placement = Placement.objects.create(
+        room_name="my-room", cluster="lille", sid="RM_abc"
+    )
+
+    with pytest.raises(
+        RelocationRefusedError,
+        match=(
+            "LiveKit room my-room is placed on LiveKit cluster lille, which is not "
+            "registered"
+        ),
+    ):
+        PlacementService.relocate("my-room", actor=None)
+
+    assert_placement_unchanged(placement)
+    assert not room_management.mock_calls
+
+
+@pytest.mark.parametrize("registered", (True, False))
+@pytest.mark.usefixtures("two_livekit_clusters")
+def test_relocate_is_audited(registered, room_management, audit_events):
+    """A relocation is audited with the LiveKit room of the room relocated, as
+    the other events of its placement are, whether the room is registered or
+    not, the clusters it moved between and the relocation id announced in the
+    LiveKit room it left, whose closing is audited too. Both are audited as
+    done by the actor given: here, a user acting through the admin."""
+    user = UserFactory(is_staff=True)
+    room = RoomFactory() if registered else None
+    room_name = str(room.id) if registered else "my-room"
+    Placement.objects.create(room_name=room_name, room=room, cluster="paris")
+
+    PlacementService.relocate(room_name, "lyon", actor=user)
+
+    [relocation_id] = announced_relocation_ids(room_management)
+    [relocated] = find_events(audit_events, "livekit.placement.relocate")
+    assert relocated["event"]["category"] == ["api"]
+    assert relocated["event"]["type"] == ["change"]
+    assert relocated["lasuite"]["outcome"] == "success"
+    assert relocated["lasuite"]["actor"]["type"] == "user"
+    assert relocated["user"]["id"] == str(user.id)
+    assert relocated["entity"]["target"] == {
+        "id": room_name,
+        "sub_type": "livekit_room",
+    }
+    assert relocated["lasuite"]["details"] == {
+        "source_cluster": "paris",
+        "target_cluster": "lyon",
+        "relocation_id": relocation_id,
+    }
+
+    [closed] = find_events(audit_events, "livekit.room.close")
+    assert closed["event"]["type"] == ["end"]
+    assert closed["lasuite"]["outcome"] == "success"
+    assert closed["lasuite"]["actor"]["type"] == "user"
+    assert closed["user"]["id"] == str(user.id)
+    assert closed["service"]["target"] == {"name": "livekit"}
+    assert closed["entity"]["target"] == {"id": room_name, "sub_type": "livekit_room"}
+    assert closed["lasuite"]["details"] == {
+        "cluster": "paris",
+        "relocation_id": relocation_id,
+    }
+
+
+@pytest.mark.usefixtures("two_livekit_clusters", "room_management")
+def test_relocate_by_the_system(audit_events):
+    """A relocation by no user, such as a drain's, is audited as done by the
+    system, as is the closing of the LiveKit room it left."""
+    Placement.objects.create(room_name="my-room", cluster="paris")
+
+    PlacementService.relocate("my-room", actor=None)
+
+    assert [event["event"]["action"] for event in audit_events] == [
+        "livekit.placement.relocate",
+        "livekit.room.close",
+    ]
+    for event in audit_events:
+        assert event["lasuite"]["actor"] == {"type": "system"}
+        assert "user" not in event
+
+
+def test_relocate_source_unreachable(two_livekit_clusters, room_management, caplog):
+    """A room is relocated even when the cluster it leaves cannot be reached to
+    close the LiveKit room there, which is logged."""
+    _paris, lyon = two_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="paris")
+    room_management.update_metadata.side_effect = aiohttp.ClientConnectionError(
+        "Connection refused"
+    )
+
+    with caplog.at_level(logging.ERROR, logger="core.livekit.placements"):
+        assert PlacementService.relocate("my-room", actor=None) == lyon
+
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.previous_cluster == "paris"
+    assert placement.epoch == 1
+    assert "LiveKit cluster paris failed to close LiveKit room my-room" in caplog.text
+
+
+def bump_epoch(room_name):
+    """Change the placement of a LiveKit room, which stays on its cluster."""
+    Placement.objects.filter(room_name=room_name).update(epoch=F("epoch") + 1)
+
+
+def place_again(room_name):
+    """Place a LiveKit room again on its cluster, as once it finished and was
+    joined anew."""
+    cluster = Placement.objects.get(room_name=room_name).cluster
+    Placement.objects.filter(room_name=room_name).delete()
+    Placement.objects.create(room_name=room_name, cluster=cluster, sid="RM_new")
+
+
+def finish(room_name):
+    """Delete the placement of a LiveKit room, as once it finished."""
+    Placement.objects.filter(room_name=room_name).delete()
+
+
+def move_to_lyon(room_name):
+    """Move the placement of a LiveKit room to lyon, keeping its epoch."""
+    Placement.objects.filter(room_name=room_name).update(cluster="lyon")
+
+
+PLACEMENT_FIELDS = ("pk", "cluster", "sid", "epoch", "previous_cluster", "updated_at")
+
+
+@pytest.mark.parametrize("change", (bump_epoch, place_again, finish, move_to_lyon))
+def test_relocate_changed_meanwhile(
+    change, three_livekit_clusters, room_management, audit_events
+):
+    """A relocation reads the placement once: one that changed before it moves
+    is left as the change made it, and the relocation is refused, for the
+    caller to ask again. That holds whether the placement stayed on its
+    cluster, as one whose LiveKit room finished and was placed again there, or
+    left it."""
+    _paris, _lyon, marseille = three_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="paris")
+    changed = []
+
+    def change_placement(room_name):
+        change(room_name)
+        changed.extend(Placement.objects.values(*PLACEMENT_FIELDS))
+
+    with (
+        choosing_while_changed(marseille, change_placement) as choose,
+        pytest.raises(
+            RelocationRefusedError,
+            match="The placement of LiveKit room my-room changed meanwhile",
+        ),
+    ):
+        PlacementService.relocate("my-room", actor=None)
+
+    choose.assert_called_once()
+    assert list(Placement.objects.values(*PLACEMENT_FIELDS)) == changed
+    assert not room_management.mock_calls
+    assert not audit_events
+
+
+def test_relocate_concurrently(three_livekit_clusters, room_management):
+    """A room relocated by another request while it is relocated moves once:
+    the relocation moving its placement last is refused, rather than moving
+    the room again."""
+    paris, _lyon, marseille = three_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="paris")
+
+    def relocate_to_lyon(room_name):
+        PlacementService.relocate(room_name, "lyon", actor=None)
+
+    with (
+        choosing_while_changed(marseille, relocate_to_lyon) as choose,
+        pytest.raises(
+            RelocationRefusedError,
+            match="The placement of LiveKit room my-room changed meanwhile",
+        ),
+    ):
+        PlacementService.relocate("my-room", actor=None)
+
+    choose.assert_called_once()
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.previous_cluster == "paris"
+    assert placement.epoch == 1
+    assert room_management.mock_calls == closing_calls(paris)
+
+
+def test_close_stray_room(two_livekit_clusters, room_management, audit_events, caplog):
+    """A LiveKit room live on a cluster it is not placed on is closed there: a
+    relocation is announced in its metadata, then it is deleted. Its placement
+    is left as it is. Each closing announces a relocation of its own."""
+    _paris, lyon = two_livekit_clusters
+    placement = Placement.objects.create(
+        room_name="my-room", cluster="paris", sid="RM_abc"
+    )
+
+    with caplog.at_level(logging.INFO, logger="core.livekit.placements"):
+        closed = [
+            PlacementService.close_stray_room(lyon, "my-room", actor=None)
+            for _call in range(2)
+        ]
+
+    assert closed == [True, True]
+    assert room_management.mock_calls == closing_calls(lyon) * 2
+    first_id, second_id = announced_relocation_ids(room_management)
+    assert first_id != second_id
+    assert_placement_unchanged(placement)
+    assert "Closed LiveKit room my-room on LiveKit cluster lyon" in caplog.text
+    events = find_events(audit_events, "livekit.room.close")
+    assert [event["lasuite"]["details"] for event in events] == [
+        {"cluster": "lyon", "relocation_id": first_id},
+        {"cluster": "lyon", "relocation_id": second_id},
+    ]
+    for event in events:
+        assert event["lasuite"]["outcome"] == "success"
+        assert event["lasuite"]["actor"] == {"type": "system"}
+        assert event["entity"]["target"] == {
+            "id": "my-room",
+            "sub_type": "livekit_room",
+        }
+    assert not find_events(audit_events, "livekit.placement.relocate")
+
+
+@pytest.mark.parametrize("missing_from", ("update_metadata", "delete_room"))
+def test_close_stray_room_not_live(missing_from, room_management, audit_events, caplog):
+    """A LiveKit room that is not live on the cluster, or finishes before it is
+    deleted, is left alone, which is not audited."""
+    cluster = get_default_livekit_cluster()
+    getattr(room_management, missing_from).side_effect = RoomNotFoundException(
+        "Room does not exist"
+    )
+
+    with caplog.at_level(logging.INFO, logger="core.livekit.placements"):
+        closed = PlacementService.close_stray_room(cluster, "my-room", actor=None)
+
+    assert closed is False
+    calls = closing_calls(cluster)
+    assert room_management.mock_calls == (
+        calls[:1] if missing_from == "update_metadata" else calls
+    )
+    assert (
+        "LiveKit room my-room is not live on LiveKit cluster default: nothing to close"
+    ) in caplog.text
+    assert not audit_events
+
+
+@pytest.mark.parametrize(
+    ("failing", "error"),
+    (
+        pytest.param(
+            "update_metadata",
+            aiohttp.ClientConnectionError("Connection refused"),
+            id="unreachable",
+        ),
+        pytest.param(
+            "update_metadata",
+            RoomManagementException("Could not update room metadata"),
+            id="announcement-failure",
+        ),
+        pytest.param(
+            "delete_room",
+            RoomManagementException("Could not delete room"),
+            id="deletion-failure",
+        ),
+    ),
+)
+def test_close_stray_room_failure(
+    failing, error, room_management, audit_events, caplog
+):
+    """A cluster failing to close a LiveKit room is logged and audited, never
+    raised. A LiveKit room in which the relocation could not be announced is
+    not deleted, which would send its participants away as if the meeting were
+    over."""
+    cluster = get_default_livekit_cluster()
+    getattr(room_management, failing).side_effect = error
+
+    with caplog.at_level(logging.ERROR, logger="core.livekit.placements"):
+        closed = PlacementService.close_stray_room(cluster, "my-room", actor=None)
+
+    assert closed is False
+    calls = closing_calls(cluster)
+    assert room_management.mock_calls == (
+        calls if failing == "delete_room" else calls[:1]
+    )
+    [record] = [
+        record for record in caplog.records if record.name == "core.livekit.placements"
+    ]
+    assert record.getMessage() == (
+        "LiveKit cluster default failed to close LiveKit room my-room"
+    )
+    assert record.exc_info[1] is error
+    [relocation_id] = announced_relocation_ids(room_management)
+    [event] = find_events(audit_events, "livekit.room.close")
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["event"]["reason"] == "internal_error"
+    assert event["error"] == {
+        "type": f"{type(error).__module__}.{type(error).__qualname__}"
+    }
+    assert event["log"]["level"] == "error"
+    assert event["lasuite"]["details"] == {
+        "cluster": "default",
+        "relocation_id": relocation_id,
+    }
