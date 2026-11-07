@@ -152,11 +152,11 @@ class LiveKitEventsService:
         """Initialize with required services."""
 
         self._webhook_handlers = {
-            "egress_updated": self._handle_egress_updated,
-            "egress_ended": self._handle_egress_ended,
-            "room_started": self._handle_room_started,
-            "room_finished": self._handle_room_finished,
-            "participant_left": self._handle_participant_left,
+            LiveKitWebhookEventType.EGRESS_UPDATED: self._handle_egress_updated,
+            LiveKitWebhookEventType.EGRESS_ENDED: self._handle_egress_ended,
+            LiveKitWebhookEventType.ROOM_STARTED: self._handle_room_started,
+            LiveKitWebhookEventType.ROOM_FINISHED: self._handle_room_finished,
+            LiveKitWebhookEventType.PARTICIPANT_LEFT: self._handle_participant_left,
         }
 
         self.token_verifier = LiveKitClusterTokenVerifier()
@@ -223,7 +223,7 @@ class LiveKitEventsService:
             return
 
         # Handle according to received webhook type
-        handler = self._webhook_handlers.get(webhook_type.value)
+        handler = self._webhook_handlers.get(webhook_type)
 
         if handler is not None:
             handler(data)
@@ -364,12 +364,12 @@ class LiveKitEventsService:
                     f"Failed to create sip dispatch rule for room {room_id}"
                 ) from e
 
-    @staticmethod
-    def _close_deleted_room(room_id):
+    def _close_deleted_room(self, room_id):
         """Close a LiveKit room recreated after its room was soft deleted.
 
         LiveKit auto-creates a room on join, so a participant still holding a
         valid token can bring a deleted room back to life until the token expires.
+        The LiveKit room is closed on the LiveKit cluster it started on.
         """
 
         logger.warning(
@@ -377,14 +377,18 @@ class LiveKitEventsService:
         )
 
         try:
-            RoomManagement.delete_room(str(room_id))
+            RoomManagement.delete_room(str(room_id), cluster=self.cluster)
         except RoomNotFoundException:
             logger.info("LiveKit room %s is already closed", room_id)
         except RoomManagementException as e:
             raise ActionFailedError(f"Failed to close deleted room {room_id}") from e
 
     def _handle_room_finished(self, data):
-        """Handle 'room_finished' event."""
+        """Handle 'room_finished' event.
+
+        The room is cleaned up only when the placement of its LiveKit room
+        ended, or when it has none.
+        """
 
         try:
             room_id = uuid.UUID(data.room.name)
@@ -394,6 +398,9 @@ class LiveKitEventsService:
                 data.room.name,
             )
             raise ActionFailedError("Failed to process room finished event") from e
+
+        if not self._end_placement(data.room):
+            return
 
         if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
             try:
@@ -411,6 +418,50 @@ class LiveKitEventsService:
             raise ActionFailedError(
                 f"Failed to clear room cache for room {room_id}"
             ) from e
+
+    def _end_placement(self, livekit_room) -> bool:
+        """Delete the placement of a LiveKit room that finished.
+
+        The placement is deleted only when it is on the cluster that sent the
+        webhook, with the SID of the finished LiveKit room.
+
+        - When nothing is deleted, the placement is read again to tell why.
+        - Without placement, as for a LiveKit room live since before placements
+          existed or a webhook delivered twice, the meeting is over and the room
+          is cleaned up, or lobby admissions would outlive it.
+        - With a placement on another cluster or with another SID, the room has
+          moved on to another LiveKit room, relocated or created again since:
+          cleaning up would erase the admissions of participants admitted from
+          the lobby, who would be queued again, and delete the SIP dispatch rule
+          the live LiveKit room uses.
+
+        Return whether the room is to be cleaned up.
+        """
+        if not livekit_room.sid:
+            return True
+
+        cluster_name = self.cluster.name
+        placements = models.Placement.objects.filter(room_name=livekit_room.name)
+        deleted, _ = placements.filter(
+            cluster=cluster_name, sid=livekit_room.sid
+        ).delete()
+        if deleted:
+            return True
+
+        placement = placements.first()
+        if placement is None:
+            return True
+
+        logger.info(
+            "LiveKit room %s finished on LiveKit cluster %s with SID %s, but is "
+            "placed on LiveKit cluster %s with SID %r: ignoring the event",
+            livekit_room.name,
+            cluster_name,
+            livekit_room.sid,
+            placement.cluster,
+            placement.sid,
+        )
+        return False
 
     def _handle_participant_left(self, data):
         """Handle 'participant_left': invalidate the presence cache.
