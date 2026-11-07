@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
 - ✨(frontend) tell participants when a recording is interrupted
+- ✨(frontend) let users resize the screen share and video split #1923
 
 ### Changed
 
