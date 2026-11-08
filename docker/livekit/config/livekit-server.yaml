@@ -9,6 +9,9 @@ webhook:
   urls:
       - http://app-dev:8000/api/v1.0/rooms/webhooks-livekit/
 
+room:
+  auto_create: false
+
 turn:
   enabled: true
   domain: turn.127.0.0.1.nip.io
