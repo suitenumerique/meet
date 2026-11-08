@@ -31,7 +31,7 @@ import {
   captureMediaEvent,
   reportError,
 } from '@/features/analytics/telemetry'
-import { type ApiConfig, useConfig } from '@/api/useConfig'
+import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { navigateTo } from '@/navigation/navigateTo'
@@ -46,6 +46,11 @@ import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constant
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
 import { createLiveKitRoom } from '@/features/rooms/livekit/utils/reconnectPolicy'
+import {
+  getUrlToWarmUp,
+  shouldConnect,
+  toConnectionUrl,
+} from '@/features/rooms/livekit/utils/clusterConnection'
 
 // Some clients (like DINUM) operate in bandwidth-constrained environments
 // These settings help ensure successful connections in poor network conditions
@@ -79,13 +84,17 @@ const handleError = (e: Error) => {
  *
  * It should cache DNS and TLS keys.
  */
-const warmUpConnection = async (room: Room, livekit: ApiConfig['livekit']) => {
-  await room.prepareConnection(livekit.url)
+const warmUpConnection = async (
+  room: Room,
+  url: string,
+  enableFirefoxProxyWorkaround: boolean
+) => {
+  await room.prepareConnection(url)
 
-  if (isFireFox() && livekit.enable_firefox_proxy_workaround) {
+  if (isFireFox() && enableFirefoxProxyWorkaround) {
     try {
       const wssUrl =
-        livekit.url.replace('https://', 'wss://').replace(/\/$/, '') + '/rtc'
+        url.replace('https://', 'wss://').replace(/\/$/, '') + '/rtc'
 
       /**
        * FIREFOX + PROXY WORKAROUND:
@@ -147,7 +156,11 @@ export const Conference = ({
   const isMobile = useIsMobile()
 
   const [hasJoined, setHasJoined] = useState(false)
-  const [isConnectionWarmedUp, setIsConnectionWarmedUp] = useState(false)
+  const [warmedUpUrls, setWarmedUpUrls] = useState<ReadonlySet<string>>(
+    () => new Set()
+  )
+  const [isConnectLatched, setIsConnectLatched] = useState(false)
+  const startedWarmUpsRef = useRef(new Set<string>())
   const hasAutoMutedRef = useRef(false)
   const hasConnectedRef = useRef(false)
 
@@ -212,19 +225,20 @@ export const Conference = ({
     [roomOptions, apiConfig?.livekit.reconnect]
   )
 
-  /*
-   * Ensure stable WebSocket connection URL. This is critical for legacy browser compatibility
-   * (Firefox <124, Chrome <125, Edge <125) where HTTPS URLs in WebSocket() constructor
-   *  may fail - the force_wss_protocol flag allows explicit WSS protocol conversion
-   */
-  const serverUrl = useMemo(() => {
-    const livekit_url = apiConfig?.livekit.url
-    if (!livekit_url) return
-    if (apiConfig?.livekit.force_wss_protocol) {
-      return livekit_url.replace('https://', 'wss://')
-    }
-    return livekit_url
-  }, [apiConfig?.livekit])
+  const connection = {
+    configUrl: apiConfig?.livekit.url,
+    joinUrl: createRoomData?.livekit?.url,
+    warmedUpUrls,
+    isConnectLatched,
+  }
+  const urlToWarmUp = getUrlToWarmUp(connection)
+  const connect = shouldConnect(connection)
+  const serverUrl =
+    connection.joinUrl &&
+    toConnectionUrl(
+      connection.joinUrl,
+      apiConfig?.livekit.force_wss_protocol ?? false
+    )
 
   const handleConnected = useCallback(async () => {
     hasConnectedRef.current = true
@@ -275,11 +289,19 @@ export const Conference = ({
   }, [isLobbyRequired, onLobbyRequired])
 
   useEffect(() => {
-    if (!apiConfig || isConnectionWarmedUp) return
-    warmUpConnection(room, apiConfig.livekit).then(() =>
-      setIsConnectionWarmedUp(true)
-    )
-  }, [room, apiConfig, isConnectionWarmedUp])
+    if (!apiConfig || !urlToWarmUp) return
+    if (startedWarmUpsRef.current.has(urlToWarmUp)) return
+    startedWarmUpsRef.current.add(urlToWarmUp)
+    warmUpConnection(
+      room,
+      urlToWarmUp,
+      apiConfig.livekit.enable_firefox_proxy_workaround
+    ).then(() => setWarmedUpUrls((urls) => new Set(urls).add(urlToWarmUp)))
+  }, [room, apiConfig, urlToWarmUp])
+
+  useEffect(() => {
+    if (connect) setIsConnectLatched(true)
+  }, [connect])
 
   if (fetchError?.statusCode == 410) {
     return (
@@ -307,7 +329,7 @@ export const Conference = ({
           room={room}
           serverUrl={serverUrl}
           token={createRoomData?.livekit?.token}
-          connect={isConnectionWarmedUp}
+          connect={connect}
           audio={userConfig.audioEnabled}
           video={
             userConfig.videoEnabled && {
