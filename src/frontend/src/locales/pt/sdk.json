@@ -1,0 +1,18 @@
+{
+  "createMeeting": {
+    "createButton": "Criar",
+    "joinButton": "Entrar com o Visio",
+    "copyLinkTooltip": "Copiar link",
+    "resetLabel": "Redefinir",
+    "participantLimit": "Até 150 participantes.",
+    "popupBlocked": "O pop-up foi bloqueado. Por favor, permita pop-ups para este site.",
+    "settingsTooltip": "Configurações da reunião"
+  },
+  "roomSettings": {
+    "title": "Configurações da reunião",
+    "description": "Configurar a reunião {{roomSlug}}.",
+    "notAllowed": "Você não tem permissão para modificar as configurações desta reunião.",
+    "error": "Não foi possível carregar as configurações da reunião.",
+    "closeButton": "Fechar"
+  }
+}

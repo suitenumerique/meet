@@ -1,0 +1,63 @@
+{
+  "createMeeting": "Criar uma reunião",
+  "heading": "Videoconferência Simples e Segura",
+  "intro": "Comunique-se e trabalhe com facilidade, sem comprometer sua soberania",
+  "joinInputError": "Use um link ou código de reunião. Exemplos:",
+  "joinInputExample": "URL ou código de 10 letras",
+  "joinInputLabel": "Link da reunião",
+  "joinInputSubmit": "Entrar na reunião",
+  "joinMeeting": "Entrar em uma reunião",
+  "joinMeetingTipContent": "Você pode entrar em uma reunião colando o link completo na barra de endereços do navegador.",
+  "joinMeetingTipHeading": "Você sabia?",
+  "loginToCreateMeeting": "Faça login para criar uma reunião",
+  "moreLinkLabel": "Saiba mais sobre {{appTitle}} - nova aba",
+  "moreLink": "Saiba mais",
+  "moreAbout": "sobre {{appTitle}}",
+  "connectionTestLink": "Testar sua configuração",
+  "createMenu": {
+    "laterOption": "Criar uma reunião para depois",
+    "instantOption": "Iniciar uma reunião instantânea"
+  },
+  "laterMeetingDialog": {
+    "heading": "Seus dados de conexão",
+    "description": "Compartilhe essas informações com os convidados. Eles poderão entrar na reunião sem precisar se autenticar. Esta reunião é permanente e pode ser reutilizada.",
+    "permissions": "Pessoas com este link não precisam de sua permissão para entrar nesta reunião.",
+    "copy": "Copiar informações",
+    "copied": "Informações copiadas para a área de transferência",
+    "copyUrl": "Copiar o link da reunião",
+    "phone": {
+      "call": "Ligar:",
+      "pinCode": "Código:"
+    }
+  },
+  "introSlider": {
+    "previous": {
+      "label": "Slide anterior",
+      "labelWithPosition": "Slide anterior ({{current}} de {{total}})",
+      "tooltip": "Slide anterior"
+    },
+    "next": {
+      "label": "Próximo slide",
+      "labelWithPosition": "Próximo slide ({{current}} de {{total}})",
+      "tooltip": "Próximo slide"
+    },
+    "beta": {
+      "text": "Participar do beta",
+      "tooltip": "Preencher o formulário"
+    },
+    "slide1": {
+      "title": "Mude para a simplicidade. Experimente agora!",
+      "body": "Descubra uma solução intuitiva e acessível, projetada para todos os agentes públicos, seus parceiros e muito mais."
+    },
+    "slide2": {
+      "title": "Faça chamadas em grupo sem limites",
+      "body": "Reuniões sem limite de tempo, com comunicação fluida e de alta qualidade, independentemente do tamanho do grupo."
+    },
+    "slide3": {
+      "title": "Transforme suas reuniões com IA",
+      "body": "Obtenha transcrições precisas e acionáveis para aumentar sua produtividade. Recurso em beta — experimente agora!"
+    },
+    "carouselLabel": "Apresentação de slides introdutória",
+    "slidePosition": "Slide {{current}} de {{total}}"
+  }
+}

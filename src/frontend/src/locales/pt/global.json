@@ -1,0 +1,71 @@
+{
+  "backToHome": "Voltar para a tela inicial",
+  "cancel": "Cancelar",
+  "closeDialog": "Fechar diálogo",
+  "error": {
+    "heading": "Ocorreu um erro ao carregar a página"
+  },
+  "feedback": {
+    "context": "Sua opinião ajuda a melhorar o produto!",
+    "cta": "Compartilhar sua opinião - nova aba"
+  },
+  "forbidden": {
+    "heading": "Você não tem permissão para ver esta página"
+  },
+  "loading": "Carregando…",
+  "loggedInUserTooltip": "Conectado como ",
+  "login": {
+    "buttonLabel": "Entrar",
+    "proconnectButtonLabel": "Entrar com ProConnect",
+    "proconnectLinkLabel": "O que é ProConnect? - nova aba",
+    "proconnectLink": "O que é ProConnect?"
+  },
+  "logout": "Sair",
+  "notFound": {
+    "heading": "Verifique o código da reunião",
+    "body": "Verifique se você digitou corretamente o código da reunião na URL. Exemplo:"
+  },
+  "selected": "selecionado",
+  "submit": "OK",
+  "support": {
+    "buttonLabel": "Contatar suporte",
+    "openError": "Não foi possível abrir o formulário de contato. Tente novamente mais tarde.",
+    "sent": {
+      "title": "Mensagem enviada",
+      "body": "A equipe de suporte recebeu sua mensagem.",
+      "close": "Fechar"
+    }
+  },
+  "footer": {
+    "links": {
+      "legifrance": "legifrance.gouv.fr",
+      "infogouv": "info.gouv.fr",
+      "servicepublic": "service-public.fr",
+      "datagouv": "data.gouv.fr",
+      "legalsTerms": "Aviso Legal",
+      "data": "Dados Pessoais e Cookies",
+      "accessibility": "Acessibilidade: não conforme",
+      "connectionTest": "Testar sua configuração",
+      "ariaLabel": "nova janela",
+      "codeAnnotation": "Nosso código é aberto e disponível neste",
+      "code": "Repositório de Código Aberto",
+      "technicalDetails": "Aviso Técnico",
+      "termsOfService": "Termos de serviço"
+    },
+    "mentions": "Salvo indicação em contrário, os conteúdos deste site estão disponíveis sob",
+    "license": "licença etalab 2.0"
+  },
+  "loginHint": {
+    "title": "Entre com sua conta",
+    "body": "Em vez de esperar, entre com sua conta.",
+    "button": {
+      "ariaLabel": "Fechar a sugestão",
+      "label": "OK"
+    }
+  },
+  "skipLink": "Ir para o conteúdo principal",
+  "clipboardContent": {
+    "url": "Para entrar na videoconferência, clique neste link: {{roomUrl}}",
+    "numberAndPin": "Para entrar por telefone, ligue para {{phoneNumber}} e digite o código: {{pinCode}}"
+  }
+}

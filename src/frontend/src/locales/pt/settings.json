@@ -1,0 +1,229 @@
+{
+  "account": {
+    "currentlyLoggedAs": "Você está conectado como <0>{{user}}</0>",
+    "heading": "Conta",
+    "youAreNotLoggedIn": "Você não está conectado.",
+    "nameLabel": "Seu Nome",
+    "authentication": "Autenticação",
+    "nameError": "Seu nome não pode estar vazio"
+  },
+  "preferences": {
+    "title": "Preferências",
+    "idleDisconnectModal": {
+      "label": "Sair de chamadas sem participantes",
+      "description": "Sai automaticamente de uma chamada após alguns minutos se nenhum outro participante entrar"
+    },
+    "autoMuteLargeRoom": {
+      "label": "Silenciar meu microfone automaticamente",
+      "description": "Silencia automaticamente seu microfone ao entrar em uma reunião grande."
+    }
+  },
+  "audio": {
+    "microphone": {
+      "heading": "Microfone",
+      "label": "Selecione sua entrada de áudio",
+      "disabled": "Microfone desativado"
+    },
+    "noiseReduction": {
+      "label": "Otimização avançada de voz",
+      "heading": "Filtros de áudio",
+      "ariaLabel": {
+        "enable": "Ativar redução de ruído",
+        "disable": "Desativar redução de ruído"
+      }
+    },
+    "speakers": {
+      "heading": "Alto-falantes",
+      "label": "Selecione sua saída de áudio",
+      "test": "Testar",
+      "ongoingTest": "Testando som…",
+      "safariWarning": "A seleção de alto-falante ainda não está disponível no Safari devido a limitações do navegador."
+    },
+    "permissionsRequired": "Permissões necessárias"
+  },
+  "video": {
+    "camera": {
+      "heading": "Câmera",
+      "label": "Selecione sua entrada de vídeo",
+      "disabled": "Câmera desativada",
+      "previewAriaLabel": {
+        "enabled": "Pré-visualização de vídeo ativada",
+        "disabled": "Pré-visualização de vídeo desativada"
+      }
+    },
+    "resolution": {
+      "heading": "Resolução",
+      "publish": {
+        "label": "Selecione sua resolução de envio (máx.)",
+        "items": {
+          "veryHigh": "Definição muito alta",
+          "high": "Alta definição",
+          "medium": "Definição padrão",
+          "low": "Baixa definição"
+        }
+      },
+      "subscribe": {
+        "label": "Selecione sua resolução de recepção (máx.)",
+        "items": {
+          "high": "Alta definição (automática)",
+          "medium": "Definição padrão",
+          "low": "Baixa definição"
+        }
+      }
+    },
+    "permissionsRequired": "Permissões necessárias"
+  },
+  "transcription": {
+    "heading": "Transcrição",
+    "language": {
+      "label": "Idioma da reunião",
+      "options": {
+        "french": "Francês (fr)",
+        "english": "Inglês (en)",
+        "dutch": "Holandês (nl)",
+        "german": "Alemão (de)",
+        "auto": "Automático"
+      }
+    }
+  },
+  "notifications": {
+    "heading": "Notificações sonoras",
+    "label": "notificações sonoras para",
+    "actions": {
+      "disable": "Desativar",
+      "enable": "Ativar"
+    },
+    "items": {
+      "participantJoined": {
+        "label": "Participante entrou"
+      },
+      "handRaised": {
+        "label": "Mão levantada"
+      },
+      "messageReceived": {
+        "label": "Mensagem recebida"
+      },
+      "participantWaiting": {
+        "label": "Participante aguardando"
+      }
+    }
+  },
+  "shortcuts": {
+    "listLabel": "Atalhos de teclado",
+    "columnAction": "Ação",
+    "columnShortcut": "Atalho"
+  },
+  "dialog": {
+    "heading": "Configurações"
+  },
+  "language": {
+    "heading": "Idioma",
+    "label": "Idioma"
+  },
+  "settingsButtonLabel": "Configurações",
+  "accessibility": {
+    "announceReactions": {
+      "label": "Anunciar reações em voz alta"
+    },
+    "font": {
+      "label": "Fonte de exibição",
+      "description": "Personalize a fonte usada na interface para melhorar seu conforto de leitura.",
+      "options": {
+        "default": "Padrão",
+        "lexend": "Lexend (legibilidade melhorada)",
+        "atkinson-hyperlegible": "Atkinson Hyperlegible (baixa visão)",
+        "opendyslexic": "OpenDyslexic (dislexia)"
+      }
+    },
+    "captions": {
+      "heading": "Legendas",
+      "textSize": {
+        "label": "Tamanho do texto das legendas",
+        "options": {
+          "small": "Pequeno",
+          "medium": "Médio",
+          "large": "Grande"
+        }
+      },
+      "fontColor": {
+        "label": "Cor da fonte",
+        "options": {
+          "default": "Padrão",
+          "white": "Branco",
+          "black": "Preto",
+          "blue": "Azul",
+          "green": "Verde",
+          "red": "Vermelho",
+          "yellow": "Amarelo",
+          "cyan": "Ciano",
+          "magenta": "Magenta"
+        }
+      },
+      "backgroundColor": {
+        "label": "Cor de fundo",
+        "options": {
+          "default": "Padrão",
+          "white": "Branco",
+          "black": "Preto",
+          "blue": "Azul",
+          "green": "Verde",
+          "red": "Vermelho",
+          "yellow": "Amarelo",
+          "cyan": "Ciano",
+          "magenta": "Magenta"
+        }
+      }
+    }
+  },
+  "tabs": {
+    "account": "Perfil",
+    "audio": "Áudio",
+    "video": "Vídeo",
+    "general": "Geral",
+    "notifications": "Notificações",
+    "accessibility": "Acessibilidade",
+    "transcription": "Transcrição",
+    "shortcuts": "Atalhos",
+    "rooms": "Salas",
+    "recording": "Gravação"
+  },
+  "roomDefaults": {
+    "heading": "Configurações padrão de sala",
+    "description": "Escolha as configurações aplicadas por padrão às novas salas que você criar. Você ainda pode alterá-las para cada reunião nas configurações de anfitrião."
+  },
+  "recording": {
+    "heading": "Qualidade da gravação",
+    "locked": "Essas configurações não podem ser alteradas enquanto uma gravação estiver iniciando ou em andamento.",
+    "profile": {
+      "label": "Tipo de conteúdo",
+      "options": {
+        "talking_heads": {
+          "label": "Pessoas falando",
+          "description": "Otimizado para pessoas falando na câmera com slides ocasionais. Menores arquivos."
+        },
+        "text": {
+          "label": "Apresentações e texto",
+          "description": "Mantém o texto nítido ao compartilhar slides, documentos ou código."
+        },
+        "mixed": {
+          "label": "Conteúdo misto",
+          "description": "Equilibrado para uma combinação de câmeras, compartilhamento de tela e movimento moderado."
+        },
+        "full": {
+          "label": "Qualidade máxima",
+          "description": "Maior fidelidade e movimento mais suave. Maiores arquivos."
+        }
+      }
+    },
+    "resolution": {
+      "label": "Resolução",
+      "description": "Resoluções mais altas geram arquivos maiores.",
+      "options": {
+        "540p": "540p (qHD)",
+        "720p": "720p (HD)",
+        "1080p": "1080p (Full HD)"
+      }
+    },
+    "defaultOption": "Padrão"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "error": {
+    "title": "Gravação indisponível",
+    "body": "A gravação está indisponível ou pode ter sido excluída. Apenas o anfitrião da reunião pode acessá-la. Sinta-se à vontade para contatá-lo se necessário."
+  },
+  "expired": {
+    "title": "Gravação expirada",
+    "body": "Esta gravação foi excluída em {{date}}."
+  },
+  "authentication": {
+    "title": "Autenticação necessária",
+    "body": "Por favor, faça login para acessar esta gravação."
+  },
+  "unsaved": {
+    "title": "Download Indisponível",
+    "body": "Esta gravação ainda não está pronta para download. Tente novamente mais tarde."
+  },
+  "success": {
+    "title": "Sua gravação está pronta!",
+    "body": "Gravação da reunião {{room}} de {{created_at}}.",
+    "expiration": "Atenção, esta gravação expirará após {{expiration_days}} dia(s).",
+    "button": "Baixar",
+    "warning": {
+      "title": "Compartilhamento de link desativado",
+      "body": "O compartilhamento da gravação via link ainda não está disponível. Apenas anfitriões podem baixá-la."
+    }
+  }
+}

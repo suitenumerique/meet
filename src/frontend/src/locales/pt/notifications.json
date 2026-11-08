@@ -1,0 +1,74 @@
+{
+  "defaultName": "Um colaborador",
+  "joined": {
+    "description": "{{name}} entrou na sala"
+  },
+  "raised": {
+    "description": "{{name}} levantou a mão.",
+    "cta": "Abrir lista de espera"
+  },
+  "muted": "{{name}} silenciou seu microfone. Nenhum participante pode ouvi-lo.",
+  "openChat": "Abrir chat",
+  "chatMessageReceived": "{{name}} diz: {{message}}",
+  "lowerHand": {
+    "auto": "Parece que você começou a falar, então sua mão será abaixada.",
+    "dismiss": "Manter mão levantada"
+  },
+  "autoMuteLargeRoom": {
+    "auto": "Você entrou em uma reunião grande. Seu microfone foi silenciado automaticamente.",
+    "dismiss": "Ativar microfone"
+  },
+  "reaction": {
+    "description": "{{name}} reagiu com {{emoji}}"
+  },
+  "permissionsRemoved": {
+    "camera": "O anfitrião desativou o vídeo para todos os participantes.",
+    "microphone": "O anfitrião desativou o microfone para todos os participantes.",
+    "screen_share": "O anfitrião desativou o compartilhamento de tela para todos os participantes."
+  },
+  "waitingParticipants": {
+    "one": "Uma pessoa quer entrar nesta chamada.",
+    "several": "Várias pessoas querem entrar nesta chamada.",
+    "open": "Abrir",
+    "accept": "Aceitar"
+  },
+  "transcript": {
+    "waitingForTracks": "A transcrição está aguardando um microfone. Ative seu microfone para que a transcrição possa começar.",
+    "started": "{{name}} iniciou a transcrição da reunião.",
+    "stopped": "{{name}} parou a transcrição da reunião.",
+    "limitReached": "A transcrição excedeu a duração máxima permitida e será salva automaticamente.",
+    "interrupted": "A transcrição foi interrompida inesperadamente; a parte já registrada será salva.",
+    "failed": "A transcrição foi interrompida inesperadamente e não pôde ser salva.",
+    "aborted": "Não foi possível iniciar a transcrição.",
+    "requested": "{{name}} quer iniciar a transcrição da reunião."
+  },
+  "screenRecording": {
+    "waitingForTracks": "A gravação está aguardando áudio ou vídeo. Ative seu microfone ou câmera, ou compartilhe sua tela, para que a gravação possa começar.",
+    "started": "{{name}} iniciou a gravação da reunião.",
+    "stopped": "{{name}} parou a gravação da reunião.",
+    "limitReached": "A gravação excedeu a duração máxima permitida e será salva automaticamente.",
+    "interrupted": "A gravação foi interrompida inesperadamente; a parte já gravada será salva.",
+    "failed": "A gravação foi interrompida inesperadamente e não pôde ser salva.",
+    "aborted": "Não foi possível iniciar a gravação.",
+    "requested": "{{name}} quer iniciar a gravação da reunião."
+  },
+  "recordingSave": {
+    "transcript": {
+      "message": "Sua gravação está sendo salva! Enviaremos a transcrição para <strong>{{email}}</strong> assim que estiver pronta.",
+      "default": "Sua gravação está sendo salva! Enviaremos a transcrição para seu email assim que estiver pronta."
+    },
+    "screenRecording": {
+      "message": "Sua gravação está sendo salva! Enviaremos uma notificação para <strong>{{email}}</strong> assim que estiver pronta.",
+      "default": "Sua gravação está sendo salva! Enviaremos uma notificação para seu email assim que estiver pronta."
+    }
+  },
+  "roleChanged": {
+    "body": "Seu papel mudou. Agora você é {{role}}.",
+    "roles": {
+      "owner": "Anfitrião",
+      "administrator": "Co-anfitrião",
+      "member": "Membro"
+    }
+  },
+  "openMenu": "Abrir menu"
+}
