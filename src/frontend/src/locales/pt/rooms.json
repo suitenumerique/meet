@@ -1,0 +1,875 @@
+{
+  "feedback": {
+    "heading": {
+      "normal": "Você saiu da reunião",
+      "duplicateIdentity": "Você entrou na reunião de outro dispositivo",
+      "participantRemoved": "Você foi removido da reunião por um anfitrião",
+      "roomDeleted": "Esta reunião foi excluída",
+      "connectionLost": "A conexão com a reunião foi perdida",
+      "connectionFailed": "Não foi possível entrar na reunião"
+    },
+    "home": "Voltar para o início",
+    "back": "Reentrar na reunião"
+  },
+  "selectDevice": {
+    "loading": "Carregando…",
+    "select": "Selecione um valor",
+    "permissionsNeeded": "Permissão necessária",
+    "deviceNotFound": {
+      "videoinput": "Nenhuma câmera detectada. Verifique se está conectada corretamente.",
+      "audioinput": "Nenhum microfone detectado. Verifique se está conectado corretamente."
+    },
+    "deviceInUse": {
+      "videoinput": "Câmera indisponível: provavelmente está sendo usada por outro aplicativo ou guia do navegador.",
+      "audioinput": "Microfone indisponível: provavelmente está sendo usado por outro aplicativo ou guia do navegador."
+    },
+    "settings": {
+      "audio": "Configurações de áudio",
+      "video": "Configurações de vídeo"
+    },
+    "effects": "Planos de fundo e Efeitos",
+    "videoinput": {
+      "choose": "Selecionar câmera",
+      "permissionsNeeded": "Selecionar câmera - permissão necessária",
+      "disable": "Desativar câmera",
+      "enable": "Ativar câmera",
+      "turnedOff": "Câmera desligada",
+      "turnedOn": "Câmera ligada",
+      "label": "Câmera",
+      "placeholder": "Ative a câmera para ver a pré-visualização"
+    },
+    "audioinput": {
+      "choose": "Selecionar microfone",
+      "level": "Nível de entrada do microfone",
+      "muteTest": "Ative seu microfone para testá-lo",
+      "permissionsNeeded": "Selecionar microfone - permissão necessária",
+      "disable": "Desativar microfone",
+      "enable": "Ativar microfone",
+      "turnedOff": "Microfone desligado",
+      "turnedOn": "Microfone ligado",
+      "label": "Microfone"
+    },
+    "audiooutput": {
+      "choose": "Selecionar alto-falante",
+      "permissionsNeeded": "Selecionar alto-falante - permissão necessária",
+      "test": "Testar alto-falantes",
+      "testing": "Reproduzindo som de teste…"
+    }
+  },
+  "join": {
+    "effects": {
+      "description": "Aplicar planos de fundo e efeitos",
+      "title": "Efeitos",
+      "subTitle": "Configure os efeitos da sua câmera."
+    },
+    "heading": "Entrar na reunião?",
+    "joinLabel": "Entrar",
+    "joinMeeting": "Entrar na reunião",
+    "toggleOff": "Clique para desligar",
+    "toggleOn": "Clique para ligar",
+    "usernameHint": "Visível para outros participantes",
+    "usernameLabel": "Seu nome",
+    "errors": {
+      "joinFailed": "Não foi possível entrar na reunião. Tente novamente.",
+      "usernameEmpty": "Seu nome não pode estar vazio"
+    },
+    "cameraDisabled": "Câmera desativada.",
+    "cameraNotFound": "Nenhuma câmera detectada. Verifique se está conectada corretamente.",
+    "cameraInUse": "Sua câmera está indisponível. Provavelmente está sendo usada por outro aplicativo ou guia do navegador.",
+    "cameraStarting": "Câmera iniciando…",
+    "cameraNotGranted": "Deseja que os outros possam ver você durante a reunião?",
+    "cameraAndMicNotGranted": "Deseja que os outros possam ver e ouvir você durante a reunião?",
+    "permissionsButton": {
+      "cameraAndMicNotGranted": "Permitir acesso à câmera e microfone",
+      "cameraNotGranted": "Permitir acesso à câmera"
+    },
+    "videoPreview": {
+      "enabled": "Pré-visualização de vídeo ativada",
+      "disabled": "Pré-visualização de vídeo desativada"
+    },
+    "waiting": {
+      "title": "Solicitando entrada...",
+      "body": "Você poderá entrar nesta chamada quando alguém autorizar"
+    },
+    "denied": {
+      "title": "Você não pode entrar nesta chamada",
+      "body": "Sua solicitação de entrada foi negada."
+    },
+    "timeoutInvite": {
+      "title": "Você não pode entrar nesta chamada",
+      "body": "Ninguém respondeu à sua solicitação"
+    },
+    "deleted": {
+      "title": "Você não pode entrar nesta chamada",
+      "body": "Esta reunião foi excluída."
+    }
+  },
+  "leaveRoomPrompt": "Isso fará você sair da reunião.",
+  "shareDialog": {
+    "copy": "Copiar informações",
+    "copyUrl": "Copiar link",
+    "copied": "Informações copiadas para a área de transferência",
+    "heading": "Sua reunião está pronta",
+    "description": "Compartilhe este link com as pessoas que deseja convidar para a reunião.",
+    "permissions": "Pessoas com este link não precisam de sua permissão para entrar nesta reunião.",
+    "closeDialog": "Fechar diálogo",
+    "phone": {
+      "call": "Ligar:",
+      "pinCode": "Código:"
+    }
+  },
+  "pagination": {
+    "label": "Páginas de participantes",
+    "count": "{{currentPage}} de {{totalPageCount}}",
+    "next": "próxima página",
+    "previous": "página anterior"
+  },
+  "mediaErrorDialog": {
+    "DeviceInUse": {
+      "title": {
+        "audioinput": "Falha ao ativar microfone",
+        "videoinput": "Falha ao ativar câmera"
+      },
+      "body": {
+        "audioinput": "Seu microfone já está em uso por outra aba ou aplicativo, o que impede sua ativação nesta chamada. Se desejar, feche a outra aba ou aplicativo para usá-lo aqui.",
+        "videoinput": "Sua câmera já está em uso por outra aba ou aplicativo, o que impede sua ativação nesta chamada. Se desejar, feche a outra aba ou aplicativo para usá-la aqui."
+      }
+    },
+    "NotFound": {
+      "title": {
+        "audioinput": "Nenhum microfone detectado",
+        "videoinput": "Nenhuma câmera detectada"
+      },
+      "body": {
+        "audioinput": "Nenhum microfone foi detectado no seu dispositivo. Verifique se está conectado corretamente e se não está desativado por um botão físico de mudo, depois tente novamente.",
+        "videoinput": "Nenhuma câmera foi detectada no seu dispositivo. Verifique se está conectada corretamente e se não está bloqueada por uma tampa ou botão físico, depois tente novamente."
+      }
+    },
+    "close": "OK"
+  },
+  "permissionErrorDialog": {
+    "heading": {
+      "camera": "{{appTitle}} não tem permissão para usar sua câmera",
+      "microphone": "{{appTitle}} não tem permissão para usar seu microfone",
+      "cameraAndMicrophone": "{{appTitle}} não tem permissão para usar seu microfone ou câmera",
+      "default": "{{appTitle}} não tem permissão para usar certas funcionalidades"
+    },
+    "body": {
+      "openMenu": {
+        "others": "Clique no ícone de configurações ICON_PLACEHOLDER na barra de endereços do navegador",
+        "safari": "Clique no menu 'Safari' e abra 'Configurações para {{appDomain}}'."
+      },
+      "details": {
+        "camera": "Permita o acesso à câmera",
+        "microphone": "Permita o acesso ao microfone",
+        "cameraAndMicrophone": "Permita o acesso à câmera e ao microfone",
+        "default": "Ative as permissões necessárias."
+      }
+    }
+  },
+  "systemPermissionDialog": {
+    "heading": {
+      "camera": "Permitir que o navegador use sua câmera",
+      "microphone": "Permitir que o navegador use seu microfone",
+      "cameraAndMicrophone": "Permitir que o navegador use sua câmera e seu microfone"
+    },
+    "device": {
+      "camera": "câmera",
+      "microphone": "microfone",
+      "cameraAndMicrophone": "câmera e microfone"
+    },
+    "intro": "Seu navegador já tem permissão, mas as configurações do sistema do computador estão bloqueando o acesso à sua {{device}}.",
+    "steps": {
+      "macos": {
+        "1": "Nos Ajustes do Sistema, abra “Privacidade e Segurança”.",
+        "2": "Permita que o navegador acesse sua {{device}}."
+      },
+      "windows": {
+        "1": "Nas Configurações do Windows, abra “Privacidade e segurança”.",
+        "2": "Ative o acesso a {{device}} e permita que aplicativos da área de trabalho o utilizem."
+      },
+      "android": {
+        "1": "Nas Configurações do Android, abra “Apps” e selecione seu navegador.",
+        "2": "Em “Permissões”, permita o acesso a {{device}} e recarregue esta página."
+      },
+      "other": {
+        "1": "Nas configurações de privacidade do sistema, permita que o navegador acesse sua {{device}}.",
+        "2": "Depois, tente novamente."
+      }
+    },
+    "openSettings": "Abrir configurações do sistema"
+  },
+  "silentMic": {
+    "tooltip": "Seu microfone está ativado, mas nenhum som está sendo detectado. Clique para saber mais.",
+    "dialog": {
+      "title": "Nenhum som detectado",
+      "intro": "Seu microfone está ativado, mas não detectamos nenhum som há algum tempo. Verifique o seguinte:",
+      "causes": {
+        "system": "As configurações de privacidade do seu sistema podem estar bloqueando o acesso ao microfone.",
+        "hardware": "Um botão de mudo pode estar ativado, ou seu microfone pode estar desconectado ou com defeito.",
+        "wrongDevice": "O microfone incorreto pode estar selecionado. Tente escolher outro no menu de microfone."
+      },
+      "hint": "Fale novamente após verificar essas configurações. Este aviso desaparecerá assim que o som for detectado.",
+      "close": "Entendi",
+      "discard": "Desativar detecção de microfone silencioso"
+    }
+  },
+  "permissionsButton": {
+    "tooltip": "Mais informações",
+    "ariaLabel": "Problema de permissões. Mostrar mais informações"
+  },
+  "error": {
+    "createRoom": {
+      "heading": "Autenticação Necessária",
+      "body": "Esta sala ainda não foi criada. Por favor, autentique-se para criá-la ou aguarde um usuário autenticado fazer isso."
+    },
+    "deletedRoom": {
+      "heading": "Reunião excluída",
+      "body": "Esta reunião foi excluída e não é mais possível entrar nela."
+    },
+    "screenShare": {
+      "title": "Não foi possível compartilhar sua tela",
+      "ariaLabel": "Não foi possível compartilhar sua tela",
+      "message": "Seu navegador pode não ter permissão para gravar a tela no seu computador.",
+      "settingsInstructions": "Acesse",
+      "settingsLabel": {
+        "macos": "Ajustes do Sistema",
+        "windows": "Configurações de privacidade do Windows"
+      },
+      "helpLinkText": "Para saber mais, veja",
+      "helpLinkLabel": "Problema de apresentação",
+      "closeButton": "Fechar",
+      "newTab": "Nova janela"
+    }
+  },
+  "isIdleDisconnectModal": {
+    "title": "Você ainda está aí?",
+    "body": "Você é o único participante. Esta chamada será encerrada em {{duration}}. Deseja continuar?",
+    "settingsPrefix": "Para parar de ver esta mensagem, vá em",
+    "settingsLink": "Configurações > Geral",
+    "settingsSuffix": ".",
+    "stayButton": "Continuar a chamada",
+    "leaveButton": "Sair agora",
+    "countdownAnnouncement": "Chamada encerra em {{duration}}."
+  },
+  "controls": {
+    "region": "Controles da chamada",
+    "microphone": "Microfone",
+    "camera": "Câmera",
+    "chat": {
+      "open": "Fechar o chat",
+      "closed": "Abrir o chat",
+      "input": {
+        "textArea": {
+          "label": "Digite uma mensagem",
+          "placeholder": "Digite uma mensagem"
+        },
+        "button": {
+          "label": "Enviar mensagem"
+        }
+      }
+    },
+    "info": {
+      "open": "Ocultar informações",
+      "closed": "Mostrar informações"
+    },
+    "hand": {
+      "raise": "Levantar a mão",
+      "lower": "Abaixar a mão"
+    },
+    "subtitles": {
+      "closed": "Mostrar legendas",
+      "open": "Ocultar legendas"
+    },
+    "screenShare": {
+      "start": "Compartilhar tela",
+      "stop": "Parar compartilhamento de tela"
+    },
+    "leave": "Sair",
+    "participants": {
+      "open": "Ocultar todos",
+      "closed": "Ver todos",
+      "count_one": "{{count}} participante",
+      "count_other": "{{count}} participantes"
+    },
+    "tools": {
+      "open": "Ocultar mais ferramentas",
+      "closed": "Mostrar mais ferramentas"
+    },
+    "admin": {
+      "open": "Ocultar admin",
+      "closed": "Abrir admin"
+    },
+    "moreOptions": "Mais opções",
+    "reactions": {
+      "button": "Enviar reação",
+      "toolbar": "Enviar reação",
+      "announce": "{{name}} : {{emoji}}",
+      "you": "você",
+      "emojis": {
+        "thumbs-up": "joinha",
+        "thumbs-down": "negativo",
+        "clapping-hands": "palmas",
+        "red-heart": "coração vermelho",
+        "face-with-tears-of-joy": "rindo às lágrimas",
+        "face-with-open-mouth": "rosto surpreso",
+        "party-popper": "festa",
+        "folded-hands": "mãos unidas"
+      }
+    }
+  },
+  "pictureInPicture": {
+    "placeholder": {
+      "title": "Sua chamada está em outra janela.",
+      "description": "O modo Picture-in-Picture permite que você continue conectado à chamada enquanto realiza outras tarefas.",
+      "bringBack": "Trazer a chamada de volta aqui"
+    },
+    "stage": "Participantes",
+    "controlBar": "Controles da reunião",
+    "title": "Reunião em picture-in-picture"
+  },
+  "options": {
+    "buttonLabel": "Mais Opções",
+    "items": {
+      "feedback": "Nos dê sua opinião",
+      "settings": "Configurações",
+      "screenRecording": "Gravação de tela",
+      "transcript": "Transcrição",
+      "username": "Atualizar seu nome",
+      "effects": "Planos de fundo e Efeitos",
+      "switchCamera": "Trocar câmera",
+      "pictureInPicture": {
+        "enter": "Picture-in-picture",
+        "exit": "Fechar picture-in-picture"
+      },
+      "fullscreen": {
+        "enter": "Tela cheia",
+        "exit": "Sair do modo tela cheia"
+      },
+      "support": "Contatar suporte",
+      "documentation": "Documentação"
+    }
+  },
+  "effects": {
+    "activateCamera": "Sua câmera está desativada. Escolha uma opção para ativá-la.",
+    "cameraDisabled": "Sua câmera está desativada.",
+    "notAvailable": "Efeitos de vídeo estarão disponíveis em breve no seu navegador. Estamos trabalhando nisso! Enquanto isso, use o Google Chrome para melhor desempenho ou Firefox :(",
+    "heading": "Desfoque",
+    "clear": "Desativar efeito",
+    "blur": {
+      "title": "Desfoque de fundo",
+      "status": {
+        "none": "Fundo limpo.",
+        "light": "Fundo levemente desfocado.",
+        "strong": "Fundo fortemente desfocado."
+      },
+      "light": {
+        "apply": "Desfocar levemente o fundo",
+        "clear": "Desativar desfoque"
+      },
+      "normal": {
+        "apply": "Desfocar o fundo",
+        "clear": "Desativar desfoque"
+      }
+    },
+    "virtual": {
+      "title": "Planos de fundo virtuais",
+      "selectedLabel": "Plano de fundo aplicado:",
+      "apply": "Substituir seu plano de fundo:",
+      "personal": {
+        "title": "Meus planos de fundo",
+        "selectedLabel": "Desmarcar plano de fundo (está atualmente aplicado).",
+        "apply": "Usar como plano de fundo.",
+        "selectFileTooltip": "Selecione um arquivo de imagem para usar como plano de fundo pessoal",
+        "notLoggedInWarning": "Você não está logado, os planos de fundo pessoais não serão salvos entre reuniões.",
+        "warningUploadDisabled": "Planos de fundo pessoais não são salvos entre reuniões no momento.",
+        "uploadLimitReached": "Você não pode enviar mais planos de fundo pessoais.",
+        "uploadInProgress": "Imagem sendo enviada…",
+        "deleteLabel": "Excluir plano de fundo.",
+        "errors": {
+          "close": "Fechar",
+          "file_too_large": {
+            "title": "Arquivo muito grande",
+            "description": "O arquivo é muito grande. Escolha um arquivo menor que {{maxSize, number}} MB."
+          },
+          "invalid_file_type": {
+            "title": "Tipo de arquivo inválido",
+            "description": "O tipo de arquivo não é suportado. Escolha um arquivo {{allowedExtension, list(type: 'disjunction')}}."
+          }
+        }
+      },
+      "presets": {
+        "title": "Sugestões",
+        "descriptions": {
+          "0": "Móvel de madeira canelada",
+          "1": "Sala de reuniões",
+          "2": "Loft com divisória de vidro preto",
+          "3": "Sala de jantar",
+          "4": "Prateleiras de madeira",
+          "5": "Escada de madeira",
+          "6": "Biblioteca cinza",
+          "7": "Balcão de café"
+        }
+      }
+    },
+    "faceLandmarks": {
+      "title": "Efeitos Visuais",
+      "glasses": {
+        "apply": "Adicionar Óculos",
+        "clear": "Remover Óculos"
+      },
+      "french": {
+        "apply": "Adicionar toque francês",
+        "clear": "Remover toque francês"
+      }
+    }
+  },
+  "sidePanel": {
+    "ariaLabel": "Painel lateral - {{title}}",
+    "backToTools": "Voltar às ferramentas da reunião",
+    "heading": {
+      "participants": "Participantes",
+      "effects": "Planos de fundo e Efeitos",
+      "chat": "Mensagens no chat",
+      "transcript": "Transcrever",
+      "screenRecording": "Gravar",
+      "admin": "Configurações do anfitrião",
+      "tools": "Mais ferramentas",
+      "info": "Informações da reunião"
+    },
+    "content": {
+      "participants": "participantes",
+      "effects": "Planos de fundo e Efeitos",
+      "chat": "mensagens",
+      "transcript": "transcrever",
+      "screenRecording": "gravar",
+      "admin": "configurações do anfitrião",
+      "tools": "mais ferramentas",
+      "info": "informações da reunião"
+    },
+    "closeButton": "Ocultar {{content}}",
+    "escapeHint": "Pressione Escape para fechar"
+  },
+  "chat": {
+    "disclaimer": "As mensagens são visíveis apenas para os participantes no momento em que são enviadas. Todas as mensagens são excluídas ao final da chamada.",
+    "messagesLog": "Mensagens do chat"
+  },
+  "moreTools": {
+    "body": "Acesse mais ferramentas para melhorar suas reuniões.",
+    "linkAriaLabel": "Abrir documentação sobre ferramentas - abre em nova janela",
+    "moreLink": "Abrir documentação",
+    "tools": {
+      "transcript": {
+        "title": "Transcrever",
+        "body": "Transforme reuniões em texto."
+      },
+      "screenRecording": {
+        "title": "Gravar",
+        "body": "Salve reuniões como vídeo."
+      }
+    }
+  },
+  "info": {
+    "roomInformation": {
+      "title": "Informações de Conexão",
+      "button": {
+        "ariaLabel": "Copiar as informações da sua reunião",
+        "copy": "Copiar informações",
+        "copied": "Informações copiadas"
+      },
+      "phone": {
+        "call": "Ligar:",
+        "pinCode": "Código:"
+      }
+    }
+  },
+  "transcript": {
+    "heading": "Transcreva sua reunião com o Assistente de IA",
+    "body": "Transcreva até {{max_duration}} de reunião.",
+    "bodyWithoutMaxDuration": "Transcreva sua reunião sem limites.",
+    "details": {
+      "receiver": "A transcrição será enviada ao anfitrião e co-anfitriões.",
+      "destination": "Um novo documento será criado em",
+      "destinationUnknown": "Um novo documento será criado",
+      "language": "Idioma da reunião:",
+      "recording": "Também iniciar uma gravação"
+    },
+    "button": {
+      "start": "Iniciar transcrição da reunião",
+      "stop": "Parar transcrição da reunião",
+      "saving": "Salvando…",
+      "starting": "Iniciando…",
+      "anotherModeStarted": "Gravação de tela em andamento. Troque de painel e pare-a."
+    },
+    "linkMore": "Abrir documentação",
+    "linkAriaLabel": "Abrir documentação sobre transcrição - abre em nova janela",
+    "notAdminOrOwner": {
+      "heading": "Acesso Restrito",
+      "body": "Por motivos de segurança, apenas o criador da reunião ou um admin pode iniciar uma transcrição (beta).",
+      "linkMore": "Abrir documentação",
+      "linkAriaLabel": "Abrir documentação sobre acesso à transcrição - abre em nova janela",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Login Necessário",
+        "body": "Apenas o criador da reunião ou um admin pode iniciar uma transcrição. Faça login para verificar suas permissões."
+      },
+      "request": {
+        "heading": "Solicitar Transcrição",
+        "body": "O anfitrião será notificado e poderá ativar a transcrição para você.",
+        "buttonLabel": "Solicitar"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Faça login para transcrever",
+      "body": "Nesta reunião, qualquer participante conectado pode iniciar uma transcrição (beta).",
+      "linkMore": "Abrir documentação",
+      "linkAriaLabel": "Abrir documentação sobre acesso à transcrição - abre em uma nova janela",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Login necessário",
+        "body": "Faça login e volte a este painel para iniciar a transcrição."
+      },
+      "request": {
+        "heading": "Solicitar transcrição",
+        "body": "O anfitrião será notificado e poderá ativar a transcrição para você.",
+        "buttonLabel": "Solicitar"
+      }
+    },
+    "premium": {
+      "heading": "Recurso avançado",
+      "body": "Este recurso não está disponível para você. Entre em contato com o suporte para mais informações.",
+      "linkMore": "Abrir documentação",
+      "linkAriaLabel": "Abrir documentação sobre acesso avançado - abre em nova janela",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Você não está logado!",
+        "body": "Você precisa estar logado para usar este recurso. Faça login e tente novamente."
+      },
+      "request": {
+        "heading": "Solicitar Transcrição",
+        "body": "O anfitrião será notificado e poderá ativar a transcrição para você.",
+        "buttonLabel": "Solicitar"
+      }
+    }
+  },
+  "screenRecording": {
+    "heading": "Grave esta chamada para depois",
+    "body": "Grave até {{max_duration}} de reunião.",
+    "bodyWithoutMaxDuration": "Grave sua reunião sem limite.",
+    "linkMore": "Abrir documentação",
+    "linkAriaLabel": "Abrir documentação sobre gravação - abre em nova janela",
+    "details": {
+      "receiver": "A gravação será enviada ao anfitrião e co-anfitriões.",
+      "destination": "Esta gravação será armazenada temporariamente em nossos servidores",
+      "loading": "Iniciando gravação",
+      "linkMore": "Saiba mais",
+      "transcription": "Transcrever esta gravação",
+      "quality": "Qualidade de vídeo ajustável.",
+      "qualityEdit": "Alterar"
+    },
+    "button": {
+      "start": "Iniciar gravação da reunião",
+      "stop": "Parar gravação da reunião",
+      "saving": "Salvando…",
+      "starting": "Iniciando…",
+      "anotherModeStarted": "Transcrição em andamento. <br/> Troque de painel e pare-a."
+    },
+    "notAdminOrOwner": {
+      "heading": "Acesso Restrito",
+      "body": "Por motivos de segurança, apenas o criador da reunião ou um admin pode iniciar uma gravação (beta).",
+      "linkMore": "Abrir documentação",
+      "linkAriaLabel": "Abrir documentação sobre acesso à gravação - abre em nova janela",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Login Necessário",
+        "body": "Apenas o criador da reunião ou um admin pode iniciar a gravação. Faça login para verificar suas permissões."
+      },
+      "request": {
+        "heading": "Solicitar Gravação",
+        "body": "O anfitrião será notificado e poderá ativar a gravação para você.",
+        "buttonLabel": "Solicitar"
+      }
+    },
+    "notLoggedIn": {
+      "heading": "Faça login para gravar",
+      "body": "Nesta reunião, qualquer participante conectado pode iniciar uma gravação (beta).",
+      "linkMore": "Abrir documentação",
+      "linkAriaLabel": "Abrir documentação sobre acesso à gravação - abre em uma nova janela",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Login necessário",
+        "body": "Faça login e volte a este painel para iniciar a gravação."
+      },
+      "request": {
+        "heading": "Solicitar gravação",
+        "body": "O anfitrião será notificado e poderá ativar a gravação para você.",
+        "buttonLabel": "Solicitar"
+      }
+    },
+    "premium": {
+      "heading": "Recurso avançado",
+      "body": "Este recurso não está disponível para você. Entre em contato com o suporte para mais informações.",
+      "linkMore": "Abrir documentação",
+      "linkAriaLabel": "Abrir documentação sobre acesso avançado - abre em nova janela",
+      "dividerLabel": "OU",
+      "login": {
+        "heading": "Você não está logado!",
+        "body": "Você precisa estar logado para usar este recurso. Faça login e tente novamente."
+      },
+      "request": {
+        "heading": "Solicitar Gravação",
+        "body": "O anfitrião será notificado e poderá ativar a gravação para você.",
+        "buttonLabel": "Solicitar"
+      }
+    },
+    "durationMessage": "(limitado a {{max_duration}}) "
+  },
+  "errorRecordingAlertDialog": {
+    "title": "Falha na Gravação",
+    "body": {
+      "stop": "Não foi possível parar a gravação. Tente novamente em instantes.",
+      "start": "Não foi possível iniciar a gravação. Tente novamente em instantes."
+    },
+    "button": "OK"
+  },
+  "admin": {
+    "description": "Estas configurações de anfitrião permitem que você mantenha o controle da reunião. Apenas anfitriões podem acessar estes controles.",
+    "access": {
+      "title": "Acesso à sala",
+      "description": "Estas configurações também se aplicarão a futuras ocorrências desta reunião.",
+      "type": "Tipos de acesso à reunião",
+      "levels": {
+        "public": {
+          "label": "Aberta",
+          "description": "Ninguém precisa solicitar para entrar na reunião."
+        },
+        "trusted": {
+          "label": "Aberta para pessoas confiáveis",
+          "description": "Pessoas autenticadas não precisam solicitar para entrar na reunião."
+        },
+        "restricted": {
+          "label": "Restrita",
+          "description": "Pessoas que não foram convidadas para a reunião devem solicitar para entrar."
+        }
+      }
+    },
+    "moderation": {
+      "title": "Moderação da Reunião",
+      "description": "Estas configurações restringem as ações que os participantes podem realizar durante a reunião.",
+      "microphone": {
+        "label": "Ligar microfone",
+        "description": ""
+      },
+      "camera": {
+        "label": "Ativar vídeo",
+        "description": ""
+      },
+      "screenshare": {
+        "label": "Compartilhar tela",
+        "description": "Desativar esta opção impedirá que participantes compartilhem sua tela, e qualquer compartilhamento em andamento será interrompido imediatamente."
+      },
+      "mute": {
+        "label": "Silenciar outros",
+        "description": "Quando desativado, participantes não poderão mais silenciar outros participantes."
+      }
+    }
+  },
+  "rating": {
+    "submit": "Enviar",
+    "question": "O que você achou da qualidade da sua chamada?",
+    "levels": {
+      "min": "muito ruim",
+      "max": "excelente"
+    }
+  },
+  "openFeedback": {
+    "question": "O que podemos fazer para melhorar?",
+    "placeholder": "Descreva seus bugs ou compartilhe suas sugestões…",
+    "submit": "Enviar",
+    "skip": "Pular"
+  },
+  "confirmationMessage": {
+    "heading": "Obrigado pelo seu envio",
+    "body": "Nossa equipe de produto analisa cuidadosamente seu feedback. Retornaremos o mais breve possível."
+  },
+  "authenticationMessage": {
+    "heading": "Como podemos entrar em contato?",
+    "placeholder": "Seu email",
+    "submit": "Enviar",
+    "ignore": "Ignorar"
+  },
+  "participants": {
+    "subheading": "Na sala",
+    "you": "Você",
+    "unknown": "Participante desconhecido",
+    "host": "Anfitrião",
+    "cohost": "Co-anfitrião",
+    "member": "Membro",
+    "contributors": "Colaboradores",
+    "collapsable": {
+      "open": "Abrir lista {{name}}",
+      "close": "Fechar lista {{name}}"
+    },
+    "unauthenticated": {
+      "badge": "Usuário não autenticado"
+    },
+    "muteYourself": "Fechar seu microfone",
+    "muteParticipant": "Fechar o microfone de {{name}}",
+    "muteParticipantAlert": {
+      "heading": "Silenciar {{name}}",
+      "description": "Silenciar {{name}} para todos os participantes? {{name}} será o único que poderá reativar seu microfone.",
+      "confirm": "Silenciar",
+      "cancel": "Cancelar"
+    },
+    "raisedHands": "Mãos levantadas",
+    "lowerParticipantHand": "Abaixar a mão de {{name}}",
+    "lowerParticipantsHand": "Abaixar todas as mãos",
+    "muteParticipants": "Silenciar todos os microfones",
+    "waiting": {
+      "title": "Sala de espera",
+      "accept": {
+        "button": "Aceitar",
+        "label": "Aceitar {{name}} na reunião",
+        "all": "Aceitar todos"
+      },
+      "deny": {
+        "button": "Negar",
+        "label": "Negar {{name}} na reunião",
+        "all": "Negar todos"
+      }
+    },
+    "moreOptions": "Mais opções"
+  },
+  "participantMenu": {
+    "remove": {
+      "label": "Remover da chamada",
+      "ariaLabel": "Remover {{name}} da chamada"
+    },
+    "unpin": {
+      "label": "Desafixar",
+      "ariaLabel": "Desafixar {{name}}"
+    },
+    "pin": {
+      "label": "Fixar",
+      "ariaLabel": "Fixar {{name}}"
+    },
+    "promote": {
+      "label": "Tornar co-anfitrião",
+      "ariaLabel": "Tornar {{name}} co-anfitrião"
+    },
+    "demote": {
+      "label": "Remover papel de co-anfitrião",
+      "ariaLabel": "Remover papel de co-anfitrião de {{name}}"
+    }
+  },
+  "pinAnnouncements": {
+    "pin": "O vídeo de {{name}} está fixado.",
+    "unpin": "O vídeo de {{name}} não está mais fixado.",
+    "self": {
+      "pin": "Seu vídeo está fixado.",
+      "unpin": "Seu vídeo não está mais fixado."
+    }
+  },
+  "recordingStateToast": {
+    "transcript": {
+      "started": "Transcrevendo",
+      "starting": "Transcrição iniciando",
+      "stopping": "Transcrição parando"
+    },
+    "screen_recording": {
+      "started": "Gravação em andamento",
+      "starting": "Iniciando gravação",
+      "stopping": "Parando gravação"
+    },
+    "any": {
+      "started": "Gravação em andamento"
+    },
+    "limitReachedAlert": {
+      "title": "Limite de gravação excedido",
+      "description": "A gravação excedeu a duração máxima permitida{{duration_message}}. Será salva automaticamente.",
+      "durationMessage": " de {{duration}}",
+      "button": "OK"
+    }
+  },
+  "participantTileFocus": {
+    "containerLabel": "Opções para {{name}}",
+    "toolbarHint": "{{shortcut}}: acessar atalhos diretamente.",
+    "pin": {
+      "enable": "Fixar",
+      "disable": "Desafixar"
+    },
+    "effects": "Aplicar planos de fundo e efeitos",
+    "muteParticipant": "Silenciar {{name}}",
+    "fullScreen": "Tela cheia"
+  },
+  "screenShareZoom": {
+    "toolbarLabel": "Controles de zoom do compartilhamento de tela",
+    "zoomIn": "Aumentar zoom",
+    "zoomInWithShortcut": "Aumentar zoom ({{shortcut}})",
+    "zoomOut": "Diminuir zoom",
+    "zoomOutWithShortcut": "Diminuir zoom ({{shortcut}})",
+    "wheelShortcut": "Control mais roda do mouse",
+    "wheelShortcutMac": "⌘+roda do mouse",
+    "wheelShortcutHint": "Atalho: Control mais roda do mouse para aumentar ou diminuir o zoom.",
+    "wheelShortcutHintMac": "Atalho: Command mais roda do mouse para aumentar ou diminuir o zoom.",
+    "fitToWindow": "Ajustar à janela",
+    "fullScreen": "Tela cheia",
+    "exitFullScreen": "Sair da tela cheia",
+    "currentZoomLevel": "Zoom {{level}} %",
+    "panHint": "Zoom {{level}} %. Arraste com o mouse ou volte o foco para o compartilhamento de tela e use as setas do teclado para navegar pela imagem.",
+    "fullScreenEntered": "Tela cheia ativada",
+    "fullScreenExited": "Tela cheia desativada"
+  },
+  "shortcutsPanel": {
+    "title": "Atalhos de teclado",
+    "categories": {
+      "navigation": "Navegação",
+      "media": "Mídia",
+      "interaction": "Interação"
+    },
+    "actions": {
+      "open-shortcuts": "Abrir ajuda de atalhos",
+      "focus-toolbar": "Focar barra inferior",
+      "focus-pagination": "Focar na paginação de participantes",
+      "toggle-microphone": "Alternar microfone",
+      "toggle-camera": "Alternar câmera",
+      "push-to-talk": "Pressionar para falar (segure para ativar)",
+      "reaction": "Painel de reações",
+      "fullscreen": "Alternar tela cheia",
+      "recording": "Alternar painel de gravação",
+      "raise-hand": "Levantar ou abaixar a mão",
+      "toggle-chat": "Alternar chat",
+      "toggle-participants": "Alternar participantes",
+      "open-shortcuts-settings": "Abrir configurações de atalhos",
+      "zoom-in": "Aumentar zoom na tela compartilhada",
+      "zoom-out": "Diminuir zoom na tela compartilhada",
+      "zoom-reset": "Redefinir o zoom da tela compartilhada",
+      "zoom-pan": "Mover pela tela compartilhada com zoom"
+    },
+    "sr": {
+      "control": "Control",
+      "command": "Command",
+      "alt": "Alt",
+      "option": "Option",
+      "shift": "Shift",
+      "plus": "mais",
+      "hold": "Segure {{key}}",
+      "arrows": "Teclas de seta",
+      "plusKey": "Tecla de mais",
+      "minusKey": "Tecla de menos",
+      "noShortcut": "Sem atalho"
+    },
+    "visual": {
+      "hold": "Segure {{key}}",
+      "arrows": "↑ ↓ ← →"
+    }
+  },
+  "fullScreenWarning": {
+    "message": "Para evitar exibição em loop infinito, não compartilhe sua tela inteira. Em vez disso, compartilhe uma aba ou outra janela.",
+    "stop": "Parar apresentação",
+    "ignore": "Ignorar"
+  },
+  "participantTile": {
+    "screenShare": "Tela de {{name}}"
+  }
+}

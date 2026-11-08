@@ -1,0 +1,130 @@
+{
+  "title": "Termos de Uso do Visio",
+  "articles": {
+    "article1": {
+      "title": "1. Escopo",
+      "content": "Este documento define os termos de uso do Visio (doravante “Visio” ou “o aplicativo”), um aplicativo de videoconferência projetado especificamente para administrações estatais e órgãos sob sua supervisão."
+    },
+    "article2": {
+      "title": "2. Objetivo do aplicativo",
+      "content": "O Visio ajuda a promover a cooperação entre equipes de administrações estatais e órgãos sob sua supervisão, apoia o trabalho remoto e facilita a organização de reuniões, conferências ou sessões de treinamento.",
+      "paragraphs": [
+        "O Visio é desenvolvido e operado pela Direção Interministerial do Digital (DINUM).",
+        "O aplicativo é disponibilizado pela DINUM às administrações estatais e órgãos sob sua supervisão, para uso por seus agentes, parceiros e prestadores de serviços convidados.",
+        "Qualquer uso do Visio deve estar em conformidade com estes termos de uso e, quando aplicável, com a política de uso da respectiva administração supervisora."
+      ]
+    },
+    "article3": {
+      "title": "3. Definições",
+      "paragraphs": [
+        "O Visio é o produto cujo uso é descrito nestes termos e apresentado na seguinte página: https://visio.numerique.gouv.fr.",
+        "Usuários do Visio são quaisquer pessoas que utilizem o Visio para fins de comunicação por videoconferência, sejam elas agentes, parceiros ou prestadores de serviços das administrações pertinentes. A administração supervisora é a administração estatal ou órgão sob sua supervisão que disponibiliza o Visio aos seus agentes, parceiros ou prestadores de serviços.",
+        "Organizadores de sala são os usuários responsáveis por uma sala de videoconferência após se autenticarem via ProConnect.",
+        "A administração supervisora é a administração integrante do sistema de informação e comunicação do Estado que disponibiliza o Visio aos seus agentes, parceiros ou prestadores de serviços."
+      ]
+    },
+    "article4": {
+      "title": "4. Acesso ao serviço",
+      "definition": "O Visio é disponibilizado aos usuários por sua administração supervisora. Os organizadores podem então compartilhar um link concedendo acesso à sala com qualquer pessoa, sob sua responsabilidade."
+    },
+    "article5": {
+      "title": "5. Funcionalidades",
+      "sections": {
+        "section1": {
+          "title": "5.1. Funcionalidades disponíveis para organizadores",
+          "content": "O Visio permite que agentes de administrações estatais e órgãos sob sua supervisão criem uma sala de videoconferência a partir de uma estação de trabalho padrão, vinculada à sua conta ProConnect.",
+          "paragraph1": "Eles podem então compartilhar o link da reunião com outras pessoas, usuários, pertencentes ou não à administração.",
+          "paragraph2": "Para esta finalidade, cada organizador de sala pode:",
+          "capabilities": [
+            "Proteger o acesso à sala com uma sala de espera;",
+            "Autorizar a entrada de cada usuário na sala;",
+            "Silenciar microfones e câmeras dos usuários;",
+            "Remover um usuário da sala;",
+            "Utilizar a ferramenta de transcrição de reunião após obter o consentimento dos usuários, sob sua responsabilidade."
+          ],
+          "paragraph3": "Os agentes devem entrar em contato com sua administração supervisora para garantir o enquadramento adequado para o uso do Visio, especialmente em reuniões sujeitas a requisitos elevados de confidencialidade.",
+          "paragraph4": "A ferramenta de transcrição automática pode ser utilizada pelos organizadores a partir do menu de configurações da sala. Os organizadores são responsáveis por garantir o consentimento dos usuários que participam da reunião transcrita. O idioma da transcrição pode ser alterado no mesmo menu. Ao final da reunião, um link é enviado ao organizador para acessar a transcrição armazenada na ferramenta chamada Docs, operada pela DINUM."
+        },
+        "section2": {
+          "title": "5.2. Funcionalidades disponíveis para usuários",
+          "content": "O Visio permite que qualquer usuário, seja agente público ou não, participe de qualquer sala do Visio para a qual tenha sido convidado por um organizador e usufrua de suas funcionalidades.",
+          "paragraph": "Para esta finalidade, cada usuário pode:",
+          "capabilities": [
+            "Fornecer um nome de exibição ao entrar na sala;",
+            "Comunicar-se remotamente por áudio e/ou vídeo;",
+            "Compartilhar sua tela;",
+            "Trocar mensagens publicamente durante a sessão com todos os usuários na sala;",
+            "Acessar informações técnicas sobre a sala e recursos de acessibilidade;",
+            "Ativar ou desativar sua câmera e/ou microfone a qualquer momento;",
+            "Proteger a privacidade do seu ambiente quando a câmera estiver ligada, selecionando e ativando um plano de fundo antes de entrar na sala ou durante a videoconferência."
+          ]
+        }
+      }
+    },
+    "article6": {
+      "title": "6. Compromissos e responsabilidades dos usuários",
+      "sections": {
+        "section1": {
+          "title": "6.1 Usos permitidos",
+          "paragraphs": [
+            "O Visio é fornecido para facilitar trocas profissionais entre agentes de administrações estatais e órgãos sob sua supervisão e colaboradores externos.",
+            "Os usuários são responsáveis pelas imagens e sons que disponibilizam na sala de videoconferência. Essa responsabilidade aplica-se tanto ao que sua câmera ou microfone possa transmitir quanto ao que seu dispositivo possa tornar acessível a terceiros. Para tanto, os usuários devem utilizar o aplicativo em ambiente profissional e não devem divulgar a terceiros informações protegidas por sigilo profissional (por exemplo: uso de filtros de privacidade, fones de ouvido, etc.).",
+            "Os usuários são responsáveis pelos dados ou conteúdos que inserem no serviço de mensagens da sala, devendo garantir que apenas mensagens apropriadas sejam enviadas."
+          ]
+        },
+        "section2": {
+          "title": "6.2 Usos proibidos",
+          "paragraphs": [
+            "Os usuários comprometem-se a não inserir no serviço de mensagens da sala do Visio, nem tornar acessível por imagem ou som, qualquer conteúdo ou informação que viole as leis e regulamentos aplicáveis."
+          ]
+        }
+      }
+    },
+    "article7": {
+      "title": "7. Compromissos e responsabilidades da DINUM",
+      "sections": {
+        "section1": {
+          "title": "7.1. Segurança do aplicativo",
+          "paragraphs": [
+            "A DINUM compromete-se a proteger o Visio, em especial adotando todas as medidas necessárias para garantir a segurança e a confidencialidade das comunicações.",
+            "O aplicativo é homologado nas condições previstas pelo Decreto nº 2010-112 alterado."
+          ]
+        },
+        "section2": {
+          "title": "7.2. Acesso ao aplicativo",
+          "paragraphs": [
+            "A DINUM compromete-se a fornecer os meios necessários e razoáveis para garantir o acesso contínuo ao aplicativo.",
+            "O aplicativo está disponível 24 horas por dia, 7 dias por semana, exceto durante períodos de manutenção.",
+            "A DINUM busca atingir uma taxa anual de disponibilidade do aplicativo de 99,5%, excluindo manutenções programadas. Em caso de incidente ou manutenção, busca um tempo de restabelecimento de 72 horas fora do horário comercial.",
+            "No âmbito da manutenção do ambiente de execução do aplicativo, a DINUM reserva-se o direito de suspender temporariamente o funcionamento do aplicativo. Sempre que possível, os usuários serão informados com pelo menos 48 horas de antecedência. Em situações de emergência, essa suspensão poderá ocorrer sem aviso prévio.",
+            "Essas interrupções excepcionais podem ser necessárias, por exemplo, para operações de gerenciamento de dados, atualizações em produção ou mudanças arquiteturais.",
+            "A indisponibilidade do aplicativo não confere aos usuários direito a qualquer forma de compensação."
+          ]
+        },
+        "section3": {
+          "title": "7.3. Gestão de suporte",
+          "paragraphs": [
+            "A DINUM fornece suporte de primeiro nível aos usuários, exclusivamente sobre aspectos técnicos do aplicativo.",
+            "Esse suporte pode ser acionado por meio do formulário de contato online.",
+            "O prazo-meta de resposta às solicitações é de dois dias úteis a partir do envio do e-mail; esse prazo pode variar conforme a complexidade e o volume de solicitações a serem processadas."
+          ]
+        },
+        "section4": {
+          "title": "7.4. Monitoramento do uso do aplicativo",
+          "paragraphs": [
+            "A DINUM reserva-se o direito de suspender ou excluir a conta de um usuário que tenha descumprido estes termos de uso, sem prejuízo de eventuais ações de responsabilidade civil ou penal cabíveis contra o interessado. As informações poderão ser transmitidas à administração supervisora do usuário, responsável pela disponibilização do aplicativo.",
+            "A suspensão ou revogação de uma ou mais contas não gera direito a indenização de qualquer natureza."
+          ]
+        },
+        "section5": {
+          "title": "7.5. Código Aberto e Licenças",
+          "content": "O código-fonte do serviço é aberto e está disponível aqui: https://github.com/suitenumerique/meet. O conteúdo fornecido pela DINUM é licenciado sob a Licença Aberta 2.0 (Licence Ouverte 2.0), com exceção de logotipos e representações iconográficas ou fotográficas, que podem ser regidos por licenças próprias."
+        }
+      }
+    },
+    "article8": {
+      "title": "8. Alterações nos termos de uso",
+      "content": "Os termos destas condições de uso podem ser modificados ou complementados a qualquer momento, sem aviso prévio, em função de alterações realizadas no serviço, evolução da legislação ou por qualquer outro motivo considerado necessário.\nEssas alterações e atualizações vinculam o usuário, que deve, portanto, consultar regularmente esta seção para verificar os termos vigentes."
+    }
+  }
+}
