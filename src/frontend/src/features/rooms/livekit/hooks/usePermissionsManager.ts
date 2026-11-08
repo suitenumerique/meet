@@ -2,6 +2,7 @@ import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { useRoomData } from '@/features/rooms/livekit/hooks/useRoomData'
 import { useCallback } from 'react'
 import { reportError } from '@/features/analytics/telemetry'
+import { getEveryoneCanMute } from '@/features/rooms/utils/getEveryoneCanMute'
 
 export const usePermissionsManager = () => {
   const { mutateAsync: patchRoom } = usePatchRoom()
@@ -10,7 +11,7 @@ export const usePermissionsManager = () => {
   const configuration = data?.configuration
   const roomId = data?.slug
 
-  const isMutingEnabled = configuration?.everyone_can_mute ?? true
+  const isMutingEnabled = getEveryoneCanMute(configuration?.everyone_can_mute)
 
   const toggleMuting = useCallback(
     async (enabled: boolean) => {

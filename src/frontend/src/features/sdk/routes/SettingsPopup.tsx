@@ -15,6 +15,7 @@ import { usePatchRoom } from '@/features/rooms/api/patchRoom'
 import { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import { updatePublishSources } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
+import { getEveryoneCanMute } from '@/features/rooms/utils/getEveryoneCanMute'
 import { reportError } from '@/features/analytics/telemetry'
 
 type Source = Track.Source
@@ -147,7 +148,7 @@ const SettingsPopup = () => {
     [Track.Source.ScreenShare, Track.Source.ScreenShareAudio],
     currentSources
   )
-  const isMutingEnabled = configuration?.everyone_can_mute ?? true
+  const isMutingEnabled = getEveryoneCanMute(configuration?.everyone_can_mute)
 
   const renderCentered = (children: ReactNode) => (
     <div

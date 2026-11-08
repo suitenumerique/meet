@@ -13,6 +13,7 @@ import { keys } from '@/api/queryKeys'
 import { Track } from 'livekit-client'
 import Source = Track.Source
 import { isSubsetOf } from '@/features/rooms/utils/isSubsetOf'
+import { getEveryoneCanMute } from '@/features/rooms/utils/getEveryoneCanMute'
 import { updatePublishSources } from '@/features/rooms/livekit/hooks/usePublishSourcesManager'
 import { Field, H, Text } from '@/primitives'
 import { TabPanel } from '@/primitives/Tabs'
@@ -99,7 +100,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
     [Source.ScreenShare, Source.ScreenShareAudio],
     currentSources
   )
-  const isMutingEnabled = configuration?.everyone_can_mute ?? true
+  const isMutingEnabled = getEveryoneCanMute(configuration?.everyone_can_mute)
 
   const saveAccessLevel = (newAccessLevel: ApiAccessLevel) => {
     if (!user) return
