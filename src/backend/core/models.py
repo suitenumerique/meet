@@ -287,7 +287,7 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
             )
         ]
         indexes = [
-            models.Index(models.functions.Upper("email"), name="user_email_upper_idx"),
+            models.Index(fields=["email"], name="user_email_idx"),
         ]
 
     def __str__(self):
