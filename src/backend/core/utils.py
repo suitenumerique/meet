@@ -336,6 +336,26 @@ def generate_room_slug():
     return "-".join(parts)
 
 
+def is_uuid(value: str) -> bool:
+    """Tell whether a value parses as a UUID."""
+    try:
+        UUID(value)
+    except ValueError:
+        return False
+    return True
+
+
+_ASCII_LOWERCASE_TABLE = str.maketrans(string.ascii_uppercase, string.ascii_lowercase)
+
+
+def normalize_email(email):
+    """Strip an email and lowercase its ASCII letters only.
+
+    Emails are stored in this form and compared exactly.
+    """
+    return (email or "").strip().translate(_ASCII_LOWERCASE_TABLE)
+
+
 def detect_mimetype(file_buffer: bytes, filename: str | None = None) -> str:
     """
     Detect MIME type using multiple methods for better accuracy.

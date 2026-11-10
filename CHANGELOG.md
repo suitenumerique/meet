@@ -8,6 +8,35 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(backend) add OIDC_ALLOW_DUPLICATE_EMAILS to let users share an email
+
+### Changed
+
+- 💥(backend) refuse new users whose email is already used
+
+### Fixed
+
+- 📌(summary) pin kombu to keep celery workers compatible with redis 5
+- 🐛(frontend) show a page when the connection ends unexpectedly
+- 🐛(frontend) show the transcript mic hint when every mic is muted
+- 🐛(frontend) show join errors instead of silently waiting in the lobby
+- 🐛(frontend) send users who cannot enter directly back to the lobby
+- 🔒️(backend) refuse unregistered rooms whose slug is a UUID
+- 🔒️(agents) upgrade python to 3.14.10 to fix CVE-2026-109518
+- 🔒️(docker) upgrade musl-utils to 1.2.6-r3 to fix CVE-2026-107891
+- ♿️(frontend) close the invite dialog with the Escape key #1916
+- 🔒️(docker) move frontend to nginx/nginx-unprivileged image
+- 🐛(frontend) accept meeting links with query params in join dialog
+- 🐛(backend) allow muting when everyone_can_mute is stored as null #1942
+- 🐛(frontend) apply the sans font token on every page
+- 🐛(frontend) promote the active speaker in the carousel layout
+- ♿️(frontend) show the focus ring on connection test detail cards
+- ♿️(frontend) use a heading for every connection test card title
+- ♿️(frontend) put the ProConnect link label inside the link
+
+>>>>>>> a3b4aa9d (♻️(backend) match emails in a single normalized form)
 ## [1.37.0] - 2026-11-01
 
 ### Changed

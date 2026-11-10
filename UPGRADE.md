@@ -16,6 +16,18 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### User emails matched in a single normalized form
+
+User emails are now stored stripped, with their ASCII letters lowercased, and compared exactly. A migration normalizes
+the stored emails and stores blank ones as NULL. Other letters keep their case.
+
+- Users now see their email in this form rather than as the identity provider sent it, and the API returns it the same
+way. An application comparing an email Meet returns with the one it sent, such as the `scope` of its application token request,
+must not compare them case-sensitively: it should strip both and lowercase their ASCII letters first.
+- With `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION` disabled (the default), a new `sub` whose email is already used by
+another user is now refused, by the OIDC login and by external API calls made with a Menshen token, instead of getting
+a second account. To keep creating users with a duplicate email, set the new `OIDC_ALLOW_DUPLICATE_EMAILS=True`.
+
 ## v1.37.0
 
 ### Crisp support chat replaced by the La Suite support form
