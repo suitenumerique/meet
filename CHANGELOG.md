@@ -15,6 +15,8 @@ and this project adheres to
 ### Changed
 
 - 💥(backend) refuse new users whose email is already used
+- ♻️(backend) match emails in a single normalized form
+- ⚡️(backend) index user emails for exact lookups
 
 ### Fixed
 
