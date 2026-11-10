@@ -280,19 +280,22 @@ def test_menshen_unknown_user_not_created(settings):
 
 
 @responses.activate
+@pytest.mark.parametrize("fallback", [True, False])
 @pytest.mark.parametrize("existing_sub", [None, "other-sub"])
-def test_menshen_unknown_user_email_already_used(settings, existing_sub):
+def test_menshen_unknown_user_email_already_used(settings, existing_sub, fallback):
     """An unknown sub should not create a second account with an email already
-    used, by a provisional user or a user with another sub, when
-    OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION=True."""
+    used, by a provisional user or a user with another sub, whether
+    OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION is set or not."""
 
     settings.OIDC_CREATE_USER = True
-    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = fallback
 
-    existing_user = UserFactory(sub=existing_sub, email="User@Example.com")
+    existing_user = UserFactory(sub=existing_sub, email="user@example.com")
 
     responses.add(
-        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
+        responses.POST,
+        INTROSPECTION_ENDPOINT,
+        json=_introspection("new-sub", email=" User@Example.COM "),
     )
 
     response = _create_room()
@@ -303,6 +306,43 @@ def test_menshen_unknown_user_email_already_used(settings, existing_sub):
     existing_user.refresh_from_db()
     assert existing_user.sub == existing_sub
     assert not Room.objects.exists()
+
+
+@responses.activate
+@pytest.mark.parametrize("existing_sub", [None, "other-sub"])
+def test_menshen_unknown_user_email_already_used_allowed(
+    audit_events, settings, existing_sub
+):
+    """An unknown sub should get its own account, even with an email already used,
+    when OIDC_ALLOW_DUPLICATE_EMAILS=True."""
+
+    settings.OIDC_CREATE_USER = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = False
+    settings.OIDC_ALLOW_DUPLICATE_EMAILS = True
+
+    existing_user = UserFactory(sub=existing_sub, email="user@example.com")
+
+    responses.add(
+        responses.POST,
+        INTROSPECTION_ENDPOINT,
+        json=_introspection("new-sub", email=" User@Example.COM "),
+    )
+
+    response = _create_room()
+
+    assert response.status_code == 201
+    assert User.objects.count() == 2
+    user = User.objects.get(sub="new-sub")
+    assert user != existing_user
+    assert user.email == "user@example.com"
+    existing_user.refresh_from_db()
+    assert existing_user.sub == existing_sub
+
+    [provision] = find_events(audit_events, "user.provision")
+
+    assert provision["event"]["outcome"] == "success"
+    assert provision["lasuite"]["outcome"] == "success"
+    assert provision["entity"]["target"]["id"] == str(user.pk)
 
 
 @responses.activate
@@ -382,10 +422,12 @@ def test_menshen_unknown_user_email_already_used_is_audited(audit_events, settin
     settings.OIDC_CREATE_USER = True
     settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
 
-    existing_user = UserFactory(sub=None, email="User@Example.com")
+    existing_user = UserFactory(sub=None, email="user@example.com")
 
     responses.add(
-        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
+        responses.POST,
+        INTROSPECTION_ENDPOINT,
+        json=_introspection("new-sub", email=" User@Example.COM "),
     )
 
     response = _create_room()

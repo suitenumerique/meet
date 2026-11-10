@@ -12,6 +12,7 @@ and this project adheres to
 
 - 🌐(i18n) add Portuguese language support
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
+- ✨(backend) add OIDC_ALLOW_DUPLICATE_EMAILS to let users share an email
 - ✨(frontend) tell participants when a recording is interrupted
 
 ### Changed
@@ -27,6 +28,8 @@ and this project adheres to
 - 🔒️(frontend) send the display name in the join request body
 - 🔥(backend) drop is_administrable from unregistered room payloads
 - 🍱(frontend) add Portuguese glyphs to Marianne subsetted fonts
+- 💥(backend) refuse new users whose email is already used
+- ♻️(backend) match emails in a single normalized form
 
 ### Fixed
 

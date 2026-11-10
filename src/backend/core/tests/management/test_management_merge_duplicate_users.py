@@ -19,6 +19,13 @@ pytestmark = pytest.mark.django_db
 # pylint: disable=W0613
 
 
+def _user_with_stored_email(email):
+    """Create a user storing the email as is, like the rows predating the normalization."""
+    user = UserFactory()
+    User.objects.filter(pk=user.pk).update(email=email)
+    return user
+
+
 def test_merge_no_duplicates_does_nothing():
     """Command should do nothing when no duplicate users exist."""
     user = UserFactory(email="unique@example.com")
@@ -36,24 +43,30 @@ def test_merge_keeps_most_recently_created_user():
     assert User.objects.filter(id=user2.id).exists()
 
 
-def test_merge_user_case_insensitive():
-    """Emails differing only by case should be treated as duplicates and merged,
-    keeping the most recently created user."""
-    user1 = UserFactory(email="Dup@example.com")
-    user2 = UserFactory(email="dup@example.com")
+@pytest.mark.parametrize(
+    "lookalike_email",
+    [
+        "dısk@example.com",
+        "diſk@example.com",
+        "disK@example.com",
+    ],
+    ids=["dotless-i", "long-s", "kelvin-sign"],
+)
+def test_merge_does_not_merge_lookalike_emails(lookalike_email):
+    """A user whose email only matches the duplicates' email through Unicode case
+    folding should not be merged with them, even when created last."""
+    user1 = UserFactory(email="disk@example.com")
+    user2 = UserFactory(email="disk@example.com")
+    ra = UserResourceAccessFactory(user=user1)
+    lookalike = UserFactory(email=lookalike_email)
     call_command("merge_duplicate_users")
 
     assert not User.objects.filter(id=user1.id).exists()
-    assert User.objects.filter(id=user2.id).exists()
-
-    user3 = UserFactory(email="joe@example.com")
-    user4 = UserFactory(email="Joe@example.com")
-    call_command("merge_duplicate_users")
-    assert not User.objects.filter(id=user3.id).exists()
-    assert User.objects.filter(id=user4.id).exists()
-
-    user4.refresh_from_db()
-    assert user4.email.islower()
+    ra.refresh_from_db()
+    assert ra.user == user2
+    lookalike.refresh_from_db()
+    assert lookalike.email == lookalike_email
+    assert not ResourceAccess.objects.filter(user=lookalike).exists()
 
 
 def test_merge_deletes_all_stale_users():
@@ -409,10 +422,11 @@ def test_merge_does_not_merge_users_with_null_email():
     assert User.objects.filter(id=user2.id).exists()
 
 
-def test_merge_does_not_merge_users_with_blank_email():
-    """Users with empty-string email must never be merged together, even if multiple exist."""
-    user1 = UserFactory(email="")
-    user2 = UserFactory(email="")
+def test_merge_does_not_merge_users_with_legacy_blank_email():
+    """Users with a legacy empty-string email must never be merged together, even if
+    multiple exist."""
+    user1 = _user_with_stored_email("")
+    user2 = _user_with_stored_email("")
     call_command("merge_duplicate_users")
     assert User.objects.filter(id=user1.id).exists()
     assert User.objects.filter(id=user2.id).exists()
@@ -474,7 +488,7 @@ def test_merge_email_filter_no_match_does_nothing():
 
 def test_merge_email_filter_is_case_insensitive():
     """Command should match emails case-insensitively when filtering."""
-    UserFactory(email="user1@Example.com")
-    UserFactory(email="user1@Example.com")
-    call_command("merge_duplicate_users", email_filter="@example.com")
+    UserFactory(email="user1@example.com")
+    UserFactory(email="user1@example.com")
+    call_command("merge_duplicate_users", email_filter="@Example.COM")
     assert User.objects.filter(email="user1@example.com").count() == 1

@@ -115,6 +115,16 @@ class RoomAccessLevel(models.TextChoices):
     RESTRICTED = "restricted", _("Restricted Access")
 
 
+class DuplicateEmailError(Exception):
+    """Raised when an email is already associated with a pre-existing user."""
+
+    def __init__(self, message=None, email=None):
+        """Set message and email to describe the exception."""
+        self.message = message
+        self.email = email
+        super().__init__(self.message)
+
+
 class BaseModel(models.Model):
     """
     Serves as an abstract base model for other models, ensuring that records are validated
@@ -150,6 +160,36 @@ class BaseModel(models.Model):
         """Call `full_clean` before saving."""
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class UserManager(auth_models.UserManager):
+    """Custom manager for User model with additional methods."""
+
+    def get_user_by_sub_or_email(self, sub, email):
+        """Fetch existing user by sub or email."""
+        try:
+            return self.get(sub=sub)
+        except self.model.DoesNotExist as err:
+            normalized_email = utils.normalize_email(email)
+            if not normalized_email:
+                return None
+
+            if settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION:
+                users = self.filter(email=normalized_email).order_by("-is_active")[:2]
+                if len(users) == 2 and users[1].is_active:
+                    raise DuplicateEmailError(
+                        "Several active users are associated with this email."
+                    ) from err
+                return users[0] if users else None
+            if (
+                not settings.OIDC_ALLOW_DUPLICATE_EMAILS
+                and self.filter(email=normalized_email).exists()
+            ):
+                raise DuplicateEmailError(
+                    "We couldn't find a user with this sub but the email is already "
+                    "associated with a registered user."
+                ) from err
+        return None
 
 
 class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
@@ -229,7 +269,7 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
         ),
     )
 
-    objects = auth_models.UserManager()
+    objects = UserManager()
 
     USERNAME_FIELD = "admin_email"
     REQUIRED_FIELDS = []
@@ -252,6 +292,15 @@ class User(AbstractBaseUser, BaseModel, auth_models.PermissionsMixin):
 
     def __str__(self):
         return self.email or self.admin_email or str(self.id)
+
+    def save(self, *args, **kwargs):
+        """Store the email normalized, and a blank one as NULL, even on a partial save."""
+        email = utils.normalize_email(self.email) or None
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and email != self.email:
+            kwargs["update_fields"] = {*update_fields, "email"}
+        self.email = email
+        super().save(*args, **kwargs)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Email this user."""

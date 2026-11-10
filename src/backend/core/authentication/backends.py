@@ -1,5 +1,7 @@
 """Authentication Backends for the Meet core app."""
 
+import logging
+
 from django.conf import settings
 from django.core.exceptions import (
     SuspiciousOperation,
@@ -13,8 +15,12 @@ from lasuite.oidc_login.backends import (
 )
 from rest_framework.authentication import SessionAuthentication
 
-from core.models import User
+from core import audit, auditing
+from core.models import DuplicateEmailError, User
+from core.utils import normalize_email
 from core.validators import sub_validator
+
+logger = logging.getLogger(__name__)
 
 
 class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
@@ -83,18 +89,25 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
             ) from err
 
         try:
-            return User.objects.get(sub=sub)
-        except User.DoesNotExist:
-            if email and settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION:
-                try:
-                    return User.objects.get(email__iexact=email)
-                except User.DoesNotExist:
-                    pass
-                except User.MultipleObjectsReturned as e:
-                    raise SuspiciousOperation(
-                        "Multiple user accounts share a common email."
-                    ) from e
-        return None
+            return User.objects.get_user_by_sub_or_email(sub, email)
+        except DuplicateEmailError as err:
+            logger.warning("Email already used, not creating user: %s", sub)
+            existing_user = (
+                User.objects.filter(email=normalize_email(email))
+                .order_by("-is_active", "-created_at")
+                .first()
+            )
+            audit.log(
+                auditing.USER_PROVISION,
+                outcome=audit.Outcome.FAILURE,
+                reason=audit.Reason.CONFLICT,
+                actor=None,
+                actor_type=audit.ActorType.ANONYMOUS,
+                auth_method="oidc",
+                target=existing_user,
+                requested_sub=sub,
+            )
+            raise SuspiciousOperation(err.message) from err
 
 
 class SessionAuthenticationWith401(SessionAuthentication):
