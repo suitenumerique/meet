@@ -117,7 +117,8 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 | `OIDC_PKCE_CODE_CHALLENGE_METHOD`{#OIDC_PKCE_CODE_CHALLENGE_METHOD} | No | `S256` | PKCE challenge method. Keep the default |
 | `OIDC_PKCE_CODE_VERIFIER_SIZE`{#OIDC_PKCE_CODE_VERIFIER_SIZE} | No | `64` | Length of the random PKCE code verifier, from 43 to 128 characters |
 | `OIDC_CREATE_USER`{#OIDC_CREATE_USER} | No | `True` | Automatically create a local user if none exists on first login |
-| `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION`{#OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION} | No | `False` | Fall back to matching users by email when no user has the `sub` the provider sent. Enable only if emails are unique across your provider. |
+| `OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION`{#OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION} | No | `False` | Fall back to matching users by email when no user has the `sub` the provider sent. Cannot be enabled together with [`OIDC_ALLOW_DUPLICATE_EMAILS`](#OIDC_ALLOW_DUPLICATE_EMAILS). |
+| `OIDC_ALLOW_DUPLICATE_EMAILS`{#OIDC_ALLOW_DUPLICATE_EMAILS} | No | `False` | When the email fallback is disabled, create a new user for an unknown `sub` even if its email is already used by another user. Otherwise, the login is refused. Emails are compared once stripped, with their ASCII letters lowercased. |
 | `OIDC_USER_SUB_FIELD_IMMUTABLE`{#OIDC_USER_SUB_FIELD_IMMUTABLE} | No | `True` | Prevent the `sub` claim from being changed once set on a user. Disable with care: this exists to stop account takeover via `sub` reassignment. |
 | `OIDC_OP_USER_ENDPOINT_FORMAT`{#OIDC_OP_USER_ENDPOINT_FORMAT} | No | `AUTO` | Format of the userinfo response: `AUTO` to detect it, `JWT` or `JSON` |
 | `OIDC_OP_INTROSPECTION_ENDPOINT`{#OIDC_OP_INTROSPECTION_ENDPOINT} | No | -- | OIDC token introspection URL |
