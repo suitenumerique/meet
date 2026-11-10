@@ -30,6 +30,7 @@ and this project adheres to
 - 🍱(frontend) add Portuguese glyphs to Marianne subsetted fonts
 - 💥(backend) refuse new users whose email is already used
 - ♻️(backend) match emails in a single normalized form
+- ⚡️(backend) index user emails for exact lookups
 
 ### Fixed
 
