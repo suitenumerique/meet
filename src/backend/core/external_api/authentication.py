@@ -20,6 +20,7 @@ from rest_framework import authentication, exceptions
 from core import audit, auditing
 from core.models import Application, ApplicationScope
 from core.services import jwt_token
+from core.utils import normalize_email
 from core.validators import sub_validator
 
 User = get_user_model()
@@ -63,6 +64,10 @@ def get_or_create_user_by_sub(sub, email=None, *, auth_method, client_id=None):
     Shared by the resource server backends, so that tokens introspected with the
     OIDC provider or with Menshen resolve users the same way.
 
+    Users are never identified by email here, but a user to create is refused
+    when its normalized email is already stored, unless
+    OIDC_ALLOW_DUPLICATE_EMAILS is set.
+
     Args:
         sub: Subject identifier from the introspected token
         email: Email to store on a newly created user
@@ -90,12 +95,10 @@ def get_or_create_user_by_sub(sub, email=None, *, auth_method, client_id=None):
         if not settings.OIDC_CREATE_USER:
             return None
 
-        # Users are never identified by email here. But a second account with the
-        # same email (e.g. provisionnal account) would break the lookups by email:
-        # refuse it.
+        normalized_email = normalize_email(email)
         existing_user = (
-            User.objects.filter(email__iexact=email).first()
-            if settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION and email
+            User.objects.filter(email=normalized_email).first()
+            if normalized_email and not settings.OIDC_ALLOW_DUPLICATE_EMAILS
             else None
         )
         if existing_user is not None:

@@ -5,6 +5,7 @@
 import json
 from unittest import mock
 
+from django.core.exceptions import SuspiciousOperation
 from django.db import IntegrityError
 
 import pytest
@@ -35,6 +36,20 @@ def test_get_or_create_existing_user_is_not_audited(audit_events):
     assert ProvisionalUserService().get_or_create(
         "John.Doe@example.com", "my-client"
     ) == (user, False)
+    assert not find_events(audit_events, "user.provision")
+
+
+def test_get_or_create_several_users_same_normalized_email(audit_events):
+    """Several users sharing the normalized email should be refused, not picked."""
+    UserFactory(email="john.doe@example.com")
+    UserFactory(email="John.Doe@example.com")
+
+    with pytest.raises(
+        SuspiciousOperation, match="Multiple user accounts share a common email."
+    ):
+        ProvisionalUserService().get_or_create(" JOHN.DOE@example.com", "my-client")
+
+    assert User.objects.count() == 2
     assert not find_events(audit_events, "user.provision")
 
 
