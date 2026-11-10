@@ -14,6 +14,8 @@ and this project adheres to
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
 - ✨(backend) add OIDC_ALLOW_DUPLICATE_EMAILS to let users share an email
 - ✨(frontend) tell participants when a recording is interrupted
+- ✨(backend) show the last login of users in the admin
+- ✨(backend) filter users sharing an email in the admin
 
 ### Changed
 
