@@ -4,11 +4,12 @@ Unit tests for the User model
 
 from unittest import mock
 
+from django.contrib.auth.models import update_last_login
 from django.core.exceptions import ValidationError
 
 import pytest
 
-from core import factories
+from core import factories, models
 
 pytestmark = pytest.mark.django_db
 
@@ -117,12 +118,13 @@ def test_models_users_email_unique_when_sub_is_null():
 
 
 def test_models_users_email_unique_case_insensitive_when_sub_is_null():
-    """Email uniqueness should be case-insensitive among users with no sub (pending users)."""
-    factories.UserFactory(sub=None, email="Test@example.com")
+    """Email uniqueness among users with no sub (pending users) should also ignore the
+    case of non-ASCII letters, which the email normalization keeps."""
+    factories.UserFactory(sub=None, email="test@éxample.com")
     with pytest.raises(
         ValidationError, match="Constraint “unique_email_when_sub_is_null” is violated."
     ):
-        factories.UserFactory(sub=None, email="test@example.com")
+        factories.UserFactory(sub=None, email="test@Éxample.com")
 
 
 def test_models_users_email_not_unique_when_sub_is_set():
@@ -175,3 +177,54 @@ def test_models_users_sub_blank_is_accepted():
     """sub='' passes validation because blank=True; null is preferred but not enforced."""
     user = factories.UserFactory.build(sub="")
     user.full_clean()
+
+
+@pytest.mark.parametrize(
+    "email, expected_email",
+    [
+        ("John.Doe@Example.COM", "john.doe@example.com"),
+        ("  john.doe@example.com ", "john.doe@example.com"),
+    ],
+)
+def test_models_users_email_normalized_on_save(email, expected_email):
+    """The email of a user should be stripped and have its ASCII letters only lowercased
+    when saved."""
+    user = factories.UserFactory(email=email)
+    user.refresh_from_db()
+    assert user.email == expected_email
+
+
+def test_models_users_email_normalized_on_login():
+    """The last login update at login should store a legacy email normalized."""
+    user = factories.UserFactory()
+    models.User.objects.filter(pk=user.pk).update(email="John.Doe@Example.COM")
+    user.refresh_from_db()
+
+    update_last_login(None, user)
+
+    user.refresh_from_db()
+    assert user.last_login is not None
+    assert user.email == "john.doe@example.com"
+
+
+@pytest.mark.parametrize("email", ["", "   "])
+def test_models_users_email_blank_stored_as_null(email):
+    """An empty or whitespace-only email should be stored as NULL."""
+    user = factories.UserFactory(email=email)
+    user.refresh_from_db()
+    assert user.email is None
+
+
+def test_models_users_get_user_by_sub_or_email_active_preferred(settings):
+    """An active user should be preferred over an inactive one sharing its email."""
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+    factories.UserFactory(email="john.doe@example.com", is_active=False)
+    active_user = factories.UserFactory(email="John.Doe@example.com")
+    factories.UserFactory(email="john.doe@example.com", is_active=False)
+
+    assert (
+        models.User.objects.get_user_by_sub_or_email(
+            "unknown-sub", "JOHN.DOE@example.com"
+        )
+        == active_user
+    )

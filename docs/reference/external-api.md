@@ -227,7 +227,7 @@ Meet then finds the user by the token's `sub`. When no user has that `sub` and [
 
 Menshen is LaSuite's OAuth 2.0 token exchange server. A LaSuite service exchanges its user's access token there for one whose audience includes Meet, and sends it as `Authorization: Bearer <token>`.
 
-- Meet finds the user by the token's `sub`, or creates one with the token's email when [`OIDC_CREATE_USER`](env-variables.md#OIDC_CREATE_USER) is on. With [`OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION`](env-variables.md#OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION) on, an email another account holds is refused with 401.
+- Meet finds the user by the token's `sub`, or creates one with the token's email when [`OIDC_CREATE_USER`](env-variables.md#OIDC_CREATE_USER) is on. Unless [`OIDC_ALLOW_DUPLICATE_EMAILS`](env-variables.md#OIDC_ALLOW_DUPLICATE_EMAILS) is on, an email another account holds is refused with 401.
 - Meet ignores every Menshen scope except `meet:room:create`, so a Menshen token can only create rooms.
 
 The settings are in [Environment Variables: Menshen](env-variables.md#external-api-menshen-token-exchange).
