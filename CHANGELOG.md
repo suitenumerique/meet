@@ -11,6 +11,8 @@ and this project adheres to
 ### Added
 
 - ✨(backend) add OIDC_ALLOW_DUPLICATE_EMAILS to let users share an email
+- ✨(backend) show the last login of users in the admin
+- ✨(backend) filter users sharing an email in the admin
 
 ### Changed
 
