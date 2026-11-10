@@ -4,6 +4,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth import admin as auth_admin
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -44,6 +45,26 @@ class FileInline(admin.TabularInline):
     def get_queryset(self, request):
         """Hide hard deleted files in the inline."""
         return super().get_queryset(request).filter(hard_deleted_at__isnull=True)
+
+
+class DuplicateEmailFilter(admin.SimpleListFilter):
+    """Filter the users whose stored email is shared with another user."""
+
+    title = _("duplicate email")
+    parameter_name = "duplicate_email"
+
+    def lookups(self, request, model_admin):
+        """Return the filter options."""
+        return [("yes", _("Yes"))]
+
+    def queryset(self, request, queryset):
+        """Keep the users sharing their email with another user."""
+        if self.value() != "yes":
+            return queryset
+        others = models.User.objects.filter(email=OuterRef("email")).exclude(
+            pk=OuterRef("pk")
+        )
+        return queryset.filter(Exists(others))
 
 
 @admin.register(models.User)
@@ -89,7 +110,10 @@ class UserAdmin(auth_admin.UserAdmin):
                 ),
             },
         ),
-        (_("Important dates"), {"fields": ("created_at", "updated_at")}),
+        (
+            _("Important dates"),
+            {"fields": ("created_at", "updated_at", "last_login")},
+        ),
     )
     add_fieldsets = (
         (
@@ -112,9 +136,16 @@ class UserAdmin(auth_admin.UserAdmin):
         "is_superuser",
         "is_device",
         "created_at",
+        "last_login",
         "updated_at",
     )
-    list_filter = ("is_staff", "is_superuser", "is_device", "is_active")
+    list_filter = (
+        "is_staff",
+        "is_superuser",
+        "is_device",
+        "is_active",
+        DuplicateEmailFilter,
+    )
     ordering = (
         "is_active",
         "-is_superuser",
@@ -131,8 +162,15 @@ class UserAdmin(auth_admin.UserAdmin):
         "short_name",
         "created_at",
         "updated_at",
+        "last_login",
     )
     search_fields = ("id", "sub", "admin_email", "email", "full_name")
+
+    def get_ordering(self, request):
+        """Group the users sharing an email when filtering on duplicates."""
+        if DuplicateEmailFilter.parameter_name in request.GET:
+            return ("email", "created_at")
+        return super().get_ordering(request)
 
 
 @admin.register(models.File)
