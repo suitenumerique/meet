@@ -34,6 +34,7 @@ and this project adheres to
 - ⚡️(frontend) serve illustrations as WebP with a PNG fallback
 - 💥(backend) refuse new users whose email is already used
 - ♻️(backend) match emails in a single normalized form
+- ⚡️(backend) index user emails for exact lookups
 
 ### Fixed
 
