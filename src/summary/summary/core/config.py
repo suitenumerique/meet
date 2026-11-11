@@ -93,6 +93,9 @@ class Settings(BaseSettings):
     whisperx_api_key: SecretStr
     whisperx_base_url: Url = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
+    # Use "verbose_json" for OpenAI-compatible STT endpoints that do not support
+    # "diarized_json" (e.g. OVHcloud AI Endpoints).
+    whisperx_response_format: str = "diarized_json"
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
     whisperx_allowed_languages: Set[str] = {"en", "fr", "de", "nl"}

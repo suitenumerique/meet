@@ -173,8 +173,9 @@ def transcribe_audio(
             # This is in particular true for word_segments and words.
             # WhisperX response is slightly different from OpenAI STT endpoints
             # response.
-            # At the same time "diarized_json" should be the value
-            # provided to STT endpoints in our context.
+            # At the same time "diarized_json" is the default value
+            # provided to STT endpoints in our context. It can be overridden
+            # for endpoints that do not support it (e.g. "verbose_json").
             url = urljoin(base_url.rstrip("/") + "/", "audio/transcriptions")
             res = requests.post(
                 url,
@@ -182,7 +183,7 @@ def transcribe_audio(
                     "model": settings.whisperx_asr_model,
                     "language": language,
                     "timestamp_granularities": ["word", "segment"],
-                    "response_format": "diarized_json",
+                    "response_format": settings.whisperx_response_format,
                 },
                 files={"file": audio_file},
                 headers={"Authorization": f"Bearer {api_key}"},
