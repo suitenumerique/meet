@@ -173,8 +173,9 @@ def transcribe_audio(
             # This is in particular true for word_segments and words.
             # WhisperX response is slightly different from OpenAI STT endpoints
             # response.
-            # At the same time "diarized_json" should be the value
-            # provided to STT endpoints in our context.
+            # At the same time "diarized_json" is the default value
+            # provided to STT endpoints in our context. It can be overridden
+            # for endpoints that do not support it (e.g. "verbose_json").
             url = urljoin(base_url.rstrip("/") + "/", "audio/transcriptions")
             res = requests.post(
                 url,
@@ -182,7 +183,7 @@ def transcribe_audio(
                     "model": settings.whisperx_asr_model,
                     "language": language,
                     "timestamp_granularities": ["word", "segment"],
-                    "response_format": "diarized_json",
+                    "response_format": settings.whisperx_response_format,
                 },
                 files={"file": audio_file},
                 headers={"Authorization": f"Bearer {api_key}"},
@@ -193,8 +194,10 @@ def transcribe_audio(
             )
             if res.status_code == 400:
                 logger.info(
-                    "WhisperX transcription failed, "
-                    "likely due to a corrupted audio file: %s",
+                    "WhisperX rejected the transcription request (HTTP 400): "
+                    "either the audio file is corrupted, or the API does not "
+                    "support a request parameter such as response_format=%s: %s",
+                    settings.whisperx_response_format,
                     res.text,
                 )
                 raise CorruptedAudioFile("WhisperX coudln't decode the audio file.")

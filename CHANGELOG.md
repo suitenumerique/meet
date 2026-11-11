@@ -11,10 +11,12 @@ and this project adheres to
 ### Added
 
 - ✨(summary) make the STT request timeout configurable
+- ✨(summary) make ASR response format configurable #1946
 
 ### Fixed
 
 - 🔒️(agents) upgrade libzstd1 to fix CVE-2026-124851
+- 🩹(summary) name unsupported parameters in the STT 400 error log #1946
 - ♿️(frontend) name the header settings tabs on small screens
 - ♿️(frontend) announce the copy of the connection details
 - ♿️(frontend) name the in-meeting settings dialog on small screens

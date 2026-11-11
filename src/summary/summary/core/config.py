@@ -2,7 +2,7 @@
 
 import logging
 from functools import cached_property, lru_cache
-from typing import Annotated, List, Mapping, Optional, Set
+from typing import Annotated, List, Literal, Mapping, Optional, Set
 
 from fastapi import Depends
 from pydantic import (
@@ -93,6 +93,7 @@ class Settings(BaseSettings):
     whisperx_api_key: SecretStr
     whisperx_base_url: Url = "https://api.openai.com/v1"
     whisperx_asr_model: str = "whisper-1"
+    whisperx_response_format: Literal["diarized_json", "verbose_json"] = "diarized_json"
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
     whisperx_allowed_languages: Set[str] = {"en", "fr", "de", "nl"}

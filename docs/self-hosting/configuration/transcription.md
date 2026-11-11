@@ -9,10 +9,15 @@ The variables are under [Transcription](../../reference/env-variables.md#transcr
 ## Requirements
 
 - **[Recording](recording.md), set up and working.** Transcription uses the same Egress, storage and webhook.
-- **A WhisperX API.** The summary service calls `POST {WHISPERX_BASE_URL}/audio/transcriptions` with `response_format=diarized_json` and needs speaker labels and word segments back. [meet-whisperx](https://github.com/suitenumerique/meet-whisperx) serves them under `/v1`, so [`WHISPERX_BASE_URL`](../../reference/env-variables.md#WHISPERX_BASE_URL) ends in `/v1`. Run it on a GPU.
+- **A WhisperX API.** The summary service calls `POST {WHISPERX_BASE_URL}/audio/transcriptions` with `response_format=diarized_json` by default, and reads speaker labels and word segments from the answer. [meet-whisperx](https://github.com/suitenumerique/meet-whisperx) serves them under `/v1`, so [`WHISPERX_BASE_URL`](../../reference/env-variables.md#WHISPERX_BASE_URL) ends in `/v1`. Run it on a GPU.
 - **An LLM API.** The summary service needs [`LLM_BASE_URL`](../../reference/env-variables.md#LLM_BASE_URL), [`LLM_API_KEY`](../../reference/env-variables.md#LLM_API_KEY) and [`LLM_MODEL`](../../reference/env-variables.md#LLM_MODEL) to start, even with summaries off.
 - **LaSuite Docs, to deliver the transcript.** Set the [LaSuite Docs](../../reference/env-variables.md#lasuite-docs) variables in the summary service's environment. Without [`IS_LASUITE_DOCS_INTEGRATION_ENABLED`](../../reference/env-variables.md#IS_LASUITE_DOCS_INTEGRATION_ENABLED), the transcript stays under `transcripts/` in the bucket and reaches no user.
 - **`"allowed_push_to_docs": true` on each tenant**, even with the push off, as [`AUTHORIZED_TENANTS`](../../reference/env-variables.md#AUTHORIZED_TENANTS) explains.
+
+!!! note "An API without `diarized_json`"
+    Some OpenAI-compatible speech-to-text APIs, reject `diarized_json`. Set [`WHISPERX_RESPONSE_FORMAT=verbose_json`](../../reference/env-variables.md#WHISPERX_RESPONSE_FORMAT) in the summary service's environment for them.
+
+    The transcript then does not tell speakers apart, and [Step 4](#step-4-name-the-speakers) has no speaker to name.
 
 The summary service rejects a transcription whose language is outside [`WHISPERX_ALLOWED_LANGUAGES`](../../reference/env-variables.md#WHISPERX_ALLOWED_LANGUAGES).
 

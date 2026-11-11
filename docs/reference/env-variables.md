@@ -555,6 +555,7 @@ Every variable marked **Yes** must be set for the service to start, even with su
 | `WHISPERX_API_KEY`{#WHISPERX_API_KEY} | **Yes** | -- | API key for the WhisperX / OpenAI-compatible API |
 | `WHISPERX_BASE_URL`{#WHISPERX_BASE_URL} | No | `https://api.openai.com/v1` | Base URL of the speech-to-text API. For [meet-whisperx](https://github.com/suitenumerique/meet-whisperx), end it in `/v1`, e.g. `http://whisperx:8000/v1`. See [AI Transcription](../self-hosting/configuration/transcription.md#requirements) for what the API must return. |
 | `WHISPERX_ASR_MODEL`{#WHISPERX_ASR_MODEL} | No | `whisper-1` | ASR model name. Use `whisper-1` for the OpenAI Whisper API, or a WhisperX model like `large-v3` for a self-hosted instance. |
+| `WHISPERX_RESPONSE_FORMAT`{#WHISPERX_RESPONSE_FORMAT} | No | `diarized_json` | `response_format` sent to the speech-to-text API. Set `verbose_json` for an OpenAI-compatible API that rejects `diarized_json`. |
 | `WHISPERX_DEFAULT_LANGUAGE`{#WHISPERX_DEFAULT_LANGUAGE} | No | -- | ISO 639-1 language code, such as `fr` or `en`. When set, skips automatic language detection. |
 | `WHISPERX_ALLOWED_LANGUAGES`{#WHISPERX_ALLOWED_LANGUAGES} | No | `{"en","fr","de","nl"}` | Set of accepted ISO 639-1 language codes. Requests with other codes are rejected. |
 | `WHISPERX_CONNECT_TIMEOUT`{#WHISPERX_CONNECT_TIMEOUT} | No | `60` | Seconds to wait for the connection to the speech-to-text API. |
