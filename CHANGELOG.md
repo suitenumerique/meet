@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(summary) make ASR response format configurable
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
 - ✨(frontend) tell participants when a recording is interrupted
 

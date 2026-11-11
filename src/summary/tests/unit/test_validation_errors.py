@@ -221,3 +221,36 @@ def test_summary_task_retries_with_the_cleaned_exception(monkeypatch):
     error = retry.call_args.kwargs["exc"]
     assert isinstance(error, CleanedValidationError)
     assert CANARY.encode() not in pickle.dumps(error)
+
+
+@pytest.mark.parametrize(
+    ("configured", "expected"),
+    [(None, "diarized_json"), ("verbose_json", "verbose_json")],
+)
+def test_transcription_requests_configured_response_format(
+    monkeypatch, configured, expected
+):
+    """The ASR response format defaults to diarized_json and can be overridden."""
+    storage = MagicMock()
+    storage.prepare_audio_file.return_value.__enter__.return_value = (
+        Mock(),
+        {"duration": 1},
+    )
+    monkeypatch.setattr(celery_worker, "file_service", storage)
+    monkeypatch.setattr(celery_worker, "metadata_manager", Mock())
+    if configured is not None:
+        monkeypatch.setattr(
+            celery_worker,
+            "settings",
+            celery_worker.settings.model_copy(
+                update={"whisperx_response_format": configured}
+            ),
+        )
+    response = Mock(status_code=200)
+    response.json.return_value = {"text": "hello", "segments": []}
+    post = Mock(return_value=response)
+    monkeypatch.setattr(celery_worker.requests, "post", post)
+    celery_worker.transcribe_audio(
+        task_id="job", language="en", cloud_storage_url="https://example.com/audio"
+    )
+    assert post.call_args.kwargs["data"]["response_format"] == expected
