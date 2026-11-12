@@ -1,11 +1,16 @@
 import { Button, H, Text, TextArea } from '@/primitives'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
-import { Button as RACButton } from 'react-aria-components'
+import {
+  Radio as RACRadio,
+  RadioGroup as RACRadioGroup,
+} from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { captureEvent } from '@/features/analytics/telemetry'
+import { RiCheckLine } from '@remixicon/react'
+import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 
 const Card = styled('div', {
   base: {
@@ -21,7 +26,7 @@ const Card = styled('div', {
   },
 })
 
-const Bar = styled('div', {
+const Bar = styled(RACRadioGroup, {
   base: {
     display: 'flex',
     border: '2px solid',
@@ -34,6 +39,8 @@ const Bar = styled('div', {
 
 const ratingButtonRecipe = cva({
   base: {
+    // anchor the visually hidden input, so it scrolls with the radio
+    position: 'relative',
     backgroundColor: 'white',
     color: 'initial',
     border: 'none',
@@ -42,8 +49,18 @@ const ratingButtonRecipe = cva({
     flexGrow: '1',
     flexBasis: 0,
     minWidth: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.25rem',
     textAlign: 'center',
     cursor: 'pointer',
+    // Inset, so the Bar's overflow does not clip the focus ring
+    '&[data-focus-visible]': {
+      outline: '2px solid!',
+      outlineColor: 'focusRing!',
+      outlineOffset: '-4px!',
+    },
   },
   variants: {
     selected: {
@@ -73,15 +90,28 @@ const labelRecipe = cva({
   },
 })
 
+// When a card replaces the previous one, the focused button is gone and
+// focus falls back to the top of the page. Move it to the new heading.
+const useFocusOnMount = (id: string, moveFocus: boolean) => {
+  useEffect(() => {
+    if (moveFocus) document.getElementById(id)?.focus()
+  }, [id, moveFocus])
+}
+
 const OpenFeedback = ({
   onNext,
   metadata,
+  moveFocus = false,
 }: {
   onNext: () => void
   metadata?: Record<string, unknown>
+  moveFocus?: boolean
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'openFeedback' })
   const [feedback, setFeedback] = useState('')
+  const questionId = useId()
+  const helpId = useId()
+  useFocusOnMount(questionId, moveFocus)
 
   const onContinue = () => {
     setFeedback('')
@@ -103,13 +133,17 @@ const OpenFeedback = ({
 
   return (
     <Card>
-      <H lvl={3} centered>
+      <H lvl={3} centered id={questionId} tabIndex={-1}>
         {t('question')}
       </H>
+      <Text variant="smNote" centered margin="sm" id={helpId}>
+        {t('placeholder')}
+      </Text>
       <TextArea
         id="feedbackInput"
+        aria-labelledby={questionId}
+        aria-describedby={helpId}
         name="feedback"
-        placeholder={t('placeholder')}
         required
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
@@ -146,17 +180,19 @@ const RateQuality = ({
   onNext,
   metadata,
   maxRating = 5,
+  moveFocus = false,
 }: {
   onNext: () => void
   metadata?: Record<string, unknown>
   maxRating?: number
+  moveFocus?: boolean
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'rating' })
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
-
-  const handleRatingClick = (rating: number) => {
-    setSelectedRating((prevRating) => (prevRating === rating ? null : rating))
-  }
+  const questionId = useId()
+  const minLabelId = useId()
+  const maxLabelId = useId()
+  useFocusOnMount(questionId, moveFocus)
 
   const onSubmit = () => {
     try {
@@ -174,21 +210,39 @@ const RateQuality = ({
 
   return (
     <Card>
-      <H lvl={3} centered>
+      <H lvl={3} centered id={questionId} tabIndex={-1}>
         {t('question')}
       </H>
-      <Bar>
+      <Bar
+        aria-labelledby={questionId}
+        orientation="horizontal"
+        value={selectedRating?.toString() ?? null}
+        onChange={(value) => setSelectedRating(Number(value))}
+      >
         {[...Array(maxRating)].map((_, index) => (
-          <RACButton
+          <RACRadio
             key={index}
-            onPress={() => handleRatingClick(index + 1)}
+            value={String(index + 1)}
+            aria-label={t('option', { value: index + 1, max: maxRating })}
+            aria-describedby={
+              index === 0
+                ? minLabelId
+                : index === maxRating - 1
+                  ? maxLabelId
+                  : undefined
+            }
             className={ratingButtonRecipe({
               selected: selectedRating === index + 1,
               borderLeft: index != 0,
             })}
           >
-            {index + 1}
-          </RACButton>
+            {({ isSelected }) => (
+              <>
+                {isSelected && <RiCheckLine size={16} aria-hidden="true" />}
+                {index + 1}
+              </>
+            )}
+          </RACRadio>
         ))}
       </Bar>
       <div
@@ -198,10 +252,10 @@ const RateQuality = ({
           marginBottom: '1rem',
         }}
       >
-        <Text variant="sm" className={labelRecipe()}>
+        <Text variant="sm" className={labelRecipe()} id={minLabelId}>
           {t('levels.min')}
         </Text>
-        <Text variant="sm" className={labelRecipe()}>
+        <Text variant="sm" className={labelRecipe()} id={maxLabelId}>
           {t('levels.max')}
         </Text>
       </div>
@@ -220,6 +274,12 @@ const RateQuality = ({
 
 const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'confirmationMessage' })
+  const announce = useScreenReaderAnnounce()
+
+  useEffect(() => {
+    announce(`${t('heading')}. ${t('body')}`)
+  }, [announce, t])
+
   useEffect(() => {
     const timer = setTimeout(() => {
       onNext()
@@ -258,6 +318,16 @@ export const Rating = ({
 }) => {
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
   const [step, setStep] = useState(0)
+  // Set when the user moves to the next card, so that card takes focus.
+  // Not on first load, nor when the thank-you card goes away on its own.
+  // The thank-you card itself does not take focus: its message is already
+  // sent to the status region, and focusing its heading would read it twice.
+  const [moveFocus, setMoveFocus] = useState(false)
+
+  const goToNextStep = () => {
+    setMoveFocus(true)
+    setStep(step + 1)
+  }
 
   const sessionId = useMemo(() => crypto.randomUUID(), [])
 
@@ -272,14 +342,33 @@ export const Rating = ({
   if (!isAnalyticsEnabled) return
 
   if (step == 0) {
-    return <RateQuality onNext={() => setStep(step + 1)} metadata={metadata} />
+    return (
+      <RateQuality
+        onNext={goToNextStep}
+        metadata={metadata}
+        moveFocus={moveFocus}
+      />
+    )
   }
 
   if (step == 1) {
-    return <OpenFeedback onNext={() => setStep(step + 1)} metadata={metadata} />
+    return (
+      <OpenFeedback
+        onNext={goToNextStep}
+        metadata={metadata}
+        moveFocus={moveFocus}
+      />
+    )
   }
 
   if (step == 2) {
-    return <ConfirmationMessage onNext={() => setStep(0)} />
+    return (
+      <ConfirmationMessage
+        onNext={() => {
+          setMoveFocus(false)
+          setStep(0)
+        }}
+      />
+    )
   }
 }

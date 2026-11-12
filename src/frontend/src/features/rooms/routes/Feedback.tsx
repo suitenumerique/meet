@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/primitives'
+import { Button, LinkButton } from '@/primitives'
 import { Screen } from '@/layout/Screen'
 import { Center, Stack, styled, VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Rating } from '@/features/rooms/components/Rating.tsx'
 import { useLocation } from 'wouter'
+import { RouterProvider } from 'react-aria-components'
 import { useMemo } from 'react'
 import { DisconnectReason } from 'livekit-client'
 import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
@@ -90,13 +91,12 @@ const FeedbackRoute = () => {
                 {t('feedback.back')}
               </Button>
             )}
-            <Button
-              variant="primary"
-              className={buttonClass}
-              onPress={() => setLocation('/')}
-            >
-              {t('feedback.home')}
-            </Button>
+            {/* Lets the link navigate client-side on Enter, as on click */}
+            <RouterProvider navigate={(path) => setLocation(path)}>
+              <LinkButton href="/" variant="primary" className={buttonClass}>
+                {t('feedback.home')}
+              </LinkButton>
+            </RouterProvider>
           </Stack>
           {reasonKey !== DisconnectReasonKey.ConnectionFailed && (
             <Rating metadata={metadata} />
