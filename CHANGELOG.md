@@ -26,6 +26,7 @@ and this project adheres to
 - 🔒️(backend) issue room access tokens via POST rooms/{id}/join/ only
 - 🔒️(frontend) send the display name in the join request body
 - 🔥(backend) drop is_administrable from unregistered room payloads
+- 🍱(frontend) add Portuguese glyphs to Marianne subsetted fonts
 
 ### Fixed
 
