@@ -90,17 +90,28 @@ const labelRecipe = cva({
   },
 })
 
+// When a card replaces the previous one, the focused button is gone and
+// focus falls back to the top of the page. Move it to the new heading.
+const useFocusOnMount = (id: string, moveFocus: boolean) => {
+  useEffect(() => {
+    if (moveFocus) document.getElementById(id)?.focus()
+  }, [id, moveFocus])
+}
+
 const OpenFeedback = ({
   onNext,
   metadata,
+  moveFocus = false,
 }: {
   onNext: () => void
   metadata?: Record<string, unknown>
+  moveFocus?: boolean
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'openFeedback' })
   const [feedback, setFeedback] = useState('')
   const questionId = useId()
   const helpId = useId()
+  useFocusOnMount(questionId, moveFocus)
 
   const onContinue = () => {
     setFeedback('')
@@ -122,7 +133,7 @@ const OpenFeedback = ({
 
   return (
     <Card>
-      <H lvl={3} centered id={questionId}>
+      <H lvl={3} centered id={questionId} tabIndex={-1}>
         {t('question')}
       </H>
       <Text variant="smNote" centered margin="sm" id={helpId}>
@@ -169,16 +180,19 @@ const RateQuality = ({
   onNext,
   metadata,
   maxRating = 5,
+  moveFocus = false,
 }: {
   onNext: () => void
   metadata?: Record<string, unknown>
   maxRating?: number
+  moveFocus?: boolean
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'rating' })
   const [selectedRating, setSelectedRating] = useState<number | null>(null)
   const questionId = useId()
   const minLabelId = useId()
   const maxLabelId = useId()
+  useFocusOnMount(questionId, moveFocus)
 
   const onSubmit = () => {
     try {
@@ -196,7 +210,7 @@ const RateQuality = ({
 
   return (
     <Card>
-      <H lvl={3} centered id={questionId}>
+      <H lvl={3} centered id={questionId} tabIndex={-1}>
         {t('question')}
       </H>
       <Bar
@@ -304,6 +318,16 @@ export const Rating = ({
 }) => {
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
   const [step, setStep] = useState(0)
+  // Set when the user moves to the next card, so that card takes focus.
+  // Not on first load, nor when the thank-you card goes away on its own.
+  // The thank-you card itself does not take focus: its message is already
+  // sent to the status region, and focusing its heading would read it twice.
+  const [moveFocus, setMoveFocus] = useState(false)
+
+  const goToNextStep = () => {
+    setMoveFocus(true)
+    setStep(step + 1)
+  }
 
   const sessionId = useMemo(() => crypto.randomUUID(), [])
 
@@ -318,14 +342,33 @@ export const Rating = ({
   if (!isAnalyticsEnabled) return
 
   if (step == 0) {
-    return <RateQuality onNext={() => setStep(step + 1)} metadata={metadata} />
+    return (
+      <RateQuality
+        onNext={goToNextStep}
+        metadata={metadata}
+        moveFocus={moveFocus}
+      />
+    )
   }
 
   if (step == 1) {
-    return <OpenFeedback onNext={() => setStep(step + 1)} metadata={metadata} />
+    return (
+      <OpenFeedback
+        onNext={goToNextStep}
+        metadata={metadata}
+        moveFocus={moveFocus}
+      />
+    )
   }
 
   if (step == 2) {
-    return <ConfirmationMessage onNext={() => setStep(0)} />
+    return (
+      <ConfirmationMessage
+        onNext={() => {
+          setMoveFocus(false)
+          setStep(0)
+        }}
+      />
+    )
   }
 }
