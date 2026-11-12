@@ -36,6 +36,9 @@ const config: Config = {
   jsxFramework: 'react',
   outdir: 'src/styled-system',
   globalFontface: {},
+  globalVars: {
+    '--global-font-body': 'var(--fonts-sans)',
+  },
   theme: {
     ...pandaPreset.theme,
     // media queries are defined in em so that zooming with text-only mode triggers breakpoints
