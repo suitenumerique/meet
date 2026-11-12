@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- ♿️(frontend) use a toolbar instead of nav for meeting controls #1907
+
 ### Added
 
 - 🌐(i18n) add Portuguese language support
