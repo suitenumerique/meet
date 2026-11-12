@@ -1,22 +1,21 @@
 import { useTranslation } from 'react-i18next'
 import { Field, Ul, H, P, Form, Dialog } from '@/primitives'
 import { navigateTo } from '@/navigation/navigateTo'
-import { isRoomValid } from '@/features/rooms'
+import { extractRoomId } from '@/features/rooms'
 
 export const JoinMeetingDialog = () => {
   const { t } = useTranslation('home')
 
   const handleSubmit = (data: { roomId?: FormDataEntryValue }) => {
-    const roomId = (data.roomId as string)
-      .trim()
-      .replace(`${window.location.origin}/`, '')
-    navigateTo('room', roomId)
+    const extracted = extractRoomId(data.roomId as string)
+    if (!extracted) return
+    navigateTo('room', `${extracted.roomId}${extracted.suffix}`)
   }
 
   const validateRoomId = (value: string) => {
     const trimmed = value.trim()
     if (!trimmed) return null
-    return !isRoomValid(trimmed) ? (
+    return !extractRoomId(trimmed) ? (
       <>
         <p>{t('joinInputError')}</p>
         <Ul>

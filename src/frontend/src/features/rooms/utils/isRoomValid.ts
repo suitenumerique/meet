@@ -10,6 +10,28 @@ export const isRoomValid = (roomIdOrUrl: string) =>
   roomRegex.test(roomIdOrUrl) ||
   new RegExp(`^${window.location.origin}/${roomIdPattern}$`).test(roomIdOrUrl)
 
+export const extractRoomId = (
+  input: string,
+  origin: string = window.location.origin
+): { roomId: string; suffix: string } | null => {
+  const value = input.trim()
+  if (roomRegex.test(value)) return { roomId: value, suffix: '' }
+
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    return null
+  }
+  if (url.origin !== origin) return null
+
+  const path = url.pathname.slice(1)
+  const roomId = path.endsWith('/') ? path.slice(0, -1) : path
+  return roomRegex.test(roomId)
+    ? { roomId, suffix: `${url.search}${url.hash}` }
+    : null
+}
+
 export const normalizeRoomId = (roomId: string) => {
   const cleanId = roomId.toLowerCase().replace(/-/g, '')
   if (cleanId.length === 10) {

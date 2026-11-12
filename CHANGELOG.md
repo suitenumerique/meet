@@ -38,6 +38,7 @@ and this project adheres to
 - 🔒️(docker) upgrade musl-utils to 1.2.6-r3 to fix CVE-2026-107891
 - ♿️(frontend) close the invite dialog with the Escape key #1916
 - 🔒️(docker) move frontend to nginx/nginx-unprivileged image
+- 🐛(frontend) accept meeting links with query params in join dialog
 
 ## [1.37.0] - 2026-11-01
 
