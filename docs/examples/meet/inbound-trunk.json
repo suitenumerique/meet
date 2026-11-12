@@ -1,0 +1,7 @@
+{
+  "trunk": {
+    "name": "Main dial-in number",
+    "numbers": ["<ROOM_TELEPHONY_PHONE_NUMBER>"],
+    "allowed_addresses": ["<your provider's signaling IP or CIDR range>"]
+  }
+}

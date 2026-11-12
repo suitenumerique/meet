@@ -24,13 +24,13 @@
 
 <p align="center">
   <a href="https://visio.numerique.gouv.fr/">
-    <img src="https://github.com/user-attachments/assets/09c1faa1-de88-4848-af3a-6fbe793999bf" alt="La Suite Meet Demonstration">
+    <img src="https://github.com/user-attachments/assets/09c1faa1-de88-4848-af3a-6fbe793999bf" alt="LaSuite Meet Demonstration">
   </a>
 </p>
 
-## La Suite Meet: Simple Video Conferencing
+## LaSuite Meet: Simple Video Conferencing
 
-Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level performance with high-quality video and audio. No installation required—simply join calls directly from your browser. Check out LiveKit's impressive optimizations in their [blog post](https://blog.livekit.io/livekit-one-dot-zero/).
+Powered by [LiveKit](https://livekit.io/), LaSuite Meet offers Zoom-level performance with high-quality video and audio. No installation required—simply join calls directly from your browser. Check out LiveKit's impressive optimizations in their [blog post](https://blog.livekit.io/livekit-one-dot-zero/).
 
 > [!TIP]
 > New here? Start by introducing yourself in our Matrix channel:
@@ -57,15 +57,15 @@ Powered by [LiveKit](https://livekit.io/), La Suite Meet offers Zoom-level perfo
   - SVC codecs (VP9, AV1)
 
 
-La Suite Meet is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's simple to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr). 
+LaSuite Meet is fully self-hostable and released under the MIT License, ensuring complete control and flexibility. It's simple to [get started](https://visio.numerique.gouv.fr/) or [request a demo](mailto:visio@numerique.gouv.fr). 
 
 We’re continuously adding new features to enhance your experience, with the latest updates coming soon!
 
-⭐ **Find La Suite Meet useful?** Click the Star button at the top right of this page. It helps other people and public organisations discover the project.
+⭐ **Find LaSuite Meet useful?** Click the Star button at the top right of this page. It helps other people and public organizations discover the project.
 
 ### 🚀 Major roll out to all French public servants
 
-On the 29th of January 2026, Prime Minister Sébastien Lecornu, announced the full deployment of Visio—the French government’s dedicated Meet platform—to all public servants. ([Source in English](https://www.nytimes.com/2026/01/29/world/europe/france-zoom-alternative-visio.html))
+On the 29th of January 2026, Prime Minister Sébastien Lecornu announced the full deployment of Visio—the French government’s dedicated Meet platform—to all public servants. ([Source in English](https://www.nytimes.com/2026/01/29/world/europe/france-zoom-alternative-visio.html))
 
 ## Table of Contents
 
@@ -81,30 +81,19 @@ On the 29th of January 2026, Prime Minister Sébastien Lecornu, announced the fu
 
 ## Docs
 
-We're currently working on both technical and user documentation for La Suite Meet. In the meantime, many of the essential aspects are already well covered by the [LiveKit documentation](https://docs.livekit.io/home/) and their [self-hosting guide](https://docs.livekit.io/home/self-hosting/deployment/). Stay tuned for more updates!
+The documentation, for users, administrators and integrators, is at [documentation-meet.beta.numerique.gouv.fr](https://documentation-meet.beta.numerique.gouv.fr/).
 
 ## Self-host
 
-### La Suite Meet is easy to install on your own servers
+### LaSuite Meet is easy to install on your own servers
 
-We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/) but also support Docker Compose. The community contributed a couple other methods (Nix, YunoHost etc.) check out the [docs](/docs/installation/README.md) to get detailed instructions and examples.
+We use Kubernetes for our [production instance](https://visio.numerique.gouv.fr/) but also support Docker Compose. The community contributed a couple of other methods (Nix, YunoHost, etc.); check out the [docs](/docs/self-hosting/index.md) for detailed instructions and examples.
 
 **Questions?** Open an issue on [GitHub](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md) or join our [Matrix community](https://matrix.to/#/#meet-official:matrix.org).
 
-> [!NOTE]
-> Some advanced features (ex: recording, transcription) lack detailed documentation. We're working hard to provide comprehensive guides soon.
-
 #### Known instances
-We hope to see many more, here is an incomplete list of public La Suite Meet instances. Feel free to make a PR to add ones that are not listed below🙏
 
-| Url                                                           | Org          | Access                                                                                                                                        |
-|---------------------------------------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| [visio.numerique.gouv.fr](https://visio.numerique.gouv.fr/)   | DINUM        | French public agents working for the central administration and the extended public sphere. ProConnect is required to login in or sign up     |
-| [visio.suite.anct.gouv.fr](https://visio.suite.anct.gouv.fr/) | ANCT         | French public agents working for the territorial administration and the extended public sphere. ProConnect is required to login in or sign up |
-| [visio.lasuite.coop](https://visio.lasuite.coop/)             | lasuite.coop | Free and open demo to all. Content and accounts are reset after one month                                                                     |
-| [mosacloud.cloud](https://mosa.cloud/)                        | mosa.cloud   | Demo instance of mosa.cloud, a dutch company providing services around La Suite apps.                                                         |
-| [Clever Cloud](https://www.clever.cloud/product/visio/)       | clever cloud | Openvisio is a sovereign video conferencing solution based on LaSuite Meet offered by [Clever Cloud](https://www.clever.cloud/).              |
-| [Email.eu](https://email.eu/)                                 | Email.eu     | Sovereign business workspace.                                                                                                                 |
+The public instances are listed in the [documentation](https://documentation-meet.beta.numerique.gouv.fr/#known-public-instances). Feel free to make a PR adding yours to [`docs/index.md`](docs/index.md).
 
 
 # Contributing
@@ -137,7 +126,7 @@ Open source is much more than code. Writing documentation, improving onboarding,
 When you’re ready, here are a few ways to get involved:
 
 * 👋 **Say hello** and share your ideas with the community and maintainers on our [Matrix channel](https://matrix.to/#/#meet-official:matrix.org)
-* 🛠️ **Open a PR** by following our guide to [develop La Suite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/developping_locally.md)
+* 🛠️ **Open a PR** by following our guide to [develop LaSuite Meet locally](https://github.com/suitenumerique/meet/blob/main/docs/contributing/develop.md)
 * 💡 **Suggest an idea** by opening a [feature request](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=enhancement&template=Feature_request.md)
 * 🐛 **Report a bug** by opening a [bug report](https://github.com/suitenumerique/meet/issues/new?assignees=&labels=bug&template=Bug_report.md)
 
@@ -151,9 +140,9 @@ Whether you’re actively contributing or just curious about the project, you’
 
 ## Philosophy
 
-We’re relentlessly focused on building the best open-source video conferencing product—La Suite Meet. Growth comes from creating something people truly need, not just from chasing metrics.
+We’re relentlessly focused on building the best open-source video conferencing product—LaSuite Meet. Growth comes from creating something people truly need, not just from chasing metrics.
 
-Our users come first. We’re committed to making La Suite Meet as accessible and easy to use as proprietary solutions, ensuring it meets the highest standards.
+Our users come first. We’re committed to making LaSuite Meet as accessible and easy to use as proprietary solutions, ensuring it meets the highest standards.
 
 Most of the heavy engineering is handled by the incredible LiveKit team, allowing us to focus on delivering a top-tier product. We follow extreme programming practices, favoring pair programming and quick, iterative releases. Challenge our tech and architecture—simplicity is always our top priority.
 
@@ -167,7 +156,7 @@ To learn more, don't hesitate to [reach out](mailto:visio@numerique.gouv.fr).
 
 ### Help us!
 
-Come help us make La Suite Meet even better. We're growing fast and [would love some help](mailto:visio@numerique.gouv.fr).
+Come help us make LaSuite Meet even better. We're growing fast and [would love some help](mailto:visio@numerique.gouv.fr).
 
 
 ## Contributors 🧞

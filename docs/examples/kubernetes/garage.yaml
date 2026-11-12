@@ -1,0 +1,94 @@
+# Garage, the recording storage of the Recording guide, on Kubernetes:
+# one node, no replication, a 50 GiB volume, behind a Service named garage.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: garage-config
+  namespace: meet
+data:
+  garage.toml: |
+    metadata_dir = "/var/lib/garage/meta"
+    data_dir = "/var/lib/garage/data"
+    db_engine = "lmdb"
+    replication_factor = 1
+    rpc_bind_addr = "127.0.0.1:3901"
+    rpc_public_addr = "127.0.0.1:3901"
+
+    [s3_api]
+    api_bind_addr = "[::]:9000"
+    s3_region = "garage"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage
+  namespace: meet
+spec:
+  selector:
+    app: garage
+  ports:
+    - name: s3
+      port: 9000
+      targetPort: s3
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: garage
+  namespace: meet
+spec:
+  serviceName: garage
+  replicas: 1
+  selector:
+    matchLabels:
+      app: garage
+  template:
+    metadata:
+      labels:
+        app: garage
+    spec:
+      # Garage never calls the Kubernetes API
+      automountServiceAccountToken: false
+      containers:
+        - name: garage
+          image: dxflrs/garage:v2.4.1
+          command: ["/garage", "server", "--single-node", "--default-bucket"]
+          env:
+            - name: GARAGE_DEFAULT_BUCKET
+              value: meet-media-storage
+          envFrom:
+            - secretRef:
+                name: garage-secrets
+          ports:
+            - name: s3
+              containerPort: 9000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+              ephemeral-storage: 100Mi
+            limits:
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+          readinessProbe:
+            exec:
+              command: ["/garage", "health"]
+            periodSeconds: 5
+          volumeMounts:
+            - name: config
+              mountPath: /etc/garage.toml
+              subPath: garage.toml
+            - name: data
+              mountPath: /var/lib/garage
+      volumes:
+        - name: config
+          configMap:
+            name: garage-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi

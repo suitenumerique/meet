@@ -1,0 +1,15 @@
+# LiveKit Egress, the recorder of the Recording guide.
+# generate-secrets.sh fills the LiveKit API secret.
+
+api_key: meet
+api_secret: <your LiveKit API secret>
+ws_url: ws://livekit:7880
+
+# Required: Egress crashes at start without it
+redis:
+  address: redis:6379
+
+cpu_cost:
+  room_composite_cpu_cost: 1.5
+  track_composite_cpu_cost: 1.0
+  track_cpu_cost: 0.5

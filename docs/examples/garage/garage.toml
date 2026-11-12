@@ -1,0 +1,15 @@
+# Garage configuration for a single node, with no replication.
+# See https://garagehq.deuxfleurs.fr/documentation/reference-manual/configuration/
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "lmdb"
+
+replication_factor = 1
+
+rpc_bind_addr = "127.0.0.1:3901"
+rpc_public_addr = "127.0.0.1:3901"
+
+[s3_api]
+api_bind_addr = "[::]:9000"
+# The region this storage declares. Meet's AWS_S3_REGION_NAME names it.
+s3_region = "garage"

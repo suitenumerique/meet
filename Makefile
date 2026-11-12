@@ -169,7 +169,7 @@ run-summary: ## start only the summary application and all needed services
 	@$(COMPOSE) up --force-recreate -d celery-summary-summarize
 .PHONY: run-summary
 
-run-agents: ## start the LiveKit agents (opt-in, see docs/developping_locally.md)
+run-agents: ## start the LiveKit agents (opt-in, see docs/contributing/develop.md)
 	@$(MAKE) run-agent-multi-user-transcriber
 	@$(MAKE) run-agent-metadata-collector
 .PHONY: run-agents

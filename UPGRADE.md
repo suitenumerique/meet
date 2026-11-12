@@ -16,6 +16,18 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Compose env files: `KEYCLOAK_HOST` renamed, internal hosts removed
+
+`env.d/production.dist/hosts` and the OIDC endpoints of
+`env.d/production.dist/common` now read `IDP_HOST`. If you refresh `common`
+from the new templates, rename `KEYCLOAK_HOST` to `IDP_HOST` in your `.env`
+too, or the OIDC endpoints get an empty host and login fails.
+
+`hosts` also no longer carries `BACKEND_INTERNAL_HOST`,
+`FRONTEND_INTERNAL_HOST` and `LIVEKIT_INTERNAL_HOST`. A deployment that still
+mounts `docker/files/production/default.conf.template` needs them in its
+`.env`, or the frontend nginx fails to start. The compose examples now use
+`docs/examples/meet/nginx-routing.conf` in its place.
 
 ### Room access tokens moved to POST /join/
 
@@ -47,9 +59,9 @@ trusted or restricted room without being admitted through the lobby.
 
 ## v1.37.0
 
-### Crisp support chat replaced by the La Suite support form
+### Crisp support chat replaced by the LaSuite support form
 
-The Crisp chat is gone, the support button, now open the La Suite support form. They are hidden unless these `FRONTEND_SUPPORT` keys are all set.
+The Crisp chat is gone, the support button, now open the LaSuite support form. They are hidden unless these `FRONTEND_SUPPORT` keys are all set.
 The former help links for recording/transcription are now redirecting to the adhoc page in the official documentation
 
 ### Pages hidden from search engines
@@ -71,7 +83,7 @@ The development stack now runs LiveKit server v1.13.11 and LiveKit Egress v1.15.
 
 ### Purging deleted rooms
 
-Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/features/room-purge.md).
+Deleting a room now only soft deletes it: it is hidden but keeps its slug and PIN code. The `purge_inactive_rooms` command also permanently deletes soft-deleted rooms. See [the room purge documentation](docs/self-hosting/configuration/room-purge.md).
 
 - Inactive soft-deleted rooms are purged along with the other inactive rooms: if `ROOM_INACTIVITY_DELETION_DAYS` is already set, nothing else is needed.
 - The new `ROOM_DELETED_RETENTION_DAYS` setting purges soft-deleted rooms that many days after their deletion, whether they are inactive or not. It is unset by default.
@@ -90,7 +102,7 @@ The in-house marketing service (`core.services.marketing`) has been removed and
 replaced by the shared implementation from `django-lasuite`
 (`lasuite.marketing`). This fixes a bug where updating a user's contact on
 Brevo overwrote their list memberships, removing lists set by other
-La Suite products. Existing lists are now preserved and merged.
+LaSuite products. Existing lists are now preserved and merged.
 
 **Celery worker required.** Newsletter signup on login
 (`SIGNUP_NEW_USER_TO_MARKETING_EMAIL=True`) is now dispatched as an
@@ -239,7 +251,7 @@ start-recording API accepts an `encoding` object
 falls back to `RECORDING_ENCODING_DEFAULT_PROFILE`) that overrides the default for
 a single recording. It does not enable or disable the
 default encoding, which is built from the two `RECORDING_ENCODING_DEFAULT_*`
-settings either way. Leaving it at `False` preserves the previous behaviour, where
+settings either way. Leaving it at `False` preserves the previous behavior, where
 every recording uses the server-side encoding: requests carrying
 `options.encoding` are rejected with a `400` before the recording is created, so
 nothing is persisted and no egress is started.
@@ -251,14 +263,14 @@ Before enabling it:
 - `encoding` is accepted but ignored for `transcript` recordings, whose audio-only
   egress has no video encoding to configure.
 
-See [docs/features/recording.md](docs/features/recording.md#tuning-recording-encoding)
+See [docs/self-hosting/configuration/recording.md](docs/self-hosting/configuration/recording.md#configuring-recording-encoding)
 for the full setting reference, the shipped profile table and the tuning caveats.
 
 ## v1.33.0
 
 ### Purging inactive rooms
 
-Rooms now keep track of the last time they were started (`last_started_at`), fed by LiveKit's `room_started` webhook. A new `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for `ROOM_INACTIVITY_DELETION_DAYS` days. See [the room purge documentation](docs/features/room-purge.md).
+Rooms now keep track of the last time they were started (`last_started_at`), fed by LiveKit's `room_started` webhook. A new `purge_inactive_rooms` management command permanently deletes the rooms that have not been started for `ROOM_INACTIVITY_DELETION_DAYS` days. See [the room purge documentation](docs/self-hosting/configuration/room-purge.md).
 
 - The feature is **disabled by default**: nothing is deleted unless you set `ROOM_INACTIVITY_DELETION_DAYS`.
 - The migration marks every existing room as started at the time of the upgrade, so no existing room can be purged before a full inactivity period has elapsed after upgrading.

@@ -1,0 +1,25 @@
+# The subtitles agent, from the Real-time Subtitles guide.
+# generate-secrets.sh fills every <...> value.
+
+LIVEKIT_URL=ws://livekit:7880
+LIVEKIT_API_KEY=meet
+LIVEKIT_API_SECRET=<your LiveKit API secret>
+
+# The STT provider: deepgram, kyutai or voxtral-vllm
+STT_PROVIDER=deepgram
+
+# With STT_PROVIDER=deepgram
+DEEPGRAM_API_KEY=your-deepgram-api-key
+DEEPGRAM_STT_MODEL=nova-3
+DEEPGRAM_STT_LANGUAGE=multi
+
+# With STT_PROVIDER=kyutai
+KYUTAI_STT_BASE_URL=http://kyutai-stt:8000
+KYUTAI_API_KEY=your-kyutai-api-key
+
+# Voice activity detection, on by default
+ENABLE_SILERO_VAD=true
+
+# Optional: Sentry error tracking
+SENTRY_DSN=
+SENTRY_ENVIRONMENT=production

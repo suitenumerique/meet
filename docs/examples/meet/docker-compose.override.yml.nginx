@@ -1,0 +1,32 @@
+# nginx-proxy override for Meet
+#
+# Adds VIRTUAL_HOST / LETSENCRYPT_HOST env vars so nginx-proxy + acme-companion
+# automatically route and issue TLS certificates for each service.
+#
+# Usage:
+#   saved as docker-compose.override.yml, see the Deployment Guide
+#   docker compose up -d
+
+services:
+
+  frontend:
+    environment:
+      VIRTUAL_HOST: ${MEET_HOST}
+      VIRTUAL_PORT: "8083"
+      LETSENCRYPT_HOST: ${MEET_HOST}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+
+  livekit:
+    environment:
+      VIRTUAL_HOST: ${LIVEKIT_HOST}
+      VIRTUAL_PORT: "7880"
+      LETSENCRYPT_HOST: ${LIVEKIT_HOST}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    # TURN over TLS reads acme-companion's certificates: uncomment these two
+    # lines and the volumes block below, see the LiveKit & TURN guide
+    # volumes:
+    #   - nginx-proxy_certs:/certs:ro
+
+# volumes:
+#   nginx-proxy_certs:
+#     external: true

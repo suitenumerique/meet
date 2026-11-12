@@ -1,0 +1,325 @@
+# Values for the Meet Helm chart, from the Helm Deployment guide.
+# The guide's sed puts your domain in every host below.
+# Each optional feature below is off: commented out, or behind enabled: false.
+# Its guide says which lines to turn on.
+
+backend:
+  replicas: 2
+  pdb:
+    enabled: true
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  # The restricted Pod Security Standard: Helm Deployment, Security context.
+  # Uncomment this block first: the other components reuse its anchor.
+  # podSecurityContext:
+  #   fsGroup: 1000
+  # securityContext: &restrictedContext
+  #   runAsNonRoot: true
+  #   runAsUser: 1000
+  #   allowPrivilegeEscalation: false
+  #   readOnlyRootFilesystem: true
+  #   seccompProfile:
+  #     type: RuntimeDefault
+  #   capabilities:
+  #     drop:
+  #       - ALL
+  # # A read-only root filesystem needs a writable /tmp for the gunicorn workers.
+  # extraVolumes:
+  #   - name: tmp
+  #     emptyDir: {}
+  # extraVolumeMounts:
+  #   - name: tmp
+  #     mountPath: /tmp
+  # The meet-backend-env Secret of the guide, one environment variable per key
+  envFrom:
+    - secretRef:
+        name: meet-backend-env
+  envVars:
+    DJANGO_SETTINGS_MODULE: "meet.settings"
+    DJANGO_CONFIGURATION: "Production"
+    DJANGO_ALLOWED_HOSTS: "meet.example.com"
+    DJANGO_CSRF_TRUSTED_ORIGINS: "https://meet.example.com"
+    PYTHONPATH: "/app"
+    ALLOW_UNREGISTERED_ROOMS: "False"
+
+    # The admin account the chart creates, with the password from the Secret
+    DJANGO_SUPERUSER_EMAIL: "admin@example.com"
+
+    # Your PostgreSQL
+    DB_HOST: "postgresql.meet.svc.cluster.local"
+    DB_PORT: "5432"
+    DB_NAME: "meet"
+    DB_USER: "meet"
+    # The password from a Secret of another shape: Helm, Secrets management
+    # DB_PASSWORD:
+    #   secretKeyRef:
+    #     name: my-database
+    #     key: password
+
+    # Your Redis. Without CELERY_BROKER_URL, the celeryBackend worker looks for
+    # a host named "redis".
+    REDIS_URL: "redis://redis-master:6379/0"
+    CELERY_BROKER_URL: "redis://redis-master:6379/0"
+
+    LIVEKIT_API_KEY: "meet"
+    LIVEKIT_API_URL: "https://livekit.example.com"
+
+    # Keycloak's endpoints for a realm named meet. Another provider's are in
+    # the SSO & Authentication guide.
+    OIDC_RP_CLIENT_ID: "meet"
+    OIDC_RP_SIGN_ALGO: "RS256"
+    OIDC_RP_SCOPES: "openid email"
+    OIDC_OP_AUTHORIZATION_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/auth
+    OIDC_OP_TOKEN_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/token
+    OIDC_OP_USER_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/userinfo
+    OIDC_OP_JWKS_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/certs
+    OIDC_OP_LOGOUT_ENDPOINT: >-
+      https://auth.example.com/realms/meet/protocol/openid-connect/logout
+
+    # Email: the Email (SMTP) guide. The password is in the meet-smtp Secret.
+    # DJANGO_EMAIL_HOST: "smtp.example.com"
+    # DJANGO_EMAIL_PORT: "587"
+    # DJANGO_EMAIL_HOST_USER: "meet@example.com"
+    # DJANGO_EMAIL_HOST_PASSWORD:
+    #   secretKeyRef:
+    #     name: meet-smtp
+    #     key: password
+    # DJANGO_EMAIL_USE_TLS: "True"
+    # DJANGO_EMAIL_FROM: "meet@example.com"
+    # DJANGO_EMAIL_APP_BASE_URL: "https://meet.example.com"
+    # DJANGO_EMAIL_DOMAIN: "meet.example.com"
+
+    # Recording: the Recording guide. The keys are in the garage-secrets Secret.
+    # RECORDING_ENABLE: "True"
+    # AWS_S3_ENDPOINT_URL: "http://garage.meet.svc.cluster.local:9000"
+    # AWS_S3_ACCESS_KEY_ID:
+    #   secretKeyRef:
+    #     name: garage-secrets
+    #     key: GARAGE_DEFAULT_ACCESS_KEY
+    # AWS_S3_SECRET_ACCESS_KEY:
+    #   secretKeyRef:
+    #     name: garage-secrets
+    #     key: GARAGE_DEFAULT_SECRET_KEY
+    # AWS_S3_REGION_NAME: "garage"
+    # AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
+    # RECORDING_DOWNLOAD_BASE_URL: "https://meet.example.com/recording"
+
+    # AI transcription: the AI Transcription guide. The two tokens are the
+    # api_key and webhook_api_key of summary's AUTHORIZED_TENANTS below.
+    # SUMMARY_SERVICE_VERSION: "2"
+    # SUMMARY_SERVICE_ENDPOINT: "http://meet-summary:80/api/v2/async-jobs/transcribe"
+    # SUMMARY_SERVICE_API_TOKEN: "<same-api_key-you-set-in-AUTHORIZED_TENANTS>"
+    # SUMMARY_SERVICE_WEBHOOK_API_TOKEN: "<same-webhook_api_key-you-set-in-AUTHORIZED_TENANTS>"
+    # Speaker names, with agentMetadata below
+    # METADATA_COLLECTOR_ENABLED: "True"
+    # LLM summaries for every user, without an analytics backend
+    # ANALYTICS_BACKEND_SETTINGS: '{"feature_flags": {"summary-enabled": True}}'
+
+    # Live subtitles: the Real-time Subtitles guide, with agentSubtitles below
+    # ROOM_SUBTITLE_ENABLED: "True"
+
+    # Your CSS: the Theming guide, with frontend's custom-css volume below
+    # FRONTEND_CUSTOM_CSS_URL: "/custom.css"
+
+frontend:
+  replicas: 2
+  pdb:
+    enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+  # Uncomment both list keys below for either use: the tmp entries go with the
+  # security context, the others with the Theming guide, one per ConfigMap.
+  # extraVolumes:
+  #   # A read-only root filesystem needs a writable /tmp for nginx.
+  #   - name: tmp
+  #     emptyDir: {}
+  #   - name: custom-css
+  #     configMap:
+  #       name: meet-custom-css
+  #   - name: custom-assets
+  #     configMap:
+  #       name: meet-custom-assets
+  # extraVolumeMounts:
+  #   - name: tmp
+  #     mountPath: /tmp
+  #   - name: custom-css
+  #     mountPath: /usr/share/nginx/html/custom.css
+  #     subPath: custom.css
+  #     readOnly: true
+  #   - name: custom-assets
+  #     mountPath: /usr/share/nginx/html/assets/logo.svg
+  #     subPath: logo.svg
+  #     readOnly: true
+  #   - name: custom-assets
+  #     mountPath: /usr/share/nginx/html/assets/intro-slider/1.png
+  #     subPath: intro-slider-1.png
+  #     readOnly: true
+
+# Meet and its /admin path, with cert-manager certificates
+ingress:
+  enabled: true
+  className: nginx
+  host: meet.example.com
+  path: /
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: meet-tls
+
+ingressAdmin:
+  enabled: true
+  className: nginx
+  host: meet.example.com
+  path: /admin
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  tls:
+    enabled: true
+    secretName: meet-tls
+
+# Recording downloads at /media/, with nginx-ingress only: the Recording guide
+ingressMedia:
+  enabled: false
+  className: nginx
+  host: meet.example.com
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-url: "https://meet.example.com/api/v1.0/recordings/media-auth/"
+    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization, X-Amz-Date, X-Amz-Content-SHA256"
+    # The Host header sent to the storage: its host:port
+    nginx.ingress.kubernetes.io/upstream-vhost: "garage.meet.svc.cluster.local:9000"
+    # Sends /media/<path> to /<bucket>/<path> on the storage
+    nginx.ingress.kubernetes.io/rewrite-target: /meet-media-storage/$1
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      add_header Content-Security-Policy "default-src 'none'" always;
+  tls:
+    enabled: true
+    secretName: meet-tls
+
+# The storage ingressMedia fetches the files from
+serviceMedia:
+  host: garage.meet.svc.cluster.local
+  port: 9000
+
+# The chart runs the optional services below by default. They are off here:
+# each guide says which to turn back on.
+
+# Background tasks, run only with CELERY_ENABLED="True" in backend.envVars;
+# without it, the backend deletes files and sends emails itself.
+celeryBackend:
+  replicas: 0
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+
+# Transcription and summaries: the AI Transcription guide. Each worker takes
+# the summary service's environment through the summaryEnv anchor.
+summary:
+  replicas: 0
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+  # envVars: &summaryEnv
+  #   CELERY_BROKER_URL: "redis://redis-master:6379/1"
+  #   CELERY_RESULT_BACKEND: "redis://redis-master:6379/1"
+  #   AWS_S3_ENDPOINT_URL: "http://garage.meet.svc.cluster.local:9000"
+  #   AWS_S3_ACCESS_KEY_ID:
+  #     secretKeyRef:
+  #       name: garage-secrets
+  #       key: GARAGE_DEFAULT_ACCESS_KEY
+  #   AWS_S3_SECRET_ACCESS_KEY:
+  #     secretKeyRef:
+  #       name: garage-secrets
+  #       key: GARAGE_DEFAULT_SECRET_KEY
+  #   AWS_S3_REGION_NAME: "garage"
+  #   AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
+  #   AWS_S3_SECURE_ACCESS: "False"
+  #   AUTHORIZED_TENANTS: |
+  #     [{
+  #       "id": "meet",
+  #       "api_key": "<generate-a-strong-secret>",
+  #       "webhook_url": "https://meet.example.com/api/v1.0/recordings/external-process-hook/",
+  #       "webhook_api_key": "<generate-a-strong-secret>",
+  #       "allowed_push_to_docs": true
+  #     }]
+  #   WHISPERX_BASE_URL: "http://whisperx:8000/v1"
+  #   WHISPERX_ASR_MODEL: "large-v3"
+  #   WHISPERX_API_KEY: "your-api-key"
+  #   LLM_BASE_URL: "https://your-llm-api.example.com/v1"
+  #   LLM_API_KEY: "your-llm-api-key"
+  #   LLM_MODEL: "gpt-4o-mini"
+  #   IS_LASUITE_DOCS_INTEGRATION_ENABLED: "True"
+  #   LASUITE_DOCS_BASE_URL: "https://docs.example.com"
+  #   LASUITE_DOCS_SERVER_TO_SERVER_API_KEY: "your-docs-api-key"
+celeryTranscribe:
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+  # envVars: *summaryEnv
+  instances: []
+  # In place of instances: [] above
+  # instances:
+  #   - name: transcribe-1
+  #     replicas: 1
+# LLM summaries only
+celerySummarize:
+  replicas: 0
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+  # envVars: *summaryEnv
+celerySummaryBackend:
+  replicas: 0
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+  # envVars: *summaryEnv
+
+# The metadata collector, which names the speakers: the AI Transcription guide
+agentMetadata:
+  replicas: 0
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+  # command: ["python", "metadata_collector.py", "start"]
+  # envVars:
+  #   LIVEKIT_URL: "ws://livekit-server:7880"
+  #   LIVEKIT_API_KEY: "meet"
+  #   LIVEKIT_API_SECRET:
+  #     secretKeyRef:
+  #       name: meet-backend-env
+  #       key: LIVEKIT_API_SECRET
+  #   AWS_S3_ENDPOINT_URL: "garage.meet.svc.cluster.local:9000"
+  #   AWS_S3_ACCESS_KEY_ID:
+  #     secretKeyRef:
+  #       name: garage-secrets
+  #       key: GARAGE_DEFAULT_ACCESS_KEY
+  #   AWS_S3_SECRET_ACCESS_KEY:
+  #     secretKeyRef:
+  #       name: garage-secrets
+  #       key: GARAGE_DEFAULT_SECRET_KEY
+  #   AWS_S3_REGION_NAME: "garage"
+  #   AWS_STORAGE_BUCKET_NAME: "meet-media-storage"
+
+# Live subtitles: the Real-time Subtitles guide. The Deepgram key is in the
+# meet-deepgram Secret.
+agentSubtitles:
+  replicas: 0
+  # securityContext: *restrictedContext  # needs backend's block uncommented
+  # envVars:
+  #   LIVEKIT_URL: "ws://livekit-server:7880"
+  #   LIVEKIT_API_KEY: "meet"
+  #   LIVEKIT_API_SECRET:
+  #     secretKeyRef:
+  #       name: meet-backend-env
+  #       key: LIVEKIT_API_SECRET
+  #   STT_PROVIDER: "deepgram"
+  #   DEEPGRAM_STT_MODEL: "nova-3"
+  #   DEEPGRAM_STT_LANGUAGE: "multi"
+  #   ENABLE_SILERO_VAD: "true"
+  #   DEEPGRAM_API_KEY:
+  #     secretKeyRef:
+  #       name: meet-deepgram
+  #       key: api-key
