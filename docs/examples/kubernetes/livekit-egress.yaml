@@ -1,0 +1,14 @@
+# LiveKit Egress, the recorder of the Recording guide, on Kubernetes.
+# The Deployment passes LIVEKIT_API_SECRET from the meet-backend-env Secret.
+
+api_key: meet
+ws_url: ws://livekit-server:7880
+
+# Required: Egress crashes at start without it
+redis:
+  address: redis-master:6379
+
+cpu_cost:
+  room_composite_cpu_cost: 1.5
+  track_composite_cpu_cost: 1.0
+  track_cpu_cost: 0.5

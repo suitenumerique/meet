@@ -1,5 +1,8 @@
 # Django
 DJANGO_ALLOWED_HOSTS=${MEET_HOST}
+# Proxies that append to X-Forwarded-For: the reverse proxy and the frontend's
+# nginx. Rate limits read the visitor's address this many entries from the right.
+NUM_PROXIES=2
 DJANGO_SECRET_KEY=<generate a secret key>
 DJANGO_SETTINGS_MODULE=meet.settings
 DJANGO_CONFIGURATION=Production
@@ -10,11 +13,11 @@ PYTHONPATH=/app
 # Meet settings
 
 # Mail
-DJANGO_EMAIL_HOST=<smtp host> 
-DJANGO_EMAIL_HOST_USER=<smtp user> 
-DJANGO_EMAIL_HOST_PASSWORD=<smtp password>
-DJANGO_EMAIL_PORT=<smtp port> 
-DJANGO_EMAIL_FROM=<your email address>
+#DJANGO_EMAIL_HOST=<smtp host> 
+#DJANGO_EMAIL_HOST_USER=<smtp user> 
+#DJANGO_EMAIL_HOST_PASSWORD=<smtp password>
+#DJANGO_EMAIL_PORT=<smtp port> 
+#DJANGO_EMAIL_FROM=<your email address>
 
 #DJANGO_EMAIL_USE_TLS=true # A flag to enable or disable TLS for email sending.
 #DJANGO_EMAIL_USE_SSL=true # A flag to enable or disable SSL for email sending.
@@ -26,13 +29,13 @@ DJANGO_EMAIL_LOGO_IMG="https://${MEET_HOST}/assets/logo-suite-numerique.png"
 MEET_BASE_URL="https://${MEET_HOST}"
 
 # OIDC
-OIDC_OP_JWKS_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/certs
-OIDC_OP_AUTHORIZATION_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/auth
-OIDC_OP_TOKEN_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/token
-OIDC_OP_USER_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/userinfo
-OIDC_OP_LOGOUT_ENDPOINT=https://${KEYCLOAK_HOST}/realms/${REALM_NAME}/protocol/openid-connect/logout
+OIDC_OP_JWKS_ENDPOINT=https://${IDP_HOST}/realms/${REALM_NAME}/protocol/openid-connect/certs
+OIDC_OP_AUTHORIZATION_ENDPOINT=https://${IDP_HOST}/realms/${REALM_NAME}/protocol/openid-connect/auth
+OIDC_OP_TOKEN_ENDPOINT=https://${IDP_HOST}/realms/${REALM_NAME}/protocol/openid-connect/token
+OIDC_OP_USER_ENDPOINT=https://${IDP_HOST}/realms/${REALM_NAME}/protocol/openid-connect/userinfo
+OIDC_OP_LOGOUT_ENDPOINT=https://${IDP_HOST}/realms/${REALM_NAME}/protocol/openid-connect/logout
 
-OIDC_RP_CLIENT_ID=<client_id>
+OIDC_RP_CLIENT_ID=meet
 OIDC_RP_CLIENT_SECRET=<client secret>
 OIDC_RP_SIGN_ALGO=RS256
 OIDC_RP_SCOPES="openid email"
@@ -48,3 +51,29 @@ LIVEKIT_API_SECRET=<generate a secret key>
 LIVEKIT_API_KEY=meet
 LIVEKIT_API_URL=https://${LIVEKIT_HOST}
 ALLOW_UNREGISTERED_ROOMS=False
+
+# Recording: the Recording guide
+#RECORDING_ENABLE=True
+#AWS_S3_ENDPOINT_URL=http://garage:9000
+#AWS_S3_REGION_NAME=garage
+#AWS_STORAGE_BUCKET_NAME=meet-media-storage
+#RECORDING_DOWNLOAD_BASE_URL=https://${MEET_HOST}/recording
+
+# AI transcription: the AI Transcription guide
+#SUMMARY_SERVICE_VERSION=2
+#SUMMARY_SERVICE_ENDPOINT=http://app-summary:8000/api/v2/async-jobs/transcribe
+# Speaker names, with the metadata-collector profile
+#METADATA_COLLECTOR_ENABLED=True
+# LLM summaries for every user, without an analytics backend
+#ANALYTICS_BACKEND_SETTINGS={"feature_flags": {"summary-enabled": True}}
+
+# Live subtitles: the Real-time Subtitles guide
+#ROOM_SUBTITLE_ENABLED=True
+
+# Telephony: the Telephony guide
+#ROOM_TELEPHONY_ENABLED=True
+#ROOM_TELEPHONY_PHONE_NUMBER=<your phone number>
+#ROOM_TELEPHONY_DEFAULT_COUNTRY=FR
+
+# Your CSS: the Theming guide, with the frontend's custom.css volume
+#FRONTEND_CUSTOM_CSS_URL=/custom.css

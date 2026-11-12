@@ -1,0 +1,248 @@
+# Meet core stack
+#
+# Runs: backend, frontend, celery, livekit, postgresql, redis
+#
+# The optional features' services sit at the end, each under a profile that
+# COMPOSE_PROFILES in .env turns on, e.g. COMPOSE_PROFILES=recording,subtitles.
+#
+# This file is proxy-agnostic.
+#
+# Usage:
+#   cd ~/docker/meet
+#   # download your proxy's override as docker-compose.override.yml, see the Deployment Guide
+#   cp ~/docker/hosts .env
+#   # fill the placeholders of env.d/common, env.d/postgresql and
+#   # livekit-server.yaml, as the Deployment Guide shows
+#   docker compose up -d
+#   docker compose exec backend python manage.py migrate
+#
+# Networks:
+#   proxy    - external, shared with your reverse proxy (nginx-proxy or Traefik)
+#   internal - created automatically by this stack
+
+services:
+
+  backend:
+    image: lasuite/meet-backend:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    user: ${DOCKER_USER:-1000}
+    env_file:
+      - .env
+      - env.d/common
+      - env.d/postgresql
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check"]
+      interval: 15s
+      timeout: 30s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      livekit:
+        condition: service_started
+    networks:
+      - internal
+
+  frontend:
+    image: lasuite/meet-frontend:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    entrypoint: [/docker-entrypoint.sh]
+    command: ["nginx", "-g", "daemon off;"]
+    env_file:
+      - .env
+      - env.d/common
+    volumes:
+      - ./nginx-routing.conf:/etc/nginx/conf.d/routing.conf:ro
+      # Your CSS, logo and images, see the Theming guide
+      # - ./custom.css:/usr/share/nginx/html/custom.css:ro
+      # - ./custom-assets/logo.svg:/usr/share/nginx/html/assets/logo.svg:ro
+      # - ./custom-assets/intro-slider:/usr/share/nginx/html/assets/intro-slider:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - proxy
+      - internal
+
+  celery:
+    image: lasuite/meet-backend:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    user: ${DOCKER_USER:-1000}
+    command: ["celery", "-A", "meet.celery_app", "worker", "-l", "INFO"]
+    env_file:
+      - .env
+      - env.d/common
+      - env.d/postgresql
+    depends_on:
+      - backend
+    networks:
+      - internal
+
+  postgresql:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - env.d/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d meet -U meet"]
+      interval: 1s
+      timeout: 2s
+      retries: 300
+    volumes:
+      - meet_db:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - internal
+
+  livekit:
+    image: livekit/livekit-server:${LIVEKIT_VERSION:-latest}
+    restart: unless-stopped
+    command: --config /config.yaml
+    ports:
+      - "7881:7881/tcp"
+      - "7882:7882/udp"
+      # TURN over UDP on 443, and over TLS, see the LiveKit & TURN guide
+      # - "443:443/udp"
+      # - "5349:5349/tcp"
+    volumes:
+      - ./livekit-server.yaml:/config.yaml:ro
+    depends_on:
+      - redis
+    networks:
+      - proxy
+      - internal
+
+  # ---- Optional features, off until COMPOSE_PROFILES names their profile ----
+
+  # Recording: the Recording guide
+  livekit-egress:
+    profiles: [recording]
+    image: livekit/egress:${EGRESS_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      EGRESS_CONFIG_FILE: /livekit-egress.yaml
+    volumes:
+      - ./livekit-egress.yaml:/livekit-egress.yaml:ro
+    depends_on:
+      - redis
+      - livekit
+    networks:
+      - internal
+
+  # AI transcription: the AI Transcription guide. The summary service's
+  # Celery broker, its API, the worker that transcribes and the one that
+  # sends the result back to Meet.
+  redis-summary:
+    profiles: [transcription]
+    image: redis:7
+    restart: unless-stopped
+    networks:
+      - internal
+
+  app-summary:
+    profiles: [transcription]
+    image: lasuite/meet-summary:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    env_file:
+      - env.d/summary
+    depends_on:
+      - redis-summary
+    networks:
+      - internal
+
+  celery-summary-transcribe:
+    profiles: [transcription]
+    image: lasuite/meet-summary:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    command: celery -A summary.core.celery_worker worker --pool=solo -Q transcribe-queue-v2
+    env_file:
+      - env.d/summary
+    depends_on:
+      - redis-summary
+    networks:
+      - internal
+
+  celery-summary-webhook:
+    profiles: [transcription]
+    image: lasuite/meet-summary:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    command: celery -A summary.core.celery_worker worker --pool=solo -Q call-webhook-queue-v2
+    env_file:
+      - env.d/summary
+    depends_on:
+      - redis-summary
+    networks:
+      - internal
+
+  # LLM summaries, with transcription: the AI Transcription guide
+  celery-summary-summarize:
+    profiles: [summaries]
+    image: lasuite/meet-summary:${MEET_VERSION:-latest}
+    restart: unless-stopped
+    command: celery -A summary.core.celery_worker worker --pool=solo -Q summarize-queue-v2
+    env_file:
+      - env.d/summary
+    depends_on:
+      - redis-summary
+    networks:
+      - internal
+
+  # Speaker names in transcripts: the AI Transcription guide
+  metadata-collector:
+    profiles: [metadata-collector]
+    image: lasuite/meet-agents:${MEET_VERSION:-latest}
+    command: python metadata_collector.py start
+    restart: unless-stopped
+    env_file:
+      - env.d/metadata-collector
+    depends_on:
+      - livekit
+    networks:
+      - internal
+
+  # Live subtitles: the Real-time Subtitles guide
+  multi-user-transcriber:
+    profiles: [subtitles]
+    image: lasuite/meet-agents:${MEET_VERSION:-latest}
+    command: python multi_user_transcriber.py start
+    restart: unless-stopped
+    env_file:
+      - env.d/multi-user-transcriber
+    depends_on:
+      - livekit
+    networks:
+      - internal
+
+  # Dial-in by phone: the Telephony guide
+  livekit-sip:
+    profiles: [telephony]
+    image: livekit/sip:${LIVEKIT_SIP_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      SIP_CONFIG_FILE: /sip-config.yaml
+    volumes:
+      - ./livekit-sip.yaml:/sip-config.yaml:ro
+    ports:
+      - "5060:5060/udp"
+      - "10000-20000:10000-20000/udp"
+    depends_on:
+      - redis
+      - livekit
+    networks:
+      - internal
+
+volumes:
+  meet_db:
+
+networks:
+  proxy:
+    external: true
+  internal:
