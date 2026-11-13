@@ -492,6 +492,7 @@
       "destination": "Er wordt een nieuw document aangemaakt op",
       "destinationUnknown": "Een nieuw document wordt aangemaakt",
       "language": "Vergadertalen:",
+      "languageAriaLabel": "{{language}}, vergadertaal wijzigen",
       "recording": "Start ook een video-opname"
     },
     "button": {

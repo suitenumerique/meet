@@ -240,6 +240,9 @@ export const TranscriptSidePanel = () => {
             <Button
               variant="text"
               size="xs"
+              aria-label={t('details.languageAriaLabel', {
+                language: selectedLanguageLabel,
+              })}
               onPress={() =>
                 openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
               }

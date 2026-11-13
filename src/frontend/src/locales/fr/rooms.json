@@ -492,6 +492,7 @@
       "destination": "Un nouveau document sera créé sur",
       "destinationUnknown": "Un nouveau document sera créé",
       "language": "Langue de la réunion :",
+      "languageAriaLabel": "{{language}}, modifier la langue de la réunion",
       "recording": "Démarrer aussi un enregistrement vidéo"
     },
     "button": {

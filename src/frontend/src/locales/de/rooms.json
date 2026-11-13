@@ -492,6 +492,7 @@
       "destination": "Ein neues Dokument wird erstellt auf",
       "destinationUnknown": "Ein neues Dokument wird erstellt",
       "language": "Meeting-Sprache:",
+      "languageAriaLabel": "{{language}}, Meeting-Sprache ändern",
       "recording": "Auch eine Videoaufzeichnung starten"
     },
     "button": {
