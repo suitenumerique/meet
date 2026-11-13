@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+
+- ♿️(frontend) use a toolbar instead of nav for meeting controls #1907
+
 ### Added
 
 - 🌐(i18n) add Portuguese language support
@@ -91,6 +95,7 @@ and this project adheres to
 
 - 🔒️(docker) distrust compromised eMudhra emSign G3 CA roots
 - 🔒️(backend) upgrade pillow to 13.0.0 to fix CVE-2026-112403
+- ♿️(frontend) use a toolbar instead of nav for meeting controls #1883
 
 ## [1.36.0] - 2026-10-20
 
