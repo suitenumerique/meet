@@ -3,6 +3,7 @@ import { getScrollBarWidth } from '@livekit/components-core'
 import * as React from 'react'
 import { TrackLoop, useVisualStableUpdate } from '@livekit/components-react'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
+import { useSpeakerPromotionTrigger } from '../hooks/useSpeakerPromotionTrigger'
 
 const MIN_HEIGHT = 130
 const MIN_WIDTH = 140
@@ -67,6 +68,8 @@ export function CarouselLayout({
   }
 
   const sortedTiles = useVisualStableUpdate(tracks, maxVisibleTiles)
+  // The carousel scrolls, so only the first tiles are guaranteed on screen.
+  useSpeakerPromotionTrigger(sortedTiles.slice(0, maxVisibleTiles), tracks)
 
   React.useLayoutEffect(() => {
     if (asideEl.current) {

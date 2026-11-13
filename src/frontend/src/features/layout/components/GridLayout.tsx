@@ -46,7 +46,7 @@ export function GridLayout({ tracks, ...props }: GridLayoutProps) {
 
   const { layout } = useGridLayout(gridEl, tracks.length)
   const pagination = usePagination(layout.maxTiles, tracks)
-  useSpeakerPromotionTrigger(pagination.tracks)
+  useSpeakerPromotionTrigger(pagination.tracks, tracks)
 
   useSwipe(gridEl, {
     onLeftSwipe: pagination.nextPage,

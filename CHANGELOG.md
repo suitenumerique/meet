@@ -43,6 +43,7 @@ and this project adheres to
 - 🐛(frontend) accept meeting links with query params in join dialog
 - 🐛(backend) allow muting when everyone_can_mute is stored as null #1942
 - 🐛(frontend) apply the sans font token on every page
+- 🐛(frontend) promote the active speaker in the carousel layout
 
 ## [1.37.0] - 2026-11-01
 
