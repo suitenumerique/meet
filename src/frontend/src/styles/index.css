@@ -6,6 +6,13 @@ body,
   height: 100%;
 }
 
+/* RGAA 10.5: every text color must be paired with a declared background
+   color, so custom browser or system colors cannot make text unreadable. */
+body {
+  background-color: var(--colors-default-bg);
+  color: var(--colors-default-text);
+}
+
 :root {
   --avatar-cap-height: 0.7;
 }
