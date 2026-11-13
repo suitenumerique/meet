@@ -3,15 +3,17 @@
 import json
 from collections.abc import Callable, Iterator
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+import requests
 from botocore.stub import Stubber
 
 from summary.core import file_service
 from summary.core.file_service import (
     FileService,
+    FileServiceException,
     MediaInfo,
     extract_audio_from_media,
     get_media_info,
@@ -30,6 +32,91 @@ MEDIA_INFO_SAMPLE_VISIO = MediaInfo(
 
 
 S3Settings = Callable[..., None]
+
+
+@pytest.mark.parametrize(
+    "error_type",
+    [
+        requests.exceptions.ChunkedEncodingError,
+        requests.Timeout,
+        OSError,
+        KeyboardInterrupt,
+    ],
+)
+def test_interrupted_download_removes_partial_file(monkeypatch, tmp_path, error_type):
+    """An unfinished recording must not remain when preparation fails."""
+    monkeypatch.setattr(file_service.tempfile, "tempdir", str(tmp_path))
+
+    def interrupted_chunks(**_kwargs):
+        yield b"partial recording"
+        raise error_type("transfer interrupted")
+
+    response = Mock()
+    response.iter_content.side_effect = interrupted_chunks
+    get = MagicMock()
+    get.return_value.__enter__.return_value = response
+    monkeypatch.setattr(file_service.requests, "get", get)
+    expected_error = (
+        FileServiceException
+        if issubclass(error_type, requests.RequestException)
+        else error_type
+    )
+
+    with (
+        pytest.raises(expected_error),
+        FileService().prepare_audio_file("https://example.com/recording.webm"),
+    ):
+        pytest.fail("An interrupted download must not yield audio")
+
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_download_response_close_failure_removes_file(monkeypatch, tmp_path):
+    """Ownership stays with the downloader until the response context closes."""
+    monkeypatch.setattr(file_service.tempfile, "tempdir", str(tmp_path))
+    response = Mock()
+    response.iter_content.return_value = iter([b"recording"])
+    get = MagicMock()
+    get.return_value.__enter__.return_value = response
+    get.return_value.__exit__.side_effect = requests.ConnectionError("close failed")
+    monkeypatch.setattr(file_service.requests, "get", get)
+
+    with pytest.raises(FileServiceException):
+        FileService()._download_from_cloud_storage_url(
+            "https://example.com/recording.webm"
+        )
+
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_successful_download_is_available_until_preparation_exits(
+    monkeypatch, tmp_path
+):
+    """A completed recording stays readable during use, then is cleaned up."""
+    monkeypatch.setattr(file_service.tempfile, "tempdir", str(tmp_path))
+    response = Mock()
+    response.iter_content.return_value = iter([b"first", b"", b"second"])
+    get = MagicMock()
+    get.return_value.__enter__.return_value = response
+    monkeypatch.setattr(file_service.requests, "get", get)
+    monkeypatch.setattr(
+        file_service,
+        "get_media_info",
+        lambda path: MediaInfo(path, True, False, 1.0, "opus", False),
+    )
+
+    with FileService().prepare_audio_file("https://example.com/recording.webm") as (
+        audio_file,
+        metadata,
+    ):
+        path = Path(audio_file.name)
+        assert path.exists()
+        assert path.suffix == ".webm"
+        assert audio_file.read() == b"firstsecond"
+        assert metadata == {"duration": 1.0}
+
+    assert audio_file.closed
+    assert list(tmp_path.iterdir()) == []
 
 
 @pytest.fixture
