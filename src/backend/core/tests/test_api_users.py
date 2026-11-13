@@ -351,6 +351,35 @@ def test_api_users_patch_authenticated_self():
             assert value == old_user_values[key]
 
 
+def test_api_users_language_unset_by_default():
+    """A new user has no language until one is saved."""
+    user = models.User.objects.create(sub="new-user", password="!")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.get("/api/v1.0/users/me/")
+    assert response.status_code == 200
+    assert response.json()["language"] is None
+
+
+def test_api_users_patch_language_keeps_timezone():
+    """Patching the language alone must leave the timezone untouched."""
+    user = factories.UserFactory(language=None, timezone="Asia/Tokyo")
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.patch(
+        f"/api/v1.0/users/{user.id!s}/", {"language": "fr-fr"}, format="json"
+    )
+    assert response.status_code == 200
+
+    user.refresh_from_db()
+    assert user.language == "fr-fr"
+    assert str(user.timezone) == "Asia/Tokyo"
+
+
 def test_api_users_patch_authenticated_other():
     """Authenticated users should not be allowed to patch other users."""
     user = factories.UserFactory()

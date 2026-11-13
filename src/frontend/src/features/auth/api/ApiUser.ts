@@ -9,7 +9,7 @@ export type ApiUser = {
   email: string
   full_name: string
   last_name: string
-  language: BackendLanguage
+  language: BackendLanguage | null
   timezone: string
   default_room_access_level?: ApiAccessLevel | null
   default_room_configuration?: RoomConfiguration | null

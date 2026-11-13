@@ -3,6 +3,7 @@ import { useRef } from 'react'
 import { Heading } from 'react-aria-components'
 import { RiSettings3Line, RiDoorOpenLine } from '@remixicon/react'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
+import { useChangeLanguage } from '@/i18n/useChangeLanguage'
 import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
 import { Tab, TabList, TabPanel, Tabs } from '@/primitives/Tabs'
 import { text } from '@/primitives/Text.tsx'
@@ -54,9 +55,10 @@ const tabPanelStyle = css({
 })
 
 export const SettingsDialog = (props: SettingsDialogProps) => {
-  const { t, i18n } = useTranslation('settings')
+  const { t } = useTranslation('settings')
   const { user, isLoggedIn } = useUser()
   const { languagesList, currentLanguage } = useLanguageLabels()
+  const changeLanguage = useChangeLanguage()
 
   const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
@@ -101,7 +103,7 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
         items={languagesList}
         defaultSelectedKey={currentLanguage.key}
         onSelectionChange={(lang) => {
-          i18n.changeLanguage(lang as string)
+          changeLanguage(lang as string)
         }}
       />
     </div>
