@@ -25,9 +25,9 @@ export interface CarouselLayoutProps extends React.HTMLAttributes<HTMLMediaEleme
  * The `CarouselLayout` component displays a list of tracks in a scroll container.
  * It will display as many tiles as possible and overflow the rest.
  * @remarks
- * Tiles are ordered by `useCarouselTiles`: screen shares and new speakers
- * enter at the top, right below the local camera, and the other tiles keep
- * their order.
+ * Tiles are ordered by `useCarouselTiles`: screen shares, new speakers and
+ * raised hands enter at the top, right below the local camera, and the other
+ * tiles keep their order.
  * @example
  * ```tsx
  * const tracks = useTracks([Track.Source.Camera]);
@@ -71,7 +71,9 @@ export function CarouselLayout({
 
   const sortedTiles = useCarouselTiles(tracks, maxVisibleTiles)
   // The carousel scrolls, so only the first tiles are guaranteed on screen.
-  useSpeakerPromotionTrigger(sortedTiles.slice(0, maxVisibleTiles), tracks)
+  useSpeakerPromotionTrigger(sortedTiles.slice(0, maxVisibleTiles), tracks, {
+    raisedHands: true,
+  })
 
   React.useLayoutEffect(() => {
     if (asideEl.current) {
