@@ -137,7 +137,7 @@ class CanMuteParticipant(permissions.BasePermission):
     - Admins and owners can always mute.
     - When `everyone_can_mute` is enabled on the room, any participant
       currently in the room (proven by a valid LiveKit token for that room)
-      can mute.
+      can mute. It is enabled unless explicitly set to `False`.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -149,8 +149,7 @@ class CanMuteParticipant(permissions.BasePermission):
         if not is_livekit_token_auth and obj.is_administrator_or_owner(request.user):
             return True
 
-        everyone_can_mute = obj.configuration.get("everyone_can_mute", True)
-        if not everyone_can_mute:
+        if obj.configuration.get("everyone_can_mute") is False:
             return False
 
         if not is_livekit_token_auth:

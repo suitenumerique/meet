@@ -41,6 +41,7 @@ and this project adheres to
 - ♿️(frontend) close the invite dialog with the Escape key #1916
 - 🔒️(docker) move frontend to nginx/nginx-unprivileged image
 - 🐛(frontend) accept meeting links with query params in join dialog
+- 🐛(backend) allow muting when everyone_can_mute is stored as null #1942
 
 ## [1.37.0] - 2026-11-01
 

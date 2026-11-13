@@ -166,6 +166,30 @@ def test_mute_participant_everyone_can_mute_disabled_blocks_non_admin(
     mock_livekit_client.room.mute_published_track.assert_not_called()
 
 
+def test_mute_participant_everyone_can_mute_null_allows_non_admin(
+    mock_livekit_client,
+):
+    """Should treat a stored null everyone_can_mute as unset, hence enabled."""
+    client = APIClient()
+    room = RoomFactory(configuration={"everyone_can_mute": None})
+
+    user = AnonymousUser()
+    token = utils.generate_token(str(room.id), user)
+
+    url = reverse("rooms-mute-participant", kwargs={"pk": room.id})
+    response = client.post(
+        url,
+        {"participant_identity": str(uuid4()), "track_sid": "test-track-sid"},
+        format="json",
+        HTTP_AUTHORIZATION=f"X-LiveKit-Token {token}",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {"status": "success"}
+
+    mock_livekit_client.room.mute_published_track.assert_called_once()
+
+
 def test_mute_participant_everyone_can_mute_disabled_allows_admin(mock_livekit_client):
     """Should allow admins and owners to mute when everyone_can_mute is False."""
     client = APIClient()
