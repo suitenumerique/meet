@@ -41,18 +41,23 @@ const Image = styled('img', {
 const Dot = styled('div', {
   base: {
     borderRadius: '50%',
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    boxSizing: 'border-box',
     display: 'inline-block',
-    height: '.375rem',
+    height: '.5rem',
     margin: '0 .25rem',
-    width: '.375rem',
+    width: '.5rem',
   },
   variants: {
     selected: {
       true: {
         backgroundColor: 'primary.800',
+        borderColor: 'primary.800',
       },
       false: {
-        backgroundColor: 'primary.300',
+        backgroundColor: 'primary.100',
+        borderColor: 'primary.500',
       },
     },
   },
