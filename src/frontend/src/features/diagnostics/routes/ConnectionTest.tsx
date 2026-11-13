@@ -136,14 +136,16 @@ const ConnectionTest = () => {
                   <h2 className={sectionTitleClass}>
                     {t(`groups.${group.id}`)}
                   </h2>
-                  <div className={rowsClass}>
+                  <ul className={rowsClass}>
                     {group.steps.map((id) => {
                       const step = stepsById.get(id)
                       return step ? (
-                        <ConnectionTestStepRow key={id} step={step} />
+                        <li key={id}>
+                          <ConnectionTestStepRow step={step} />
+                        </li>
                       ) : null
                     })}
-                  </div>
+                  </ul>
                 </section>
               ))}
 
