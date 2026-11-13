@@ -1,4 +1,4 @@
-import { A, Button, Div, H, Text } from '@/primitives'
+import { A, Button, Div, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
@@ -203,9 +203,9 @@ export const TranscriptSidePanel = () => {
         })}
       />
       <VStack gap={0} marginBottom={15}>
-        <H lvl={1} margin={'sm'}>
+        <Text as="h2" variant="h1" margin="sm" fullWidth>
           {t('heading')}
-        </H>
+        </Text>
         <LimitDescription
           keyPrefix={'transcript'}
           supportArticleLink={data?.support?.help_article_transcript}

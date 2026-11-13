@@ -1,4 +1,4 @@
-import { Button, Div, H, Text } from '@/primitives'
+import { Button, Div, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
@@ -189,9 +189,9 @@ export const ScreenRecordingSidePanel = () => {
         })}
       />
       <VStack gap={0} marginBottom={15}>
-        <H lvl={1} margin={'sm'} fullWidth>
+        <Text as="h2" variant="h1" margin="sm" fullWidth>
           {t('heading')}
-        </H>
+        </Text>
         <LimitDescription
           keyPrefix={'screenRecording'}
           supportArticleLink={data?.support?.help_article_recording}
