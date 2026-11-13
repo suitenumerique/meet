@@ -102,46 +102,93 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             </Heading>
           )}
           <TabList border={false}>
-            <Tab icon highlight id={SettingsDialogExtendedKey.ACCOUNT}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogExtendedKey.ACCOUNT}
+              aria-label={t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
+            >
               <RiAccountCircleLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
             </Tab>
-            <Tab icon highlight id={SettingsDialogExtendedKey.AUDIO}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogExtendedKey.AUDIO}
+              aria-label={t(`tabs.${SettingsDialogExtendedKey.AUDIO}`)}
+            >
               <RiSpeakerLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.AUDIO}`)}
             </Tab>
-            <Tab icon highlight id={SettingsDialogExtendedKey.VIDEO}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogExtendedKey.VIDEO}
+              aria-label={t(`tabs.${SettingsDialogExtendedKey.VIDEO}`)}
+            >
               <RiVideoOnLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.VIDEO}`)}
             </Tab>
-            <Tab icon highlight id={SettingsDialogExtendedKey.GENERAL}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogExtendedKey.GENERAL}
+              aria-label={t(`tabs.${SettingsDialogExtendedKey.GENERAL}`)}
+            >
               <RiSettings3Line />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.GENERAL}`)}
             </Tab>
-            <Tab icon highlight id={SettingsDialogExtendedKey.NOTIFICATIONS}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogExtendedKey.NOTIFICATIONS}
+              aria-label={t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
+            >
               <RiNotification3Line />
               {isWideScreen &&
                 t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
-            <Tab icon highlight id={SettingsDialogExtendedKey.SHORTCUTS}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogExtendedKey.SHORTCUTS}
+              aria-label={t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
+            >
               <RiKeyboardBoxLine />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
             </Tab>
             {isAdminOrOwner && (
-              <Tab icon highlight id={SettingsDialogExtendedKey.TRANSCRIPTION}>
+              <Tab
+                icon
+                highlight
+                id={SettingsDialogExtendedKey.TRANSCRIPTION}
+                aria-label={t(
+                  `tabs.${SettingsDialogExtendedKey.TRANSCRIPTION}`
+                )}
+              >
                 <Icon name="speech_to_text" />
                 {isWideScreen &&
                   t(`tabs.${SettingsDialogExtendedKey.TRANSCRIPTION}`)}
               </Tab>
             )}
             {showRecordingTab && (
-              <Tab icon highlight id={SettingsDialogExtendedKey.RECORDING}>
+              <Tab
+                icon
+                highlight
+                id={SettingsDialogExtendedKey.RECORDING}
+                aria-label={t(`tabs.${SettingsDialogExtendedKey.RECORDING}`)}
+              >
                 <RiRecordCircleLine />
                 {isWideScreen &&
                   t(`tabs.${SettingsDialogExtendedKey.RECORDING}`)}
               </Tab>
             )}
-            <Tab icon highlight id={SettingsDialogExtendedKey.ACCESSIBILITY}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogExtendedKey.ACCESSIBILITY}
+              aria-label={t(`tabs.${SettingsDialogExtendedKey.ACCESSIBILITY}`)}
+            >
               <RiEyeLine />
               {isWideScreen &&
                 t(`tabs.${SettingsDialogExtendedKey.ACCESSIBILITY}`)}
