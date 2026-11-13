@@ -14,11 +14,13 @@ const tile = (
     isLocal = false,
     isSpeaking = false,
     hasSpoken = isSpeaking,
+    handRaisedAt,
   }: {
     source?: Track.Source
     isLocal?: boolean
     isSpeaking?: boolean
     hasSpoken?: boolean
+    handRaisedAt?: string
   } = {}
 ) =>
   ({
@@ -30,6 +32,7 @@ const tile = (
       lastSpokeAt: hasSpoken ? new Date(joinedAt) : undefined,
       joinedAt: new Date(joinedAt),
       isCameraEnabled: false,
+      attributes: handRaisedAt ? { handRaisedAt } : {},
     },
     source,
   }) as unknown as Tile
@@ -52,6 +55,11 @@ const speaking = (t: Tile) =>
 const quietAgain = (t: Tile) =>
   tile(t.participant.identity, t.participant.joinedAt!.getTime(), {
     hasSpoken: true,
+  })
+const handUp = (t: Tile, minute = 0) =>
+  tile(t.participant.identity, t.participant.joinedAt!.getTime(), {
+    isLocal: t.participant.isLocal,
+    handRaisedAt: new Date(Date.UTC(2026, 0, 1, 10, minute)).toISOString(),
   })
 const screenOf = (t: Tile) =>
   tile(t.participant.identity, t.participant.joinedAt!.getTime(), {
@@ -122,6 +130,65 @@ describe('orderCarouselTiles', () => {
     const next = orderCarouselTiles(previous, [me, b, c, d], 4)
 
     expect(names(next)).toEqual(['me', 'd', 'b', 'c'])
+  })
+
+  it('brings a raised hand to the top like a speaker', () => {
+    const previous = orderCarouselTiles([], [me, a, b, c, d, e], 4)
+    const next = orderCarouselTiles(previous, [me, a, b, c, d, handUp(e)], 4)
+
+    expect(names(next).slice(0, 4)).toEqual(['me', 'e', 'a', 'b'])
+  })
+
+  it('keeps a raised hand visible when others speak', () => {
+    let tiles = orderCarouselTiles([], [me, a, b, c, d, e], 3)
+    tiles = orderCarouselTiles(tiles, [me, a, b, c, d, handUp(e)], 3)
+    expect(names(tiles).slice(0, 3)).toEqual(['me', 'e', 'a'])
+
+    // `d` speaks: it evicts `a`, not the raised hand.
+    tiles = orderCarouselTiles(tiles, [me, a, b, c, speaking(d), handUp(e)], 3)
+    expect(names(tiles).slice(0, 3)).toEqual(['me', 'd', 'e'])
+  })
+
+  it('lets the current speaker in when hands fill the carousel', () => {
+    let tiles = orderCarouselTiles([], [me, handUp(a, 1), handUp(b, 2), c], 3)
+    expect(names(tiles).slice(0, 3)).toEqual(['me', 'a', 'b'])
+
+    // The last hand raised gives way to the speaker.
+    tiles = orderCarouselTiles(
+      tiles,
+      [me, handUp(a, 1), handUp(b, 2), speaking(c)],
+      3
+    )
+    expect(names(tiles).slice(0, 3)).toEqual(['me', 'c', 'a'])
+  })
+
+  it('gives the slot of a lowered hand to the next one waiting', () => {
+    let tiles = orderCarouselTiles(
+      [],
+      [me, handUp(a, 1), handUp(b, 2), handUp(c, 3)],
+      3
+    )
+    expect(names(tiles).slice(0, 3)).toEqual(['me', 'a', 'b'])
+
+    // `a` lowers their hand: `c` was waiting and takes over.
+    tiles = orderCarouselTiles(tiles, [me, a, handUp(b, 2), handUp(c, 3)], 3)
+    expect(names(tiles).slice(0, 3)).toEqual(['me', 'c', 'b'])
+  })
+
+  it('shows the first hands raised when there are too many', () => {
+    const tiles = orderCarouselTiles(
+      [],
+      [me, a, handUp(b, 3), handUp(c, 1), handUp(d, 2)],
+      3
+    )
+
+    expect(names(tiles).slice(0, 3)).toEqual(['me', 'c', 'd'])
+  })
+
+  it('keeps the local camera first when the local hand is raised', () => {
+    const tiles = orderCarouselTiles([], [a, screenOf(a), b, handUp(me)], 3)
+
+    expect(names(tiles)).toEqual(['me', 'a:screen', 'a', 'b'])
   })
 
   it('is stable when run twice on the same input', () => {
