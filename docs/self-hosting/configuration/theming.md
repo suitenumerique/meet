@@ -119,6 +119,22 @@ docker build \
   -t my-org/meet-frontend:latest .
 ```
 
+## Default language
+
+The interface language is detected from the browser. When the detected language is not supported, or cannot be detected, the app falls back to the `VITE_DEFAULT_LANGUAGE` build argument, French by default:
+
+* **Default:** `fr`
+* **Accepted values:** any supported language code: `en`, `fr`, `nl`, `de`, `es`, `pt`
+* Invalid values are ignored and fall back to French.
+
+```bash
+docker build \
+  -f src/frontend/Dockerfile \
+  --target frontend-production \
+  --build-arg VITE_DEFAULT_LANGUAGE="en" \
+  -t my-org/meet-frontend:latest .
+```
+
 ## Footer
 
 The only footer is the French government one, shown with [`FRONTEND_USE_FRENCH_GOV_FOOTER`](../../reference/env-variables.md#FRONTEND_USE_FRENCH_GOV_FOOTER)`=True`.
