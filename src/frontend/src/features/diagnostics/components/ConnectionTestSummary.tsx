@@ -153,7 +153,7 @@ const counterValueClass = css({
 })
 
 /** A zero count is context, not a result: it recedes instead of shouting. */
-const emptyCounterClass = css({ color: 'greyscale.400' })
+const emptyCounterClass = css({ color: 'greyscale.600' })
 const emptySquareClass = css({
   backgroundColor: 'transparent!',
   border: '1px solid {colors.greyscale.250}',

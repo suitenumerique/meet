@@ -65,7 +65,7 @@ const labelClass = css({
 const valueClass = css({
   fontFamily: 'mono',
   textStyle: 'xs',
-  color: 'greyscale.500',
+  color: 'greyscale.600',
   overflowWrap: 'anywhere',
 })
 

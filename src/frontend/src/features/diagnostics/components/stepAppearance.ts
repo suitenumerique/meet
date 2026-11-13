@@ -25,10 +25,10 @@ export const statusSquareClass: Record<ConnectionTestStepStatus, string> = {
  * failure and warning.
  */
 export const statusTextClass: Record<ConnectionTestStepStatus, string> = {
-  pending: css({ color: 'greyscale.500' }),
+  pending: css({ color: 'greyscale.600' }),
   running: css({ color: 'greyscale.700' }),
   success: css({ color: 'greyscale.1000' }),
   warning: css({ color: 'warning', fontWeight: 'medium' }),
   failed: css({ color: 'danger.600', fontWeight: 'medium' }),
-  skipped: css({ color: 'greyscale.500' }),
+  skipped: css({ color: 'greyscale.600' }),
 }
