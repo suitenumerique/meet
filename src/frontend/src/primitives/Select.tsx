@@ -95,7 +95,7 @@ export type SelectProps<T> = Omit<
 > & {
   iconComponent?: RemixiconComponentType
   label: ReactNode
-  items: Array<{ value: T; label: ReactNode }>
+  items: Array<{ value: T; label: ReactNode; lang?: string }>
   errors?: ReactNode
   placement?: Placement
   variant?: 'light' | 'dark'
@@ -150,7 +150,11 @@ export const Select = <T extends string | number>({
                   >
                     {({ isSelected }) => (
                       <>
-                        {item.label}
+                        {item.lang ? (
+                          <span lang={item.lang}>{item.label}</span>
+                        ) : (
+                          item.label
+                        )}
                         {isSelected && (
                           <VisuallyHidden>, {t('selected')}</VisuallyHidden>
                         )}

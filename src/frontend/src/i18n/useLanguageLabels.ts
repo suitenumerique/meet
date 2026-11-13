@@ -19,6 +19,7 @@ export const useLanguageLabels = () => {
     key: lang,
     value: lang,
     label: languageLabels[lang],
+    lang,
   }))
   return {
     languagesList,
