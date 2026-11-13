@@ -7,7 +7,11 @@ import {
 } from 'react-aria-components'
 import { RiArrowDownSFill } from '@remixicon/react'
 import { css, cx } from '@/styled-system/css'
-import type { ConnectionTestStepResult } from '../types'
+import {
+  DIAGNOSTIC_OUTPUT_LANG,
+  getSummaryLang,
+  type ConnectionTestStepResult,
+} from '../types'
 import { StepStatusIndicator } from './StepStatusIndicator'
 
 /** Each step is its own bounded card, collapsed or not. */
@@ -110,7 +114,11 @@ const StepRowContent = ({ step }: { step: ConnectionTestStepResult }) => {
     <>
       <span className={identityClass}>
         <span className={labelClass}>{t(`steps.${step.id}`)}</span>
-        {step.summary && <span className={valueClass}>{step.summary}</span>}
+        {step.summary && (
+          <span className={valueClass} lang={getSummaryLang(step)}>
+            {step.summary}
+          </span>
+        )}
       </span>
       <StepStatusIndicator
         status={step.status}
@@ -170,7 +178,7 @@ export const ConnectionTestStepRow = ({
             {/* Collapsed panels stay in the DOM for aria-controls, but the log
                 lines themselves are only mounted when actually visible. */}
             {isExpanded && (
-              <ul className={logListClass}>
+              <ul className={logListClass} lang={DIAGNOSTIC_OUTPUT_LANG}>
                 {step.logs?.map((log, index) => (
                   <li key={`${log.level}-${index}`} className={logItemClass}>
                     {log.message}

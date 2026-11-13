@@ -32,6 +32,23 @@ export type ConnectionTestStepResult = {
   data?: Record<string, unknown>
 }
 
+export const DIAGNOSTIC_OUTPUT_LANG = 'en'
+
+const LANGUAGE_NEUTRAL_STEPS: ReadonlySet<ConnectionTestStepId> = new Set([
+  'browser',
+  'microphone',
+  'camera',
+  'devices',
+])
+
+export const getSummaryLang = ({
+  id,
+  status,
+}: Pick<ConnectionTestStepResult, 'id' | 'status'>) =>
+  LANGUAGE_NEUTRAL_STEPS.has(id) && status === 'success'
+    ? undefined
+    : DIAGNOSTIC_OUTPUT_LANG
+
 export type ConnectionTestGroupId = 'local' | 'network'
 
 /** Display order: everything local first, then everything that leaves the machine. */
