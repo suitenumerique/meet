@@ -3,7 +3,10 @@
 import math
 from datetime import datetime
 
+import pytest
+
 from summary.core import user_assign
+from summary.core.shared_models import WhisperXResponse
 from summary.core.user_assign import (
     AssignmentResult,
     Interval,
@@ -176,6 +179,26 @@ class TestTotalDuration:
 
 class TestBuildSpeakerTimelines:
     """Tests for _build_speaker_timelines."""
+
+    @pytest.mark.parametrize("words", [None, []])
+    def test_nullable_words_fall_back_to_segment_bounds(self, words):
+        """Model serialization retains nullable alignment, with valid segment bounds."""
+        transcription = WhisperXResponse.model_validate(
+            {
+                "segments": [
+                    {
+                        "start": 1.0,
+                        "end": 2.0,
+                        "text": "Hello",
+                        "speaker": "SPEAKER_00",
+                        "words": words,
+                    }
+                ]
+            }
+        )
+        assert _build_speaker_timelines(transcription.model_dump()) == {
+            "SPEAKER_00": [Interval(1.0, 2.0)]
+        }
 
     def test_segment_without_words_falls_back_to_segment_bounds(self):
         """Segments missing a `words` key use the segment start/end as one interval."""
@@ -624,6 +647,33 @@ class TestResolveSpeakerIdentities:
 
 class TestApply:
     """Tests for AssignmentResult.apply_to."""
+
+    @pytest.mark.parametrize("words", [None, []])
+    def test_preserves_nullable_alignment(self, words):
+        """Replacing names preserves missing alignment and the original model."""
+        transcription = WhisperXResponse.model_validate(
+            {
+                "segments": [
+                    {
+                        "start": 1.0,
+                        "end": 2.0,
+                        "text": "Hello",
+                        "speaker": "SPEAKER_00",
+                        "words": words,
+                    }
+                ]
+            }
+        )
+        assignment = AssignmentResult(
+            assignments=[SpeakerAssignment("SPEAKER_00", "id-a", "Alice", 1.0)]
+        )
+        result = WhisperXResponse.model_validate(
+            assignment.apply_to(transcription.model_dump())
+        )
+
+        assert result.segments[0].speaker == "Alice"
+        assert result.segments[0].words == transcription.segments[0].words
+        assert transcription.segments[0].speaker == "SPEAKER_00"
 
     def test_replaces_speakers_in_segments_and_words(self):
         """Speaker labels replaced in segments, words, and word_segments."""

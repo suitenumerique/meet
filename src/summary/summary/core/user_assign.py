@@ -81,7 +81,7 @@ class AssignmentResult:
             item: dict[str, Any], include_words: bool = False
         ) -> dict[str, Any]:
             new_item = _replace_speaker(item)
-            if include_words and "words" in item:
+            if include_words and item.get("words") is not None:
                 new_item["words"] = [_replace_speaker(w) for w in item["words"]]
             return new_item
 
@@ -285,13 +285,14 @@ def _build_speaker_timelines(transcription: Any) -> dict[str, list[Interval]]:
 
         words = [
             w
-            for w in segment.get("words", [])
+            for w in segment.get("words") or []
             if w.get("start") is not None and w.get("end") is not None
         ]
         if not words:
-            intervals.setdefault(speaker, []).append(
-                Interval(segment["start"], segment["end"])
-            )
+            speaker_intervals = intervals.setdefault(speaker, [])
+            start, end = segment.get("start"), segment.get("end")
+            if start is not None and end is not None and end > start:
+                speaker_intervals.append(Interval(start, end))
             continue
 
         start_time: float | None = segment["start"]
