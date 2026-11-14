@@ -66,6 +66,22 @@ Set [`FRONTEND_CUSTOM_CSS_URL`](../../reference/env-variables.md#FRONTEND_CUSTOM
 
 Mount your own file over a built-in one in the frontend container, under `/usr/share/nginx/html/assets`. The landing page carousel shows `1.png` to `3.png`; the recording and transcription panels show `3.png` and `4.png`, and the recording download page `4.png`, all four under `assets/intro-slider/`.
 
+> [!WARNING]
+> Provide each illustration in **both formats** to benefit from WebP. Browsers supporting WebP load the `.webp` file
+> first, the `.png` one being the fallback.
+>
+> - If you override a `.png` while the default `.webp` remains, most of your users keep seeing the default
+>   illustration instead of yours.
+> - If the `.webp` file is missing from your mount altogether, for instance when you mount a directory containing only
+>   `.png` files, the frontend falls back to your `.png` file, at the cost of a failed request and without the benefit
+>   of WebP.
+
+You can generate the WebP version of an illustration with [cwebp](https://developers.google.com/speed/webp/docs/cwebp):
+
+```bash
+cwebp -q 90 -m 6 1.png -o 1.webp
+```
+
 The favicon is six files directly under `/usr/share/nginx/html`:
 
 - `favicon.ico`

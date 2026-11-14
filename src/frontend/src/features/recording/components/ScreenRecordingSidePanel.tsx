@@ -1,4 +1,4 @@
-import { Button, Div, Text } from '@/primitives'
+import { Button, Div, Picture, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
@@ -169,8 +169,9 @@ export const ScreenRecordingSidePanel = () => {
       flexDirection="column"
       alignItems="center"
     >
-      <img
+      <Picture
         src="/assets/intro-slider/4.png"
+        webp
         alt=""
         className={css({
           minHeight: '250px',

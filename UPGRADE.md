@@ -16,6 +16,30 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+### Illustrations served as WebP with a PNG fallback
+
+The illustrations in `assets/intro-slider/` are now served as WebP, the PNG files being kept as a fallback for browsers
+that do not support WebP.
+
+> [!WARNING]
+> If you override these illustrations, as described in
+> [the theming guide](docs/self-hosting/configuration/theming.md), you should now provide a `.webp` file next to each
+> `.png` one. If you override only a `.png` file while the default `.webp` one remains, your users see the default
+> illustration instead of yours. If the `.webp` file is missing from your mount altogether, the frontend falls back to
+> your `.png` file, at the cost of a failed request and without the benefit of WebP.
+
+Generate the WebP files from your PNG ones with [cwebp](https://developers.google.com/speed/webp/docs/cwebp), using the
+same settings as the default illustrations:
+
+```bash
+for file in assets/intro-slider/*.png; do
+  cwebp -q 90 -m 6 "$file" -o "${file%.png}.webp"
+done
+```
+
+If you maintain your own nginx configuration, add `webp` to the extensions of the `location ~* ^/assets/` block, as in
+`src/frontend/default.conf`, so that the new files are served with the cache headers.
+
 ### Compose env files: `KEYCLOAK_HOST` renamed, internal hosts removed
 
 `env.d/production.dist/hosts` and the OIDC endpoints of
