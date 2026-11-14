@@ -157,6 +157,7 @@ and this project adheres to
 - 🔒️(backend) audit writes and bulk actions made in the Django admin
 - ✨(backend) audit recordings, transcripts and summaries
 - ✨(backend) audit transit code issuance and exchange
+- ✨(frontend) let hosts download who is in the meeting as a CSV
 
 ### Changed
 

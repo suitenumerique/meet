@@ -1,3 +1,4 @@
+import { downloadBlob } from '@/utils/downloadBlob'
 import type { ConnectionTestStepResult } from '../types'
 
 export type ConnectionTestReport = {
@@ -40,14 +41,5 @@ export const downloadConnectionTestReport = (
   const blob = new Blob([JSON.stringify(report, null, 2)], {
     type: 'application/json',
   })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = `connection-test-${timestamp}.json`
-  // Firefox only follows the click when the anchor is in the document, and
-  // revoking the URL in the same tick cancels the download in some browsers.
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 0)
+  downloadBlob(blob, `connection-test-${timestamp}.json`)
 }
