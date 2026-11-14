@@ -1,0 +1,46 @@
+# LiveKit Egress, the recorder of the Recording guide, on Kubernetes.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-egress
+  namespace: meet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: livekit-egress
+  template:
+    metadata:
+      labels:
+        app: livekit-egress
+    spec:
+      # Egress never calls the Kubernetes API
+      automountServiceAccountToken: false
+      containers:
+      - name: livekit-egress
+        # Pin the release you tested, from github.com/livekit/egress/releases
+        image: livekit/egress:v1.15.0
+        env:
+        - name: EGRESS_CONFIG_FILE
+          value: /config/livekit-egress.yaml
+        - name: LIVEKIT_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: meet-backend-env
+              key: LIVEKIT_API_SECRET
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+            # Egress writes each recording here before uploading it: no limit,
+            # so a long recording is never evicted
+            ephemeral-storage: 1Gi
+          limits:
+            memory: 2Gi
+      volumes:
+      - name: config
+        configMap:
+          name: livekit-egress-config

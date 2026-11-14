@@ -1,0 +1,72 @@
+/* Mermaid renders in the browser after load; hide the source until it does. */
+pre.mermaid {
+  visibility: hidden;
+}
+
+/* Two captioned screenshots side by side, stacked on narrow screens. */
+.figure-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.figure-row figure {
+  margin: 0;
+}
+@media (max-width: 600px) {
+  .figure-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Keep each caption right under its image. */
+.md-typeset figure > br {
+  display: none;
+}
+.md-typeset figure > figcaption {
+  margin: 0.3rem auto 0;
+  max-width: none;
+}
+
+/* A diagram opens full screen on click, see javascripts/mermaid-zoom.js. */
+.md-typeset div.mermaid {
+  cursor: zoom-in;
+}
+.mermaid-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--md-default-bg-color);
+  cursor: zoom-out;
+}
+
+/* A small arrow after a navigation entry that leaves the site, such as Changelog. */
+.md-nav__link[href^="http"]::after {
+  content: "↗";
+  font-size: 0.8em;
+  margin-left: 0.25em;
+}
+
+/* Terminal blocks: select only the commands, never the $ prompt or the output.
+   The copy button takes the commands from console-copy.js. */
+.highlight .gp,
+.highlight .go {
+  user-select: none;
+}
+
+/* The variable a link points to, on Environment Variables: its row is highlighted. */
+.md-typeset tr:has(> td > code:target) > td {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* A link leaving the docs pages ends with an arrow: a menu entry to GitHub,
+   and any link to the API reference. */
+.md-nav__link[href^="http"]::after,
+.md-nav__link[href*="swagger.html"]::after,
+.md-typeset a[href*="swagger.html"]::after {
+  content: "↗";
+  margin-left: 0.3em;
+}

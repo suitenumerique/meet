@@ -1,0 +1,110 @@
+[project]
+site_name = "LaSuite Meet Documentation"
+site_url = "https://documentation-meet.beta.numerique.gouv.fr/"
+repo_url = "https://github.com/suitenumerique/meet"
+repo_name = "suitenumerique/meet"
+edit_uri = "edit/main/docs/"
+extra_css = ["stylesheets/extra.css"]
+extra_javascript = ["javascripts/mermaid-zoom.js", "javascripts/console-copy.js"]
+
+nav = [
+  {"Home" = "index.md"},
+  {"Using Meet" = [
+    {"Getting Started" = "user/getting-started.md"},
+    {"Features & Controls" = "user/features-controls.md"},
+    {"Recording & Transcription" = "user/recording.md"},
+    {"Accessibility & Shortcuts" = "user/accessibility.md"},
+    {"Guides" = [
+      {"Large meetings and classes" = "user/guides/large-meeting-host.md"},
+      {"Phone or weak connection" = "user/guides/phone-or-weak-connection.md"},
+      {"Deaf and hard-of-hearing" = "user/guides/deaf-hard-of-hearing.md"},
+      {"Blind and low-vision" = "user/guides/blind-low-vision.md"},
+      {"Sign-language interpreters" = "user/guides/sign-language-interpreter.md"}
+    ]},
+    {"FAQ" = "faq.md"}
+  ]},
+  {"How Meet works" = "overview/how-meet-works.md"},
+  {"Self-Hosting" = [
+    {"Overview" = "self-hosting/index.md"},
+    {"Quick Start" = "self-hosting/compose/quick-start.md"},
+    {"Customising Meet" = "self-hosting/customising.md"},
+    {"Docker Compose" = [
+      {"Prerequisites" = "self-hosting/compose/prerequisites.md"},
+      {"Deployment Guide" = "self-hosting/compose/deployment-guide.md"},
+      {"Reverse Proxy" = "self-hosting/compose/reverse-proxy.md"}
+    ]},
+    {"Kubernetes / Helm" = [
+      {"Prerequisites" = "self-hosting/kubernetes/prerequisites.md"},
+      {"Helm Deployment" = "self-hosting/kubernetes/helm.md"}
+    ]},
+    {"Scalingo" = "self-hosting/scalingo.md"},
+    {"Configuration" = [
+      {"LiveKit & TURN" = "self-hosting/configuration/livekit.md"},
+      {"Firewall & Ports" = "self-hosting/configuration/firewall.md"},
+      {"SSO & Authentication" = "self-hosting/configuration/sso.md"},
+      {"Recording" = "self-hosting/configuration/recording.md"},
+      {"AI Transcription" = "self-hosting/configuration/transcription.md"},
+      {"Real-time Subtitles" = "self-hosting/configuration/subtitles.md"},
+      {"Telephony" = "self-hosting/configuration/telephony.md"},
+      {"Email (SMTP)" = "self-hosting/configuration/email.md"},
+      {"Theming" = "self-hosting/configuration/theming.md"}
+    ]},
+    {"Operating" = [
+      {"Security" = "reference/security.md"},
+      {"Room purge" = "self-hosting/configuration/room-purge.md"},
+      {"Audit logging" = "self-hosting/configuration/audit-logging.md"}
+    ]},
+    {"Troubleshooting" = "reference/troubleshooting.md"},
+    {"Check your install" = "self-hosting/verify.md"}
+  ]},
+  {"Integrating" = [
+    {"External API" = "reference/external-api.md"},
+    {"API Routes" = [
+      {"Application token" = "reference/swagger.html"},
+      {"User's OIDC token" = "reference/swagger.html?urls.primaryName=User%27s%20OIDC%20token"}
+    ]},
+    {"Add-ons" = "reference/external-api-addons.md"}
+  ]},
+  {"Reference" = [
+    {"Environment Variables" = "reference/env-variables.md"},
+    {"Changelog" = "https://github.com/suitenumerique/meet/blob/main/CHANGELOG.md"}
+  ]},
+  {"Contributing" = [
+    {"Develop locally" = "contributing/develop.md"},
+    {"Code tour" = "contributing/code-tour.md"},
+    {"Pull requests" = "https://github.com/suitenumerique/meet/blob/main/CONTRIBUTING.md"}
+  ]}
+]
+
+[project.theme]
+features = [
+  "content.code.copy",
+  "content.action.edit",
+  "content.action.view",
+  "navigation.footer",
+  "navigation.top",
+  "search.highlight",
+]
+
+# Follows the system theme until the reader picks light or dark.
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle = { icon = "lucide/sun-moon", name = "Switch to light mode" }
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+toggle = { icon = "lucide/sun", name = "Switch to dark mode" }
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+toggle = { icon = "lucide/moon", name = "Switch to system preference" }
+
+[project.extra]
+social = [
+  { icon = "fontawesome/brands/github", link = "https://github.com/suitenumerique/meet", name = "Meet on GitHub" },
+  { icon = "simple/matrix", link = "https://matrix.to/#/#meet-official:matrix.org", name = "Meet's Matrix room" },
+]
+
+[project.plugins.glightbox]

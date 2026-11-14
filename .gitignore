@@ -89,4 +89,6 @@ docker/livekit/rootCA.pem
 
 # NixOS
 .devenv
+# Zensical build document site
+/site/
 .pre-commit-config.yaml
