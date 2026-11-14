@@ -1,4 +1,4 @@
-import { useFeatureFlagEnabled } from 'posthog-js/react'
+import { useFeatureFlagEnabled } from '@/features/analytics/hooks/useFeatureFlagEnabled'
 import { FeatureFlags } from '@/features/analytics/enums'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { isMobileBrowser } from '@livekit/components-core'

@@ -70,6 +70,23 @@ export default tseslint.config(
         { argsIgnorePattern: '^_' },
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'posthog-js/react',
+              message:
+                'Statically imports the whole SDK. Use the hooks in @/features/analytics/hooks.',
+            },
+            {
+              name: 'posthog-js',
+              allowTypeImports: true,
+              message: 'Load the SDK lazily with getPosthog().',
+            },
+          ],
+        },
+      ],
     },
   },
 
