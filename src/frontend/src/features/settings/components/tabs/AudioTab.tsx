@@ -20,6 +20,7 @@ import {
   userChoicesStore,
 } from '@/stores/userChoices'
 import { captureEvent } from '@/features/analytics/telemetry'
+import { userPreferencesStore } from '@/stores/userPreferences'
 
 export type AudioTabProps = Pick<DialogProps, 'onOpenChange'> &
   Pick<TabPanelProps, 'id'>
@@ -65,6 +66,8 @@ export const AudioTab = ({ id }: AudioTabProps) => {
       }
 
   const noiseReductionAvailable = useNoiseReductionAvailable()
+
+  const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
   return (
     <TabPanel padding={'md'} flex id={id}>
@@ -119,6 +122,17 @@ export const AudioTab = ({ id }: AudioTabProps) => {
           <div />
         </RowWrapper>
       )}
+      <RowWrapper heading={t('audio.participantAudioLeveling.heading')}>
+        <Switch
+          isSelected={userPreferencesSnap.is_participant_audio_leveling_enabled}
+          onChange={(value) =>
+            (userPreferencesStore.is_participant_audio_leveling_enabled = value)
+          }
+        >
+          {t('audio.participantAudioLeveling.label')}
+        </Switch>
+        <Text>{t('audio.participantAudioLeveling.description')}</Text>
+      </RowWrapper>
       {noiseReductionAvailable && (
         <RowWrapper heading={t('audio.noiseReduction.heading')} beta>
           <Switch
