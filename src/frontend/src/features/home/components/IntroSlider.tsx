@@ -1,6 +1,6 @@
 import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
-import { Button } from '@/primitives'
+import { Button, Picture } from '@/primitives'
 import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -30,12 +30,10 @@ const Body = styled('p', {
   },
 })
 
-const Image = styled('img', {
-  base: {
-    maxHeight: '362px',
-    height: '100%',
-    width: 'fit-content',
-  },
+const image = css({
+  maxHeight: '362px',
+  height: '100%',
+  width: 'fit-content',
 })
 
 const Dot = styled('div', {
@@ -165,7 +163,6 @@ const carouselNavButton = css({
   },
 })
 
-// todo - optimize how images are imported
 const SLIDES: Slide[] = [
   {
     key: 'slide1',
@@ -251,7 +248,12 @@ export const IntroSlider = () => {
               visible={index === slideIndex}
               key={index}
             >
-              <Image src={slide.src} alt="" role="presentation" />
+              <Picture
+                src={slide.src}
+                alt=""
+                role="presentation"
+                className={image}
+              />
               <TextAnimation visible={index == slideIndex}>
                 <Heading>{t(`${slide.key}.title`)}</Heading>
                 <Body>{t(`${slide.key}.body`)}</Body>

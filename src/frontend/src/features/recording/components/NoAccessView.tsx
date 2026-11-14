@@ -1,4 +1,4 @@
-import { A, Div, H, Text } from '@/primitives'
+import { A, Div, H, Picture, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { LoginPrompt } from './LoginPrompt'
@@ -45,7 +45,7 @@ export const NoAccessView = ({
       flexDirection="column"
       alignItems="center"
     >
-      <img
+      <Picture
         src={imagePath}
         alt=""
         className={css({

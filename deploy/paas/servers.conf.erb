@@ -33,7 +33,7 @@ server {
   }
 
   # Serve static files with caching
-  location ~* ^/assets/.*\.(css|js|json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+  location ~* ^/assets/.*\.(css|js|json|png|jpg|jpeg|gif|webp|ico|svg|woff|woff2|ttf|eot)$ {
       expires 30d;
       add_header Cache-Control "public, max-age=2592000";
   }

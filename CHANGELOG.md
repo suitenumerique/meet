@@ -29,6 +29,7 @@ and this project adheres to
 - 🍱(frontend) add Portuguese glyphs to Marianne subsetted fonts
 - 🚸(frontend) bring new speakers to the top of the carousel
 - 🚸(frontend) bring raised hands into view in the carousel
+- ⚡️(frontend) serve illustrations as WebP with a PNG fallback
 
 ### Fixed
 
