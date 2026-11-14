@@ -1,4 +1,4 @@
-import { A, Button, Div, Text } from '@/primitives'
+import { A, Button, Div, Picture, Text } from '@/primitives'
 
 import { css } from '@/styled-system/css'
 import { useRoomId } from '@/features/rooms/livekit/hooks/useRoomId'
@@ -183,7 +183,7 @@ export const TranscriptSidePanel = () => {
       flexDirection="column"
       alignItems="center"
     >
-      <img
+      <Picture
         src="/assets/intro-slider/3.png"
         alt=""
         className={css({

@@ -9,7 +9,7 @@ import { mediaUrl } from '@/api/mediaUrl'
 import { useUser } from '@/features/auth/api/useUser'
 import { UserAware } from '@/features/auth/components/UserAware'
 import { Screen } from '@/layout/Screen'
-import { H, LinkButton, Text } from '@/primitives'
+import { H, LinkButton, Picture, Text } from '@/primitives'
 import { formatDate } from '@/utils/formatDate'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { LoadingScreen } from '@/components/LoadingScreen'
@@ -118,7 +118,7 @@ const RecordingDownload = () => {
       <Screen layout="centered" footer={false}>
         <Center>
           <VStack>
-            <img
+            <Picture
               src="/assets/intro-slider/4.png"
               alt={''}
               className={css({
