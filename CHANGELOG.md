@@ -32,6 +32,7 @@ and this project adheres to
 
 ### Fixed
 
+- 🐛(summary) clean up interrupted recording downloads
 - 📌(summary) pin kombu to keep celery workers compatible with redis 5
 - 🐛(frontend) show a page when the connection ends unexpectedly
 - 🐛(frontend) show the transcript mic hint when every mic is muted
