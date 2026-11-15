@@ -30,6 +30,7 @@
     "@tanstack/react-query": "5.101.4",
     "@timephy/rnnoise-wasm": "1.0.0",
     "hoofd": "1.7.3",
+    "howler": "2.2.4",
     "humanize-duration": "3.34.1",
     "i18next": "26.3.6",
     "i18next-browser-languagedetector": "8.2.1",
@@ -43,7 +44,6 @@
     "react-dom": "18.3.1",
     "react-i18next": "17.0.12",
     "react-stately": "3.49.0",
-    "use-sound": "5.0.0",
     "valtio": "2.3.2",
     "wouter": "3.10.0"
   },
@@ -52,6 +52,7 @@
     "@pandacss/dev": "1.11.1",
     "@tanstack/eslint-plugin-query": "5.100.14",
     "@tanstack/react-query-devtools": "5.100.14",
+    "@types/howler": "2.2.13",
     "@types/humanize-duration": "3.27.4",
     "@types/node": "24.12.4",
     "@types/react": "18.3.12",
