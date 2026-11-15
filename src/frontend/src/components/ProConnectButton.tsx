@@ -4,6 +4,7 @@ import { cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { VStack } from '@/styled-system/jsx'
 import { Link } from '@/primitives'
+import { srOnly } from '@/styles/a11y'
 
 // Styles per their documentation https://github.com/numerique-gouv/agentconnect-documentation/blob/main/doc_fs/bouton_proconnect.md
 const proConnectButtonRecipe = cva({
@@ -35,7 +36,11 @@ export const ProConnectButton = ({ hint = true }: ProConnectButtonProps) => {
         aria-label={t('proconnectButtonLabel')}
         href={authUrl()}
         data-attr="login"
-      />
+      >
+        {/* The label must sit between <a> and </a> (RGAA 6.2.1): the
+            visible wording only exists in the CSS background image. */}
+        <span className={srOnly}>{t('proconnectButtonLabel')}</span>
+      </RALink>
       {hint && (
         <Link
           to="https://agentconnect.gouv.fr/"
