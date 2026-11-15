@@ -31,6 +31,7 @@ and this project adheres to
 - 🚸(frontend) bring new speakers to the top of the carousel
 - 🚸(frontend) bring raised hands into view in the carousel
 - ⚡️(frontend) serve illustrations as WebP with a PNG fallback
+- ⚡️(frontend) preload notification sound on the pre-join screen when idle
 
 ### Fixed
 

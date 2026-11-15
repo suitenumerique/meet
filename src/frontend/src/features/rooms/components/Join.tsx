@@ -33,6 +33,7 @@ import { useDeviceMissing } from '../livekit/hooks/useDeviceMissing'
 import { useJoinTracks } from '../livekit/hooks/useJoinTracks'
 import { SilentMicDetector } from './SilentMicDetector'
 import { type PreviewTrack, toggleTrack } from '../utils/toggleTrack'
+import { usePreloadNotificationSound } from '@/features/notifications/hooks/usePreloadNotificationSound'
 
 const styles = {
   page: css({
@@ -458,6 +459,7 @@ export const Join = ({
   roomId: string
 }) => {
   const { audioTrack, videoTrack } = useJoinTracks()
+  usePreloadNotificationSound()
 
   return (
     <Screen footer={false}>
