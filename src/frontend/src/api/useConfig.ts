@@ -1,7 +1,7 @@
 import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
 import { useQuery } from '@tanstack/react-query'
-import { RecordingMode } from '@/features/recording'
+import type { RecordingMode } from '@/features/recording/types'
 import type { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import type { Track, VideoCodec } from 'livekit-client'
 type Source = Track.Source
