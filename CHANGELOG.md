@@ -37,6 +37,7 @@ and this project adheres to
 - 💥(backend) refuse new users whose email is already used
 - ♻️(backend) match emails in a single normalized form
 - ⚡️(backend) index user emails for exact lookups
+- ⚡️(frontend) preload notification sound on the pre-join screen when idle
 
 ### Fixed
 
