@@ -33,6 +33,7 @@ and this project adheres to
 - ⚡️(frontend) serve illustrations as WebP with a PNG fallback
 - ⚡️(frontend) preload notification sound on the pre-join screen when idle
 - ⚡️(frontend) cache mediapipe models served by nginx
+- ⚡️(frontend) preload background effects assets on hover
 
 ### Fixed
 

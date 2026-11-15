@@ -15,6 +15,7 @@ import {
 import { SelectDevice } from '../livekit/components/controls/Device/SelectDevice'
 import { ToggleDevice } from '../livekit/components/controls/Device/ToggleDevice'
 import { BackgroundProcessorFactory } from '../livekit/components/blur'
+import { useEffectsPreload } from '../livekit/hooks/useEffectsPreload'
 import { Lobby } from './Lobby'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { isSafari } from '@/utils/livekit'
@@ -273,6 +274,7 @@ const Effects = ({
 }: Pick<EffectsConfigurationProps, 'videoTrack'>) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'join.effects' })
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { hoverProps, focusProps } = useEffectsPreload()
 
   if (!BackgroundProcessorFactory.isSupported() || isMobileBrowser()) {
     return null
@@ -300,6 +302,8 @@ const Effects = ({
         onPress={() => setIsDialogOpen(true)}
         tooltip={t('description')}
         aria-label={t('description')}
+        {...hoverProps}
+        {...focusProps}
       >
         <RiImageCircleAiFill size={24} />
       </Button>
