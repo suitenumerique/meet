@@ -38,6 +38,7 @@ and this project adheres to
 - ♻️(backend) match emails in a single normalized form
 - ⚡️(backend) index user emails for exact lookups
 - ⚡️(frontend) preload notification sound on the pre-join screen when idle
+- ⚡️(frontend) cache mediapipe models served by nginx
 
 ### Fixed
 
