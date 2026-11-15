@@ -6,12 +6,15 @@ import type { Track, TrackProcessor } from 'livekit-client'
 import { BackgroundCustomProcessor } from './BackgroundCustomProcessor'
 import { UnifiedBackgroundTrackProcessor } from './UnifiedBackgroundTrackProcessor'
 import { FaceLandmarksOptions } from './FaceLandmarksProcessor'
+import selfieSegmenterModelUrl from '@/assets/mediapipe/selfie_segmenter_landscape.tflite?url'
+import faceLandmarkerModelUrl from '@/assets/mediapipe/face_landmarker.task?url'
 
-export const SELFIE_SEGMENTER_MODEL_PATH =
-  '/assets/mediapipe/models/selfie_segmenter_landscape.tflite'
+// Imported with ?url so Vite emits each model under /assets with a content
+// hash in its file name: nginx caches them for 30 days, and a new model gets
+// a new URL instead of a stale cache entry.
+export const SELFIE_SEGMENTER_MODEL_PATH = selfieSegmenterModelUrl
 
-export const FACE_LANDMARKS_MODEL_PATH =
-  '/assets/mediapipe/models/face_landmarker.task'
+export const FACE_LANDMARKS_MODEL_PATH = faceLandmarkerModelUrl
 
 export const MEDIAPIPE_PATH_WASM = `/assets/mediapipe/wasm/${__MEDIAPIPE_VERSION__}`
 

@@ -32,6 +32,7 @@ and this project adheres to
 - 🚸(frontend) bring raised hands into view in the carousel
 - ⚡️(frontend) serve illustrations as WebP with a PNG fallback
 - ⚡️(frontend) preload notification sound on the pre-join screen when idle
+- ⚡️(frontend) cache mediapipe models served by nginx
 
 ### Fixed
 
