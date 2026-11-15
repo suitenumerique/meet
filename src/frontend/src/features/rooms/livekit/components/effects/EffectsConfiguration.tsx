@@ -153,7 +153,7 @@ export const EffectsConfiguration = ({
   const getVirtualBackgroundName = useCallback(
     (imagePath?: string) => {
       if (!imagePath) return ''
-      const match = imagePath.match(/\/backgrounds\/(\d+)\.jpg$/)
+      const match = imagePath.match(/\/backgrounds\/(\d+)\.webp$/)
       if (!match) return ''
       const index = Number(match[1]) - 1
       if (Number.isNaN(index)) return ''

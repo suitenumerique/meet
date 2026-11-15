@@ -52,8 +52,17 @@ subscribe(userChoicesStore, () => {
   saveUserChoices(userChoicesStore as LocalUserChoicesLK, false)
 })
 
+// Preset backgrounds used to be JPEG files: point the saved choice to their
+// WebP replacement. The JPEG files can be removed once this has shipped.
+const LEGACY_PRESET_BACKGROUND = /^(\/assets\/backgrounds\/\d+)\.jpg$/
+
 // we run some logic on store loading to check if the processor config is still valid
 if (userChoicesStore.processorConfig?.type === ProcessorType.VIRTUAL) {
+  userChoicesStore.processorConfig.imagePath =
+    userChoicesStore.processorConfig.imagePath.replace(
+      LEGACY_PRESET_BACKGROUND,
+      '$1.webp'
+    )
   if (userChoicesStore.processorConfig.imagePath.startsWith('blob:')) {
     // this happens when a not authenticated user had changed their background image
     // we restore clear the processor config to avoid displaying a black screen.

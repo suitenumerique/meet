@@ -41,6 +41,7 @@ and this project adheres to
 - ⚡️(frontend) cache mediapipe models served by nginx
 - ⚡️(frontend) preload background effects assets on hover
 - ⚡️(frontend) lazy load the settings dialog
+- ⚡️(frontend) serve preset virtual backgrounds as WebP
 
 ### Fixed
 

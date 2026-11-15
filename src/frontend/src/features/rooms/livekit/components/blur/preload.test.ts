@@ -62,7 +62,7 @@ describe('preloadEffectsAssets', () => {
     await flush()
 
     expect(imageUrls()).toHaveLength(8)
-    expect(imageUrls()[0]).toBe('/assets/backgrounds/thumbnails/1.jpg')
+    expect(imageUrls()[0]).toBe('/assets/backgrounds/thumbnails/1.webp')
     expect(fetchedUrls().sort()).toEqual([MODEL, WASM_LOADER, WASM_BINARY])
     expect(fetchMock).toHaveBeenCalledWith(WASM_BINARY, { priority: 'low' })
   })
@@ -125,12 +125,12 @@ describe('preloadEffectsAssets', () => {
 describe('preloadBackgroundImage', () => {
   it('loads the resolved image once, in CORS mode', async () => {
     const { preloadBackgroundImage } = await load()
-    await preloadBackgroundImage('/assets/backgrounds/1.jpg')
-    await preloadBackgroundImage('/assets/backgrounds/1.jpg')
+    await preloadBackgroundImage('/assets/backgrounds/1.webp')
+    await preloadBackgroundImage('/assets/backgrounds/1.webp')
 
     expect(FakeImage.instances).toHaveLength(1)
     expect(FakeImage.instances[0].src).toBe(
-      'resolved:/assets/backgrounds/1.jpg'
+      'resolved:/assets/backgrounds/1.webp'
     )
     expect(FakeImage.instances[0].crossOrigin).toBe('anonymous')
   })
@@ -138,7 +138,7 @@ describe('preloadBackgroundImage', () => {
   it('skips local files and degraded connections', async () => {
     const { preloadBackgroundImage } = await load()
     await preloadBackgroundImage('blob:https://meet.example.com/1234')
-    await preloadBackgroundImage('/assets/backgrounds/1.jpg', {
+    await preloadBackgroundImage('/assets/backgrounds/1.webp', {
       isConstrained: true,
     })
 
