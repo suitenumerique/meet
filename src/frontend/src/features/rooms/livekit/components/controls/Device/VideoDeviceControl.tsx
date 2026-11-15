@@ -9,6 +9,7 @@ import { css } from '@/styled-system/css'
 import { useCanPublishTrack } from '../../../hooks/useCanPublishTrack'
 import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import { useSidePanel } from '../../../hooks/useSidePanel'
+import { useEffectsPreload } from '../../../hooks/useEffectsPreload'
 import { BackgroundProcessorFactory } from '../../blur'
 import Source = Track.Source
 import * as React from 'react'
@@ -27,10 +28,13 @@ import {
 const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'selectDevice' })
   const { isEffectsOpen, toggleEffects } = useSidePanel()
+  const { hoverProps, focusProps } = useEffectsPreload()
   return (
     <Button
       size="sm"
       square
+      {...hoverProps}
+      {...focusProps}
       tooltip={t('effects')}
       aria-label={t('effects')}
       variant="primaryDark"

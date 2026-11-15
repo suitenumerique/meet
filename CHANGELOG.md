@@ -39,6 +39,7 @@ and this project adheres to
 - ⚡️(backend) index user emails for exact lookups
 - ⚡️(frontend) preload notification sound on the pre-join screen when idle
 - ⚡️(frontend) cache mediapipe models served by nginx
+- ⚡️(frontend) preload background effects assets on hover
 
 ### Fixed
 
