@@ -47,6 +47,7 @@ and this project adheres to
 - 🐛(frontend) apply the sans font token on every page
 - 🐛(frontend) promote the active speaker in the carousel layout
 - ♿️(frontend) show the focus ring on connection test detail cards
+- ♿️(frontend) use a heading for every connection test card title
 
 ## [1.37.0] - 2026-11-01
 

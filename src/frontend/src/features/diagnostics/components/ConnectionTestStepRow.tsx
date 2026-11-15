@@ -139,10 +139,12 @@ export const ConnectionTestStepRow = ({
 
   if (!hasLogs) {
     return (
-      <div className={cx(cardClass, rowClass)}>
-        <StepRowContent step={step} />
-        {/* Empty chevron column keeps non-expandable rows aligned. */}
-        <span />
+      <div className={cardClass}>
+        <Heading level={3} className={cx(headingResetClass, rowClass)}>
+          <StepRowContent step={step} />
+          {/* Empty chevron column keeps non-expandable rows aligned. */}
+          <span />
+        </Heading>
       </div>
     )
   }
