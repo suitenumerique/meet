@@ -33,6 +33,7 @@ export type LogCode =
   | 'publish_sources_failure'
   | 'disconnect_failure'
   | 'support_widget_failure'
+  | 'error_boundary_failure'
   | 'generic_failure'
 
 export const reportError = (

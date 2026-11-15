@@ -40,6 +40,7 @@ and this project adheres to
 - ⚡️(frontend) preload notification sound on the pre-join screen when idle
 - ⚡️(frontend) cache mediapipe models served by nginx
 - ⚡️(frontend) preload background effects assets on hover
+- ⚡️(frontend) lazy load the settings dialog
 
 ### Fixed
 
