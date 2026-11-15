@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useMediaDeviceSelect } from '@livekit/components-react'
 import { reportError } from '@/features/analytics/telemetry'
 import { canTestAudioOutput } from '@/features/rooms/utils/canTestAudioOutput'
+import upriseSoundSrc from '@/assets/sounds/uprise.mp3'
 
 export const SoundTester = () => {
   const { t } = useTranslation('settings')
@@ -55,7 +56,7 @@ export const SoundTester = () => {
       {/* eslint-disable jsx-a11y/media-has-caption */}
       <audio
         ref={audioRef}
-        src="/sounds/uprise.mp3"
+        src={upriseSoundSrc}
         onEnded={() => setIsPlaying(false)}
       />
     </>

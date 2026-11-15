@@ -51,6 +51,7 @@ and this project adheres to
 - ♿️(frontend) show the focus ring on connection test detail cards
 - ♿️(frontend) use a heading for every connection test card title
 - ♿️(frontend) put the ProConnect link label inside the link
+- ⚡️(frontend) serve sounds as content-hashed, long-term cached assets
 
 ## [1.37.0] - 2026-11-01
 

@@ -5,6 +5,7 @@ import { styled } from '@/styled-system/jsx'
 import { Button } from '@/primitives'
 import { canTestAudioOutput } from '@/features/rooms/utils/canTestAudioOutput'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
+import upriseSoundSrc from '@/assets/sounds/uprise.mp3'
 
 // Speaker test in the audiooutput menu footer (Meet-style UX). Outputs have
 // no track: the test plays a bundled file through the selected sink, and
@@ -129,7 +130,7 @@ export const OutputSoundTester = ({
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <audio
         ref={audioRef}
-        src="/sounds/uprise.mp3"
+        src={upriseSoundSrc}
         onEnded={() => setIsPlaying(false)}
       />
     </StyledContainer>
