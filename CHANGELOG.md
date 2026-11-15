@@ -46,6 +46,7 @@ and this project adheres to
 - 🐛(backend) allow muting when everyone_can_mute is stored as null #1942
 - 🐛(frontend) apply the sans font token on every page
 - 🐛(frontend) promote the active speaker in the carousel layout
+- ♿️(frontend) show the focus ring on connection test detail cards
 
 ## [1.37.0] - 2026-11-01
 

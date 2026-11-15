@@ -50,7 +50,7 @@ const triggerClass = css({
   _hover: { backgroundColor: 'greyscale.50' },
   '&[data-focus-visible]': {
     outline: '2px solid {colors.focusRing}',
-    outlineOffset: '-2px',
+    outlineOffset: '-2px!',
   },
 })
 
