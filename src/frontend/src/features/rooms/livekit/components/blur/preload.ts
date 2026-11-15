@@ -15,18 +15,18 @@ import {
  *
  * | Asset                   | Size      | Preloaded                         |
  * | ----------------------- | --------- | --------------------------------- |
- * | Preset thumbnails       | ~170KB    | always                            |
+ * | Preset thumbnails       | ~80KB     | always                            |
  * | Segmentation model      | ~250KB    | always                            |
  * | MediaPipe wasm + loader | ~9.6MB    | low priority, unless constrained  |
- * | One background image    | ~1-1.3MB  | on thumbnail hover, unless const. |
- * | All background images   | ~9MB      | never                             |
+ * | One background image    | ~300KB    | on thumbnail hover, unless const. |
+ * | All background images   | ~2.4MB    | never                             |
  */
 
 export const PRESET_BACKGROUNDS_COUNT = 8
 
 export const getPresetBackgroundPaths = (index: number) => ({
-  imagePath: `/assets/backgrounds/${index + 1}.jpg`,
-  thumbnailPath: `/assets/backgrounds/thumbnails/${index + 1}.jpg`,
+  imagePath: `/assets/backgrounds/${index + 1}.webp`,
+  thumbnailPath: `/assets/backgrounds/thumbnails/${index + 1}.webp`,
 })
 
 type NetworkInformation = {
