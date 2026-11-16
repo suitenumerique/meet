@@ -1,6 +1,7 @@
 import { Field, H } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
+import { useChangeLanguage } from '@/i18n/useChangeLanguage'
 import { TabPanel, type TabPanelProps } from '@/primitives/Tabs'
 import { userPreferencesStore } from '@/stores/userPreferences'
 import { useSnapshot } from 'valtio'
@@ -8,8 +9,9 @@ import { useSnapshot } from 'valtio'
 export type GeneralTabProps = Pick<TabPanelProps, 'id'>
 
 export const GeneralTab = ({ id }: GeneralTabProps) => {
-  const { t, i18n } = useTranslation('settings')
+  const { t } = useTranslation('settings')
   const { languagesList, currentLanguage } = useLanguageLabels()
+  const changeLanguage = useChangeLanguage()
 
   const userPreferencesSnap = useSnapshot(userPreferencesStore)
 
@@ -22,7 +24,7 @@ export const GeneralTab = ({ id }: GeneralTabProps) => {
         items={languagesList}
         defaultSelectedKey={currentLanguage.key}
         onSelectionChange={(lang) => {
-          i18n.changeLanguage(lang as string)
+          changeLanguage(lang as string)
         }}
       />
       <H lvl={2}>{t('preferences.title')}</H>
