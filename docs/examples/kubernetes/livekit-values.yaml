@@ -4,6 +4,11 @@
 livekit:
   keys:
     meet: <LIVEKIT_API_SECRET>
+  # Meet creates rooms before handing out join tokens, so LiveKit must not
+  # create them on join. This also lets it share an instance with services
+  # that require this setting to be false for security reasons.
+  room:
+    auto_create: false
   # Your Redis, the one Meet uses
   redis:
     address: redis-master.meet.svc.cluster.local:6379

@@ -4,6 +4,12 @@ redis:
 keys:
   devkey: secret
 
+# The backend creates rooms before it hands out a join token, so LiveKit must not
+# create them on join. This also lets Meet share its LiveKit instance with
+# services that require this setting.
+room:
+  auto_create: false
+
 webhook:
   api_key: devkey
   urls:

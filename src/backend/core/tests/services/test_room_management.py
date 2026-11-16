@@ -1,5 +1,6 @@
 """Tests for the RoomManagement service."""
 
+import json
 from unittest import mock
 
 from django.db import connection
@@ -15,6 +16,123 @@ from core.services.room_management import (
     RoomNotFoundException,
 )
 from core.services.sip_management import SIPException, SIPManagement
+
+
+def _mock_livekit_api(mock_create_livekit_client, rooms=None):
+    """Return a mocked LiveKit client whose room store holds `rooms`."""
+    mock_api = mock.MagicMock()
+    mock_api.room.list_rooms = mock.AsyncMock(
+        return_value=mock.Mock(rooms=rooms if rooms is not None else [])
+    )
+    mock_api.room.create_room = mock.AsyncMock()
+    mock_api.aclose = mock.AsyncMock()
+    mock_create_livekit_client.return_value = mock_api
+    return mock_api
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room_calls_livekit(mock_create_livekit_client):
+    """A missing room is created through the LiveKit API with its metadata."""
+    mock_api = _mock_livekit_api(mock_create_livekit_client)
+
+    RoomManagement.create_room(
+        "room-abc",
+        metadata={
+            "configuration": {"everyone_can_mute": True},
+            "access_level": "public",
+        },
+    )
+
+    list_request = mock_api.room.list_rooms.await_args.args[0]
+    assert list_request.names == ["room-abc"]
+
+    create_request = mock_api.room.create_room.await_args.args[0]
+    assert create_request.name == "room-abc"
+    assert json.loads(create_request.metadata) == {
+        "configuration": {"everyone_can_mute": True},
+        "access_level": "public",
+    }
+    mock_api.aclose.assert_awaited_once()
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room_keeps_existing_room_metadata(mock_create_livekit_client):
+    """An existing room is left alone, so its recording state is not wiped."""
+    mock_api = _mock_livekit_api(mock_create_livekit_client, rooms=[mock.Mock()])
+
+    RoomManagement.create_room("room-abc", metadata={"access_level": "public"})
+
+    mock_api.room.create_room.assert_not_awaited()
+    mock_api.aclose.assert_awaited_once()
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room_without_metadata(mock_create_livekit_client):
+    """A room without settings still gets an empty metadata, not a null one."""
+    mock_api = _mock_livekit_api(mock_create_livekit_client)
+
+    RoomManagement.create_room("room-abc")
+
+    request = mock_api.room.create_room.await_args.args[0]
+    assert request.metadata == ""
+    mock_api.aclose.assert_awaited_once()
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room_tolerates_already_exists(mock_create_livekit_client):
+    """A room created by a concurrent join is the expected outcome."""
+    mock_api = _mock_livekit_api(mock_create_livekit_client)
+    mock_api.room.create_room.side_effect = TwirpError(
+        "already_exists", "room already exists", status=409
+    )
+
+    RoomManagement.create_room("room-abc")
+
+    mock_api.aclose.assert_awaited_once()
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room_raises_management_exception(mock_create_livekit_client):
+    """Unexpected Twirp errors raise RoomManagementException."""
+    mock_api = _mock_livekit_api(mock_create_livekit_client)
+    mock_api.room.create_room.side_effect = TwirpError("internal", "boom", status=500)
+
+    with pytest.raises(RoomManagementException):
+        RoomManagement.create_room("room-abc")
+
+    mock_api.aclose.assert_awaited_once()
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_create_room_raises_when_listing_fails(mock_create_livekit_client):
+    """The room cannot be checked, so the join cannot be prepared."""
+    mock_api = _mock_livekit_api(mock_create_livekit_client)
+    mock_api.room.list_rooms.side_effect = TwirpError("internal", "boom", status=500)
+
+    with pytest.raises(RoomManagementException):
+        RoomManagement.create_room("room-abc")
+
+    mock_api.room.create_room.assert_not_awaited()
+    mock_api.aclose.assert_awaited_once()
+
+
+@mock.patch.object(RoomManagement, "create_room")
+def test_ensure_room_passes_room_settings(mock_create_room):
+    """Ensuring a room forwards its configuration and access level."""
+    room = RoomFactory.build(
+        access_level=RoomAccessLevel.RESTRICTED,
+        configuration={"everyone_can_mute": True},
+    )
+
+    RoomManagement.ensure_room(room)
+
+    mock_create_room.assert_called_once_with(
+        str(room.id),
+        metadata={
+            "configuration": {"everyone_can_mute": True},
+            "access_level": RoomAccessLevel.RESTRICTED,
+        },
+    )
 
 
 @mock.patch("core.services.room_management.utils.create_livekit_client")

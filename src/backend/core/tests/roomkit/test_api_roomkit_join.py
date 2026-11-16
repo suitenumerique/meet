@@ -9,9 +9,19 @@ from unittest import mock
 import pytest
 
 from ...factories import RoomFactory
+from ...services.room_management import RoomManagementException
 from ...services.sip_management import SIPException
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def mock_room_creation():
+    """Mock the LiveKit room creation performed before the device dials in."""
+    with mock.patch(
+        "core.services.room_management.RoomManagement.create_room"
+    ) as mock_create_room:
+        yield mock_create_room
 
 
 @mock.patch("core.roomkit.viewsets.SIPManagement")
@@ -202,8 +212,8 @@ def test_join_unknown_pin(mock_sip_management, settings, client):
 
 
 @mock.patch("core.roomkit.viewsets.SIPManagement")
-def test_join_success(mock_sip_management, settings, client):
-    """Requests with a valid PIN should create the dispatch rule."""
+def test_join_success(mock_sip_management, settings, client, mock_room_creation):
+    """Requests with a valid PIN should create the room and its dispatch rule."""
 
     mock_sip_instance = mock_sip_management.return_value
 
@@ -221,7 +231,39 @@ def test_join_success(mock_sip_management, settings, client):
 
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
+    mock_room_creation.assert_called_once_with(
+        str(room.id),
+        metadata={
+            "configuration": room.configuration,
+            "access_level": room.access_level,
+        },
+    )
     mock_sip_instance.ensure_dispatch_rule.assert_called_once_with(room)
+
+
+@mock.patch("core.roomkit.viewsets.SIPManagement")
+def test_join_room_creation_failure(
+    mock_sip_management, settings, client, mock_room_creation
+):
+    """A LiveKit room that cannot be created fails the join before the rule."""
+
+    mock_sip_instance = mock_sip_management.return_value
+
+    settings.ROOMKIT_ENABLED = True
+    settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
+
+    room = RoomFactory(pin_code="1234567890")
+    mock_room_creation.side_effect = RoomManagementException("Could not create room")
+
+    response = client.post(
+        "/api/v1.0/roomkit/join/",
+        {"pin_code": room.pin_code},
+        HTTP_AUTHORIZATION="Bearer testAuthToken",
+    )
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Could not create the room."}
+    mock_sip_instance.ensure_dispatch_rule.assert_not_called()
 
 
 @mock.patch("core.roomkit.viewsets.SIPManagement")

@@ -596,6 +596,13 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
 
         room, slug = self._get_object_or_unregistered_slug()
         if room is None:
+            try:
+                RoomManagement.create_room(slug)
+            except RoomManagementException as e:
+                raise drf_exceptions.APIException(
+                    "Could not create the room, please try again."
+                ) from e
+
             return drf_response.Response(
                 {
                     **self._get_unregistered_room_data(slug),
@@ -611,6 +618,13 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         ).data
 
         if LobbyService.can_bypass_lobby(room=room, user=request.user, role=role):
+            try:
+                RoomManagement.ensure_room(room)
+            except RoomManagementException as e:
+                raise drf_exceptions.APIException(
+                    "Could not create the room, please try again."
+                ) from e
+
             data["livekit"] = utils.generate_livekit_config(
                 room_id=str(room.id),
                 user=request.user,
@@ -640,11 +654,17 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         room = self.get_object()
         lobby_service = LobbyService()
 
-        participant, livekit = lobby_service.request_entry(
-            room=room,
-            user=request.user,
-            **serializer.validated_data,
-        )
+        try:
+            participant, livekit = lobby_service.request_entry(
+                room=room,
+                user=request.user,
+                **serializer.validated_data,
+            )
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not create the room, please try again."
+            ) from e
+
         return drf_response.Response(
             {
                 **participant.to_dict(),
@@ -1730,6 +1750,13 @@ class DiagnosticsViewSet(viewsets.ViewSet):
         """
         room = f"{settings.CONNECTION_TEST_ROOM_PREFIX}-{uuid4()}"
         expires_in = settings.CONNECTION_TEST_TOKEN_TTL_SECONDS
+
+        try:
+            RoomManagement.create_room(room)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException(
+                "Could not create the connection test room, please try again."
+            ) from e
 
         # LiveKit refreshes tokens for connected clients, so JWT TTL alone does not
         # eject someone who stays connected. Schedule a hard DeleteRoom when Celery
