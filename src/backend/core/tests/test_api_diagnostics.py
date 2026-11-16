@@ -15,8 +15,18 @@ from core.api.throttling import (
     ConnectionTestUserRateThrottle,
 )
 from core.factories import UserFactory
+from core.services.room_management import RoomManagementException
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def mock_room_creation():
+    """Mock the LiveKit room creation performed before a token is issued."""
+    with mock.patch(
+        "core.services.room_management.RoomManagement.create_room"
+    ) as mock_create_room:
+        yield mock_create_room
 
 
 def test_api_diagnostics_connection_url():
@@ -32,7 +42,9 @@ def test_api_diagnostics_connection_rejects_get():
     assert response.status_code == 405
 
 
-def test_api_diagnostics_connection_returns_ephemeral_livekit_config(settings, client):
+def test_api_diagnostics_connection_returns_ephemeral_livekit_config(
+    settings, client, mock_room_creation
+):
     """Each request gets a dedicated room and a short-lived token."""
 
     settings.CONNECTION_TEST_TOKEN_TTL_SECONDS = 600
@@ -59,6 +71,22 @@ def test_api_diagnostics_connection_returns_ephemeral_livekit_config(settings, c
     assert data_a["livekit"]["token"]
     assert data_a["livekit"]["expires_in"] == 600
     assert data_a["livekit"]["token"] != data_b["livekit"]["token"]
+    assert [call.args[0] for call in mock_room_creation.call_args_list] == [
+        room_a,
+        room_b,
+    ]
+
+
+def test_api_diagnostics_connection_room_creation_failure(client, mock_room_creation):
+    """The test cannot start when its dedicated LiveKit room cannot be created."""
+    mock_room_creation.side_effect = RoomManagementException("Could not create room")
+
+    response = client.post("/api/v1.0/diagnostics/connection/")
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "detail": "Could not create the connection test room, please try again."
+    }
 
 
 def test_api_diagnostics_connection_token_is_short_lived_for_user(settings, client):

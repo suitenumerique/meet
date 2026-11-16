@@ -156,6 +156,10 @@ def generate_livekit_config(  # noqa: PLR0917
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
+    The LiveKit room must already exist: with `room.auto_create: false`, a
+    token is only usable once the room is there. Callers create it first through
+    `RoomManagement.ensure_room()` or `RoomManagement.create_room()`.
+
     Args:
         room_id: Room identifier
         user: User instance requesting access

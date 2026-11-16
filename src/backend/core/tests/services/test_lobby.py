@@ -30,6 +30,15 @@ from core.utils import NotificationError
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture(autouse=True)
+def mock_room_creation():
+    """Mock the LiveKit room creation performed before a token is issued."""
+    with mock.patch(
+        "core.services.room_management.RoomManagement.create_room"
+    ) as mock_create_room:
+        yield mock_create_room
+
+
 @pytest.fixture
 def lobby_service():
     """Return a LobbyService instance."""
@@ -218,7 +227,12 @@ def test_can_bypass_lobby_private_room_with_any_role(role, lobby_service):
 
 @mock.patch("core.utils.generate_livekit_config")
 def test_request_entry_public_room(
-    mock_generate_config, lobby_service, participant_id, username, settings
+    mock_generate_config,
+    mock_room_creation,
+    lobby_service,
+    participant_id,
+    username,
+    settings,
 ):
     """Test requesting entry to a public room."""
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
@@ -254,6 +268,13 @@ def test_request_entry_public_room(
         configuration=room.configuration,
         participant_id=participant_id,
         role=None,
+    )
+    mock_room_creation.assert_called_once_with(
+        str(room.id),
+        metadata={
+            "configuration": room.configuration,
+            "access_level": room.access_level,
+        },
     )
 
 
@@ -366,7 +387,12 @@ def test_request_entry_waiting_participant(
 
 @mock.patch("core.utils.generate_livekit_config")
 def test_request_entry_accepted_participant(
-    mock_generate_config, lobby_service, participant_id, username, settings
+    mock_generate_config,
+    mock_room_creation,
+    lobby_service,
+    participant_id,
+    username,
+    settings,
 ):
     """Test requesting entry for an accepted participant."""
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
@@ -401,6 +427,13 @@ def test_request_entry_accepted_participant(
         configuration=room.configuration,
         participant_id="test-participant-id",
         role=None,
+    )
+    mock_room_creation.assert_called_once_with(
+        str(room.id),
+        metadata={
+            "configuration": room.configuration,
+            "access_level": room.access_level,
+        },
     )
 
 

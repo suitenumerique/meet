@@ -16,6 +16,7 @@ from rest_framework import (
 from core import analytics, models
 from core.api import permissions, throttling
 from core.api.feature_flag import FeatureFlag
+from core.services.room_management import RoomManagement, RoomManagementException
 from core.services.sip_management import SIPException, SIPManagement
 
 from . import authentication, serializers
@@ -64,7 +65,10 @@ class RoomKitViewSet(viewsets.ViewSet):
             raise drf_exceptions.NotFound("No room found for this PIN code.") from e
 
         try:
+            RoomManagement.ensure_room(room)
             created = SIPManagement().ensure_dispatch_rule(room)
+        except RoomManagementException as e:
+            raise drf_exceptions.APIException("Could not create the room.") from e
         except SIPException as e:
             raise drf_exceptions.APIException("Could not create dispatch rule.") from e
 

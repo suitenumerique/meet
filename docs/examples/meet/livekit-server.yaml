@@ -3,6 +3,11 @@ redis:
   address: redis:6379
 keys:
   meet: <your livekit secret key>
+# The backend creates rooms before it hands out a join token, so LiveKit must not
+# create them on join. This also lets Meet share its LiveKit instance with
+# services that require this setting to be false for security reasons.
+room:
+  auto_create: false
 # WebRTC configuration
 rtc:
   # # when set, LiveKit will attempt to use a UDP mux so all UDP traffic goes through

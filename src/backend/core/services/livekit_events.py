@@ -358,8 +358,9 @@ class LiveKitEventsService:
     def _close_deleted_room(room_id):
         """Close a LiveKit room recreated after its room was soft deleted.
 
-        LiveKit auto-creates a room on join, so a participant still holding a
-        valid token can bring a deleted room back to life until the token expires.
+        A participant still holding a valid token can bring a deleted room back
+        to life until the token expires when the LiveKit server auto-creates
+        rooms on join.
         """
 
         logger.warning(
