@@ -52,6 +52,7 @@ and this project adheres to
 - ♿️(frontend) use a heading for every connection test card title
 - ♿️(frontend) put the ProConnect link label inside the link
 - 🔒️(frontend) bump nginx to 1.31.9 (CERT-EU 2026-022)
+- ⚡️(frontend) animate floating reactions without rendering each frame
 
 ## [1.37.0] - 2026-11-01
 

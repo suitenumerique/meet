@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
@@ -29,39 +29,35 @@ export function FloatingReaction({
   speed = 1,
   scale = 1,
 }: FloatingReactionProps) {
-  const [deltaY, setDeltaY] = useState(0)
-  const [opacity, setOpacity] = useState(1)
+  const elementRef = useRef<HTMLDivElement>(null)
 
   const [left] = useState(
     () => Math.random() * window.innerWidth * REACTION_SPAWN_WIDTH_RATIO
   )
 
   useEffect(() => {
-    let start: number | null = null
-    function animate(timestamp: number) {
-      if (start === null) start = timestamp
-      const elapsed = timestamp - start
-      if (elapsed < 0) {
-        setOpacity(0)
-      } else {
-        const progress = Math.min(elapsed / ANIMATION_DURATION, 1)
-        const distance = ANIMATION_DISTANCE * speed
-        const newY = progress * distance
-        setDeltaY(newY)
-        if (progress > FADE_OUT_THRESHOLD) {
-          setOpacity(1 - (progress - FADE_OUT_THRESHOLD) / 0.3)
-        }
-      }
-      if (elapsed < ANIMATION_DURATION) {
-        requestAnimationFrame(animate)
-      }
-    }
-    const req = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(req)
+    const element = elementRef.current
+    if (!element) return
+
+    const distance = ANIMATION_DISTANCE * speed
+    const animation = element.animate(
+      [
+        { transform: 'translateY(0)', opacity: 1 },
+        {
+          transform: `translateY(${-distance * FADE_OUT_THRESHOLD}px)`,
+          opacity: 1,
+          offset: FADE_OUT_THRESHOLD,
+        },
+        { transform: `translateY(${-distance}px)`, opacity: 0 },
+      ],
+      { duration: ANIMATION_DURATION, easing: 'linear', fill: 'forwards' }
+    )
+    return () => animation.cancel()
   }, [speed])
 
   return (
     <div
+      ref={elementRef}
       className={css({
         position: 'absolute',
         display: 'flex',
@@ -70,8 +66,7 @@ export function FloatingReaction({
       })}
       style={{
         left: left,
-        bottom: INITIAL_POSITION + deltaY,
-        opacity: opacity,
+        bottom: INITIAL_POSITION,
       }}
     >
       <img
