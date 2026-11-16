@@ -8,13 +8,61 @@ import uuid
 from unittest import mock
 
 import pytest
+from django.test import override_settings
 from rest_framework.test import APIClient
 
 from ...factories import RoomFactory, UserFactory
+from ...services.room_roles import RoomRoleService
 from ...models import ResourceAccess, RoleChoices
 from ...services.participants_management import ParticipantNotFoundException
 
 pytestmark = pytest.mark.django_db
+
+
+@override_settings(LIVEKIT_DEFAULT_SOURCES=["camera", "microphone"])
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_sync_admin_role_grants_all_default_sources(mock_participants_management):
+    """Promoting a participant restores LiveKit's publish sources."""
+    room = RoomFactory(configuration={"can_publish_sources": []})
+
+    assert RoomRoleService._sync_livekit_role(
+        room_name=str(room.pk),
+        participant_identity="participant-id",
+        role="administrator",
+    )
+
+    mock_participants_management.return_value.update.assert_called_once_with(
+        room_name=str(room.pk),
+        identity="participant-id",
+        attributes={"room_role": "administrator"},
+        permission={
+            "can_publish": True,
+            "can_publish_sources": ["camera", "microphone"],
+        },
+    )
+
+
+@override_settings(LIVEKIT_DEFAULT_SOURCES=["camera", "microphone"])
+@mock.patch("core.services.room_roles.ParticipantsManagement")
+def test_sync_member_role_uses_room_publish_sources(mock_participants_management):
+    """Demoting a participant reapplies the room's publish restrictions."""
+    room = RoomFactory(configuration={"can_publish_sources": ["camera"]})
+
+    assert RoomRoleService._sync_livekit_role(
+        room_name=str(room.pk),
+        participant_identity="participant-id",
+        role="member",
+    )
+
+    mock_participants_management.return_value.update.assert_called_once_with(
+        room_name=str(room.pk),
+        identity="participant-id",
+        attributes={"room_role": "member"},
+        permission={
+            "can_publish": True,
+            "can_publish_sources": ["camera"],
+        },
+    )
 
 
 def test_update_participant_role_anonymous():
