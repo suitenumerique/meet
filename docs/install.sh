@@ -84,8 +84,11 @@ export MEET_HOST IDP_HOST LIVEKIT_HOST LETSENCRYPT_EMAIL
 # ── Docker network ────────────────────────────────────────────────────────────
 
 section "Docker network"
-docker network create proxy 2>/dev/null && success "Created 'proxy' network." \
-  || info "'proxy' network already exists."
+if docker network create proxy 2>/dev/null; then
+  success "Created 'proxy' network."
+else
+  info "'proxy' network already exists."
+fi
 
 # ── Write shared hosts file ───────────────────────────────────────────────────
 

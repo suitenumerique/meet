@@ -54,7 +54,10 @@ fi
 
 # The stack's .env holds MEET_HOST, which the realm and the webhook URL need.
 if [[ -f "${STACK_DIR}/.env" ]]; then
-  set -a; . "${STACK_DIR}/.env"; set +a
+  set -a
+  # shellcheck source=/dev/null
+  . "${STACK_DIR}/.env"
+  set +a
 fi
 
 if [[ ! -d "$ENV_DIR" ]]; then
