@@ -216,7 +216,7 @@ The resource an action was performed on is described with ECS `entity.target`, t
 | Field | Meaning |
 |---|---|
 | `entity.target.id` | Its primary key |
-| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess` or `transit_code` (identified by its SHA-256) |
+| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess`, `transit_code` (identified by its SHA-256) or `livekit_room` (identified by its name: the id of its room, or the slug of an unregistered room) |
 | `entity.target.type` | Its ECS entity type, when one fits: `user` for an account, `application` for an application |
 | `entity.target.name` | Its name, when its model registers one |
 | `entity.target.raw.*` | The other fields its model registers, such as a room's `slug` and `access_level`, or the OIDC `sub` of a user |
@@ -311,6 +311,13 @@ and `requested_mode` is `transcript`.
 
 Transcripts and summaries are not recordings, but what the summary service derives from one. They are audited under
 `recording.transcript.*` and `recording.summary.*`, with the recording as their target.
+
+### LiveKit rooms
+
+| `event.action` | Emitted when | Notable fields |
+|---|---|---|
+| `livekit.placement.relocate` | A room is relocated to another LiveKit cluster (see [Multi-cluster LiveKit](multi-cluster.md#relocating-a-room)). A refused relocation changes nothing and emits nothing | `entity.target` is the LiveKit room. `lasuite.actor.type` is `system` unless a user is named as the actor. `lasuite.details.source_cluster`, `target_cluster` and `relocation_id` |
+| `livekit.room.close` | The backend closes a LiveKit room on a cluster it is no longer placed on, after a relocation or for a stray LiveKit room, or fails to. Nothing is emitted when the LiveKit room is not live there | `service.target.name` is `livekit`, and `entity.target` is the LiveKit room. `lasuite.details.cluster` and `relocation_id`, which is the relocation's after a relocation |
 
 ### Sign-in and the admin
 

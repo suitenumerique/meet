@@ -22,7 +22,7 @@ It uses LiveKit Egress to record room sessions. For reference, see the [LiveKit 
 
 To use the room recording feature, the following components are required:
 
-- A running [LiveKit Egress](https://github.com/livekit/egress) server capable of handling room composite recordings.
+- A running [LiveKit Egress](https://github.com/livekit/egress) server capable of handling room composite recordings, on every LiveKit cluster (see [Multi-cluster LiveKit](multi-cluster.md#recordings-subtitles-and-agents)).
 - A S3-compatible object storage where the egress uploads the recorded files.
 - An email service to notify room owners when a recording is available for download.
 - Webhook events configured between LiveKit Server and the backend.
@@ -39,7 +39,7 @@ sequenceDiagram
     participant User
     participant Frontend as Frontend (React)
     participant Backend as Django Backend
-    participant LiveKit as LiveKit API
+    participant LiveKit as LiveKit API (room's cluster)
     participant Egress as LiveKit Egress
     participant Storage as Object Storage
     participant Room as LiveKit Room
@@ -49,6 +49,8 @@ sequenceDiagram
     
     Frontend->>Backend: POST /api/v1.0/rooms/{id}/start-recording/
   
+    Backend->>Backend: Create Recording on the LiveKit cluster the room is placed on
+    Note over Backend,LiveKit: Every later call about this recording goes to that cluster
     Backend->>LiveKit: Create egress request
     
     LiveKit->>Egress: Start room composite egress

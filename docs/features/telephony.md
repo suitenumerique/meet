@@ -6,6 +6,7 @@ Enable participants to join a video conference via phone, allowing them to parti
 
 * Supports only a single SIP trunk provider per instance.
 * A participant joining over the phone cannot enter the room until the first WebRTC participant has connected.
+* Requires a single LiveKit cluster: the backend refuses to start with `ROOM_TELEPHONY_ENABLED` and more than one cluster in `LIVEKIT_CLUSTERS` (see [Multi-cluster LiveKit](multi-cluster.md)).
 
 ## Special requirements
 
@@ -21,6 +22,7 @@ To use the telephony feature, the following components are required:
 
 ```mermaid
 sequenceDiagram
+    participant Frontend
     participant Backend
     participant LiveKit as LiveKit Service
     participant SIP as LiveKit SIP
@@ -29,10 +31,14 @@ sequenceDiagram
     Backend->>Backend: Create new room
     Backend->>Backend: Assign unique pin code to room
 
+    Frontend->>Backend: POST /api/v1.0/rooms/{id}/join/
+    Backend->>LiveKit: CreateRoom
+    Backend-->>Frontend: livekit url and token
+
     LiveKit-->>Backend: Webhook room_started
     Backend->>Dispatch: Create LiveKit SIP dispatch rule
 
-    LiveKit-->>Backend: Webhook room_ended
+    LiveKit-->>Backend: Webhook room_finished
     Backend->>Dispatch: Clear LiveKit SIP dispatch rule
 ```
 
