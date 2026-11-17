@@ -70,5 +70,11 @@
       "member": "Miembro"
     }
   },
-  "openMenu": "Abrir el menú"
+  "openMenu": "Abrir el menú",
+  "joinedSummary_one": "{{count}} participante se ha unido",
+  "joinedSummary_other": "{{count}} participantes se han unido",
+  "raisedSummary_one": "{{count}} participante ha levantado la mano",
+  "raisedSummary_other": "{{count}} participantes han levantado la mano",
+  "messagesSummary_one": "{{count}} mensaje nuevo",
+  "messagesSummary_other": "{{count}} mensajes nuevos"
 }
