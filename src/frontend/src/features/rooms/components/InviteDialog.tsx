@@ -92,8 +92,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
         </Heading>
         <Div position="absolute" top="5" right="5">
           <Button
-            invisible
-            variant="tertiaryText"
+            variant="tertiaryNeutral"
             size="xs"
             onPress={dismiss}
             aria-label={t('closeDialog')}
