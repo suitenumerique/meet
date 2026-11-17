@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.37.1] - 2026-11-17
+
 ### Added
 
 - ✨(backend) add OIDC_ALLOW_DUPLICATE_EMAILS to let users share an email
