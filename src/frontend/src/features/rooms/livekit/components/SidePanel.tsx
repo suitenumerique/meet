@@ -130,8 +130,7 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
         }}
       >
         <Button
-          invisible
-          variant="tertiaryText"
+          variant="tertiaryNeutral"
           size="xs"
           onPress={onClose}
           aria-label={closeButtonTooltip}
