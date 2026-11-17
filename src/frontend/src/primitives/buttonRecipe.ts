@@ -155,6 +155,20 @@ export const buttonRecipe = cva({
           backgroundColor: 'brand.150',
         },
       },
+      tertiaryNeutral: {
+        backgroundColor: 'transparent',
+        fontWeight: 'medium !important',
+        color: 'brand.850',
+        '&[data-hovered]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+        '&[data-pressed]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+        '&[data-focus-visible]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+      },
       primaryDark: {
         backgroundColor: 'gray.700',
         fontWeight: 'medium !important',
