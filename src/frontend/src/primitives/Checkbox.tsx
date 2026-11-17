@@ -17,6 +17,10 @@ const StyledCheckbox = styled(RACCheckbox, {
     gap: '2xs',
     forcedColorAdjust: 'none',
     width: 'fit-content',
+    cursor: 'pointer',
+    '&[data-disabled]': {
+      cursor: 'default',
+    },
     '& .mt-Checkbox-checkbox': {
       borderColor: 'border.semantic.neutral.primary',
       flexShrink: 0,

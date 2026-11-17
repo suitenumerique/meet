@@ -15,6 +15,10 @@ const StyledRadio = styled(RACRadio, {
     gap: '2xs',
     forcedColorAdjust: 'none',
     width: 'fit-content',
+    cursor: 'pointer',
+    '&[data-disabled]': {
+      cursor: 'default',
+    },
     '& .mt-Radio': {
       borderRadius: 'full',
       flexShrink: 0,
