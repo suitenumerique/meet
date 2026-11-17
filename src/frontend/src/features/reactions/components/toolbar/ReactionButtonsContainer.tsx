@@ -31,6 +31,13 @@ const StyledContainer = styled('div', {
     transitionDuration: '0.5s',
     transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
     pointerEvents: 'none',
+    '& button[data-hovered]': {
+      backgroundColor: 'white.100',
+    },
+    '& button[data-pressed]': {
+      backgroundColor: 'white.150',
+      color: 'white',
+    },
   },
   variants: {
     isVisible: {
