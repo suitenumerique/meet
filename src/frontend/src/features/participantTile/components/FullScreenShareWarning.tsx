@@ -93,7 +93,7 @@ export const FullScreenShareWarning = ({
             position: 'absolute',
             height: '100%',
             width: '100%',
-            backgroundColor: 'rgba(22, 22, 34, 0.9)',
+            backgroundColor: 'gray.900/90',
             padding: '2rem',
           })}
         >

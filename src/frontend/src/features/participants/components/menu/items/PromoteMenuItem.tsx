@@ -35,7 +35,7 @@ export const PromoteMenuItem = React.memo(
         className={menuRecipe({ icon: true }).item}
         onAction={toggleRole}
       >
-        <HStack gap={0.25} minWidth={280}>
+        <HStack gap="3xs" minWidth={280}>
           <Icon size={20} aria-hidden />
           {t(`${label}.label`)}
         </HStack>

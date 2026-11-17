@@ -12,7 +12,7 @@ const StyledRadio = styled(RACRadio, {
     // anchor the visually hidden input, so it scrolls with the radio
     position: 'relative',
     alignItems: 'center',
-    gap: 0.375,
+    gap: '2xs',
     forcedColorAdjust: 'none',
     width: 'fit-content',
     '& .mt-Radio': {
@@ -20,7 +20,7 @@ const StyledRadio = styled(RACRadio, {
       flexShrink: 0,
       width: '1.125rem',
       height: '1.125rem',
-      border: '1px solid {colors.control.border}',
+      border: '1px solid {colors.border.semantic.neutral.primary}',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -34,7 +34,7 @@ const StyledRadio = styled(RACRadio, {
       transition: 'all 200ms',
     },
     '&[data-pressed] .mt-Radio': {
-      borderColor: 'primary.active',
+      borderColor: 'background.semantic.brand.primary-hover',
     },
     '&[data-focus-visible] .mt-Radio': {
       outline: '2px solid!',
@@ -42,13 +42,13 @@ const StyledRadio = styled(RACRadio, {
       outlineOffset: '2px!',
     },
     '&[data-selected] .mt-Radio': {
-      borderColor: 'primary',
+      borderColor: 'border.semantic.brand.primary',
     },
     '&[data-selected] .mt-Radio-check': {
-      backgroundColor: 'primary',
+      backgroundColor: 'background.semantic.brand.primary',
     },
     '&[data-selected][data-pressed] .mt-Radio-check': {
-      backgroundColor: 'primary.active',
+      backgroundColor: 'background.semantic.brand.primary-hover',
     },
   },
   variants: {

@@ -17,12 +17,12 @@ type SummaryState =
 
 /** Only a failure or a degraded route earns a colour: everything else stays near-black. */
 const stateColorClass: Record<SummaryState, string> = {
-  idle: css({ color: 'greyscale.1000' }),
-  running: css({ color: 'greyscale.1000' }),
-  passed: css({ color: 'greyscale.1000' }),
-  partial: css({ color: 'greyscale.1000' }),
-  failed: css({ color: 'danger.600' }),
-  warning: css({ color: 'warning' }),
+  idle: css({ color: 'gray.850' }),
+  running: css({ color: 'gray.850' }),
+  passed: css({ color: 'gray.850' }),
+  partial: css({ color: 'gray.850' }),
+  failed: css({ color: 'content.semantic.error.secondary' }),
+  warning: css({ color: 'content.semantic.warning.secondary' }),
 }
 
 /**
@@ -45,7 +45,7 @@ const getSummaryState = (
 const cardClass = css({
   width: '100%',
   borderRadius: '5px',
-  border: '1px solid {colors.greyscale.900}',
+  border: '1px solid {colors.gray.850}',
   backgroundColor: 'white',
   padding: { base: '1.25rem', xsm: '1.75rem' },
   display: 'flex',
@@ -63,14 +63,14 @@ const headerClass = css({
 const eyebrowClass = css({
   textStyle: 'sm',
   fontWeight: 'medium',
-  color: 'greyscale.600',
+  color: 'gray.600',
   margin: 0,
 })
 
 const headlineClass = css({
   // Sized for the longest state string ("N vérifications en échec"), not for
   // the shortest one.
-  fontSize: { base: '28', xsm: '40' },
+  fontSize: { base: 'h2', xsm: '2.375rem' },
   lineHeight: '1.1',
   fontWeight: 'bold',
   letterSpacing: '-0.02em',
@@ -80,14 +80,14 @@ const headlineClass = css({
 
 const hintClass = css({
   textStyle: 'sm',
-  color: 'greyscale.600',
+  color: 'gray.600',
   margin: 0,
   maxWidth: '34rem',
 })
 
 const dividerClass = css({
   // Lighter than the card border: an inner rule should never compete with it.
-  borderTop: '1px solid {colors.greyscale.100}',
+  borderTop: '1px solid {colors.gray.050}',
   paddingTop: '1.25rem',
   display: 'flex',
   flexDirection: 'column',
@@ -104,21 +104,21 @@ const trackClass = css({
   height: '0.375rem',
   width: '100%',
   borderRadius: 'full',
-  backgroundColor: 'greyscale.200',
+  backgroundColor: 'gray.100',
   overflow: 'hidden',
 })
 
 const fillClass = css({
   height: '100%',
   borderRadius: 'full',
-  backgroundColor: 'primary.800',
+  backgroundColor: 'brand.550',
   transition: 'width 200ms ease-out',
 })
 
 const progressValueClass = css({
   textStyle: 'sm',
   fontVariantNumeric: 'tabular-nums',
-  color: 'greyscale.700',
+  color: 'gray.750',
   whiteSpace: 'nowrap',
   // Reserved width so the bar does not resize when the digits change.
   minWidth: '3rem',
@@ -136,7 +136,7 @@ const counterClass = css({
   alignItems: 'center',
   gap: '0.5rem',
   textStyle: 'sm',
-  color: 'greyscale.600',
+  color: 'gray.600',
 })
 
 const counterSquareClass = css({
@@ -149,14 +149,14 @@ const counterSquareClass = css({
 const counterValueClass = css({
   fontWeight: 'medium',
   fontVariantNumeric: 'tabular-nums',
-  color: 'greyscale.1000',
+  color: 'gray.850',
 })
 
 /** A zero count is context, not a result: it recedes instead of shouting. */
 const emptyCounterClass = css({ color: 'greyscale.600' })
 const emptySquareClass = css({
   backgroundColor: 'transparent!',
-  border: '1px solid {colors.greyscale.250}',
+  border: '1px solid {colors.gray.100}',
 })
 
 const actionsClass = css({

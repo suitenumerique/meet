@@ -64,7 +64,7 @@ export const ScreenShareZoomControls = ({
         className={css({
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: 'primaryDark.50',
+          backgroundColor: 'gray.900',
           borderRadius: '2rem',
           padding: '0.5rem',
           opacity: 0.7,

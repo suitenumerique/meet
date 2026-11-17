@@ -12,8 +12,8 @@ import { StyledPopover } from './StyledPopover'
 const StyledOverlayArrow = styled(OverlayArrow, {
   base: {
     display: 'block',
-    fill: 'box.bg',
-    stroke: 'box.border',
+    fill: 'background.surface.primary',
+    stroke: 'border.surface.primary',
     strokeWidth: 1,
     '&[data-placement="bottom"] svg': {
       transform: 'rotate(180deg) translateY(-1px)',
@@ -23,8 +23,8 @@ const StyledOverlayArrow = styled(OverlayArrow, {
     variant: {
       light: {},
       dark: {
-        fill: 'primaryDark.50',
-        stroke: 'primaryDark.50',
+        fill: 'gray.900',
+        stroke: 'gray.900',
       },
     },
   },

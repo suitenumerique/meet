@@ -5,13 +5,13 @@ export const menuRecipe = sva({
   base: {
     root: {},
     item: {
-      paddingY: 0.125,
-      paddingX: 0.5,
+      paddingY: '4xs',
+      paddingX: 'xs',
       textAlign: 'left',
       width: 'full',
       borderRadius: 4,
       cursor: 'pointer',
-      color: 'box.text',
+      color: 'content.semantic.neutral.primary',
       border: '1px solid transparent',
       position: 'relative',
       '&[data-selected]': {
@@ -23,12 +23,12 @@ export const menuRecipe = sva({
         },
       },
       '&[data-focused]': {
-        color: 'primary.text',
-        backgroundColor: 'primaryDark.100',
+        color: 'content.semantic.brand.on-brand',
+        backgroundColor: 'gray.700',
       },
       '&[data-hovered]': {
-        color: 'primary.text',
-        backgroundColor: 'primaryDark.100',
+        color: 'content.semantic.brand.on-brand',
+        backgroundColor: 'gray.700',
       },
       '&[data-focus-visible]': {
         outline: '2px solid',
@@ -42,10 +42,10 @@ export const menuRecipe = sva({
       light: {
         item: {
           '&[data-focused]': {
-            backgroundColor: 'primary.800',
+            backgroundColor: 'brand.550',
           },
           '&[data-hovered]': {
-            backgroundColor: 'primary.800',
+            backgroundColor: 'brand.550',
           },
         },
       },
@@ -62,7 +62,7 @@ export const menuRecipe = sva({
     extraPadding: {
       true: {
         item: {
-          paddingLeft: 1.5,
+          paddingLeft: 'md',
         },
       },
     },

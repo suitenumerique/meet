@@ -89,7 +89,7 @@ export function FloatingReaction({
         <Text
           variant="sm"
           className={css({
-            backgroundColor: isLocal ? 'primary.100' : 'primaryDark.100',
+            backgroundColor: isLocal ? 'brand.100' : 'gray.700',
             color: isLocal ? 'black' : 'white',
             fontWeight: 500,
             textAlign: 'center',

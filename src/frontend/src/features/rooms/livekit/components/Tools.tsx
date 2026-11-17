@@ -37,10 +37,10 @@ const ToolButton = ({
         paddingX: '0.75rem 1.5rem',
         borderRadius: '30px',
         width: 'full',
-        backgroundColor: 'gray.50',
+        backgroundColor: 'gray.025',
         textAlign: 'start',
         '&[data-hovered]': {
-          backgroundColor: 'primary.50',
+          backgroundColor: 'brand.050',
           cursor: 'pointer',
         },
       })}
@@ -56,7 +56,7 @@ const ToolButton = ({
           justifyContent: 'center',
           alignItems: 'center',
           position: 'relative',
-          background: 'primary.800',
+          background: 'brand.550',
           color: 'white',
         })}
       >
@@ -68,8 +68,8 @@ const ToolButton = ({
           as="h2"
           className={css({
             display: 'flex',
-            gap: 0.25,
-            fontWeight: 'semibold',
+            gap: '3xs',
+            fontWeight: 'bold',
           })}
         >
           {title}
@@ -146,7 +146,7 @@ export const Tools = () => {
       flexGrow={1}
       flexDirection="column"
       alignItems="start"
-      gap={0.5}
+      gap="xs"
     >
       <Text
         variant="note"

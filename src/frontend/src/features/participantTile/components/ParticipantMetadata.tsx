@@ -23,7 +23,7 @@ export const ParticipantMetadata = ({
 
   return (
     <div className="lk-participant-metadata">
-      <HStack gap={0.25}>
+      <HStack gap="3xs">
         {!isScreenShare && <MutedMicIndicator participant={participant} />}
         <RaisedHandMetadataWrapper
           participant={participant}

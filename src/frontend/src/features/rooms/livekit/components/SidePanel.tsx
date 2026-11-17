@@ -56,9 +56,9 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
       className={css({
         borderWidth: '1px',
         borderStyle: 'solid',
-        borderColor: 'box.border',
-        backgroundColor: 'box.bg',
-        color: 'box.text',
+        borderColor: 'border.surface.primary',
+        backgroundColor: 'background.surface.primary',
+        color: 'content.semantic.neutral.primary',
         borderRadius: 8,
         flex: 1,
         position: 'absolute',

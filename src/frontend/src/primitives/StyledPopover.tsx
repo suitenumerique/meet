@@ -11,7 +11,7 @@ export const StyledPopover = styled(RACPopover, {
       animation: 'slide 200ms reverse ease-in',
     },
     '&[data-placement="bottom"]': {
-      marginTop: 0.25,
+      marginTop: '3xs',
     },
     '&[data-placement=top]': {
       '--origin': 'translateY(8px)',

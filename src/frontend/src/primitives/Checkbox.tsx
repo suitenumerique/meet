@@ -14,11 +14,11 @@ const StyledCheckbox = styled(RACCheckbox, {
   base: {
     display: 'flex',
     alignItems: 'center',
-    gap: 0.375,
+    gap: '2xs',
     forcedColorAdjust: 'none',
     width: 'fit-content',
     '& .mt-Checkbox-checkbox': {
-      borderColor: 'control.border',
+      borderColor: 'border.semantic.neutral.primary',
       flexShrink: 0,
       width: '1.375rem',
       height: '1.375rem',
@@ -30,7 +30,7 @@ const StyledCheckbox = styled(RACCheckbox, {
       transition: 'all 200ms',
     },
     '& svg': {
-      stroke: 'primary.text',
+      stroke: 'content.semantic.brand.on-brand',
       width: '0.875rem',
       height: '0.875rem',
       flexShrink: 0,
@@ -49,21 +49,21 @@ const StyledCheckbox = styled(RACCheckbox, {
       outlineOffset: '2px!',
     },
     '&[data-selected] .mt-Checkbox-checkbox': {
-      borderColor: 'primary',
-      backgroundColor: 'primary',
+      borderColor: 'border.semantic.brand.primary',
+      backgroundColor: 'background.semantic.brand.primary',
     },
     '&[data-selected][data-pressed] .mt-Checkbox-checkbox': {
-      borderColor: 'primary.active',
-      backgroundColor: 'primary.active',
+      borderColor: 'background.semantic.brand.primary-hover',
+      backgroundColor: 'background.semantic.brand.primary-hover',
     },
     '&[data-selected] svg': {
       strokeDashoffset: '44',
     },
     '&[data-mt-checkbox-invalid="true"] .mt-Checkbox-checkbox': {
-      borderColor: 'danger',
+      borderColor: 'border.semantic.error.primary',
     },
     '&[data-selected][data-mt-checkbox-invalid="true"] .mt-Checkbox-checkbox': {
-      backgroundColor: 'danger',
+      backgroundColor: 'background.semantic.error.primary',
     },
   },
   variants: {

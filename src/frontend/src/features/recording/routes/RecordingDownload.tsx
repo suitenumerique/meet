@@ -26,7 +26,7 @@ const BetaBadge = () => (
       display: 'block',
       letterSpacing: '-0.02rem',
       padding: '0 0.25rem',
-      backgroundColor: 'primary.100',
+      backgroundColor: 'brand.050',
       color: '#0063CB',
       fontSize: '14px',
       fontWeight: 500,
@@ -155,7 +155,7 @@ const RecordingDownload = () => {
             </LinkButton>
             <div
               className={css({
-                backgroundColor: 'greyscale.50',
+                backgroundColor: 'gray.025',
                 borderRadius: '5px',
                 paddingY: '1rem',
                 paddingX: '1rem',

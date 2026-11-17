@@ -37,7 +37,7 @@ export function ToastRecordingSaving({
         alignItems="center"
         {...contentProps}
         padding={14}
-        gap={1}
+        gap="base"
       >
         <Text
           margin={false}

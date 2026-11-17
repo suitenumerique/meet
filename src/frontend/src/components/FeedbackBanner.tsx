@@ -14,8 +14,8 @@ export const FeedbackBanner = () => {
     <div
       className={css({
         width: '100%',
-        backgroundColor: 'primary.50',
-        color: 'primary.600',
+        backgroundColor: 'brand.050',
+        color: 'brand.700',
         display: { base: 'none', sm: 'flex' },
         justifyContent: 'center',
         padding: '0.5rem 0',
@@ -36,7 +36,7 @@ export const FeedbackBanner = () => {
           className={css({
             display: 'flex',
             alignItems: 'center',
-            gap: 0.25,
+            gap: '3xs',
           })}
         >
           <A href={data?.feedback?.url} target="_blank" size="sm">

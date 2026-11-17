@@ -73,9 +73,9 @@ export default tseslint.config(
     },
   },
 
-  // CJS and root-level JS config files (postcss.config.js, etc.)
+  // CJS, root-level JS config files (postcss.config.js, etc.) and Node scripts
   {
-    files: ['**/*.cjs', '*.config.js'],
+    files: ['**/*.cjs', '*.config.js', 'scripts/**/*.mjs'],
     languageOptions: {
       globals: {
         ...globals.node,

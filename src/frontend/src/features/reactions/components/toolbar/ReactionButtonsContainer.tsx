@@ -23,7 +23,7 @@ const StyledContainer = styled('div', {
     alignItems: 'center',
     gap: '0.2rem',
     borderRadius: '21px',
-    backgroundColor: 'primaryDark.100',
+    backgroundColor: 'gray.700',
     maxWidth: '100%',
     opacity: 0,
     translate: '0 3.25rem',

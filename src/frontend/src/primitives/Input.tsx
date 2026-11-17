@@ -9,11 +9,11 @@ import { Input as RACInput } from 'react-aria-components'
 export const Input = styled(RACInput, {
   base: {
     width: 'full',
-    paddingY: 0.25,
-    paddingX: 0.5,
+    paddingY: '3xs',
+    paddingX: 'xs',
     border: '1px solid',
-    borderColor: 'control.border',
-    color: 'control.text',
+    borderColor: 'border.semantic.neutral.primary',
+    color: 'content.semantic.neutral.primary',
     borderRadius: 4,
     transition: 'all 200ms',
   },

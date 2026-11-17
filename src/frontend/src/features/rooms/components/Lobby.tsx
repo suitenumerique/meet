@@ -149,7 +149,7 @@ export const Lobby = ({
             fullWidth: true,
           }}
         >
-          <VStack marginBottom={1}>
+          <VStack marginBottom="base">
             <H lvl={1} margin="sm" centered>
               {t('heading')}
             </H>

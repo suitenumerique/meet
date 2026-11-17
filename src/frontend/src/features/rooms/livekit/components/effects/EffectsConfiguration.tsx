@@ -46,7 +46,7 @@ const isSupported = BackgroundProcessorFactory.isSupported()
 
 const Information = styled('div', {
   base: {
-    backgroundColor: 'orange.50',
+    backgroundColor: 'warning.050',
     borderRadius: '4px',
     padding: '0.75rem 0.75rem',
     alignItems: 'start',
@@ -621,7 +621,7 @@ export const EffectsConfiguration = ({
           layout === 'horizontal'
             ? {
                 md: {
-                  borderLeft: '1px solid greyscale.250',
+                  borderLeft: '1px solid gray.100',
                   paddingLeft: '1.5rem',
                   width: '420px',
                   flexShrink: 0,

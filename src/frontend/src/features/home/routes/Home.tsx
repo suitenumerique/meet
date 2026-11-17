@@ -109,7 +109,7 @@ const RightColumn = ({ children }: { children?: ReactNode }) => {
 const Separator = styled('div', {
   base: {
     borderBottom: '1px solid',
-    borderColor: 'greyscale.500',
+    borderColor: 'gray.500',
     marginTop: '2.5rem',
     maxWidth: '30rem',
     width: '100%',
@@ -188,7 +188,7 @@ const Home = () => {
             <div
               className={css({
                 display: 'flex',
-                gap: 0.5,
+                gap: 'xs',
                 flexDirection: { base: 'column', xsm: 'row' },
                 flexWrap: 'wrap',
                 alignItems: { base: 'center', xsm: 'items-start' },

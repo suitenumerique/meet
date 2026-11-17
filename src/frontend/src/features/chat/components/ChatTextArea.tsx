@@ -15,7 +15,7 @@ const StyledContainer = styled('div', {
     display: 'flex',
     margin: '0.75rem 0 1.5rem',
     padding: '0.5rem',
-    backgroundColor: 'gray.100',
+    backgroundColor: 'gray.050',
     borderRadius: 4,
   },
 })

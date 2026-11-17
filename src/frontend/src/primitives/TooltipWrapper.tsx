@@ -50,14 +50,14 @@ const StyledTooltip = styled(RACTooltip, {
   base: {
     boxShadow: '0 var(--sizes-tooltip-spacing) 20px rgba(0 0 0 / 0.1)',
     borderRadius: '4px',
-    backgroundColor: 'primaryDark.100',
-    color: 'gray.100',
+    backgroundColor: 'gray.700',
+    color: 'gray.050',
     forcedColorAdjust: 'none',
     outline: 'none',
     padding: '2px var(--sizes-tooltip-spacing)',
     maxWidth: '200px',
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 'sm',
     transform: 'translate3d(0, 0, 0)',
     '&[data-placement=top]': {
       marginBottom: 'var(--sizes-tooltip-spacing)',
@@ -88,7 +88,7 @@ const StyledOverlayArrow = styled(OverlayArrow, {
   base: {
     '& svg': {
       display: 'block',
-      fill: 'gray.800',
+      fill: 'gray.700',
     },
     '&[data-placement=bottom] svg': {
       transform: 'rotate(180deg)',

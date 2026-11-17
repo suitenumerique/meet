@@ -20,7 +20,7 @@ export const CenteredContent = ({
       )}
       {children}
       {!!withBackButton && (
-        <Center marginTop={2}>
+        <Center marginTop="lg">
           <BackToHome size="sm" />
         </Center>
       )}

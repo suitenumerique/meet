@@ -22,11 +22,11 @@ const StyledButton = styled(Button, {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingY: 0.125,
-    paddingX: 0.25,
+    paddingY: '4xs',
+    paddingX: '3xs',
     border: '1px solid',
-    borderColor: 'control.border',
-    color: 'control.text',
+    borderColor: 'border.semantic.neutral.primary',
+    color: 'content.semantic.neutral.primary',
     borderRadius: 4,
     boxShadow: '0 1px 2px rgba(0 0 0 / 0.1)',
     '&[data-focus-visible]': {
@@ -34,12 +34,12 @@ const StyledButton = styled(Button, {
       outlineOffset: '-1px',
     },
     '&[data-pressed]': {
-      backgroundColor: 'control.hover',
+      backgroundColor: 'background.semantic.neutral.tertiary-hover',
     },
     // fixme disabled style is being overridden by placeholder one and needs refinement.
     '&[data-disabled]': {
-      color: 'default.subtle-text',
-      borderColor: 'gray.200',
+      color: 'content.semantic.neutral.secondary',
+      borderColor: 'gray.100',
       boxShadow: '0 1px 2px rgba(0 0 0 / 0.02)',
     },
   },
@@ -47,20 +47,20 @@ const StyledButton = styled(Button, {
     variant: {
       light: {},
       dark: {
-        backgroundColor: 'primaryDark.100',
+        backgroundColor: 'gray.700',
         fontWeight: 'medium !important',
         color: 'white',
         '&[data-pressed]': {
-          backgroundColor: 'primaryDark.900',
-          color: 'primaryDark.100',
+          backgroundColor: 'gray.100',
+          color: 'gray.700',
         },
         '&[data-hovered]': {
-          backgroundColor: 'primaryDark.300',
+          backgroundColor: 'gray.550',
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'primaryDark.700 !important',
-          color: 'primaryDark.100 !important',
+          backgroundColor: 'gray.250 !important',
+          color: 'gray.700 !important',
         },
       },
     },
@@ -76,7 +76,7 @@ const StyledSelectValue = styled(SelectValue, {
     overflow: 'hidden',
     textWrap: 'nowrap',
     '&[data-placeholder]': {
-      color: 'default.subtle-text',
+      color: 'content.semantic.neutral.secondary',
       fontStyle: 'italic',
     },
   },

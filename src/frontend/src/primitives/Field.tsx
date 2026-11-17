@@ -188,7 +188,7 @@ export const Field = <T extends object>({
           {...(props as PartialCheckboxGroupProps)}
         >
           {LabelAndDescription}
-          <Div marginTop={0.25}>
+          <Div marginTop="3xs">
             {items.map((item, index) => (
               <FieldItem last={index === items.length - 1} key={item.value}>
                 <Checkbox size="sm" value={item.value}>
@@ -298,5 +298,5 @@ const FieldItem = ({
   children: ReactNode
   last?: boolean
 }) => {
-  return <Div {...(!last ? { marginBottom: 0.25 } : {})}>{children}</Div>
+  return <Div {...(!last ? { marginBottom: '3xs' } : {})}>{children}</Div>
 }

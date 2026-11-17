@@ -7,11 +7,11 @@ import { styled } from '@/styled-system/jsx'
 export const TextArea = styled(RACTextArea, {
   base: {
     width: 'full',
-    paddingY: 0.25,
-    paddingX: 0.5,
+    paddingY: '3xs',
+    paddingX: 'xs',
     border: '1px solid',
-    borderColor: 'control.border',
-    color: 'control.text',
+    borderColor: 'border.semantic.neutral.primary',
+    color: 'content.semantic.neutral.primary',
     borderRadius: 4,
     transition: 'all 200ms',
   },

@@ -14,7 +14,7 @@ const Container = styled('div', {
     height: '100%',
     display: 'grid',
     gridTemplateRows: 'minmax(0, 1fr) auto auto',
-    backgroundColor: 'primaryDark.50',
+    backgroundColor: 'gray.900',
     transition: 'padding .5s cubic-bezier(0.4,0,0.2,1) 5ms',
     // Disable LiveKit's own border-radius on tiles so our containers
     // (GridCell, Thumbnail, StageFrame) own the clipping exclusively.

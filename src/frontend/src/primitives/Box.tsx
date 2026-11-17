@@ -37,22 +37,22 @@ const box = cva({
       light: {
         borderWidth: '1px',
         borderStyle: 'solid',
-        borderColor: 'box.border',
-        backgroundColor: 'box.bg',
-        color: 'box.text',
+        borderColor: 'border.surface.primary',
+        backgroundColor: 'background.surface.primary',
+        color: 'content.semantic.neutral.primary',
       },
       subtle: {
-        color: 'default.subtle-text',
-        backgroundColor: 'default.subtle',
+        color: 'content.semantic.neutral.secondary',
+        backgroundColor: 'background.semantic.neutral.tertiary',
       },
       control: {
-        border: '1px solid {colors.control.border}',
-        backgroundColor: 'box.bg',
-        color: 'control.text',
+        border: '1px solid {colors.border.semantic.neutral.primary}',
+        backgroundColor: 'background.surface.primary',
+        color: 'content.semantic.neutral.primary',
       },
       dark: {
-        backgroundColor: 'primaryDark.50',
-        borderColord: 'primaryDark.50',
+        backgroundColor: 'gray.900',
+        borderColord: 'gray.900',
       },
     },
     size: {

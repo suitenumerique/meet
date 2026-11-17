@@ -10,10 +10,10 @@ const paginationToolbar = cva({
     display: 'flex',
     alignItems: 'center',
     gap: '0.125rem',
-    backgroundColor: 'primaryDark.50',
+    backgroundColor: 'gray.900',
     borderRadius: '2rem',
     border: '1px solid',
-    borderColor: 'primaryDark.200',
+    borderColor: 'gray.650',
     padding: '0.375rem',
   },
   variants: {

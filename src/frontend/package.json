@@ -12,6 +12,7 @@
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "i18n:extract": "npx i18next -c i18next-parser.config.json",
+    "theme:sync": "node scripts/sync-ui-kit-tokens.mjs",
     "format": "prettier --write ./src",
     "check": "prettier --check ./src"
   },

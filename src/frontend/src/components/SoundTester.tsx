@@ -47,7 +47,9 @@ export const SoundTester = () => {
         isDisabled={isPlaying}
         fullWidth
         style={{
-          color: isPlaying ? 'var(--colors-primary)' : undefined,
+          color: isPlaying
+            ? 'var(--colors-content-semantic-brand-tertiary)'
+            : undefined,
         }}
       >
         {isPlaying ? t('audio.speakers.ongoingTest') : t('audio.speakers.test')}

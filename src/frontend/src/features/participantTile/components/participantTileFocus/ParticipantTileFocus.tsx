@@ -104,7 +104,7 @@ export const ParticipantTileFocus = ({
     <FadeOverlay hasKeyboardFocus={hasKeyboardFocus} tileRef={tileRef}>
       <div
         className={css({
-          backgroundColor: 'primaryDark.50',
+          backgroundColor: 'gray.900',
           zIndex: 1,
           borderRadius: '0.25rem',
           display: 'flex',
@@ -116,7 +116,7 @@ export const ParticipantTileFocus = ({
           },
         })}
       >
-        <HStack gap={0.5} padding={0.5}>
+        <HStack gap="xs" padding="xs">
           <FocusButton trackRef={trackRef} />
           {!isScreenShare && (
             <>

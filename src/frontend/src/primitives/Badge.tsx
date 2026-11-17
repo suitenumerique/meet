@@ -4,8 +4,8 @@ const badge = cva({
   base: {
     display: 'inline-block',
     padding: '0.25rem 0.5rem',
-    backgroundColor: 'primary.subtle',
-    color: 'primary.subtle-text',
+    backgroundColor: 'background.semantic.brand.secondary',
+    color: 'content.semantic.brand.secondary',
     borderRadius: '6',
   },
   variants: {
