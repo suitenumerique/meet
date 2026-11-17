@@ -172,8 +172,8 @@ export const buttonRecipe = cva({
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'gray.250 !important',
-          color: 'gray.700 !important',
+          backgroundColor: 'brand.550 !important',
+          color: 'white !important',
         },
       },
       secondaryDark: {
@@ -188,8 +188,8 @@ export const buttonRecipe = cva({
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'gray.250 !important',
-          color: 'gray.700 !important',
+          backgroundColor: 'brand.550 !important',
+          color: 'white !important',
         },
       },
       primaryTextDark: {
@@ -204,8 +204,8 @@ export const buttonRecipe = cva({
           color: 'gray.700',
         },
         '&[data-selected]': {
-          backgroundColor: 'gray.250',
-          color: 'gray.700',
+          backgroundColor: 'brand.550',
+          color: 'white',
         },
         '&[data-focus-visible]': {
           outline: '2px solid',
