@@ -6,7 +6,7 @@ const Container = styled('div', {
   base: {
     border: '1px solid',
     borderColor: 'gray.100',
-    borderRadius: '8px',
+    borderRadius: 4,
     margin: '0 .625rem 0.9375rem',
   },
 })
@@ -24,11 +24,11 @@ const Header = styled('button', {
     width: '100%',
     fontSize: '1rem',
     transition: 'background 200ms',
-    borderTopRadius: '7px', // container radius (8) minus its 1px border
-    _hover: { backgroundColor: 'gray.025' },
+    borderTopRadius: '3px', // container radius (4) minus its 1px border
+    _hover: { backgroundColor: 'background.semantic.contextual.primary' },
   },
   variants: {
-    isOpen: { false: { borderRadius: '7px' } },
+    isOpen: { false: { borderRadius: '3px' } },
   },
 })
 
