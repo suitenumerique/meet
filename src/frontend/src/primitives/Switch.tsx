@@ -64,8 +64,8 @@ const StyledSwitch = styled(RACSwitch, {
       left: '4px',
       color: 'content.semantic.neutral.tertiary',
       opacity: 1,
-      transition: 'opacity 200ms',
-      transitionDelay: '0ms',
+      transition: 'opacity 100ms',
+      transitionDelay: '180ms',
     },
     '&[data-selected] .indicator': {
       backgroundColor: 'content.semantic.brand.tertiary',
@@ -75,8 +75,8 @@ const StyledSwitch = styled(RACSwitch, {
     },
     '&[data-selected] .checkmark': {
       opacity: 1,
-      transition: 'opacity 30ms',
-      transitionDelay: '150ms',
+      transition: 'opacity 100ms',
+      transitionDelay: '180ms',
     },
     '&[data-selected] .cross': {
       opacity: 0,
