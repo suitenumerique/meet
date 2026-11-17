@@ -66,11 +66,17 @@ export function ToastMessageReceived({
               })}
               aria-hidden="true"
             />
-            <span>{participant.name}</span>
+            <span>
+              {(toast.content.count ?? 1) > 1
+                ? t('messagesSummary', { count: toast.content.count })
+                : participant.name}
+            </span>
           </div>
-          <Text margin={false} centered={false} wrap={'pretty'} fullWidth>
-            {message}
-          </Text>
+          {(toast.content.count ?? 1) === 1 && (
+            <Text margin={false} centered={false} wrap={'pretty'} fullWidth>
+              {message}
+            </Text>
+          )}
         </div>
       </RACButton>
     </StyledToastContainer>

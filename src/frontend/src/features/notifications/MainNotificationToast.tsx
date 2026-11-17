@@ -1,4 +1,5 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { NoisyNotificationBatcher } from './NoisyNotificationBatcher'
 import { useRoomContext } from '@livekit/components-react'
 import { Participant, RemoteParticipant, RoomEvent } from 'livekit-client'
 import { type ChatMessage, isMobileBrowser } from '@livekit/components-core'
@@ -25,36 +26,84 @@ export const MainNotificationToast = () => {
 
   const { appendReaction } = useReactions()
 
+  const latest = useRef({ data, triggerNotificationSound, announce, t })
+  useEffect(() => {
+    latest.current = { data, triggerNotificationSound, announce, t }
+  }, [data, triggerNotificationSound, announce, t])
+
+  // Keep pending batches across renders, but never across rooms.
+  const noisyNotifications = useMemo(
+    () =>
+      new NoisyNotificationBatcher(
+        (content, notify = true) => {
+          const current = latest.current
+          if (
+            content.type === NotificationType.ParticipantJoined &&
+            (!current.data ||
+              room.numParticipants >= current.data.max_participants_for_sound)
+          ) {
+            toastQueue.discardWhere(
+              (item) => item.type === NotificationType.ParticipantJoined
+            )
+            return ''
+          }
+          if (
+            content.type === NotificationType.MessageReceived &&
+            layoutStore.activePanelId === PanelId.CHAT
+          ) {
+            if (notify) current.triggerNotificationSound(content.type)
+            return 'chat-panel'
+          }
+          const key = toastQueue.add(content, {
+            timeout:
+              content.type === NotificationType.MessageReceived
+                ? NotificationDuration.MESSAGE
+                : content.type === NotificationType.HandRaised
+                  ? NotificationDuration.HAND_RAISED
+                  : NotificationDuration.PARTICIPANT_JOINED,
+          })
+          if (key && notify) {
+            current.triggerNotificationSound(content.type)
+            if (content.type === NotificationType.MessageReceived) {
+              current.announce(
+                (content.count ?? 1) > 1
+                  ? current.t('messagesSummary', { count: content.count })
+                  : current.t('chatMessageReceived', {
+                      name:
+                        content.participant?.name || current.t('defaultName'),
+                      message: content.message,
+                    }),
+                'polite'
+              )
+            }
+          }
+          return key
+        },
+        (key) =>
+          key === 'chat-panel'
+            ? layoutStore.activePanelId === PanelId.CHAT
+            : toastQueue.has(key)
+      ),
+    [room]
+  )
+
   useEffect(() => {
     const handleChatMessage = (
       chatMessage: ChatMessage,
       participant?: Participant | undefined
     ) => {
       if (!participant || participant.isLocal) return
-      triggerNotificationSound(NotificationType.MessageReceived)
-      toastQueue.add(
-        {
-          participant: participant,
-          message: chatMessage.message,
-          type: NotificationType.MessageReceived,
-        },
-        { timeout: NotificationDuration.MESSAGE }
-      )
-      if (layoutStore.activePanelId !== PanelId.CHAT) {
-        announce(
-          t('chatMessageReceived', {
-            name: participant.name || t('defaultName'),
-            message: chatMessage.message,
-          }),
-          'polite'
-        )
-      }
+      noisyNotifications.add({
+        participant,
+        message: chatMessage.message,
+        type: NotificationType.MessageReceived,
+      })
     }
     room.on(RoomEvent.ChatMessage, handleChatMessage)
     return () => {
       room.off(RoomEvent.ChatMessage, handleChatMessage)
     }
-  }, [room, triggerNotificationSound, announce, t])
+  }, [room, noisyNotifications])
 
   const handleEmoji = useCallback(
     (emoji: string, participant: Participant) => {
@@ -143,36 +192,26 @@ export const MainNotificationToast = () => {
     }
   }, [room, handleEmoji])
 
-  const triggerNotificationSoundIfRoomIsSmall = useCallback(
-    (type: NotificationType) => {
-      if (!data) return
-      if (room.numParticipants >= data.max_participants_for_sound) return
-      triggerNotificationSound(type)
-    },
-    [room, data, triggerNotificationSound]
-  )
-
   useEffect(() => {
     const showJoinNotification = (participant: Participant) => {
-      if (isMobileBrowser()) {
+      if (!data || room.numParticipants >= data.max_participants_for_sound) {
+        noisyNotifications.cancel(NotificationType.ParticipantJoined)
+        toastQueue.discardWhere(
+          (content) => content.type === NotificationType.ParticipantJoined
+        )
         return
       }
-      triggerNotificationSoundIfRoomIsSmall(NotificationType.ParticipantJoined)
-      toastQueue.add(
-        {
-          participant,
-          type: NotificationType.ParticipantJoined,
-        },
-        {
-          timeout: NotificationDuration.PARTICIPANT_JOINED,
-        }
-      )
+      if (isMobileBrowser()) return
+      noisyNotifications.add({
+        participant,
+        type: NotificationType.ParticipantJoined,
+      })
     }
     room.on(RoomEvent.ParticipantConnected, showJoinNotification)
     return () => {
       room.off(RoomEvent.ParticipantConnected, showJoinNotification)
     }
-  }, [room, triggerNotificationSoundIfRoomIsSmall])
+  }, [room, data, noisyNotifications])
 
   useEffect(() => {
     const handleAttributeChanged = (
@@ -201,11 +240,8 @@ export const MainNotificationToast = () => {
 
   useEffect(() => {
     const removeParticipantNotifications = (participant: Participant) => {
-      toastQueue.visibleToasts.forEach((toast) => {
-        if (toast.content.participant === participant) {
-          toastQueue.close(toast.key)
-        }
-      })
+      noisyNotifications.removeParticipant(participant)
+      toastQueue.removeParticipant(participant)
     }
     room.on(RoomEvent.ParticipantDisconnected, removeParticipantNotifications)
     return () => {
@@ -214,7 +250,7 @@ export const MainNotificationToast = () => {
         removeParticipantNotifications
       )
     }
-  }, [room])
+  }, [room, noisyNotifications])
 
   useEffect(() => {
     const handleNotificationReceived = (
@@ -227,26 +263,25 @@ export const MainNotificationToast = () => {
 
       if (!('handRaisedAt' in changedAttributes)) return
 
-      const existingToast = toastQueue.visibleToasts.find(
-        (toast) =>
-          toast.content.participant === participant &&
-          toast.content.type === NotificationType.HandRaised
-      )
-
-      if (existingToast && !changedAttributes?.handRaisedAt) {
-        toastQueue.close(existingToast.key)
-        return
-      }
-
-      if (!existingToast && !!changedAttributes?.handRaisedAt) {
-        triggerNotificationSound(NotificationType.HandRaised)
-        toastQueue.add(
-          {
-            participant,
-            type: NotificationType.HandRaised,
-          },
-          { timeout: NotificationDuration.HAND_RAISED }
+      if (!changedAttributes.handRaisedAt) {
+        noisyNotifications.removeParticipant(
+          participant,
+          NotificationType.HandRaised
         )
+        toastQueue.removeParticipant(participant, NotificationType.HandRaised)
+      } else if (
+        !toastQueue.visibleToasts.some(
+          (toast) =>
+            toast.content.type === NotificationType.HandRaised &&
+            (toast.content.participants ?? [toast.content.participant]).some(
+              (item) => item?.identity === participant.identity
+            )
+        )
+      ) {
+        noisyNotifications.add({
+          participant,
+          type: NotificationType.HandRaised,
+        })
       }
     }
 
@@ -258,17 +293,19 @@ export const MainNotificationToast = () => {
         handleNotificationReceived
       )
     }
-  }, [room, triggerNotificationSound])
+  }, [room, noisyNotifications])
 
   useEffect(() => {
     const closeAllToasts = () => {
-      toastQueue.visibleToasts.forEach(({ key }) => toastQueue.close(key))
+      noisyNotifications.clear()
+      toastQueue.clear()
     }
     room.on(RoomEvent.Disconnected, closeAllToasts)
     return () => {
       room.off(RoomEvent.Disconnected, closeAllToasts)
+      closeAllToasts()
     }
-  }, [room])
+  }, [room, noisyNotifications])
 
   // Without this line, when the component first renders,
   // the 'notifications' namespace might not be loaded yet

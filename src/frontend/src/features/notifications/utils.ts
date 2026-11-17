@@ -32,11 +32,9 @@ export const showLowerHandToast = (
 }
 
 export const closeLowerHandToasts = () => {
-  toastQueue.visibleToasts.forEach((toast) => {
-    if (toast.content.type === NotificationType.LowerHand) {
-      toastQueue.close(toast.key)
-    }
-  })
+  toastQueue.discardWhere(
+    (content) => content.type === NotificationType.LowerHand
+  )
 }
 
 export const decodeNotificationDataReceived = (

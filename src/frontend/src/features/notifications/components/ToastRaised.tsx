@@ -42,9 +42,15 @@ export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
           }}
         />
         <Div {...titleProps} marginRight={0.5}>
-          {t('raised.description', {
-            name: participant.name || t('defaultName'),
-          })}
+          {t(
+            (props.toast.content.count ?? 1) > 1
+              ? 'raisedSummary'
+              : 'raised.description',
+            {
+              count: props.toast.content.count,
+              name: participant.name || t('defaultName'),
+            }
+          )}
         </Div>
         {!isParticipantsOpen && (
           <Button
