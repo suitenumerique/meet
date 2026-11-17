@@ -42,10 +42,12 @@ export const menuRecipe = sva({
       light: {
         item: {
           '&[data-focused]': {
-            backgroundColor: 'brand.550',
+            color: 'content.semantic.neutral.primary',
+            backgroundColor: 'background.semantic.contextual.primary',
           },
           '&[data-hovered]': {
-            backgroundColor: 'brand.550',
+            color: 'content.semantic.neutral.primary',
+            backgroundColor: 'background.semantic.contextual.primary',
           },
         },
       },
