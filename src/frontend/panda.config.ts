@@ -12,6 +12,8 @@ export default defineConfig({
   // variable custom themes and the accessibility fonts override.
   globalVars: {
     '--global-font-body': 'var(--fonts-sans)',
+    // Height of the settings dialogs, when the viewport is tall enough.
+    '--settings-dialog-max-height': '41.625rem',
   },
   conditions,
   theme,

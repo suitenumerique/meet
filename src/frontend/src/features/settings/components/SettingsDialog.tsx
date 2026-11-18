@@ -21,27 +21,36 @@ enum SettingsDialogTabKey {
 }
 
 const tabsStyle = css({
-  maxHeight: '40.625rem', // fixme size copied from meet settings modal
+  maxHeight: 'var(--settings-dialog-max-height)',
   width: '50rem', // fixme size copied from meet settings modal
-  marginY: '-1rem', // fixme hacky solution to cancel modal padding
-  maxWidth: '100%',
+  // fixme hacky solution to cancel modal padding, so the tab list fills the
+  // modal from edge to edge
+  margin: '-1.5rem',
+  maxWidth: 'calc(100% + 3rem)',
   overflow: 'hidden',
   height: 'calc(100vh - 2rem)',
+  borderRadius: 7, // modal radius, minus its border
 })
 
 const tabListContainerStyle = css({
   display: 'flex',
   flexDirection: 'column',
-  borderRight: '1px solid lightGray', // fixme poor color management
-  paddingY: '1rem',
-  paddingLeft: '0.2rem',
-  paddingRight: '1.5rem',
+  backgroundColor: 'background.surface.tertiary',
+  borderRight: '1px solid {colors.border.surface.primary}',
+  paddingY: '1.5rem',
+  paddingX: '1rem',
+  // aligns the title with the label of the tabs
+  '& > [slot=title]': {
+    paddingLeft: '10px',
+  },
 })
 
 const tabPanelContainerStyle = css({
   display: 'flex',
   flexGrow: '1',
-  marginTop: '3.5rem',
+  marginTop: '4rem',
+  paddingRight: '1.5rem',
+  paddingBottom: '0.5rem',
   minWidth: 0,
 })
 
@@ -128,7 +137,6 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
           style={{
             flex: isWideScreen ? '0 0 16rem' : undefined,
             paddingTop: !isWideScreen ? '64px' : undefined,
-            paddingRight: !isWideScreen ? '1rem' : undefined,
           }}
         >
           {isWideScreen && (
