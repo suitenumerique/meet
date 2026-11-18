@@ -116,7 +116,7 @@ export const ParticipantTileFocus = ({
           },
         })}
       >
-        <HStack gap="xs" padding="xs">
+        <HStack gap="2xs" padding="3xs">
           <FocusButton trackRef={trackRef} />
           {!isScreenShare && (
             <>

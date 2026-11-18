@@ -5,6 +5,7 @@ import {
 } from '@/features/rooms/livekit/hooks/useRaisedHand'
 import { Participant } from 'livekit-client'
 import { RiHand } from '@remixicon/react'
+import { css } from '@/styled-system/css'
 
 const PositionInQueue = React.memo(
   ({ positionInQueue }: { positionInQueue?: number }) => {
@@ -49,10 +50,12 @@ const RaisedHandActiveItem = ({
 
     el.style.backgroundColor = firstInQueue ? '#fde047' : 'white'
     el.style.color = 'black'
+    el.style.borderColor = 'transparent'
 
     return () => {
       el.style.backgroundColor = ''
       el.style.color = ''
+      el.style.borderColor = ''
     }
   }, [targetRef, firstInQueue])
 
@@ -76,11 +79,19 @@ export const RaisedHandMetadataWrapper = ({
   return (
     <div
       ref={ref}
-      className="lk-participant-metadata-item"
-      style={{
-        padding: '0.1rem 0.25rem',
+      className={css({
+        display: 'flex',
+        alignItems: 'center',
+        minWidth: 0,
+        height: 'var(--metadata-item-size)',
+        paddingX: '0.375rem',
+        color: 'content.semantic.neutral.secondary',
+        backgroundColor: 'background.surface.tertiary',
+        border: '1px solid',
+        borderColor: 'border.surface.primary',
+        borderRadius: '4px',
         transition: 'background 200ms ease',
-      }}
+      })}
     >
       {showHand && (
         <RaisedHandActiveItem participant={participant} targetRef={ref} />
