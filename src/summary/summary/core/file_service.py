@@ -323,6 +323,8 @@ class FileService:
             raise ValueError("Invalid cloud_storage_url")
 
         extension = Path(urlparse(cloud_storage_url).path).suffix.lower()
+        local_path: Path | None = None
+        download_complete = False
 
         try:
             with requests.get(
@@ -338,6 +340,7 @@ class FileService:
                     delete=False,
                     prefix="cloud_storage_download_",
                 ) as tmp:
+                    local_path = Path(tmp.name)
                     for chunk in response.iter_content(
                         chunk_size=self._stream_chunk_size
                     ):
@@ -345,18 +348,24 @@ class FileService:
                             tmp.write(chunk)
 
                     tmp.flush()
-                    local_path = Path(tmp.name)
 
-                    logger.info(
-                        "Recording successfully downloaded from cloud_storage_url"
-                    )
-                    logger.debug("Recording local file path: %s", local_path)
-                    return local_path
+            logger.info("Recording successfully downloaded from cloud_storage_url")
+            logger.debug("Recording local file path: %s", local_path)
+            download_complete = True
+            return local_path
 
         except requests.RequestException:
             raise FileServiceException(
                 "Unexpected error while downloading object from cloud_storage_url."
             ) from None
+        finally:
+            if local_path is not None and not download_complete:
+                try:
+                    local_path.unlink(missing_ok=True)
+                except OSError as exc:
+                    logger.warning(
+                        "Failed to remove temporary download %s: %s", local_path, exc
+                    )
 
     def _validate_duration(self, duration_seconds: float) -> None:
         """Validate audio file duration against configured maximum."""
