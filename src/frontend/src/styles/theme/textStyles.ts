@@ -51,6 +51,12 @@ export const textStyles = defineTextStyles({
       lineHeight: '1.15rem',
     },
   },
+  '2xs': {
+    value: {
+      fontSize: '0.75rem',
+      lineHeight: '1rem',
+    },
+  },
   badge: {
     value: {
       fontSize: 'xs',

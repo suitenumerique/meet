@@ -39,7 +39,7 @@ export const Chat = () => {
   return (
     <ChatContainer>
       <TextContainer>
-        <Text variant="smNote">{t('disclaimer')}</Text>
+        <Text variant="2xsNote">{t('disclaimer')}</Text>
       </TextContainer>
       <ChatMessagesContainer>
         <ChatMessages />

@@ -68,6 +68,10 @@ export const text = cva({
         color: 'content.semantic.neutral.secondary',
         textStyle: 'xs',
       },
+      '2xsNote': {
+        color: 'content.semantic.neutral.secondary',
+        textStyle: '2xs',
+      },
       inherits: {},
     },
     centered: {
