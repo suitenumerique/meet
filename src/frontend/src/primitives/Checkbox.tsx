@@ -75,6 +75,9 @@ const StyledCheckbox = styled(RACCheckbox, {
       cursor: 'not-allowed',
       color: 'content.semantic.disabled.primary',
     },
+    '&[data-disabled] .mt-Checkbox-checkbox': {
+      borderColor: 'content.semantic.disabled.primary',
+    },
     '&[data-disabled][data-selected] .mt-Checkbox-checkbox': {
       borderColor: 'content.semantic.disabled.primary',
       backgroundColor: 'content.semantic.disabled.primary',
