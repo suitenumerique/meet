@@ -62,13 +62,13 @@ const StyledTab = styled(RACTab, {
       true: {
         borderRadius: 4,
         transition: 'background 200ms, color 200ms',
-        '&[data-hovered]': {
-          backgroundColor: 'gray.050',
-          color: 'content.semantic.neutral.primary',
+        color: 'content.semantic.neutral.tertiary',
+        fontWeight: 'medium',
+        '&[data-hovered], &[data-selected]': {
+          backgroundColor: 'background.semantic.overlay.primary',
         },
         '&[data-selected]': {
-          backgroundColor: 'brand.550',
-          color: 'white',
+          color: 'content.semantic.neutral.primary',
         },
       },
     },
