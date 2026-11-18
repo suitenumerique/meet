@@ -17,7 +17,7 @@ const StyledContainer = styled('div', {
     alignItems: 'flex-end',
     gap: '0.25rem',
     margin: '0.75rem 0 1.5rem',
-    padding: '0.5rem',
+    padding: '0.75rem',
     backgroundColor: 'background.surface.primary',
     border: '1px solid',
     borderColor: 'border.semantic.neutral.tertiary',
@@ -108,9 +108,9 @@ export const ChatTextArea = () => {
           resize: 'none',
           height: 'auto',
           maxHeight: '240px',
-          minHeight: `34px`,
+          minHeight: '1.25rem',
           lineHeight: 1.25,
-          padding: '7px 10px',
+          padding: 0,
         }}
         spellCheck={false}
         maxLength={2000}

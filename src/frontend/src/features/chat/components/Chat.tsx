@@ -29,7 +29,7 @@ const TextContainer = styled('div', {
     padding: '0.5rem 0.625rem',
     backgroundColor: 'background.semantic.neutral.tertiary',
     borderRadius: 4,
-    marginBottom: '0.75rem',
+    marginBottom: '0.25rem',
   },
 })
 

@@ -15,6 +15,7 @@ import { ChatRow, chatStore } from '@/stores/chat'
 // scrollbar before rows have been measured.
 const ESTIMATED_ROW_HEIGHT = 56
 const BOTTOM_THRESHOLD_PX = 32
+const LIST_PADDING = 4
 
 export const ChatMessages = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat' })
@@ -52,8 +53,8 @@ export const ChatMessages = () => {
       layout={ListLayout}
       layoutOptions={{
         estimatedRowSize: ESTIMATED_ROW_HEIGHT,
-        gap: 4,
-        padding: 4,
+        gap: 6,
+        padding: LIST_PADDING,
       }}
     >
       <ListBox
@@ -64,7 +65,9 @@ export const ChatMessages = () => {
         style={{
           display: 'block',
           height: '100%',
-          width: '100%',
+          // cancels the side padding, to align messages with the panel content
+          width: `calc(100% + ${2 * LIST_PADDING}px)`,
+          marginInline: -LIST_PADDING,
           overflow: 'auto',
         }}
       >
