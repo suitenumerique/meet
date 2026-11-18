@@ -8,13 +8,19 @@ import { RiHand } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 
 const PositionInQueue = React.memo(
-  ({ positionInQueue }: { positionInQueue?: number }) => {
+  ({
+    positionInQueue,
+    showPosition,
+  }: {
+    positionInQueue?: number
+    showPosition: boolean
+  }) => {
     if (!positionInQueue) return
     return (
       <span
         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.1rem' }}
       >
-        <span>{positionInQueue}</span>
+        {showPosition && <span>{positionInQueue}</span>}
         <RiHand
           color="black"
           size={16}
@@ -41,7 +47,7 @@ const RaisedHandActiveItem = ({
   participant: Participant
   targetRef: RefObject<HTMLElement | null>
 }) => {
-  const { positionInQueue, firstInQueue } = useRaisedHandPosition({
+  const { positionInQueue, firstInQueue, queueLength } = useRaisedHandPosition({
     participant,
   })
   useEffect(() => {
@@ -59,7 +65,12 @@ const RaisedHandActiveItem = ({
     }
   }, [targetRef, firstInQueue])
 
-  return <PositionInQueue positionInQueue={positionInQueue} />
+  return (
+    <PositionInQueue
+      positionInQueue={positionInQueue}
+      showPosition={queueLength > 1}
+    />
+  )
 }
 
 export const RaisedHandMetadataWrapper = ({
