@@ -496,7 +496,7 @@
       "recording": "Also start a video recording"
     },
     "button": {
-      "start": "Start transcribing the meeting",
+      "start": "Start transcription",
       "stop": "Stop transcribing the meeting",
       "saving": "Saving…",
       "starting": "Starting…",
@@ -569,7 +569,7 @@
       "qualityEdit": "Change"
     },
     "button": {
-      "start": "Start recording the meeting",
+      "start": "Start recording",
       "stop": "Stop recording the meeting",
       "saving": "Saving…",
       "starting": "Starting…",

@@ -161,7 +161,7 @@ export const ControlsButton = ({
         </RACButton>
       )}
       <Button
-        variant={isDisabled ? 'primary' : 'tertiary'}
+        variant="primary"
         fullWidth
         onPress={handle}
         isDisabled={isDisabled}

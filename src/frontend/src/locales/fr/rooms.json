@@ -496,7 +496,7 @@
       "recording": "Démarrer aussi un enregistrement vidéo"
     },
     "button": {
-      "start": "Commencer à transcrire la réunion",
+      "start": "Démarrer la transcription",
       "stop": "Arrêter de transcrire la réunion",
       "saving": "Sauvegarde…",
       "starting": "Démarrage…",
@@ -569,7 +569,7 @@
       "qualityEdit": "Modifier"
     },
     "button": {
-      "start": "Commencer à enregistrer la réunion",
+      "start": "Démarrer l'enregistrement",
       "stop": "Arrêter d'enregistrer la réunion",
       "saving": "Sauvegarde…",
       "starting": "Démarrage…",
