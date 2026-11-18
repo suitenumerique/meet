@@ -79,6 +79,19 @@ export const buttonRecipe = cva({
           backgroundColor: 'gray.050',
         },
       },
+      // The bordered brand button of the UI kit.
+      bordered: {
+        backgroundColor: 'transparent',
+        color: 'content.semantic.brand.tertiary',
+        fontWeight: 'medium !important',
+        borderColor: 'border.semantic.neutral.tertiary',
+        '&[data-hovered]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+        '&[data-pressed]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+      },
       secondaryText: {
         backgroundColor: 'transparent',
         fontWeight: 'medium !important',

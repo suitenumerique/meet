@@ -33,7 +33,7 @@ export const Info = () => {
       flexDirection="column"
       alignItems="start"
     >
-      <VStack alignItems="start">
+      <VStack alignItems="stretch" width="full">
         <Text
           as="h3"
           className={css({
@@ -48,18 +48,21 @@ export const Info = () => {
             gap: '0.15rem',
             display: 'flex',
             flexDirection: 'column',
+            padding: '0.5rem 0.625rem',
+            borderRadius: '4px',
+            backgroundColor: 'background.semantic.neutral.tertiary',
           })}
         >
-          <Text as="p" variant="xsNote" wrap="pretty">
+          <Text as="p" variant="smNote" wrap="pretty">
             {roomUrl.replace(/^https?:\/\//, '')}
           </Text>
           {isTelephonyReadyForUse && (
             <>
-              <Text as="p" variant="xsNote" wrap="pretty">
+              <Text as="p" variant="smNote" wrap="pretty">
                 <Bold>{t('roomInformation.phone.call')}</Bold> (
                 {telephony?.country}) {telephony?.internationalPhoneNumber}
               </Text>
-              <Text as="p" variant="xsNote" wrap="pretty">
+              <Text as="p" variant="smNote" wrap="pretty">
                 <Bold>{t('roomInformation.phone.pinCode')}</Bold>{' '}
                 {formatPinCode(data?.pin_code)}
               </Text>
@@ -67,14 +70,11 @@ export const Info = () => {
           )}
         </div>
         <Button
-          size="sm"
-          variant={isCopied ? 'success' : 'tertiaryText'}
+          fullWidth
+          variant={isCopied ? 'success' : 'bordered'}
           aria-label={t('roomInformation.button.ariaLabel')}
           onPress={copyRoomToClipboard}
           data-attr="copy-info-sidepannel"
-          style={{
-            marginLeft: '-8px',
-          }}
         >
           {isCopied ? (
             <>
