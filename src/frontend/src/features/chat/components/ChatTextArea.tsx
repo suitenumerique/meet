@@ -28,6 +28,25 @@ const StyledContainer = styled('div', {
     '& textarea::placeholder': {
       color: 'content.semantic.neutral.tertiary',
     },
+    '& textarea::-webkit-scrollbar': {
+      width: '8px',
+    },
+    '& textarea::-webkit-scrollbar-track': {
+      backgroundColor: 'transparent',
+    },
+    '& textarea::-webkit-scrollbar-thumb': {
+      backgroundColor: 'gray.100',
+      borderRadius: '4px',
+    },
+    '& textarea::-webkit-scrollbar-thumb:hover': {
+      backgroundColor: 'gray.200',
+    },
+    '@supports not selector(::-webkit-scrollbar)': {
+      '& textarea': {
+        scrollbarWidth: 'thin',
+        scrollbarColor: '{colors.gray.100} transparent',
+      },
+    },
   },
 })
 
