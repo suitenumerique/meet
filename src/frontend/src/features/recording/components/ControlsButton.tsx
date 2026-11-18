@@ -104,10 +104,11 @@ export const ControlsButton = ({
     return (
       <Layout>
         <Button
-          variant="tertiary"
+          variant="primary"
           fullWidth
           onPress={handle}
           isDisabled={isDisabled}
+          size="compact"
           ref={primaryActionRef}
         >
           {t('button.stop')}
