@@ -9,13 +9,14 @@ import {
   persistTextAreaValue,
 } from '@/stores/chat'
 import { ChatSubmitButton } from './ChatSubmitButton'
+import { subtleScrollbar } from '@/styles/scrollbar'
 
 const StyledContainer = styled('div', {
   base: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-end',
-    gap: '0.25rem',
+    gap: '0.125rem',
     margin: '0.75rem 0 1.5rem',
     padding: '0.75rem',
     backgroundColor: 'background.surface.primary',
@@ -27,25 +28,6 @@ const StyledContainer = styled('div', {
     },
     '& textarea::placeholder': {
       color: 'content.semantic.neutral.tertiary',
-    },
-    '& textarea::-webkit-scrollbar': {
-      width: '8px',
-    },
-    '& textarea::-webkit-scrollbar-track': {
-      backgroundColor: 'transparent',
-    },
-    '& textarea::-webkit-scrollbar-thumb': {
-      backgroundColor: 'gray.100',
-      borderRadius: '4px',
-    },
-    '& textarea::-webkit-scrollbar-thumb:hover': {
-      backgroundColor: 'gray.200',
-    },
-    '@supports not selector(::-webkit-scrollbar)': {
-      '& textarea': {
-        scrollbarWidth: 'thin',
-        scrollbarColor: '{colors.gray.100} transparent',
-      },
     },
   },
 })
@@ -96,6 +78,7 @@ export const ChatTextArea = () => {
     <StyledContainer>
       <TextArea
         ref={inputRef}
+        className={subtleScrollbar}
         value={textAreaValue}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
@@ -110,7 +93,9 @@ export const ChatTextArea = () => {
           maxHeight: '240px',
           minHeight: '1.25rem',
           lineHeight: 1.25,
-          padding: 0,
+          // Marianne draws 2px below the line: without room for them, the
+          // text area is scrollable, and shows a scrollbar, even when empty.
+          padding: '0 0 2px',
         }}
         spellCheck={false}
         maxLength={2000}
