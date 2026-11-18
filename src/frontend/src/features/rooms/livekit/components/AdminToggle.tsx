@@ -1,5 +1,5 @@
 import { ToggleButton } from '@/primitives'
-import { RiAdminLine } from '@remixicon/react'
+import { RiAdminFill, RiAdminLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
@@ -39,7 +39,7 @@ export const AdminToggle = ({
         }}
         {...props}
       >
-        <RiAdminLine />
+        {isAdminOpen ? <RiAdminFill /> : <RiAdminLine />}
       </ToggleButton>
     </div>
   )

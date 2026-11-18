@@ -243,14 +243,10 @@ export const buttonRecipe = cva({
           color: 'gray.700',
         },
         '&[data-selected]': {
-          backgroundColor: 'brand.550',
-          color: 'white',
-        },
-        '&[data-selected][data-hovered]': {
-          backgroundColor: 'background.semantic.brand.primary-hover',
+          color: 'brand.250',
         },
         '&[data-selected][data-pressed]': {
-          backgroundColor: 'brand.700',
+          color: 'brand.250',
         },
         '&[data-focus-visible]': {
           outline: '2px solid',
