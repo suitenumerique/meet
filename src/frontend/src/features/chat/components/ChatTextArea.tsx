@@ -13,10 +13,21 @@ import { ChatSubmitButton } from './ChatSubmitButton'
 const StyledContainer = styled('div', {
   base: {
     display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '0.25rem',
     margin: '0.75rem 0 1.5rem',
     padding: '0.5rem',
-    backgroundColor: 'gray.050',
-    borderRadius: 4,
+    backgroundColor: 'background.surface.primary',
+    border: '1px solid',
+    borderColor: 'border.semantic.neutral.tertiary',
+    borderRadius: 12,
+    '& textarea': {
+      backgroundColor: 'transparent',
+    },
+    '& textarea::placeholder': {
+      color: 'content.semantic.neutral.tertiary',
+    },
   },
 })
 
@@ -82,7 +93,6 @@ export const ChatTextArea = () => {
           lineHeight: 1.25,
           padding: '7px 10px',
         }}
-        placeholderStyle="strong"
         spellCheck={false}
         maxLength={2000}
         placeholder={t('textArea.placeholder')}
