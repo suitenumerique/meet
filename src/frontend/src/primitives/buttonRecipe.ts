@@ -199,14 +199,14 @@ export const buttonRecipe = cva({
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'brand.550 !important',
-          color: 'white !important',
+          backgroundColor: 'brand.250 !important',
+          color: 'brand.850 !important',
         },
         '&[data-selected][data-hovered]': {
-          backgroundColor: 'background.semantic.brand.primary-hover !important',
+          backgroundColor: 'brand.200 !important',
         },
         '&[data-selected][data-pressed]': {
-          backgroundColor: 'brand.700 !important',
+          backgroundColor: 'brand.300 !important',
         },
       },
       secondaryDark: {
@@ -221,14 +221,14 @@ export const buttonRecipe = cva({
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'brand.550 !important',
-          color: 'white !important',
+          backgroundColor: 'brand.250 !important',
+          color: 'brand.850 !important',
         },
         '&[data-selected][data-hovered]': {
-          backgroundColor: 'background.semantic.brand.primary-hover !important',
+          backgroundColor: 'brand.200 !important',
         },
         '&[data-selected][data-pressed]': {
-          backgroundColor: 'brand.700 !important',
+          backgroundColor: 'brand.300 !important',
         },
       },
       primaryTextDark: {
