@@ -26,8 +26,8 @@ const ChatMessagesContainer = styled('div', {
 const TextContainer = styled('div', {
   base: {
     display: 'flex',
-    padding: '0.75rem',
-    backgroundColor: 'gray.025',
+    padding: '0.5rem 0.625rem',
+    backgroundColor: 'background.semantic.neutral.tertiary',
     borderRadius: 4,
     marginBottom: '0.75rem',
   },
@@ -39,7 +39,7 @@ export const Chat = () => {
   return (
     <ChatContainer>
       <TextContainer>
-        <Text variant="sm">{t('disclaimer')}</Text>
+        <Text variant="smNote">{t('disclaimer')}</Text>
       </TextContainer>
       <ChatMessagesContainer>
         <ChatMessages />
