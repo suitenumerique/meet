@@ -67,6 +67,19 @@ const StyledScrollViewport = styled('div', {
   },
 })
 
+const StyledScrollArrow = styled('div', {
+  base: {
+    display: 'flex',
+    paddingY: '0',
+  },
+  variants: {
+    side: {
+      start: { paddingLeft: '0.25rem' },
+      end: { paddingRight: '0.25rem' },
+    },
+  },
+})
+
 const SCROLL_AMOUNT = 120 // roughly 3 buttons
 
 export const ReactionButtonsContainer = ({
@@ -194,7 +207,7 @@ export const ReactionButtonsContainer = ({
       }
     >
       {overflowing && (
-        <div aria-hidden="true">
+        <StyledScrollArrow side="start" aria-hidden="true">
           <Button
             onPress={() => scrollBy(-SCROLL_AMOUNT)}
             variant="primaryTextDark"
@@ -205,7 +218,7 @@ export const ReactionButtonsContainer = ({
           >
             <RiArrowLeftSLine />
           </Button>
-        </div>
+        </StyledScrollArrow>
       )}
       {/* eslint-disable-next-line jsx-a11y/no-autofocus*/}
       <FocusScope autoFocus>
@@ -216,7 +229,7 @@ export const ReactionButtonsContainer = ({
         </ReactionsKeyboardNavigation>
       </FocusScope>
       {overflowing && (
-        <div aria-hidden="true">
+        <StyledScrollArrow side="end" aria-hidden="true">
           <Button
             onPress={() => scrollBy(SCROLL_AMOUNT)}
             variant="primaryTextDark"
@@ -227,7 +240,7 @@ export const ReactionButtonsContainer = ({
           >
             <RiArrowRightSLine />
           </Button>
-        </div>
+        </StyledScrollArrow>
       )}
     </StyledContainer>
   )
