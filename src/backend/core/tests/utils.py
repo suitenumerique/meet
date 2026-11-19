@@ -4,8 +4,10 @@ import base64
 import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
+from unittest import mock
 
 from django.conf import settings
+from django.db.models import QuerySet
 
 import jwt
 from livekit.api import AccessToken
@@ -30,6 +32,22 @@ def livekit_room(
     told otherwise, 0 standing for an unknown creation time.
     """
     return LiveKitRoom(sid=sid, name=name, creation_time_ms=creation_time_ms)
+
+
+def changing_after_reads(change, *, every=False):
+    """Patch reading the first object a query finds, for a change to happen
+    right after the first read, or after every read."""
+    first = QuerySet.first
+    reads = []
+
+    def read(queryset):
+        found = first(queryset)
+        if every or not reads:
+            change()
+        reads.append(found)
+        return found
+
+    return mock.patch.object(QuerySet, "first", autospec=True, side_effect=read)
 
 
 def generate_user_access_token(user, application=None, **overrides):

@@ -18,6 +18,8 @@ from core.livekit.clusters import (
     LiveKitClusterTokenVerifier,
     get_default_livekit_cluster,
 )
+from core.livekit.exceptions import LiveKitRoomCloseError, PlacementChangedError
+from core.livekit.placements import PlacementService
 from core.recording.enums import UNSUCCESSFUL_EVENTS, RecordingWorkerEvent
 from core.recording.event.authentication import MachineUser
 from core.recording.services.metadata_collector import (
@@ -345,7 +347,10 @@ class LiveKitEventsService:
         """Handle 'room_started' event.
 
         It is ignored for a LiveKit room not named after a room Django knows,
-        such as an unregistered room.
+        such as an unregistered room. A LiveKit room started for a deleted room
+        is closed. Otherwise the LiveKit room is recorded on its placement, and
+        the start of its room recorded only when it is the LiveKit room its room
+        is placed on: other LiveKit rooms are closed or left alone.
         """
 
         room_id = self._room_id(data.room.name)
@@ -365,6 +370,16 @@ class LiveKitEventsService:
             self._close_deleted_room(room_id)
             return
 
+        try:
+            started = PlacementService.record_started(self.cluster, data.room, room)
+        except (LiveKitRoomCloseError, PlacementChangedError) as e:
+            raise ActionFailedError(
+                f"Failed to record LiveKit room {room_id} started on LiveKit "
+                f"cluster {self.cluster.name}"
+            ) from e
+        if not started:
+            return
+
         # Update through the queryset to skip the full_clean run by save()
         models.Room.all_objects.filter(pk=room.pk).update(
             last_started_at=timezone.now()
@@ -379,11 +394,12 @@ class LiveKitEventsService:
                 ) from e
 
     def _close_deleted_room(self, room_id):
-        """Close a LiveKit room recreated after its room was soft deleted.
+        """Close a LiveKit room started after its room was soft deleted.
 
-        LiveKit auto-creates a room on join, so a participant still holding a
-        valid token can bring a deleted room back to life until the token expires.
-        The LiveKit room is closed on the LiveKit cluster it started on.
+        A join handing out credentials while the room was deleted may create
+        it again, and so may participants holding credentials still valid on a
+        cluster that creates LiveKit rooms when they join. The LiveKit room is
+        closed on the LiveKit cluster it started on.
         """
 
         logger.warning(

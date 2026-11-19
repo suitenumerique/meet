@@ -17,6 +17,7 @@ and this project adheres to
 - ✨(frontend) tell participants when a recording is interrupted
 - ✨(backend) show the last login of users in the admin
 - ✨(backend) filter users sharing an email in the admin
+- ✨(backend) record livekit rooms on the cluster that started them
 
 ### Changed
 

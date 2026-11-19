@@ -20,7 +20,9 @@ from core.factories import RecordingFactory, RoomFactory
 from core.livekit.clusters import (
     LiveKitClusterTokenVerifier,
     get_default_livekit_cluster,
+    get_livekit_clusters,
 )
+from core.livekit.exceptions import PlacementChangedError
 from core.livekit.placements import PlacementService
 from core.models import Placement, Room
 from core.recording.enums import RecordingWorkerEvent
@@ -47,7 +49,11 @@ from core.services.sip_management import (
     SIPException,
     SIPManagement,
 )
-from core.tests.utils import livekit_webhook_token
+from core.tests.utils import (
+    livekit_cluster_entry,
+    livekit_room,
+    livekit_webhook_token,
+)
 from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
@@ -111,6 +117,13 @@ def room_event_request(cluster, event, room_name, sid=SID):
     """Return the webhook request a LiveKit cluster sends on an event of a room."""
     body = json.dumps({"event": event, "room": {"name": room_name, "sid": sid}})
     return webhook_request(body, cluster.api_key, cluster.api_secret)
+
+
+def room_started(room_name, sid=SID):
+    """Return the event a LiveKit cluster sends when a LiveKit room starts."""
+    return api.WebhookEvent(
+        event="room_started", room=livekit_room(sid, name=room_name)
+    )
 
 
 @pytest.fixture
@@ -1006,10 +1019,9 @@ def test_handle_room_started_creates_dispatch_rule_successfully(
     """Should ensure the SIP dispatch rule exists when room starts successfully."""
     settings.ROOM_TELEPHONY_ENABLED = True
     room = RoomFactory()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
-    service._handle_room_started(mock_data)
+    service._handle_room_started(data)
 
     mock_ensure_dispatch_rule.assert_called_once_with(room)
 
@@ -1022,10 +1034,9 @@ def test_handle_room_started_creates_dispatch_rule_when_only_roomkit_enabled(
     settings.ROOM_TELEPHONY_ENABLED = False
     settings.ROOMKIT_ENABLED = True
     room = RoomFactory()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
-    service._handle_room_started(mock_data)
+    service._handle_room_started(data)
 
     mock_ensure_dispatch_rule.assert_called_once_with(room)
 
@@ -1037,11 +1048,10 @@ def test_handle_room_started_ignores_existing_dispatch_rule(
     """Should proceed silently when the dispatch rule already exists when room starts."""
     settings.ROOM_TELEPHONY_ENABLED = True
     room = RoomFactory()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
     # ensure_dispatch_rule reports the rule as pre-existing: nothing to raise
-    service._handle_room_started(mock_data)
+    service._handle_room_started(data)
 
     mock_ensure_dispatch_rule.assert_called_once_with(room)
 
@@ -1057,13 +1067,12 @@ def test_handle_room_started_raises_error_when_dispatch_rule_creation_fails(
     """Should raise ActionFailedError when ensuring the dispatch rule fails when room starts."""
     settings.ROOM_TELEPHONY_ENABLED = True
     room = RoomFactory()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
     expected_error = f"Failed to create sip dispatch rule for room {room.id}"
 
     with pytest.raises(ActionFailedError, match=expected_error):
-        service._handle_room_started(mock_data)
+        service._handle_room_started(data)
 
 
 @mock.patch.object(SIPManagement, "ensure_dispatch_rule")
@@ -1074,10 +1083,9 @@ def test_handle_room_started_skips_dispatch_rule_when_telephony_disabled(
     settings.ROOM_TELEPHONY_ENABLED = False
     settings.ROOMKIT_ENABLED = False
     room = RoomFactory()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
-    service._handle_room_started(mock_data)
+    service._handle_room_started(data)
 
     mock_ensure_dispatch_rule.assert_not_called()
 
@@ -1088,12 +1096,11 @@ def test_handle_room_started_records_access(service, settings):
     settings.ROOMKIT_ENABLED = False
     room = RoomFactory()
     other_room = RoomFactory()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
     now = timezone.now()
     with mock.patch("django.utils.timezone.now", return_value=now):
-        service._handle_room_started(mock_data)
+        service._handle_room_started(data)
 
     room.refresh_from_db()
     assert room.last_started_at == now
@@ -1108,11 +1115,10 @@ def test_handle_room_started_overwrites_previous_access(service, settings):
     settings.ROOMKIT_ENABLED = False
     now = timezone.now()
     room = RoomFactory(last_started_at=now - timedelta(days=30))
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
     with mock.patch("django.utils.timezone.now", return_value=now):
-        service._handle_room_started(mock_data)
+        service._handle_room_started(data)
 
     room.refresh_from_db()
     assert room.last_started_at == now
@@ -1126,10 +1132,9 @@ def test_handle_room_started_only_updates_access(service, settings):
     Room.objects.filter(pk=room.pk).update(slug="𓆑")
     room.refresh_from_db()
     updated_at = room.updated_at
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
-    service._handle_room_started(mock_data)
+    service._handle_room_started(data)
 
     room.refresh_from_db()
     assert room.last_started_at is not None
@@ -1148,11 +1153,10 @@ def test_handle_room_started_records_access_when_dispatch_rule_creation_fails(
     """Should still record the access when ensuring the dispatch rule fails."""
     settings.ROOM_TELEPHONY_ENABLED = True
     room = RoomFactory()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
     with pytest.raises(ActionFailedError):
-        service._handle_room_started(mock_data)
+        service._handle_room_started(data)
 
     room.refresh_from_db()
     assert room.last_started_at is not None
@@ -1166,11 +1170,10 @@ def test_handle_room_started_ignores_an_unregistered_room(
     """A LiveKit room not named after a room, such as an unregistered room, is
     left alone, and its event is acknowledged rather than retried."""
     settings.ROOM_TELEPHONY_ENABLED = True
-    mock_data = mock.MagicMock()
-    mock_data.room.name = "my-unregistered-room"
+    data = room_started("my-unregistered-room")
 
     with caplog.at_level(logging.INFO, logger="core.services.livekit_events"):
-        service._handle_room_started(mock_data)
+        service._handle_room_started(data)
 
     assert "room name 'my-unregistered-room' is not a valid UUID" in caplog.text
     mock_delete_room.assert_not_called()
@@ -1186,11 +1189,10 @@ def test_handle_room_started_ignores_an_unknown_room(
     its event is acknowledged rather than retried."""
     settings.ROOM_TELEPHONY_ENABLED = True
     room_id = uuid.uuid4()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room_id)
+    data = room_started(str(room_id))
 
     with caplog.at_level(logging.INFO, logger="core.services.livekit_events"):
-        service._handle_room_started(mock_data)
+        service._handle_room_started(data)
 
     assert f"room {room_id} does not exist" in caplog.text
     mock_delete_room.assert_not_called()
@@ -1206,10 +1208,9 @@ def test_handle_room_started_closes_deleted_room(
     settings.ROOM_TELEPHONY_ENABLED = True
     room = RoomFactory()
     room.soft_delete()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
-    service._handle_room_started(mock_data)
+    service._handle_room_started(data)
 
     mock_delete_room.assert_called_once_with(
         str(room.id), cluster=get_default_livekit_cluster()
@@ -1227,10 +1228,9 @@ def test_handle_room_started_ignores_already_closed_deleted_room(
     """Should proceed silently when the deleted room is already closed in LiveKit."""
     room = RoomFactory()
     room.soft_delete()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
-    service._handle_room_started(mock_data)
+    service._handle_room_started(data)
 
     mock_delete_room.assert_called_once_with(
         str(room.id), cluster=get_default_livekit_cluster()
@@ -1247,13 +1247,97 @@ def test_handle_room_started_raises_error_when_closing_deleted_room_fails(
     """Should raise ActionFailedError when the deleted room cannot be closed."""
     room = RoomFactory()
     room.soft_delete()
-    mock_data = mock.MagicMock()
-    mock_data.room.name = str(room.id)
+    data = room_started(str(room.id))
 
     expected_error = f"Failed to close deleted room {room.id}"
 
     with pytest.raises(ActionFailedError, match=expected_error):
-        service._handle_room_started(mock_data)
+        service._handle_room_started(data)
+
+
+def test_handle_room_started_records_the_sid(service, settings):
+    """A LiveKit room started on the cluster its room is placed on, the SID of
+    its LiveKit room not known yet, has its SID recorded, and the start of its
+    room is recorded."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    room = RoomFactory()
+    placement = Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="default"
+    )
+
+    service._handle_room_started(room_started(str(room.id)))
+
+    recorded = Placement.objects.get()
+    assert recorded.pk == placement.pk
+    assert recorded.sid == SID
+    room.refresh_from_db()
+    assert room.last_started_at is not None
+
+
+def test_handle_room_started_places_the_livekit_room(service, settings):
+    """A LiveKit room started without placement is placed on the cluster it
+    started on, with its SID, named after its room, and the start of its room
+    is recorded."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    room = RoomFactory()
+
+    service._handle_room_started(room_started(str(room.id)))
+
+    placement = Placement.objects.get()
+    assert placement.room_name == str(room.id)
+    assert placement.room == room
+    assert placement.cluster == "default"
+    assert placement.sid == SID
+    room.refresh_from_db()
+    assert room.last_started_at is not None
+
+
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+def test_handle_room_started_keeps_the_sid_recorded(
+    mock_ensure_dispatch_rule, service, settings
+):
+    """A LiveKit room started on the cluster its room is placed on, with another
+    SID than the one recorded, leaves the placement as it is: the start of its
+    room is recorded all the same, and its SIP dispatch rule ensured."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="default", sid=OTHER_SID
+    )
+
+    service._handle_room_started(room_started(str(room.id)))
+
+    assert Placement.objects.get().sid == OTHER_SID
+    room.refresh_from_db()
+    assert room.last_started_at is not None
+    mock_ensure_dispatch_rule.assert_called_once_with(room)
+
+
+@mock.patch.object(
+    PlacementService,
+    "record_started",
+    side_effect=PlacementChangedError("The placement kept changing."),
+)
+def test_handle_room_started_raises_error_when_the_placement_keeps_changing(
+    mock_record_started, service
+):
+    """Should raise ActionFailedError when the placement of the LiveKit room
+    started keeps changing while it is recorded, for LiveKit to send the event
+    again."""
+    room = RoomFactory()
+
+    with pytest.raises(
+        ActionFailedError,
+        match=f"Failed to record LiveKit room {room.id} started on LiveKit cluster "
+        "default",
+    ):
+        service._handle_room_started(room_started(str(room.id)))
+
+    mock_record_started.assert_called_once()
+    room.refresh_from_db()
+    assert room.last_started_at is None
 
 
 @mock.patch.object(
@@ -1433,7 +1517,7 @@ def test_receive_room_started_closes_a_deleted_room_on_its_cluster(
     mock_delete_room, two_livekit_clusters
 ):
     """A LiveKit room started for a deleted room is closed on the cluster that
-    sent the webhook."""
+    sent the webhook, and not placed."""
     _paris, lyon = two_livekit_clusters
     room = RoomFactory()
     room.soft_delete()
@@ -1443,6 +1527,113 @@ def test_receive_room_started_closes_a_deleted_room_on_its_cluster(
     )
 
     mock_delete_room.assert_called_once_with(str(room.id), cluster=lyon)
+    assert not Placement.objects.exists()
+
+
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_receive_room_started_on_another_cluster_closes_it(
+    mock_delete_room, mock_ensure_dispatch_rule, two_livekit_clusters, settings
+):
+    """A LiveKit room started on a cluster other than the one its room is
+    placed on is closed there: neither is the start of its room recorded, nor
+    is its SIP dispatch rule ensured. The placement is left as it is."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="paris", sid=OTHER_SID
+    )
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_started", str(room.id))
+    )
+
+    mock_delete_room.assert_called_once_with(str(room.id), cluster=lyon)
+    placement = Placement.objects.get()
+    assert placement.cluster == "paris"
+    assert placement.sid == OTHER_SID
+    room.refresh_from_db()
+    assert room.last_started_at is None
+    mock_ensure_dispatch_rule.assert_not_called()
+
+
+@mock.patch(
+    "core.services.room_management.RoomManagement.delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_receive_room_started_on_another_cluster_close_failure(
+    mock_delete_room, two_livekit_clusters
+):
+    """Should raise ActionFailedError when a LiveKit room started on a cluster
+    other than the one its room is placed on cannot be closed there, for
+    LiveKit to send the event again."""
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="paris", sid=OTHER_SID
+    )
+
+    with pytest.raises(
+        ActionFailedError,
+        match=f"Failed to record LiveKit room {room.id} started on LiveKit cluster "
+        "lyon",
+    ):
+        LiveKitEventsService().receive(
+            room_event_request(lyon, "room_started", str(room.id))
+        )
+
+    mock_delete_room.assert_called_once_with(str(room.id), cluster=lyon)
+    room.refresh_from_db()
+    assert room.last_started_at is None
+
+
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_receive_room_started_from_a_cluster_weighing_zero(mock_delete_room, settings):
+    """A LiveKit room started without placement on a cluster that may not
+    receive new placements is closed there, and not placed: the meeting its
+    participants were in had ended."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry("paris"), livekit_cluster_entry("lyon", weight=0)]
+    )
+    _paris, lyon = get_livekit_clusters()
+    room = RoomFactory()
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_started", str(room.id))
+    )
+
+    mock_delete_room.assert_called_once_with(str(room.id), cluster=lyon)
+    assert not Placement.objects.exists()
+    room.refresh_from_db()
+    assert room.last_started_at is None
+
+
+def test_receive_room_started_then_finished_without_placement(
+    two_livekit_clusters, room_cleanup
+):
+    """A LiveKit room started without placement is placed on its cluster, and
+    the placement deleted when it finishes, its room then cleaned up."""
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_started", str(room.id))
+    )
+
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.sid == SID
+    for cleanup in room_cleanup:
+        cleanup.assert_not_called()
+
+    LiveKitEventsService().receive(
+        room_event_request(lyon, "room_finished", str(room.id))
+    )
+
+    assert not Placement.objects.exists()
+    for cleanup in room_cleanup:
+        cleanup.assert_called_once_with(room.id)
 
 
 def test_receive_room_finished_deletes_the_placement(

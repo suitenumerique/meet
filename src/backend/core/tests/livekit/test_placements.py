@@ -24,6 +24,7 @@ from core.livekit.exceptions import (
     RelocationRefusedError,
 )
 from core.livekit.placements import (
+    PLACEMENT_CREATION_ATTEMPTS,
     PLACEMENT_UPDATE_ATTEMPTS,
     PlacementService,
 )
@@ -36,6 +37,7 @@ from core.services.room_management import (
 )
 from core.tests.utils import (
     CREATED_LIVEKIT_ROOM_SID,
+    changing_after_reads,
     livekit_cluster_entry,
     livekit_room,
 )
@@ -711,6 +713,410 @@ def test_place_without_candidate(settings, fake_livekit_room_creation):
 
     assert not Placement.objects.exists()
     fake_livekit_room_creation.assert_not_called()
+
+
+def started(sid="RM_started"):
+    """Return the LiveKit room my-room, as a cluster tells it started."""
+    return livekit_room(sid, name="my-room")
+
+
+@pytest.mark.parametrize("absent", (False, True))
+def test_record_started_on_its_placement(
+    absent, two_livekit_clusters, room_management, caplog
+):
+    """
+    A LiveKit room started on the cluster of a placement without SID, as one
+    whose LiveKit room is being created, is the LiveKit room its room is placed
+    on: its SID is recorded, and it is no longer absent.
+    """
+    _paris, lyon = two_livekit_clusters
+    placement = Placement.objects.create(
+        room_name="my-room",
+        cluster="lyon",
+        epoch=1,
+        absent_since=timezone.now() if absent else None,
+    )
+
+    with caplog.at_level(logging.INFO, logger="core.livekit.placements"):
+        assert PlacementService.record_started(lyon, started()) is True
+
+    recorded = Placement.objects.get()
+    assert recorded.pk == placement.pk
+    assert recorded.cluster == "lyon"
+    assert recorded.sid == "RM_started"
+    assert recorded.absent_since is None
+    assert recorded.epoch == 1
+    assert recorded.updated_at > placement.updated_at
+    assert not room_management.mock_calls
+    assert (
+        "Recorded LiveKit room my-room started on LiveKit cluster lyon with SID "
+        "RM_started"
+    ) in caplog.text
+
+
+def test_record_started_known_sid(
+    two_livekit_clusters, room_management, django_assert_num_queries
+):
+    """
+    A LiveKit room started with the SID its placement records is the LiveKit
+    room its room is placed on, and the placement is left as it is.
+    """
+    _paris, lyon = two_livekit_clusters
+    placement = Placement.objects.create(
+        room_name="my-room", cluster="lyon", sid="RM_started"
+    )
+
+    with django_assert_num_queries(1):
+        assert PlacementService.record_started(lyon, started()) is True
+
+    assert_placement_unchanged(placement)
+    assert not room_management.mock_calls
+
+
+def test_record_started_another_sid(two_livekit_clusters, room_management, caplog):
+    """
+    A LiveKit room started on the cluster of a placement with another SID is
+    taken for the LiveKit room its room is placed on, and the SID recorded is
+    kept: joins record the SID of the LiveKit rooms they create, and a webhook
+    may be late.
+    """
+    _paris, lyon = two_livekit_clusters
+    placement = Placement.objects.create(
+        room_name="my-room", cluster="lyon", sid="RM_recorded"
+    )
+
+    with caplog.at_level(logging.INFO, logger="core.livekit.placements"):
+        assert PlacementService.record_started(lyon, started()) is True
+
+    assert_placement_unchanged(placement)
+    assert not room_management.mock_calls
+    assert (
+        "LiveKit room my-room started on LiveKit cluster lyon with SID RM_started, "
+        "while placed there with SID RM_recorded: keeping its placement"
+    ) in caplog.text
+
+
+@pytest.mark.parametrize("registered", (True, False))
+def test_record_started_without_placement(
+    registered,
+    two_livekit_clusters,
+    room_management,
+    caplog,
+    django_assert_num_queries,
+):
+    """
+    A LiveKit room started without placement on a cluster that may receive new
+    placements is placed there, without asking the placement strategy, with
+    its SID and the room it is named after, if any.
+    """
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory() if registered else None
+    room_name = str(room.id) if registered else "my-room"
+    livekit_room_started = livekit_room("RM_started", name=room_name)
+
+    with (
+        mock.patch.object(WeightedRandomStrategy, "choose") as choose,
+        caplog.at_level(logging.INFO, logger="core.livekit.placements"),
+        django_assert_num_queries(3),
+    ):
+        started_on_lyon = PlacementService.record_started(
+            lyon, livekit_room_started, room
+        )
+
+    assert started_on_lyon is True
+    choose.assert_not_called()
+    placement = Placement.objects.get()
+    assert placement.room_name == room_name
+    assert placement.room == room
+    assert placement.cluster == "lyon"
+    assert placement.sid == "RM_started"
+    assert placement.epoch == 0
+    assert not room_management.mock_calls
+    assert (
+        f"LiveKit room {room_name} started on LiveKit cluster lyon with SID "
+        "RM_started without placement: placing it there"
+    ) in caplog.text
+
+
+def test_record_started_without_placement_concurrently(
+    two_livekit_clusters, room_management
+):
+    """
+    A LiveKit room started without placement, placed on another cluster while
+    it is placed on its own, is closed there.
+    """
+    _paris, lyon = two_livekit_clusters
+    bulk_create = Placement.objects.bulk_create
+
+    def placed_meanwhile(objs, **kwargs):
+        Placement.objects.create(room_name=objs[0].room_name, cluster="paris")
+        return bulk_create(objs, **kwargs)
+
+    with mock.patch.object(
+        Placement.objects, "bulk_create", side_effect=placed_meanwhile
+    ):
+        assert PlacementService.record_started(lyon, started()) is False
+
+    assert room_management.mock_calls == closing_calls(lyon)
+    placement = Placement.objects.get()
+    assert placement.cluster == "paris"
+    assert placement.sid == ""
+
+
+def test_record_started_on_cluster_weighing_zero(
+    settings, room_management, audit_events, caplog
+):
+    """
+    A LiveKit room started without placement on a cluster that may not receive
+    new placements is closed there, by the system, and not placed: the meeting
+    its participants were in had ended.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry("paris"), livekit_cluster_entry("lyon", weight=0)]
+    )
+    _paris, lyon = get_livekit_clusters()
+
+    with caplog.at_level(logging.WARNING, logger="core.livekit.placements"):
+        assert PlacementService.record_started(lyon, started()) is False
+
+    assert not Placement.objects.exists()
+    assert room_management.mock_calls == closing_calls(lyon)
+    [closed] = find_events(audit_events, "livekit.room.close")
+    assert closed["lasuite"]["outcome"] == "success"
+    assert closed["lasuite"]["actor"] == {"type": "system"}
+    assert closed["lasuite"]["details"] == {"cluster": "lyon"}
+    assert (
+        "LiveKit room my-room started without placement on LiveKit cluster lyon, "
+        "which may not receive new placements: closing it"
+    ) in caplog.text
+
+
+def test_record_started_without_candidate(settings, room_management, caplog):
+    """
+    A LiveKit room started without placement while no cluster may receive new
+    placements is left alone, and not placed.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps([livekit_cluster_entry("paris", weight=0)])
+    (paris,) = get_livekit_clusters()
+
+    with caplog.at_level(logging.WARNING, logger="core.livekit.placements"):
+        assert PlacementService.record_started(paris, started()) is True
+
+    assert not Placement.objects.exists()
+    assert not room_management.mock_calls
+    assert (
+        "LiveKit room my-room started on LiveKit cluster paris without placement, "
+        "while no LiveKit cluster may receive new placements: leaving it alone"
+    ) in caplog.text
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+@pytest.mark.parametrize("sid", ("RM_placed", ""))
+def test_record_started_elsewhere_than_placed(
+    sid, room_management, audit_events, caplog, django_assert_num_queries
+):
+    """
+    A LiveKit room started on a cluster other than its placement's, as one
+    revived on the cluster its room was relocated from, is closed there by the
+    system, its placement read again right before. The placement is left as
+    it is.
+    """
+    _paris, lyon = get_livekit_clusters()
+    placement = Placement.objects.create(room_name="my-room", cluster="paris", sid=sid)
+
+    with (
+        caplog.at_level(logging.WARNING, logger="core.livekit.placements"),
+        django_assert_num_queries(2),
+    ):
+        assert PlacementService.record_started(lyon, started()) is False
+
+    assert room_management.mock_calls == closing_calls(lyon)
+    assert_placement_unchanged(placement)
+    [closed] = find_events(audit_events, "livekit.room.close")
+    assert closed["lasuite"]["outcome"] == "success"
+    assert closed["lasuite"]["actor"] == {"type": "system"}
+    assert closed["lasuite"]["details"] == {"cluster": "lyon"}
+    assert (
+        "LiveKit room my-room started on LiveKit cluster lyon, but is placed on "
+        "LiveKit cluster paris: closing it"
+    ) in caplog.text
+
+
+def test_record_started_moved_to_its_cluster_meanwhile(
+    two_livekit_clusters, room_management
+):
+    """
+    A LiveKit room started on a cluster other than its placement's is not
+    closed when the placement read again right before closing it moved to
+    that cluster: it is recorded there.
+    """
+    _paris, lyon = two_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="paris", sid="RM_placed")
+
+    def relocate_to_lyon():
+        Placement.objects.filter(room_name="my-room").update(
+            cluster="lyon", previous_cluster="paris", sid="", epoch=F("epoch") + 1
+        )
+
+    with changing_after_reads(relocate_to_lyon):
+        assert PlacementService.record_started(lyon, started()) is True
+
+    assert not room_management.mock_calls
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.sid == "RM_started"
+    assert placement.epoch == 1
+
+
+def test_record_started_elsewhere_not_live(
+    two_livekit_clusters, room_management, audit_events
+):
+    """
+    A LiveKit room started on a cluster other than its placement's, and no
+    longer live there, is left alone, which is not audited.
+    """
+    _paris, lyon = two_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="paris", sid="RM_placed")
+    room_management.delete_room.side_effect = RoomNotFoundException(
+        "Room does not exist"
+    )
+
+    assert PlacementService.record_started(lyon, started()) is False
+
+    assert room_management.mock_calls == closing_calls(lyon)
+    assert not audit_events
+
+
+@pytest.mark.parametrize(
+    "error",
+    (
+        pytest.param(
+            aiohttp.ClientConnectionError("Connection refused"), id="unreachable"
+        ),
+        pytest.param(
+            RoomManagementException("Could not delete room"), id="deletion-failure"
+        ),
+    ),
+)
+def test_record_started_elsewhere_close_failure(
+    error, two_livekit_clusters, room_management, audit_events
+):
+    """
+    A cluster failing to close a LiveKit room started on it rather than on its
+    placement's cluster raises, which is audited: LiveKit sends the event
+    again.
+    """
+    _paris, lyon = two_livekit_clusters
+    placement = Placement.objects.create(
+        room_name="my-room", cluster="paris", sid="RM_placed"
+    )
+    room_management.delete_room.side_effect = error
+
+    with pytest.raises(LiveKitRoomCloseError):
+        PlacementService.record_started(lyon, started())
+
+    assert room_management.mock_calls == closing_calls(lyon)
+    assert_placement_unchanged(placement)
+    [closed] = find_events(audit_events, "livekit.room.close")
+    assert closed["lasuite"]["outcome"] == "failure"
+    assert closed["lasuite"]["details"] == {"cluster": "lyon"}
+
+
+def test_record_started_on_unregistered_cluster(
+    two_livekit_clusters, room_management, caplog
+):
+    """
+    A LiveKit room placed on a cluster this process does not know is left
+    alone, and so is its placement, which a webhook never deletes: processes
+    may disagree on the clusters while their registry changes.
+    """
+    _paris, lyon = two_livekit_clusters
+    placement = Placement.objects.create(
+        room_name="my-room", cluster="lille", sid="RM_placed"
+    )
+
+    with caplog.at_level(logging.WARNING, logger="core.livekit.placements"):
+        assert PlacementService.record_started(lyon, started()) is False
+
+    assert_placement_unchanged(placement)
+    assert not room_management.mock_calls
+    assert (
+        "LiveKit room my-room started on LiveKit cluster lyon, but is placed on "
+        "LiveKit cluster lille, which is not registered: leaving both alone"
+    ) in caplog.text
+
+
+@pytest.mark.parametrize(
+    "sid",
+    (
+        pytest.param("RM_started", id="recorded-by-a-join"),
+        pytest.param("RM_created_again", id="created-again"),
+    ),
+)
+def test_record_started_changed_meanwhile(
+    sid, two_livekit_clusters, room_management, django_assert_num_queries
+):
+    """
+    A placement whose SID changed while a LiveKit room started on its cluster
+    is recorded is read again, rather than overwritten.
+    """
+    _paris, lyon = two_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="lyon")
+
+    def change():
+        Placement.objects.filter(room_name="my-room").update(sid=sid)
+
+    placement_read = 1
+    change_meanwhile = 1
+    sid_update = 1
+    with (
+        changing_after_reads(change),
+        django_assert_num_queries(
+            placement_read + change_meanwhile + sid_update + placement_read
+        ),
+    ):
+        assert PlacementService.record_started(lyon, started()) is True
+
+    assert Placement.objects.get().sid == sid
+    assert not room_management.mock_calls
+
+
+def test_record_started_keeps_changing(two_livekit_clusters, caplog):
+    """
+    A placement that keeps changing while a LiveKit room started on its
+    cluster is recorded is left as it is, which raises.
+    """
+    _paris, lyon = two_livekit_clusters
+    Placement.objects.create(room_name="my-room", cluster="lyon")
+
+    with (
+        changing_after_reads(lambda: bump_epoch("my-room"), every=True),
+        caplog.at_level(logging.WARNING, logger="core.livekit.placements"),
+        pytest.raises(PlacementChangedError, match="kept changing"),
+    ):
+        PlacementService.record_started(lyon, started())
+
+    placement = Placement.objects.get()
+    assert placement.epoch == PLACEMENT_CREATION_ATTEMPTS
+    assert placement.sid == ""
+    assert (
+        "Placement of LiveKit room my-room kept changing while its LiveKit room "
+        "started on LiveKit cluster lyon was recorded"
+    ) in caplog.text
+
+
+def test_record_started_without_sid(
+    two_livekit_clusters, room_management, django_assert_num_queries
+):
+    """A LiveKit room told without SID is taken for the LiveKit room its room is
+    placed on, and nothing is recorded."""
+    _paris, lyon = two_livekit_clusters
+
+    with django_assert_num_queries(0):
+        assert PlacementService.record_started(lyon, started("")) is True
+
+    assert not Placement.objects.exists()
+    assert not room_management.mock_calls
 
 
 @pytest.mark.parametrize("registered", (True, False))
