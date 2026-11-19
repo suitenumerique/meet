@@ -121,6 +121,7 @@ def test_update_participant_role_promotes_authenticated_target(
         room_name=str(room.pk),
         participant_identity=str(target.sub),
         role="administrator",
+        room=room,
     )
 
 
