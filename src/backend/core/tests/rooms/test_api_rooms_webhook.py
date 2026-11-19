@@ -210,12 +210,17 @@ def test_unhandled_event_type(client, mock_livekit_config):
     assert response.json() == {"status": "success"}
 
 
+@pytest.mark.django_db
 def test_action_error(client, mock_livekit_config):
-    """Should raise exceptions when errors occur during LiveKit webhook processing."""
+    """Should raise exceptions when errors occur during LiveKit webhook processing.
+
+    LiveKit then sends the event again, as for an egress event received before
+    the recording it is about knows its egress.
+    """
     event_data = json.dumps(
         {
-            "event": "room_finished",
-            "room": {"sid": "RM_hycBMAjmt6Ub", "name": "invalid-uuid"},
+            "event": "egress_updated",
+            "egressInfo": {"egressId": "EG_hycBMAjmt6Ub", "status": "EGRESS_ACTIVE"},
         }
     )
     hash64 = base64.b64encode(hashlib.sha256(event_data.encode()).digest()).decode()
@@ -227,7 +232,7 @@ def test_action_error(client, mock_livekit_config):
 
     with pytest.raises(
         ActionFailedError,
-        match="Failed to process room finished event",
+        match="Recording with worker ID EG_hycBMAjmt6Ub does not exist",
     ):
         client.post(
             "/api/v1.0/rooms/webhooks-livekit/",
@@ -235,6 +240,48 @@ def test_action_error(client, mock_livekit_config):
             content_type="application/json",
             HTTP_AUTHORIZATION=auth_token,
         )
+
+
+def post_room_event(client, livekit_config, event, room_name):
+    """Post the webhook LiveKit sends on an event of a LiveKit room."""
+    event_data = json.dumps(
+        {"event": event, "room": {"sid": "RM_hycBMAjmt6Ub", "name": room_name}}
+    )
+    return client.post(
+        "/api/v1.0/rooms/webhooks-livekit/",
+        data=event_data,
+        content_type="application/json",
+        HTTP_AUTHORIZATION=livekit_webhook_token(
+            event_data, livekit_config["api_key"], livekit_config["api_secret"]
+        ),
+    )
+
+
+@pytest.mark.parametrize("event", ["room_started", "room_finished"])
+def test_room_event_of_an_unregistered_room(event, client, mock_livekit_config):
+    """Should acknowledge (200) the events of an unregistered room, which the
+    backend ignores, rather than have LiveKit send them again."""
+    response = post_room_event(
+        client, mock_livekit_config, event, "my-unregistered-room"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "success"}
+
+
+@pytest.mark.django_db
+def test_room_started_of_an_unknown_room(client, mock_livekit_config):
+    """Should acknowledge (200) the start of a LiveKit room named after a room
+    that does not exist, which the backend ignores."""
+    response = post_room_event(
+        client,
+        mock_livekit_config,
+        "room_started",
+        "00000000-0000-0000-0000-000000000000",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "success"}
 
 
 @pytest.mark.django_db

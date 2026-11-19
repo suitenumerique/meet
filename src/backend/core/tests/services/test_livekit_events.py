@@ -980,15 +980,23 @@ def test_handle_room_finished_raises_error_when_telephony_deletion_fails(
     mock_clear_cache.assert_not_called()
 
 
-def test_handle_room_finished_raises_error_for_invalid_room_name(service):
-    """Should raise ActionFailedError when room name format is invalid when room finishes."""
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+def test_handle_room_finished_ignores_an_unregistered_room(
+    mock_delete_dispatch_rule, service, room_cleanup, settings, caplog
+):
+    """A LiveKit room not named after a room, such as an unregistered room, is
+    not cleaned up, and its event is acknowledged rather than retried."""
+    settings.ROOM_TELEPHONY_ENABLED = True
     mock_data = mock.MagicMock()
-    mock_data.room.name = "invalid"
+    mock_data.room.name = "my-unregistered-room"
 
-    with pytest.raises(
-        ActionFailedError, match="Failed to process room finished event"
-    ):
+    with caplog.at_level(logging.INFO, logger="core.services.livekit_events"):
         service._handle_room_finished(mock_data)
+
+    assert "room name 'my-unregistered-room' is not a valid UUID" in caplog.text
+    mock_delete_dispatch_rule.assert_not_called()
+    for cleanup in room_cleanup:
+        cleanup.assert_not_called()
 
 
 @mock.patch.object(SIPManagement, "ensure_dispatch_rule")
@@ -1150,24 +1158,43 @@ def test_handle_room_started_records_access_when_dispatch_rule_creation_fails(
     assert room.last_started_at is not None
 
 
-def test_handle_room_started_raises_error_for_invalid_room_name(service):
-    """Should raise ActionFailedError when room name format is invalid  when room starts."""
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_handle_room_started_ignores_an_unregistered_room(
+    mock_delete_room, mock_ensure_dispatch_rule, service, settings, caplog
+):
+    """A LiveKit room not named after a room, such as an unregistered room, is
+    left alone, and its event is acknowledged rather than retried."""
+    settings.ROOM_TELEPHONY_ENABLED = True
     mock_data = mock.MagicMock()
-    mock_data.room.name = "invalid"
+    mock_data.room.name = "my-unregistered-room"
 
-    with pytest.raises(ActionFailedError, match="Failed to process room started event"):
+    with caplog.at_level(logging.INFO, logger="core.services.livekit_events"):
         service._handle_room_started(mock_data)
 
+    assert "room name 'my-unregistered-room' is not a valid UUID" in caplog.text
+    mock_delete_room.assert_not_called()
+    mock_ensure_dispatch_rule.assert_not_called()
 
-def test_handle_room_started_raises_error_for_nonexistent_room(service):
-    """Should raise ActionFailedError when a room starts that doesn't exist in the database."""
+
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_handle_room_started_ignores_an_unknown_room(
+    mock_delete_room, mock_ensure_dispatch_rule, service, settings, caplog
+):
+    """A LiveKit room named after a room that does not exist is left alone, and
+    its event is acknowledged rather than retried."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room_id = uuid.uuid4()
     mock_data = mock.MagicMock()
-    mock_data.room.name = str(uuid.uuid4())
+    mock_data.room.name = str(room_id)
 
-    expected_error = f"Room with ID {mock_data.room.name} does not exist"
-
-    with pytest.raises(ActionFailedError, match=expected_error):
+    with caplog.at_level(logging.INFO, logger="core.services.livekit_events"):
         service._handle_room_started(mock_data)
+
+    assert f"room {room_id} does not exist" in caplog.text
+    mock_delete_room.assert_not_called()
+    mock_ensure_dispatch_rule.assert_not_called()
 
 
 @mock.patch.object(SIPManagement, "ensure_dispatch_rule")

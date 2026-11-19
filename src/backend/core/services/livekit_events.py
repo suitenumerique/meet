@@ -329,22 +329,34 @@ class LiveKitEventsService:
         """Return True for ephemeral rooms created by the connection test endpoint."""
         return room_name.startswith(settings.CONNECTION_TEST_ROOM_PREFIX)
 
-    def _handle_room_started(self, data):
-        """Handle 'room_started' event."""
-
+    @staticmethod
+    def _room_id(room_name: str) -> uuid.UUID | None:
+        """Return the id of the room a LiveKit room is named after."""
         try:
-            room_id = uuid.UUID(data.room.name)
-        except ValueError as e:
-            logger.warning(
+            return uuid.UUID(room_name)
+        except ValueError:
+            logger.info(
                 "Ignoring room event: room name '%s' is not a valid UUID format.",
-                data.room.name,
+                room_name,
             )
-            raise ActionFailedError("Failed to process room started event") from e
+            return None
+
+    def _handle_room_started(self, data):
+        """Handle 'room_started' event.
+
+        It is ignored for a LiveKit room not named after a room Django knows,
+        such as an unregistered room.
+        """
+
+        room_id = self._room_id(data.room.name)
+        if room_id is None:
+            return
 
         try:
             room = models.Room.all_objects.get(id=room_id)
-        except models.Room.DoesNotExist as err:
-            raise ActionFailedError(f"Room with ID {room_id} does not exist") from err
+        except models.Room.DoesNotExist:
+            logger.info("Ignoring room event: room %s does not exist.", room_id)
+            return
 
         # The block below is intended to fix the issue where long-lived livekit
         # tokens allow users who already entered a room to re-create it,
@@ -389,17 +401,13 @@ class LiveKitEventsService:
         """Handle 'room_finished' event.
 
         The room is cleaned up only when the placement of its LiveKit room
-        ended, or when it has none.
+        ended, or when it has none. The event is ignored for a LiveKit room not
+        named after a room, such as an unregistered room.
         """
 
-        try:
-            room_id = uuid.UUID(data.room.name)
-        except ValueError as e:
-            logger.warning(
-                "Ignoring room event: room name '%s' is not a valid UUID format.",
-                data.room.name,
-            )
-            raise ActionFailedError("Failed to process room finished event") from e
+        room_id = self._room_id(data.room.name)
+        if room_id is None:
+            return
 
         if not self._end_placement(data.room):
             return
