@@ -6,7 +6,11 @@
     "resetLabel": "Reset",
     "participantLimit": "Up to 150 participants.",
     "popupBlocked": "Popup was blocked. Please allow popups for this site.",
-    "settingsTooltip": "Meeting settings"
+    "settingsTooltip": "Meeting settings",
+    "phone": {
+      "call": "Call:",
+      "pinCode": "Code:"
+    }
   },
   "roomSettings": {
     "title": "Meeting settings",

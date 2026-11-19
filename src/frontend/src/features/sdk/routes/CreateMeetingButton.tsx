@@ -1,5 +1,5 @@
 import { Button } from '@/primitives/Button'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { HStack, VStack } from '@/styled-system/jsx'
@@ -14,6 +14,9 @@ import { useRoomCreationCallback } from '../api/useRoomCreationCallback'
 import { PopupManager } from '../utils/PopupManager'
 import { CallbackCreationRoomData } from '../utils/types'
 import { useSearchParams } from 'wouter'
+import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
+import { buildSdkRoomData } from '../utils/buildSdkRoomData'
+import { formatPinCode } from '@/features/rooms/utils/telephony'
 
 const popupManager = new PopupManager()
 
@@ -43,6 +46,17 @@ const CreateMeetingButton = () => {
     isRoomCreatedInSession || searchParams.get('settings') === 'true'
 
   const { data } = useRoomCreationCallback({ callbackId })
+
+  // Ref: the popup message listener is registered once, config loads async
+  const telephony = useTelephony()
+  const telephonyRef = useRef(telephony)
+  telephonyRef.current = telephony
+
+  // Same rule as the ROOM_CREATED payload: shown only when both are known
+  const sdkRoom = useMemo(
+    () => room && buildSdkRoomData(room, telephony),
+    [room, telephony]
+  )
 
   const roomUrl = useMemo(() => {
     if (room?.slug) return getRouteUrl('room', room.slug)
@@ -83,10 +97,7 @@ const CreateMeetingButton = () => {
     setCallbackId(undefined)
     setIsPending(false)
     popupManager.sendRoomData({
-      room: {
-        url: getRouteUrl('room', data.room.slug),
-        ...data.room,
-      },
+      room: buildSdkRoomData(data.room, telephonyRef.current),
     })
   }, [data])
 
@@ -97,6 +108,9 @@ const CreateMeetingButton = () => {
         setRoom(data)
         setIsRoomCreatedInSession(true)
         setIsPending(false)
+        popupManager.sendRoomData({
+          room: buildSdkRoomData(data, telephonyRef.current),
+        })
       }
     )
 
@@ -201,6 +215,16 @@ const CreateMeetingButton = () => {
             <Text variant={'smNote'} margin={false} centered={false}>
               {roomUrl.replace('https://', '')}
             </Text>
+            {sdkRoom?.phone && sdkRoom.code && (
+              <>
+                <Text variant={'smNote'} margin={false} centered={false}>
+                  {t('phone.call')} ({telephony.country}) {sdkRoom.phone}
+                </Text>
+                <Text variant={'smNote'} margin={false} centered={false}>
+                  {t('phone.pinCode')} {formatPinCode(sdkRoom.code)}
+                </Text>
+              </>
+            )}
             <Text variant={'smNote'} margin={false} centered={false}>
               {t('participantLimit')}
             </Text>
