@@ -59,6 +59,8 @@ const connectOptions = {
   peerConnectionTimeout: 60000, // Default: 15s. Extended for slow TURN/TLS negotiation
 }
 
+const WARM_UP_TIMEOUT_MS = 5_000
+
 const handleError = (e: Error) => {
   const failure = getMediaDeviceFailure(e)
   if (failure && failure !== MediaDeviceFailure.Other) return
@@ -82,14 +84,25 @@ const handleError = (e: Error) => {
  * This prefetch helps reduce initial connection latency by establishing
  * an early HTTP connection to the WebRTC signaling server
  *
- * It should cache DNS and TLS keys.
+ * It should cache DNS and TLS keys. It is waited for WARM_UP_TIMEOUT_MS at
+ * most, so that an unreachable cluster delays the connection by that much only.
  */
 const warmUpConnection = async (
   room: Room,
   url: string,
   enableFirefoxProxyWorkaround: boolean
 ) => {
-  await room.prepareConnection(url)
+  const startedAt = performance.now()
+  const timedOut = await Promise.race([
+    room.prepareConnection(url).then(() => false),
+    new Promise<boolean>((resolve) =>
+      setTimeout(() => resolve(true), WARM_UP_TIMEOUT_MS)
+    ),
+  ])
+  captureEvent('connection-warm-up', {
+    timed_out: timedOut,
+    duration_ms: Math.round(performance.now() - startedAt),
+  })
 
   if (isFireFox() && enableFirefoxProxyWorkaround) {
     try {
@@ -296,7 +309,7 @@ export const Conference = ({
       room,
       urlToWarmUp,
       apiConfig.livekit.enable_firefox_proxy_workaround
-    ).then(() => setWarmedUpUrls((urls) => new Set(urls).add(urlToWarmUp)))
+    ).finally(() => setWarmedUpUrls((urls) => new Set(urls).add(urlToWarmUp)))
   }, [room, apiConfig, urlToWarmUp])
 
   useEffect(() => {

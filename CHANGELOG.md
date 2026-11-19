@@ -81,6 +81,7 @@ and this project adheres to
 - ♿️(frontend) structure the more tools panel as a list
 - 🐛(backend) handle unreachable livekit when updating or closing rooms
 - 🥅(backend) acknowledge livekit webhooks of rooms the backend ignores
+- 🐛(frontend) bound the warm-up of the livekit connection
 
 ## [1.37.0] - 2026-11-01
 
