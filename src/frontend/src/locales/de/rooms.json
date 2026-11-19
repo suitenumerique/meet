@@ -5,6 +5,7 @@
       "duplicateIdentity": "Du bist dem Meeting von einem anderen Gerät aus beigetreten",
       "participantRemoved": "Du wurdest vom Host aus dem Meeting entfernt",
       "roomDeleted": "Dieses Meeting wurde gelöscht",
+      "meetingEnded": "Das Meeting ist beendet",
       "connectionLost": "Die Verbindung zum Meeting wurde unterbrochen",
       "connectionFailed": "Beitritt zum Meeting nicht möglich"
     },
@@ -251,6 +252,11 @@
     "stayButton": "Meeting fortsetzen",
     "leaveButton": "Jetzt verlassen",
     "countdownAnnouncement": "Das Meeting endet in {{duration}}."
+  },
+  "connectionRecovery": {
+    "title": "Verbindung zum Meeting wird hergestellt…",
+    "body": "Das kann einige Sekunden dauern.",
+    "leave": "Meeting verlassen"
   },
   "controls": {
     "region": "Anrufsteuerung",

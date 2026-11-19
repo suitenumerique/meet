@@ -5,6 +5,7 @@
       "duplicateIdentity": "U heeft de vergadering via een ander apparaat geopend",
       "participantRemoved": "U bent door een beheerder uit het gesprek verwijderd",
       "roomDeleted": "Deze vergadering is verwijderd",
+      "meetingEnded": "De vergadering is afgelopen",
       "connectionLost": "De verbinding met de vergadering is verbroken",
       "connectionFailed": "Deelnemen aan de vergadering is niet gelukt"
     },
@@ -251,6 +252,11 @@
     "stayButton": "Gesprek voortzetten",
     "leaveButton": "Nu verlaten",
     "countdownAnnouncement": "Het gesprek eindigt over {{duration}}."
+  },
+  "connectionRecovery": {
+    "title": "Verbinden met de vergadering…",
+    "body": "Dit kan enkele seconden duren.",
+    "leave": "Vergadering verlaten"
   },
   "controls": {
     "region": "Gespreksbesturing",

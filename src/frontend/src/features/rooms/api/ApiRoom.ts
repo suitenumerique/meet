@@ -5,6 +5,7 @@ export type ApiLiveKit = {
   url: string
   room: string
   token: string
+  room_sid?: string
 }
 
 export enum ApiAccessLevel {

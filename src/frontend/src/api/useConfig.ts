@@ -83,6 +83,7 @@ export interface ApiConfig {
       give_up_after_ms: number
       backoff_reset_ms: number
     }
+    connection_recovery?: boolean
   }
   transcription_destination?: string
   max_participants_for_sound: number

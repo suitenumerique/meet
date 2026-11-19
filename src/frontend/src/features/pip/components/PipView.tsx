@@ -6,6 +6,8 @@ import { ReactionsToolbar } from '@/features/reactions/components/toolbar/Reacti
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { NotificationProvider } from '@/features/notifications/NotificationProvider'
 import { ConnectionStateToast } from '@livekit/components-react'
+import { useSnapshot } from 'valtio'
+import { connectionRecoveryStore } from '@/stores/connectionRecovery'
 
 const Container = styled('div', {
   base: {
@@ -61,10 +63,11 @@ const ConnectionStateWrapper = styled('div', {
 
 export const PipView = () => {
   const { isOpen: isReactionToolbarOpen } = useReactionsToolbar()
+  const { isRecovering } = useSnapshot(connectionRecoveryStore)
   return (
     <Container isReactionToolbarOpen={isReactionToolbarOpen}>
       <ConnectionStateWrapper>
-        <ConnectionStateToast />
+        {!isRecovering && <ConnectionStateToast />}
       </ConnectionStateWrapper>
       <PipStage />
       <ReactionsToolbar adjustedCentering={false} />

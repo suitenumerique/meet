@@ -8,7 +8,6 @@ import {
 import {
   ConnectionError,
   ConnectionErrorReason,
-  DisconnectReason,
   MediaDeviceFailure,
   type Room,
   type RoomOptions,
@@ -36,7 +35,6 @@ import {
 import { useConfig } from '@/api/useConfig'
 import { isFireFox } from '@/utils/livekit'
 import { useIsMobile } from '@/utils/useIsMobile'
-import { navigateTo } from '@/navigation/navigateTo'
 import { PictureInPictureConference } from '@/features/pip/components/PictureInPictureConference'
 import { notifyAutoMutedOnJoin } from '@/features/notifications/utils'
 import { useSnapshot } from 'valtio'
@@ -46,13 +44,14 @@ import { WatchMediaDeviceErrors } from './WatchMediaDeviceErrors'
 import { MeetDevtools } from '@/features/devtools'
 import { VOICE_AUDIO_CONSTRAINTS } from '@/features/rooms/livekit/utils/constants'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
-import { ConnectionEndReason } from '@/features/rooms/utils/connectionEndReason'
 import { createLiveKitRoom } from '@/features/rooms/livekit/utils/reconnectPolicy'
 import {
   getUrlToWarmUp,
   shouldConnect,
   toConnectionUrl,
 } from '@/features/rooms/livekit/utils/clusterConnection'
+import { useConnectionRecovery } from '../hooks/useConnectionRecovery'
+import { ConnectionRecoveryDialog } from './ConnectionRecoveryDialog'
 
 // Some clients (like DINUM) operate in bandwidth-constrained environments
 // These settings help ensure successful connections in poor network conditions
@@ -79,6 +78,17 @@ const handleError = (e: Error) => {
   reportError('livekit_room_error', e, {
     path: 'connect_publish',
   })
+}
+
+const handleErrorWithRecovery = (e: Error) => {
+  if (
+    e instanceof ConnectionError &&
+    e.reason === ConnectionErrorReason.NotAllowed &&
+    e.status === 404
+  ) {
+    return
+  }
+  handleError(e)
 }
 
 /**
@@ -133,25 +143,6 @@ const warmUpConnection = async (
   }
 }
 
-const getConnectionEndReason = (
-  reason: DisconnectReason | undefined,
-  hasConnected: boolean
-) => {
-  switch (reason) {
-    case DisconnectReason.CLIENT_INITIATED:
-      return undefined
-    case DisconnectReason.DUPLICATE_IDENTITY:
-    case DisconnectReason.PARTICIPANT_REMOVED:
-    case DisconnectReason.ROOM_DELETED:
-      return reason
-    default:
-      // Reconnecting gave up, or the join itself failed
-      return hasConnected
-        ? ConnectionEndReason.Lost
-        : ConnectionEndReason.Failed
-  }
-}
-
 export const Conference = ({
   roomId,
   mode = 'join',
@@ -176,9 +167,10 @@ export const Conference = ({
   )
   const [pinnedLiveKit, setPinnedLiveKit] = useState<ApiLiveKit>()
   const startedWarmUpsRef = useRef(new Set<string>())
-  const hasAutoMutedRef = useRef(false)
-  const hasConnectedRef = useRef(false)
+  const [hasConnected, setHasConnected] = useState(false)
+  const hasCheckedAutoMuteRef = useRef(false)
   const spentRef = useRef(false)
+  const isRecoveryEnabled = apiConfig?.livekit.connection_recovery === true
 
   const { mutateAsync: createRoom, isError: isCreateError } = useCreateRoom()
   const {
@@ -254,17 +246,51 @@ export const Conference = ({
     liveKit &&
     toConnectionUrl(liveKit.url, apiConfig?.livekit.force_wss_protocol ?? false)
 
+  const connectToCluster = useCallback(
+    async (livekit: ApiLiveKit, signal: AbortSignal) => {
+      if (!apiConfig) throw new Error('The config is not loaded')
+      if (!startedWarmUpsRef.current.has(livekit.url)) {
+        startedWarmUpsRef.current.add(livekit.url)
+        await warmUpConnection(
+          room,
+          livekit.url,
+          apiConfig.livekit.enable_firefox_proxy_workaround
+        )
+      }
+      if (signal.aborted) return
+      await room
+        .connect(
+          toConnectionUrl(livekit.url, apiConfig.livekit.force_wss_protocol),
+          livekit.token,
+          connectOptions
+        )
+        .catch((error) => {
+          handleErrorWithRecovery(error)
+          throw error
+        })
+    },
+    [apiConfig, room]
+  )
+
+  const recovery = useConnectionRecovery({
+    room,
+    roomId,
+    isEnabled: isRecoveryEnabled,
+    initialCredentials: pinnedLiveKit,
+    connect: connectToCluster,
+    onLobbyRequired,
+  })
+
   const handleConnected = useCallback(async () => {
-    hasConnectedRef.current = true
     spentRef.current = true
-    if (!apiConfig) return
+    setHasConnected(true)
+    if (!apiConfig || hasCheckedAutoMuteRef.current) return
+    hasCheckedAutoMuteRef.current = true
     if (
       userPreferencesSnap.is_auto_mute_large_room_enabled &&
-      !hasAutoMutedRef.current &&
       userConfig.audioEnabled &&
       room.numParticipants > apiConfig.auto_mute_on_join_threshold
     ) {
-      hasAutoMutedRef.current = true
       await room.localParticipant.setMicrophoneEnabled(false)
       notifyAutoMutedOnJoin()
     }
@@ -275,22 +301,9 @@ export const Conference = ({
     userPreferencesSnap.is_auto_mute_large_room_enabled,
   ])
 
-  const handleDisconnected = useCallback(
-    (reason?: DisconnectReason) => {
-      spentRef.current = true
-      navigateTo(
-        'feedback',
-        {},
-        {
-          state: {
-            reason: getConnectionEndReason(reason, hasConnectedRef.current),
-            room_id: roomId,
-          },
-        }
-      )
-    },
-    [roomId]
-  )
+  const handleDisconnected = useCallback(() => {
+    spentRef.current = true
+  }, [])
 
   useEffect(() => {
     void captureMediaEvent('visit-room', { slug: roomId })
@@ -354,8 +367,9 @@ export const Conference = ({
           serverUrl={serverUrl}
           token={liveKit?.token}
           connect={connect}
-          audio={userConfig.audioEnabled}
+          audio={!hasConnected && userConfig.audioEnabled}
           video={
+            !hasConnected &&
             userConfig.videoEnabled && {
               processor: BackgroundProcessorFactory.fromProcessorConfig(
                 userConfig.processorConfig
@@ -366,12 +380,13 @@ export const Conference = ({
           className={css({
             backgroundColor: 'primaryDark.50 !important',
           })}
-          onError={handleError}
+          onError={isRecoveryEnabled ? handleErrorWithRecovery : handleError}
           onConnected={handleConnected}
           onDisconnected={handleDisconnected}
         >
           <WatchMediaDeviceErrors />
           <VideoConference />
+          <ConnectionRecoveryDialog onLeave={recovery.leave} />
           {!isMobile && <InviteDialog mode={mode} />}
           <PictureInPictureConference />
           <MeetDevtools />

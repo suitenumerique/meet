@@ -5,6 +5,7 @@
       "duplicateIdentity": "You have joined the meeting from another device",
       "participantRemoved": "You have been removed from the meeting by a host",
       "roomDeleted": "This meeting has been deleted",
+      "meetingEnded": "The meeting has ended",
       "connectionLost": "The connection to the meeting was lost",
       "connectionFailed": "Unable to join the meeting"
     },
@@ -251,6 +252,11 @@
     "stayButton": "Continue the call",
     "leaveButton": "Leave now",
     "countdownAnnouncement": "Call ends in {{duration}}."
+  },
+  "connectionRecovery": {
+    "title": "Connecting to the meeting…",
+    "body": "This can take a few seconds.",
+    "leave": "Leave the meeting"
   },
   "controls": {
     "region": "Call controls",

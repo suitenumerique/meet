@@ -21,6 +21,7 @@ export type LogCode =
   | 'join_preview_failure'
   | 'room_media_failure'
   | 'livekit_room_error'
+  | 'connection_recovery_failure'
   | 'device_switch_failure'
   | 'permission_poll_failure'
   | 'media_devices_error_event'

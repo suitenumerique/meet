@@ -33,6 +33,8 @@ import { SyncDevicePreferences } from '@/features/rooms/livekit/components/SyncD
 import { RoomSilentMicDetector } from '@/features/rooms/components/SilentMicDetector'
 import { LowerHandOnSpeaking } from '@/features/rooms/livekit/components/LowerHandOnSpeaking'
 import { LobbyProvider } from '@/features/rooms/components/LobbyProvider'
+import { connectionRecoveryStore } from '@/stores/connectionRecovery'
+import { useSnapshot } from 'valtio'
 
 /**
  * @public
@@ -78,6 +80,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
   useNoiseReduction()
 
   const { isOpen: isPictureInPictureOpen } = usePictureInPicture()
+  const { isRecovering } = useSnapshot(connectionRecoveryStore)
 
   const [isShareErrorVisible, setIsShareErrorVisible] = useState(false)
 
@@ -152,7 +155,7 @@ export function VideoConference({ ...props }: VideoConferenceProps) {
           </>
         )}
         <RoomAudioRenderer />
-        <ConnectionStateToast />
+        {!isRecovering && <ConnectionStateToast />}
         <RecordingProvider />
         <SettingsDialogProvider />
         <MuteAlertDialogProvider />

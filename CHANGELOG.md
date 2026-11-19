@@ -20,6 +20,7 @@ and this project adheres to
 - ✨(backend) record livekit rooms on the cluster that started them
 - ✨(backend) hand out the sid of livekit rooms with their credentials
 - ✨(backend) let frontends join live rooms and report failed ones
+- ✨(frontend) reconnect participants when their livekit room closes
 
 ### Changed
 

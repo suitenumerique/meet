@@ -36,6 +36,7 @@ enum DisconnectReasonKey {
   RoomDeleted = 'roomDeleted',
   ConnectionLost = 'connectionLost',
   ConnectionFailed = 'connectionFailed',
+  MeetingEnded = 'meetingEnded',
 }
 
 const FeedbackRoute = () => {
@@ -57,6 +58,8 @@ const FeedbackRoute = () => {
         return DisconnectReasonKey.ConnectionLost
       case ConnectionEndReason.Failed:
         return DisconnectReasonKey.ConnectionFailed
+      case ConnectionEndReason.MeetingEnded:
+        return DisconnectReasonKey.MeetingEnded
     }
   }, [])
 
@@ -67,10 +70,12 @@ const FeedbackRoute = () => {
     }
   }, [])
 
-  // Rejoining is not possible once removed or once the room is deleted
+  // Rejoining is not possible once removed, once the room is deleted or once
+  // the meeting has ended
   const showBackButton =
     reasonKey !== DisconnectReasonKey.ParticipantRemoved &&
-    reasonKey !== DisconnectReasonKey.RoomDeleted
+    reasonKey !== DisconnectReasonKey.RoomDeleted &&
+    reasonKey !== DisconnectReasonKey.MeetingEnded
 
   return (
     <Screen layout="centered" footer={false}>

@@ -5,6 +5,7 @@
       "duplicateIdentity": "Vous avez rejoint la réunion depuis un autre appareil",
       "participantRemoved": "Vous avez été exclu de l'appel par un administrateur",
       "roomDeleted": "Cette réunion a été supprimée",
+      "meetingEnded": "La réunion est terminée",
       "connectionLost": "La connexion à la réunion a été perdue",
       "connectionFailed": "Impossible de rejoindre la réunion"
     },
@@ -251,6 +252,11 @@
     "stayButton": "Poursuivre l'appel",
     "leaveButton": "Quitter maintenant",
     "countdownAnnouncement": "L'appel se termine dans {{duration}}."
+  },
+  "connectionRecovery": {
+    "title": "Connexion à la réunion…",
+    "body": "Cela peut prendre quelques secondes.",
+    "leave": "Quitter la réunion"
   },
   "controls": {
     "region": "Commandes pour les appels",

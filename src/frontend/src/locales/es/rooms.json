@@ -5,6 +5,7 @@
       "duplicateIdentity": "Te has unido a la reunión desde otro dispositivo",
       "participantRemoved": "Un administrador te ha expulsado de la llamada",
       "roomDeleted": "Esta reunión ha sido eliminada",
+      "meetingEnded": "La reunión ha terminado",
       "connectionLost": "Se ha perdido la conexión con la reunión",
       "connectionFailed": "No se ha podido acceder a la reunión"
     },
@@ -251,6 +252,11 @@
     "stayButton": "Continuar la llamada",
     "leaveButton": "Salir ahora",
     "countdownAnnouncement": "La llamada termina dentro de {{duration}}."
+  },
+  "connectionRecovery": {
+    "title": "Conectando con la reunión…",
+    "body": "Esto puede tardar unos segundos.",
+    "leave": "Salir de la reunión"
   },
   "controls": {
     "region": "Controles de la llamada",

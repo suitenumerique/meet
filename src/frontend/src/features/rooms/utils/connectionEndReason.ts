@@ -4,4 +4,5 @@
 export enum ConnectionEndReason {
   Failed = 'connectionFailed',
   Lost = 'connectionLost',
+  MeetingEnded = 'meetingEnded',
 }
