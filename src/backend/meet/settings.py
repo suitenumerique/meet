@@ -695,6 +695,20 @@ class Base(Configuration):
     OIDC_STORE_ID_TOKEN = values.BooleanValue(
         default=True, environ_name="OIDC_STORE_ID_TOKEN", environ_prefix=None
     )
+    # Required to call other La Suite applications on behalf of the user, e.g.
+    # to push a recording to their Drive.
+    OIDC_STORE_ACCESS_TOKEN = values.BooleanValue(
+        default=False, environ_name="OIDC_STORE_ACCESS_TOKEN", environ_prefix=None
+    )
+    OIDC_STORE_REFRESH_TOKEN = values.BooleanValue(
+        default=False, environ_name="OIDC_STORE_REFRESH_TOKEN", environ_prefix=None
+    )
+    # Fernet key used to encrypt OIDC tokens at rest, both the refresh token
+    # django-lasuite stores in the session and the access token stored on a
+    # recording. Generate one with `Fernet.generate_key()`.
+    OIDC_STORE_REFRESH_TOKEN_KEY = SecretFileValue(
+        None, environ_name="OIDC_STORE_REFRESH_TOKEN_KEY", environ_prefix=None
+    )
     ALLOW_LOGOUT_GET_METHOD = values.BooleanValue(
         default=True, environ_name="ALLOW_LOGOUT_GET_METHOD", environ_prefix=None
     )
@@ -911,6 +925,72 @@ class Base(Configuration):
     # Set to None for no max duration
     RECORDING_MAX_DURATION = values.IntegerValue(
         None, environ_name="RECORDING_MAX_DURATION", environ_prefix=None
+    )
+
+    # Where a finished video recording is made available (audio-only transcripts
+    # are not concerned):
+    # - "s3_email": it stays in the object storage, and everyone with access to it
+    #   is emailed a download link.
+    # - "drive": it is also pushed to the Drive of the user who started it, in
+    #   RECORDING_DRIVE_FOLDER_NAME, and shared with the room's owners and
+    #   administrators. Only the starter is emailed, with a link to the file.
+    #   The object storage copy is kept until it expires. Nobody is emailed when
+    #   the push fails.
+    RECORDING_STORAGE_METHOD = values.Value(
+        "s3_email", environ_name="RECORDING_STORAGE_METHOD", environ_prefix=None
+    )
+    # How Meet calls Drive on behalf of the user who started the recording:
+    # - "token_exchange": their access token is exchanged with Menshen, when the
+    #   recording starts, for a token targeting Drive (RECORDING_DRIVE_AUDIENCE).
+    #   Its lifetime, set by Menshen's exchange rule, must outlast the recording.
+    # - "access_token": their access token itself, assumed to still be valid when
+    #   the recording is over. Long recordings may fail to be pushed.
+    # Both require OIDC_STORE_ACCESS_TOKEN, and OIDC_STORE_REFRESH_TOKEN_KEY to
+    # encrypt the token while the recording runs.
+    RECORDING_DRIVE_AUTH_METHOD = values.Value(
+        "token_exchange",
+        environ_name="RECORDING_DRIVE_AUTH_METHOD",
+        environ_prefix=None,
+    )
+    # Folder, at the root of the user's Drive, recordings are pushed to. It is
+    # created when missing.
+    RECORDING_DRIVE_FOLDER_NAME = values.Value(
+        "Visio-Recordings",
+        environ_name="RECORDING_DRIVE_FOLDER_NAME",
+        environ_prefix=None,
+    )
+    # Audience Drive is registered under in Menshen, for "token_exchange".
+    RECORDING_DRIVE_AUDIENCE = values.Value(
+        None, environ_name="RECORDING_DRIVE_AUDIENCE", environ_prefix=None
+    )
+    # Space-separated scopes asked for in the token exchange. Menshen grants the
+    # ones its exchange rule allows when left empty.
+    RECORDING_DRIVE_SCOPE = values.Value(
+        None, environ_name="RECORDING_DRIVE_SCOPE", environ_prefix=None
+    )
+    # Attempts at pushing a recording to Drive, before giving up.
+    RECORDING_DRIVE_PUSH_MAX_ATTEMPTS = values.PositiveIntegerValue(
+        3, environ_name="RECORDING_DRIVE_PUSH_MAX_ATTEMPTS", environ_prefix=None
+    )
+    # Lifetime of the signed URL the worker downloads the recording from.
+    RECORDING_DRIVE_SIGNED_URL_EXPIRY_SECONDS = values.PositiveIntegerValue(
+        60 * 60,
+        environ_name="RECORDING_DRIVE_SIGNED_URL_EXPIRY_SECONDS",
+        environ_prefix=None,
+    )
+    # Base URL of Drive's external API, e.g. https://fichiers.numerique.gouv.fr/external_api/v1.0
+    DRIVE_API_BASE_URL = values.Value(
+        None, environ_name="DRIVE_API_BASE_URL", environ_prefix=None
+    )
+    # Base URL of Drive's interface, to link to the pushed file, e.g.
+    # https://fichiers.numerique.gouv.fr
+    DRIVE_FRONTEND_BASE_URL = values.Value(
+        None, environ_name="DRIVE_FRONTEND_BASE_URL", environ_prefix=None
+    )
+    # Development only: host:port to reach Drive's object storage at, when the
+    # domain Drive signs its upload URLs with is only resolvable from a browser.
+    DRIVE_UPLOAD_STORAGE_NETLOC = values.Value(
+        None, environ_name="DRIVE_UPLOAD_STORAGE_NETLOC", environ_prefix=None
     )
 
     # Recording encoding options for LiveKit Egress (video composite egress only).
@@ -1594,6 +1674,54 @@ class Base(Configuration):
             )
 
     @classmethod
+    def _check_recording_storage(cls):
+        """Ensure the recording storage method has what it needs.
+
+        The values mirror RecordingDeliveryMethodChoices and DriveTokenTypeChoices,
+        models cannot be imported from the settings.
+        """
+        methods = {"s3_email", "drive"}
+        if cls.RECORDING_STORAGE_METHOD not in methods:
+            raise ImproperlyConfigured(
+                f"RECORDING_STORAGE_METHOD must be one of {sorted(methods)}, "
+                f"got {cls.RECORDING_STORAGE_METHOD!r}."
+            )
+
+        if cls.RECORDING_STORAGE_METHOD != "drive":
+            return
+
+        auth_methods = {"token_exchange", "access_token"}
+        if cls.RECORDING_DRIVE_AUTH_METHOD not in auth_methods:
+            raise ImproperlyConfigured(
+                f"RECORDING_DRIVE_AUTH_METHOD must be one of {sorted(auth_methods)}, "
+                f"got {cls.RECORDING_DRIVE_AUTH_METHOD!r}."
+            )
+
+        required = [
+            "DRIVE_API_BASE_URL",
+            "DRIVE_FRONTEND_BASE_URL",
+            "OIDC_STORE_REFRESH_TOKEN_KEY",
+        ]
+        if cls.RECORDING_DRIVE_AUTH_METHOD == "token_exchange":
+            required += [
+                "MENSHEN_SERVER_URL",
+                "MENSHEN_CLIENT_ID",
+                "MENSHEN_CLIENT_SECRET",
+                "RECORDING_DRIVE_AUDIENCE",
+            ]
+        missing = [name for name in required if not getattr(cls, name)]
+        if missing:
+            raise ImproperlyConfigured(
+                f"RECORDING_STORAGE_METHOD=drive requires {', '.join(missing)}."
+            )
+
+        if not cls.OIDC_STORE_ACCESS_TOKEN:
+            raise ImproperlyConfigured(
+                "RECORDING_STORAGE_METHOD=drive requires OIDC_STORE_ACCESS_TOKEN: the "
+                "user's access token is what Meet calls Drive with, or exchanges."
+            )
+
+    @classmethod
     def _configure_database_pool(cls):
         """Inject the psycopg pool options into the default database when enabled."""
         if not cls.DB_PSYCOPG_POOL_ENABLED:
@@ -1651,6 +1779,7 @@ class Base(Configuration):
             )
 
         cls._check_recording_encoding_maps()
+        cls._check_recording_storage()
         cls._check_audit_log_data_stream_namespace()
         cls._configure_database_pool()
 

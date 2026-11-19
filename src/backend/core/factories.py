@@ -107,6 +107,22 @@ class UserRecordingAccessFactory(factory.django.DjangoModelFactory):
     role = factory.fuzzy.FuzzyChoice(models.RoleChoices.values)
 
 
+class RecordingDeliveryFactory(factory.django.DjangoModelFactory):
+    """Create fake recording deliveries for testing, pushing to Drive by default.
+
+    No token is set: use `set_token` on the delivery.
+    """
+
+    class Meta:
+        model = models.RecordingDelivery
+
+    recording = factory.SubFactory(RecordingFactory)
+    user = factory.SubFactory(UserFactory)
+    method = models.RecordingDeliveryMethodChoices.DRIVE
+    status = models.RecordingDeliveryStatusChoices.PENDING
+    token_type = models.DriveTokenTypeChoices.ACCESS_TOKEN
+
+
 class TeamRecordingAccessFactory(factory.django.DjangoModelFactory):
     """Create fake recording team accesses for testing."""
 

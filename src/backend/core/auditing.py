@@ -45,6 +45,7 @@ RECORDING_TRANSCRIPT_REPORT = audit.Action(
 RECORDING_SUMMARY_REPORT = audit.Action(
     "recording.summary.report", types=(EventType.END,)
 )
+RECORDING_DRIVE_PUSH = audit.Action("recording.drive.push", types=(EventType.CREATION,))
 
 # Targets that are not models
 

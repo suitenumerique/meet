@@ -84,6 +84,61 @@ def test_notify_external_services_screen_recording_mode_with_transcribe(
     mock_notify_summary.assert_called_once_with(recording)
 
 
+@mock.patch.object(NotificationService, "_notify_user_by_email", return_value=True)
+def test_notify_external_services_s3_email_delivery(mock_notify_email):
+    """A recording to deliver by email is emailed."""
+
+    delivery = factories.RecordingDeliveryFactory(method="s3_email", token_type=None)
+
+    assert NotificationService().notify_external_services(delivery.recording) is True
+    mock_notify_email.assert_called_once_with(delivery.recording)
+
+
+@mock.patch.object(NotificationService, "_notify_user_by_email", return_value=True)
+@mock.patch("core.recording.delivery.service.push_recording_to_drive")
+def test_notify_external_services_drive_delivery(mock_task, mock_notify_email):
+    """A recording to push to Drive is handed over to a worker, nobody emailed yet."""
+
+    delivery = factories.RecordingDeliveryFactory(recording__mode="screen_recording")
+
+    assert NotificationService().notify_external_services(delivery.recording) is True
+    mock_task.delay.assert_called_once_with(str(delivery.recording_id))
+    mock_notify_email.assert_not_called()
+
+
+@mock.patch.object(NotificationService, "_notify_user_by_email", return_value=True)
+@mock.patch("core.recording.delivery.service.push_recording_to_drive")
+def test_notify_external_services_drive_delivery_failed(mock_task, mock_notify_email):
+    """A recording that cannot be pushed to Drive does not fall back to the email."""
+
+    delivery = factories.RecordingDeliveryFactory(
+        status=models.RecordingDeliveryStatusChoices.FAILED
+    )
+
+    assert NotificationService().notify_external_services(delivery.recording) is False
+    mock_task.delay.assert_not_called()
+    mock_notify_email.assert_not_called()
+
+
+@mock.patch.object(NotificationService, "_notify_summary_service", return_value=True)
+@mock.patch.object(NotificationService, "_notify_user_by_email", return_value=True)
+@mock.patch("core.recording.delivery.service.push_recording_to_drive")
+def test_notify_external_services_transcript_with_video_to_drive(
+    mock_task, mock_notify_email, mock_notify_summary
+):
+    """A transcript with a video is transcribed, and its video pushed to Drive."""
+
+    delivery = factories.RecordingDeliveryFactory(
+        recording__mode=models.RecordingModeChoices.SCREEN_RECORDING,
+        recording__options={"transcribe": True, "original_mode": "transcript"},
+    )
+
+    assert NotificationService().notify_external_services(delivery.recording) is True
+    mock_notify_summary.assert_called_once_with(delivery.recording)
+    mock_task.delay.assert_called_once_with(str(delivery.recording_id))
+    mock_notify_email.assert_not_called()
+
+
 def test_notify_external_services_unknown_mode(caplog):
     """Test notification for unknown recording mode."""
     recording = factories.RecordingFactory()

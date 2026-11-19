@@ -227,6 +227,7 @@ Transcripts and summaries come from a recording, so their actions sit under `rec
 | `recording.transcript.request` | The backend sends a recording to the summary service, or fails to | Actor `system`, `service.target.name` `summary`. `lasuite.details.summary_requested`, `job_id` |
 | `recording.transcript.report` | The summary service reports on a transcript, or its call is refused | `service.origin.name` `summary`. `lasuite.details.job_id`, `status` |
 | `recording.summary.report` | The summary service reports on a summary | As `recording.transcript.report` |
+| `recording.drive.push` | A video recording is pushed to Drive, see, or will not be: no token when it starts (`authentication_failed`, actor the starter), or the push fails | Actor `system` once the recording is over, `service.target.name` `drive`. `lasuite.details.token_type`, `drive_item_id`, `share_failures` |
 
 A recording target's `mode` is how it was captured, `screen_recording` or `transcript`, and `requested_mode` what the user asked for. They differ for a transcript with **Also start a video recording** ticked. `is_transcribed` says whether it goes to the summary service.
 
