@@ -128,6 +128,7 @@ def test_api_rooms_join_access(
         expected["livekit"] = {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "room": str(room.id),
+            "room_sid": CREATED_LIVEKIT_ROOM_SID,
             "token": livekit_token,
         }
     assert content == expected
@@ -249,6 +250,7 @@ def test_api_rooms_join_placed_cluster(
     config = response.json()["livekit"]
     assert config["url"] == lyon.url
     assert config["room"] == room_name
+    assert config["room_sid"] == CREATED_LIVEKIT_ROOM_SID
 
     claims = jwt.decode(config["token"], lyon.api_secret, algorithms=["HS256"])
     assert claims["iss"] == lyon.api_key
@@ -259,6 +261,29 @@ def test_api_rooms_join_placed_cluster(
     assert placement.room == room
     assert placement.cluster == "lyon"
     assert placement.sid == CREATED_LIVEKIT_ROOM_SID
+
+
+def test_api_rooms_join_placed_room_sid(
+    two_livekit_clusters, fake_livekit_room_creation
+):
+    """
+    Joining a placed room should hand out the SID of the LiveKit room its
+    cluster created, which its placement then records.
+    """
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="lyon", sid="RM_old"
+    )
+    fake_livekit_room_creation.return_value = livekit_room("RM_new")
+
+    response = APIClient().post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 200
+    config = response.json()["livekit"]
+    assert config["url"] == lyon.url
+    assert config["room_sid"] == "RM_new"
+    assert Placement.objects.get().sid == "RM_new"
 
 
 def test_api_rooms_join_unregistered_default_cluster(
@@ -272,6 +297,7 @@ def test_api_rooms_join_unregistered_default_cluster(
     """
     settings.ALLOW_UNREGISTERED_ROOMS = True
     paris, _lyon = two_livekit_clusters
+    fake_livekit_room_creation.return_value = livekit_room("RM_unregistered")
 
     with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
         response = APIClient().post(join_url("unregistered-room"), {}, format="json")
@@ -285,6 +311,7 @@ def test_api_rooms_join_unregistered_default_cluster(
     config = response.json()["livekit"]
     assert config["url"] == paris.url
     assert config["room"] == "unregistered-room"
+    assert config["room_sid"] == "RM_unregistered"
 
     claims = jwt.decode(config["token"], paris.api_secret, algorithms=["HS256"])
     assert claims["iss"] == paris.api_key
@@ -430,6 +457,7 @@ def test_api_rooms_join_unregistered_allowed(mock_token, authenticated, settings
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "room": "unregistered-room",
+            "room_sid": CREATED_LIVEKIT_ROOM_SID,
             "token": livekit_token,
         },
     }
@@ -463,6 +491,7 @@ def test_api_rooms_join_unregistered_allowed_not_normalized(mock_token, settings
         "livekit": {
             "url": settings.LIVEKIT_CONFIGURATION["url"],
             "room": "reunion",
+            "room_sid": CREATED_LIVEKIT_ROOM_SID,
             "token": livekit_token,
         },
     }

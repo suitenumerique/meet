@@ -19,7 +19,7 @@ from ...factories import RoomFactory, UserFactory
 from ...livekit.exceptions import LiveKitRoomCreationError
 from ...models import Placement, RoomAccessLevel
 from ...services.lobby import LobbyService
-from ..utils import random_remote_addr
+from ..utils import CREATED_LIVEKIT_ROOM_SID, random_remote_addr
 
 pytestmark = pytest.mark.django_db
 
@@ -371,6 +371,7 @@ def test_request_entry_public_room_placed_cluster(
 
     config = response.json()["livekit"]
     assert config["url"] == lyon.url
+    assert config["room_sid"] == CREATED_LIVEKIT_ROOM_SID
 
     claims = jwt.decode(config["token"], lyon.api_secret, algorithms=["HS256"])
     assert claims["iss"] == lyon.api_key
@@ -410,6 +411,7 @@ def test_request_entry_accepted_participant_placed_cluster(
 
     config = response.json()["livekit"]
     assert config["url"] == lyon.url
+    assert config["room_sid"] == CREATED_LIVEKIT_ROOM_SID
 
     claims = jwt.decode(config["token"], lyon.api_secret, algorithms=["HS256"])
     assert claims["iss"] == lyon.api_key

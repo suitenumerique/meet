@@ -593,9 +593,9 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         Join a room, getting LiveKit credentials when allowed to enter directly.
 
         The response contains the room with a livekit object holding the url,
-        room and token to connect with when the requester may enter without
-        going through the lobby. Otherwise, it has no livekit object and the
-        client should request entry through the lobby.
+        room, SID of the LiveKit room and token to connect with when the
+        requester may enter without going through the lobby. Otherwise, it has
+        no livekit object and the client should request entry through the lobby.
 
         Unregistered rooms, when allowed, are always joined directly. They are
         never placed, since Django does not follow their lifecycle: they live on
@@ -614,7 +614,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         room, slug = self._get_object_or_unregistered_slug()
         if room is None:
             cluster = get_default_livekit_cluster()
-            RoomManagement.create_room(slug, cluster=cluster)
+            livekit_room = RoomManagement.create_room(slug, cluster=cluster)
             return drf_response.Response(
                 {
                     **self._get_unregistered_room_data(slug),
@@ -623,6 +623,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
                         user=request.user,
                         username=username,
                         cluster=cluster,
+                        room_sid=livekit_room.sid,
                     ),
                 }
             )
@@ -633,14 +634,15 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         ).data
 
         if LobbyService.can_bypass_lobby(room=room, user=request.user, role=role):
-            cluster = PlacementService.place(str(room.id), room)
+            location = PlacementService.place(str(room.id), room)
             data["livekit"] = utils.generate_livekit_config(
                 room_id=str(room.id),
                 user=request.user,
                 username=username,
                 configuration=data["configuration"],
                 role=role,
-                cluster=cluster,
+                cluster=location.cluster,
+                room_sid=location.sid,
             )
 
         return drf_response.Response(data)

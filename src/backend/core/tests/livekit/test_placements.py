@@ -26,6 +26,7 @@ from core.livekit.exceptions import (
 from core.livekit.placements import (
     PLACEMENT_CREATION_ATTEMPTS,
     PLACEMENT_UPDATE_ATTEMPTS,
+    LiveKitRoomLocation,
     PlacementService,
 )
 from core.livekit.strategies import PlacementContext, WeightedRandomStrategy
@@ -295,9 +296,9 @@ def test_place_new_room(
         picking(lyon) as choose,
         caplog.at_level(logging.INFO, logger="core.livekit.placements"),
     ):
-        cluster = PlacementService.place(room_name, room)
+        location = PlacementService.place(room_name, room)
 
-    assert cluster == lyon
+    assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_new")
     choose.assert_called_once_with(
         mock.ANY, (paris, lyon), PlacementContext(room_name=room_name, room=room)
     )
@@ -331,9 +332,9 @@ def test_place_placed_room(two_livekit_clusters, fake_livekit_room_creation):
     fake_livekit_room_creation.return_value = livekit_room("RM_new")
 
     with mock.patch.object(WeightedRandomStrategy, "choose") as choose:
-        cluster = PlacementService.place(str(room.id), room)
+        location = PlacementService.place(str(room.id), room)
 
-    assert cluster == lyon
+    assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_new")
     choose.assert_not_called()
     fake_livekit_room_creation.assert_called_once_with(str(room.id), cluster=lyon)
 
@@ -353,7 +354,7 @@ def test_place_twice(two_livekit_clusters, fake_livekit_room_creation):
     _paris, lyon = two_livekit_clusters
 
     with picking(lyon) as choose:
-        clusters = [PlacementService.place("my-room") for _call in range(2)]
+        clusters = [PlacementService.place("my-room").cluster for _call in range(2)]
 
     assert clusters == [lyon, lyon]
     choose.assert_called_once()
@@ -374,7 +375,7 @@ def test_place_on_cluster_weighing_zero(settings, fake_livekit_room_creation):
     )
     Placement.objects.create(room_name="my-room", cluster="lyon")
 
-    assert PlacementService.place("my-room").name == "lyon"
+    assert PlacementService.place("my-room").cluster.name == "lyon"
     assert Placement.objects.get().cluster == "lyon"
     fake_livekit_room_creation.assert_called_once()
 
@@ -394,13 +395,15 @@ def test_place_concurrently(two_livekit_clusters, fake_livekit_room_creation):
     def choose(_strategy, _candidates, context):
         pick = next(picks)
         if pick == paris:
-            concurrent_clusters.append(PlacementService.place(context.room_name))
+            concurrent_clusters.append(
+                PlacementService.place(context.room_name).cluster
+            )
         return pick
 
     with mock.patch.object(
         WeightedRandomStrategy, "choose", autospec=True, side_effect=choose
     ):
-        cluster = PlacementService.place("my-room")
+        cluster = PlacementService.place("my-room").cluster
 
     assert cluster == lyon
     assert concurrent_clusters == [lyon]
@@ -469,7 +472,7 @@ def test_place_new_room_creation_failure(
 
     fake_livekit_room_creation.side_effect = None
     with picking(paris):
-        assert PlacementService.place("my-room") == paris
+        assert PlacementService.place("my-room").cluster == paris
     assert Placement.objects.get().cluster == "paris"
 
 
@@ -547,12 +550,13 @@ def test_place_changed_meanwhile(
     room_management.attach_mock(fake_livekit_room_creation, "create_room")
 
     with picking(paris):
-        cluster = PlacementService.place("my-room")
+        location = PlacementService.place("my-room")
 
-    assert cluster.name == expected_cluster
+    assert location.cluster.name == expected_cluster
+    assert location.sid == "RM_second"
     assert room_management.mock_calls == [
         mock.call.create_room("my-room", cluster=lyon),
-        mock.call.create_room("my-room", cluster=cluster),
+        mock.call.create_room("my-room", cluster=location.cluster),
     ]
 
     placement = Placement.objects.get()
@@ -586,9 +590,9 @@ def test_place_given_the_created_sid_meanwhile(
     change_meanwhile = 1
     sid_update = 1
     with django_assert_num_queries(placement_read + change_meanwhile + sid_update):
-        cluster = PlacementService.place("my-room")
+        location = PlacementService.place("my-room")
 
-    assert cluster == lyon
+    assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_first")
     fake_livekit_room_creation.assert_called_once_with("my-room", cluster=lyon)
 
     placement = Placement.objects.get()
@@ -623,7 +627,7 @@ def test_place_racing_relocation(
     fake_livekit_room_creation.side_effect = create_room
     room_management.attach_mock(fake_livekit_room_creation, "create_room")
 
-    assert PlacementService.place(room_name, room) == lyon
+    assert PlacementService.place(room_name, room).cluster == lyon
 
     assert room_management.mock_calls == [
         mock.call.create_room(room_name, cluster=paris),
@@ -688,7 +692,7 @@ def test_place_on_unregistered_cluster(
         picking(lyon),
         caplog.at_level(logging.WARNING, logger="core.livekit.placements"),
     ):
-        assert PlacementService.place("my-room") == lyon
+        assert PlacementService.place("my-room").cluster == lyon
 
     placement = Placement.objects.get()
     assert placement.pk != unregistered.pk

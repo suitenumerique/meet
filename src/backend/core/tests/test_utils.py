@@ -24,7 +24,7 @@ from livekit.api import (  # pylint: disable=no-name-in-module
 )
 
 from core.factories import UserFactory
-from core.livekit.clusters import get_livekit_cluster
+from core.livekit.clusters import get_default_livekit_cluster, get_livekit_cluster
 from core.models import Placement
 from core.services.participants_management import (
     ParticipantsManagement,
@@ -163,15 +163,21 @@ def test_generate_token_cluster(name, expected):
 @pytest.mark.usefixtures("two_clusters")
 @pytest.mark.parametrize("name", ["paris", "lyon"])
 def test_generate_livekit_config_cluster(name):
-    """Browsers get the URL of the cluster and a token signed for it."""
+    """Browsers get the URL of the cluster, the SID of the LiveKit room live
+    there and a token signed for it."""
     cluster = get_livekit_cluster(name)
 
     config = generate_livekit_config(
-        room_id="my-room", user=AnonymousUser(), username="Guest42", cluster=cluster
+        room_id="my-room",
+        user=AnonymousUser(),
+        username="Guest42",
+        cluster=cluster,
+        room_sid="RM_live",
     )
 
     assert config["url"] == cluster.url
     assert config["room"] == "my-room"
+    assert config["room_sid"] == "RM_live"
     claims = jwt.decode(config["token"], cluster.api_secret, algorithms=["HS256"])
     assert claims["iss"] == cluster.api_key
     assert claims["video"]["room"] == "my-room"
@@ -179,9 +185,27 @@ def test_generate_livekit_config_cluster(name):
 
 def test_generate_livekit_config_without_cluster():
     """No credentials are built without the cluster the LiveKit room is placed on."""
-    arguments = {"room_id": "my-room", "user": AnonymousUser(), "username": "Guest42"}
+    arguments = {
+        "room_id": "my-room",
+        "user": AnonymousUser(),
+        "username": "Guest42",
+        "room_sid": "RM_live",
+    }
 
     with pytest.raises(TypeError, match="cluster"):
+        generate_livekit_config(**arguments)
+
+
+def test_generate_livekit_config_without_room_sid():
+    """No credentials are built without the SID of the LiveKit room."""
+    arguments = {
+        "room_id": "my-room",
+        "user": AnonymousUser(),
+        "username": "Guest42",
+        "cluster": get_default_livekit_cluster(),
+    }
+
+    with pytest.raises(TypeError, match="room_sid"):
         generate_livekit_config(**arguments)
 
 

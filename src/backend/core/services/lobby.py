@@ -191,7 +191,7 @@ class LobbyService:
         user_role = room.get_role(user)
 
         if self.can_bypass_lobby(room=room, user=user, role=user_role):
-            cluster = PlacementService.place(room_id, room)
+            location = PlacementService.place(room_id, room)
             if not is_new_participant:
                 self.clear_participant_cache(room.id, participant.id)
             participant.status = LobbyParticipantStatus.ACCEPTED
@@ -204,7 +204,8 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant.id,
                 role=user_role,
-                cluster=cluster,
+                cluster=location.cluster,
+                room_sid=location.sid,
             )
             return participant, livekit_config
 
@@ -218,7 +219,7 @@ class LobbyService:
             self.refresh_waiting_status(room.id, participant.id)
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
-            cluster = PlacementService.place(room_id, room)
+            location = PlacementService.place(room_id, room)
             # wrongly named, contains access token to join a room
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
@@ -228,7 +229,8 @@ class LobbyService:
                 configuration=room.configuration,
                 participant_id=participant.id,
                 role=user_role,
-                cluster=cluster,
+                cluster=location.cluster,
+                room_sid=location.sid,
             )
 
         return participant, livekit_config

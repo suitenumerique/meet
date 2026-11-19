@@ -162,6 +162,7 @@ def generate_livekit_config(  # noqa: PLR0917
     participant_id: Optional[str] = None,
     *,
     cluster: LiveKitClusterConfig,
+    room_sid: str,
 ) -> dict:
     """Generate LiveKit configuration for room access.
 
@@ -176,10 +177,13 @@ def generate_livekit_config(  # noqa: PLR0917
                          used as identity when user.is_anonymous.
         cluster (LiveKitClusterConfig): The LiveKit cluster to connect to,
                          the one the room's LiveKit room is placed on.
+        room_sid (str): The SID of the LiveKit room live on that cluster, as
+                         its placement records it.
 
     Returns:
         dict: LiveKit configuration with the URL browsers connect to on the
-        cluster, the room and an access token signed for that cluster
+        cluster, the room, the SID of its LiveKit room and an access token
+        signed for that cluster
     """
 
     sources = None
@@ -189,6 +193,7 @@ def generate_livekit_config(  # noqa: PLR0917
     return {
         "url": cluster.url,
         "room": room_id,
+        "room_sid": room_sid,
         "token": generate_token(
             room=room_id,
             user=user,

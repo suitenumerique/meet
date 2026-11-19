@@ -18,6 +18,7 @@ and this project adheres to
 - ✨(backend) show the last login of users in the admin
 - ✨(backend) filter users sharing an email in the admin
 - ✨(backend) record livekit rooms on the cluster that started them
+- ✨(backend) hand out the sid of livekit rooms with their credentials
 
 ### Changed
 

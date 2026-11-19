@@ -26,6 +26,7 @@ from core.services.lobby import (
     LobbyParticipantStatus,
     LobbyService,
 )
+from core.tests.utils import CREATED_LIVEKIT_ROOM_SID
 from core.utils import NotificationError
 
 pytestmark = pytest.mark.django_db
@@ -256,6 +257,7 @@ def test_request_entry_public_room(
         participant_id=participant_id,
         role=None,
         cluster=get_default_livekit_cluster(),
+        room_sid=CREATED_LIVEKIT_ROOM_SID,
     )
 
 
@@ -298,6 +300,7 @@ def test_request_entry_trusted_room(
         participant_id=participant_id,
         role=None,
         cluster=get_default_livekit_cluster(),
+        room_sid=CREATED_LIVEKIT_ROOM_SID,
     )
 
 
@@ -405,6 +408,7 @@ def test_request_entry_accepted_participant(
         participant_id="test-participant-id",
         role=None,
         cluster=get_default_livekit_cluster(),
+        room_sid=CREATED_LIVEKIT_ROOM_SID,
     )
 
 
@@ -486,6 +490,7 @@ def test_request_entry_participant_with_role(
         participant_id="test-participant-id",
         role="administrator",
         cluster=get_default_livekit_cluster(),
+        room_sid=CREATED_LIVEKIT_ROOM_SID,
     )
 
 

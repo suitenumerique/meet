@@ -8,6 +8,7 @@ default cluster.
 """
 
 import contextlib
+from dataclasses import dataclass
 from logging import getLogger
 from typing import Any
 from uuid import uuid4
@@ -44,6 +45,15 @@ def _audit(action: audit.Action, actor: Any, **fields: Any) -> None:
         actor_type=audit.ActorType.SYSTEM if actor is None else None,
         **fields,
     )
+
+
+@dataclass(frozen=True, kw_only=True)
+class LiveKitRoomLocation:
+    """Where to connect to a LiveKit room: its LiveKit cluster, and the SID of
+    the LiveKit room live there, as its placement records it."""
+
+    cluster: LiveKitClusterConfig
+    sid: str
 
 
 class PlacementService:
@@ -123,14 +133,22 @@ class PlacementService:
         return get_placement_strategy().choose(candidates, context)
 
     @classmethod
-    def place(cls, room_name: str, room: Room | None = None) -> LiveKitClusterConfig:
-        """Make a LiveKit room ready to be joined and return its LiveKit cluster.
+    def place(cls, room_name: str, room: Room | None = None) -> LiveKitRoomLocation:
+        """Make a LiveKit room ready to be joined and return where it lives.
 
-        A LiveKit room without placement is placed on the cluster the placement
-        strategy picks. A placement is deleted for non registered cluster and also
-        when the LiveKit room creation fails. The room will be placed again on retry.
-        After a failed creation, it is deleted only while it still has the epoch
-        read and no SID: no one was handed out credentials for it then.
+        The LiveKit room is created on the cluster of its placement, which then
+        records the SID the cluster returns. A LiveKit room without placement,
+        or placed on a cluster no longer registered, is placed first, on the
+        cluster the placement strategy picks. A placement created by this call
+        is deleted when its cluster fails to create the LiveKit room, for the
+        next call to place it again, as long as it still has the epoch read and
+        no SID: no one was handed out credentials for it then. A placement that
+        changes while its cluster creates the LiveKit room is read again, and
+        the LiveKit room created where it then says, a bounded number of times.
+
+        Raises:
+            LiveKitRoomUnavailableError: the LiveKit room cannot be placed or
+                created, or its placement kept changing.
         """
         # pylint: disable-next=import-outside-toplevel,cyclic-import
         from core.services import room_management  # noqa: PLC0415
@@ -159,7 +177,7 @@ class PlacementService:
             if Placement.objects.filter(
                 pk=placement.pk, epoch=placement.epoch, sid__in=(placement.sid, sid)
             ).update(sid=sid, absent_since=None, updated_at=timezone.now()):
-                return cluster
+                return LiveKitRoomLocation(cluster=cluster, sid=sid)
 
             logger.info(
                 "Placement of LiveKit room %s changed while LiveKit cluster %s "
