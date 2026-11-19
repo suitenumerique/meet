@@ -97,6 +97,46 @@ def test_api_rooms_create_generation_cache(reset_cache):
     assert room_data.get("slug") == "my-room"
 
 
+def test_api_rooms_create_generation_cache_telephony(reset_cache, settings):
+    """With telephony enabled, the cached callback data includes the room PIN code."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {"name": "my room", "callback_id": "1234"},
+    )
+
+    assert response.status_code == 201
+    room = Room.objects.get()
+    assert room.pin_code
+
+    room_data = cache.get("room-creation-callback_1234")
+    assert room_data == {"slug": "my-room", "pin_code": room.pin_code}
+
+
+def test_api_rooms_create_generation_cache_no_telephony(reset_cache, settings):
+    """With telephony disabled, the cached callback data never includes a PIN code."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = True  # a PIN exists, but must not be exposed
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+
+    response = client.post(
+        "/api/v1.0/rooms/",
+        {"name": "my room", "callback_id": "1234"},
+    )
+
+    assert response.status_code == 201
+    room_data = cache.get("room-creation-callback_1234")
+    assert room_data == {"slug": "my-room"}
+
+
 def test_api_rooms_create_authenticated_existing_slug():
     """
     A user trying to create a room with a name that translates to a slug that already exists

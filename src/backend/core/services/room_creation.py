@@ -17,6 +17,8 @@ class RoomCreation:
         data = {
             "slug": room.slug,
         }
+        if settings.ROOM_TELEPHONY_ENABLED and room.pin_code:
+            data["pin_code"] = room.pin_code
         cache.set(
             self._get_cache_key(callback_id),
             data,
