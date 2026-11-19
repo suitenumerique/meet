@@ -108,8 +108,8 @@ export const AudioDevicesControl = ({
             <div
               className={css({
                 maxWidth: 'calc(100vw - 2rem)',
-                padding: '0.15rem',
                 display: 'flex',
+                alignItems: 'center',
                 gap: '0.5rem',
               })}
             >

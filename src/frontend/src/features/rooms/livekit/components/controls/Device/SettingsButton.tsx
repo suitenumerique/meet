@@ -1,3 +1,4 @@
+import { css } from '@/styled-system/css'
 import { Button } from '@/primitives'
 import { RiSettings3Line } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +20,8 @@ export const SettingsButton = ({
       square
       tooltip={t(`settings.${settingTab}`)}
       aria-label={t(`settings.${settingTab}`)}
-      variant="primaryDark"
+      variant="primaryTextDark"
+      className={css({ flexShrink: 0 })}
       onPress={() => {
         openSettingsDialog(settingTab)
         onPress?.()

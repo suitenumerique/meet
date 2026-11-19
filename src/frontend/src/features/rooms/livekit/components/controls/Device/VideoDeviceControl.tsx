@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
-import { RiArrowUpSLine, RiImageCircleAiFill } from '@remixicon/react'
+import { RiArrowUpSLine } from '@remixicon/react'
 import { Track, type VideoCaptureOptions, VideoPresets } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
@@ -31,16 +31,14 @@ const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   return (
     <Button
       size="sm"
-      square
-      tooltip={t('effects')}
-      aria-label={t('effects')}
       variant="primaryDark"
+      className={css({ flexShrink: 0, borderRadius: 'full!' })}
       onPress={() => {
         if (!isEffectsOpen) toggleEffects()
         onPress()
       }}
     >
-      <RiImageCircleAiFill size={24} />
+      {t('effects')}
     </Button>
   )
 }
@@ -148,8 +146,8 @@ export const VideoDeviceControl = ({
             <div
               className={css({
                 maxWidth: 'calc(100vw - 2rem)',
-                padding: '0.15rem',
                 display: 'flex',
+                alignItems: 'center',
                 gap: '0.5rem',
               })}
             >
