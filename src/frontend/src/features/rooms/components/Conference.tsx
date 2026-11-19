@@ -171,6 +171,9 @@ export const Conference = ({
   const hasCheckedAutoMuteRef = useRef(false)
   const spentRef = useRef(false)
   const isRecoveryEnabled = apiConfig?.livekit.connection_recovery === true
+  const joinRequest = isRecoveryEnabled
+    ? ({ kind: 'locate' } as const)
+    : undefined
 
   const { mutateAsync: createRoom, isError: isCreateError } = useCreateRoom()
   const {
@@ -181,11 +184,13 @@ export const Conference = ({
     queryKey: [keys.room, roomId],
     staleTime: 6 * 60 * 60 * 1000, // By default, LiveKit access tokens expire 6 hours after generation
     queryFn: () =>
-      joinRoom({ roomId, username }).catch(async (error) => {
-        if (error.statusCode != 404) throw error
-        await createRoom({ slug: roomId })
-        return joinRoom({ roomId, username })
-      }),
+      joinRoom({ roomId, username, request: joinRequest }).catch(
+        async (error) => {
+          if (error.statusCode != 404) throw error
+          await createRoom({ slug: roomId })
+          return joinRoom({ roomId, username, request: joinRequest })
+        }
+      ),
     retry: false,
   })
 

@@ -48,6 +48,7 @@ and this project adheres to
 - ⚡️(frontend) serve preset virtual backgrounds as WebP
 - ⚡️(frontend) load posthog-js only when analytics is configured
 - ⚡️(frontend) stop loading posthog surveys
+- ⚡️(frontend) skip creating live livekit rooms when joining
 
 ### Fixed
 

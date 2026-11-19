@@ -58,6 +58,9 @@ export const Lobby = ({
   const { openLoginHint } = useLoginHint()
 
   const displayName = username || user?.full_name
+  const joinRequest = configData?.livekit.connection_recovery
+    ? ({ kind: 'locate' } as const)
+    : undefined
 
   // Join strategy:
   // 1. Submitting the form asks to join the room, which checks access
@@ -85,6 +88,7 @@ export const Lobby = ({
   const { status, startWaiting } = useLobby({
     roomId,
     username: displayName || 'anonymous',
+    request: joinRequest,
     onAccepted: (response) => {
       queryClient.setQueryData([keys.room, roomId], {
         ...roomData,
@@ -100,7 +104,7 @@ export const Lobby = ({
 
   const handleSubmit = () => {
     join(
-      { roomId, username: displayName || undefined },
+      { roomId, username: displayName || undefined, request: joinRequest },
       {
         onSuccess: (data) => {
           if (data.livekit) {

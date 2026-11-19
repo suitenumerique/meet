@@ -8,6 +8,7 @@ import {
   type ApiRequestEntry,
 } from '../api/requestEntry'
 import { setLobbyParticipantId } from '@/stores/lobby'
+import type { LiveKitRoomRequest } from '../api/liveKitRoomRequest'
 
 export const WAIT_TIMEOUT_MS = 600000 // 10 minutes
 export const POLL_INTERVAL_MS = 3_000
@@ -15,10 +16,12 @@ export const POLL_INTERVAL_MS = 3_000
 export const useLobby = ({
   roomId,
   username,
+  request,
   onAccepted,
 }: {
   roomId: string
   username: string
+  request?: LiveKitRoomRequest
   onAccepted: (e: ApiRequestEntry) => void
 }) => {
   const [status, setStatus] = useState(ApiLobbyStatus.IDLE)
@@ -45,6 +48,7 @@ export const useLobby = ({
         const response = await requestEntry({
           roomId,
           username,
+          request,
         })
 
         if (response.id) {
