@@ -38,7 +38,7 @@ const Container = styled('div', {
     isReactionToolbarOpen: {
       true: {
         paddingBottom:
-          'calc(var(--sizes-room-reaction-toolbar-height) + var(--sizes-room-control-bar) + 1.125rem)',
+          'calc(var(--sizes-room-reaction-toolbar-height) - var(--sizes-room-reaction-toolbar-offset) + var(--sizes-room-control-bar) + 1.125rem)',
       },
       false: {
         paddingBottom: 'var(--sizes-room-control-bar)',

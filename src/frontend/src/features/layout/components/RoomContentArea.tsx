@@ -30,7 +30,7 @@ const RoomViewport = styled(
       isReactionToolbarOpen: {
         true: {
           paddingBottom:
-            'calc(var(--sizes-room-reaction-toolbar-height) + calc(var(--lk-grid-gap) / 2))',
+            'calc(var(--sizes-room-reaction-toolbar-height) - var(--sizes-room-reaction-toolbar-offset) + calc(var(--lk-grid-gap) / 2))',
         },
         false: {
           paddingBottom: '0',

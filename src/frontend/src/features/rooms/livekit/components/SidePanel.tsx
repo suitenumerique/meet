@@ -82,7 +82,7 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
           ? 'translateX(calc(var(--sizes-room-side-panel) + var(--sizes-room-side-panel-margin)))'
           : 'none',
         bottom: isReactionToolbarOpen
-          ? 'calc( var(--sizes-room-control-bar) + var(--sizes-room-reaction-toolbar-height) + calc(var(--lk-grid-gap) / 2))'
+          ? 'calc( var(--sizes-room-control-bar) + var(--sizes-room-reaction-toolbar-height) - var(--sizes-room-reaction-toolbar-offset) + calc(var(--lk-grid-gap) / 2))'
           : 'var(--sizes-room-control-bar)',
       }}
       aria-hidden={isClosed}

@@ -52,6 +52,7 @@ const sizes = defineTokens.sizes({
   'room-side-panel-margin': { value: '1.5rem' },
   'room-control-bar': { value: '80px' },
   'room-reaction-toolbar-height': { value: '42px' },
+  'room-reaction-toolbar-offset': { value: '0.35rem' },
   'tooltip-spacing': { value: '8px' },
 })
 
