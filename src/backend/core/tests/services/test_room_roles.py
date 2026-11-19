@@ -3,10 +3,13 @@
 from unittest import mock
 from uuid import uuid4
 
+from django.conf import settings
+
 import pytest
 from livekit.api import TwirpError, TwirpErrorCode
 from livekit.protocol.models import ParticipantInfo, ParticipantPermission, TrackSource
 
+from core import models
 from core.services.participants_management import (
     ParticipantNotFoundException,
     ParticipantsManagement,
@@ -23,6 +26,33 @@ class DummyRoom:
         self.configuration = configuration or {}
 
 
+def test_get_publish_sources_admin_and_owner():
+    """Admin and owner roles always receive the default publish sources."""
+    room = DummyRoom(configuration={"can_publish_sources": ["camera"]})
+
+    admin_sources = RoomRoleService._get_publish_sources(models.RoleChoices.ADMIN, room)
+    assert admin_sources == list(settings.LIVEKIT_DEFAULT_SOURCES)
+
+    owner_sources = RoomRoleService._get_publish_sources(models.RoleChoices.OWNER, room)
+    assert owner_sources == list(settings.LIVEKIT_DEFAULT_SOURCES)
+
+
+def test_get_publish_sources_member_with_room_configuration():
+    """Member role receives the room-configured publish sources."""
+    room = DummyRoom(configuration={"can_publish_sources": ["camera", "screen_share"]})
+
+    sources = RoomRoleService._get_publish_sources(models.RoleChoices.MEMBER, room)
+    assert sources == ["camera", "screen_share"]
+
+
+def test_get_publish_sources_member_without_configuration():
+    """Member role receives default publish sources when room configuration is absent."""
+    room = DummyRoom(configuration=None)
+
+    sources = RoomRoleService._get_publish_sources(models.RoleChoices.MEMBER, room)
+    assert sources == list(settings.LIVEKIT_DEFAULT_SOURCES)
+
+
 @mock.patch("core.services.room_roles.ParticipantsManagement")
 def test_sync_livekit_role_promotes_to_admin_restores_all_default_sources(mock_pm_cls):
     """When promoting to admin, participant receives all default publish sources."""
@@ -31,7 +61,7 @@ def test_sync_livekit_role_promotes_to_admin_restores_all_default_sources(mock_p
         can_subscribe=True,
         can_publish=True,
         can_publish_data=True,
-        can_publish_sources=["CAMERA"],
+        can_publish_sources=[TrackSource.CAMERA],
     )
     mock_pm.get_participant.return_value = ParticipantInfo(
         identity="target-user-1",
@@ -41,10 +71,9 @@ def test_sync_livekit_role_promotes_to_admin_restores_all_default_sources(mock_p
     room = DummyRoom(configuration={"can_publish_sources": ["camera"]})
 
     result = RoomRoleService._sync_livekit_role(
-        room_name=str(room.pk),
-        participant_identity="target-user-1",
-        role="administrator",
         room=room,
+        participant_identity="target-user-1",
+        role=models.RoleChoices.ADMIN,
     )
 
     assert result is True
@@ -56,7 +85,7 @@ def test_sync_livekit_role_promotes_to_admin_restores_all_default_sources(mock_p
     _, kwargs = mock_pm.update.call_args
     assert kwargs["room_name"] == str(room.pk)
     assert kwargs["identity"] == "target-user-1"
-    assert kwargs["attributes"] == {"room_role": "administrator"}
+    assert kwargs["attributes"] == {"room_role": models.RoleChoices.ADMIN}
     permission = kwargs["permission"]
     assert permission.can_publish is True
     assert list(permission.can_publish_sources) == [
@@ -76,10 +105,10 @@ def test_sync_livekit_role_demotes_to_member_applies_room_restrictions(mock_pm_c
         can_publish=True,
         can_publish_data=True,
         can_publish_sources=[
-            "CAMERA",
-            "MICROPHONE",
-            "SCREEN_SHARE",
-            "SCREEN_SHARE_AUDIO",
+            TrackSource.CAMERA,
+            TrackSource.MICROPHONE,
+            TrackSource.SCREEN_SHARE,
+            TrackSource.SCREEN_SHARE_AUDIO,
         ],
     )
     mock_pm.get_participant.return_value = ParticipantInfo(
@@ -90,16 +119,15 @@ def test_sync_livekit_role_demotes_to_member_applies_room_restrictions(mock_pm_c
     room = DummyRoom(configuration={"can_publish_sources": ["camera", "screen_share"]})
 
     result = RoomRoleService._sync_livekit_role(
-        room_name=str(room.pk),
-        participant_identity="target-user-2",
-        role="member",
         room=room,
+        participant_identity="target-user-2",
+        role=models.RoleChoices.MEMBER,
     )
 
     assert result is True
     mock_pm.update.assert_called_once()
     _, kwargs = mock_pm.update.call_args
-    assert kwargs["attributes"] == {"room_role": "member"}
+    assert kwargs["attributes"] == {"room_role": models.RoleChoices.MEMBER}
     permission = kwargs["permission"]
     assert permission.can_publish is True
     assert list(permission.can_publish_sources) == [
@@ -118,7 +146,7 @@ def test_sync_livekit_role_demotes_to_member_empty_sources_disables_publish(
         can_subscribe=True,
         can_publish=True,
         can_publish_data=True,
-        can_publish_sources=["CAMERA"],
+        can_publish_sources=[TrackSource.CAMERA],
     )
     mock_pm.get_participant.return_value = ParticipantInfo(
         identity="target-user-3",
@@ -128,10 +156,9 @@ def test_sync_livekit_role_demotes_to_member_empty_sources_disables_publish(
     room = DummyRoom(configuration={"can_publish_sources": []})
 
     result = RoomRoleService._sync_livekit_role(
-        room_name=str(room.pk),
-        participant_identity="target-user-3",
-        role="member",
         room=room,
+        participant_identity="target-user-3",
+        role=models.RoleChoices.MEMBER,
     )
 
     assert result is True
@@ -150,10 +177,9 @@ def test_sync_livekit_role_handles_participant_not_found(mock_pm_cls):
 
     room = DummyRoom()
     result = RoomRoleService._sync_livekit_role(
-        room_name=str(room.pk),
-        participant_identity="target-user-4",
-        role="administrator",
         room=room,
+        participant_identity="target-user-4",
+        role=models.RoleChoices.ADMIN,
     )
 
     assert result is False
@@ -168,10 +194,9 @@ def test_sync_livekit_role_handles_livekit_error(mock_pm_cls):
 
     room = DummyRoom()
     result = RoomRoleService._sync_livekit_role(
-        room_name=str(room.pk),
-        participant_identity="target-user-5",
-        role="administrator",
         room=room,
+        participant_identity="target-user-5",
+        role=models.RoleChoices.ADMIN,
     )
 
     assert result is False

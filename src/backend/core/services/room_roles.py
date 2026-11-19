@@ -9,10 +9,11 @@ participant attribute is only a projection of it, synced best-effort.
 """
 
 from logging import getLogger
-from typing import Optional
 from uuid import UUID
 
 from django.conf import settings
+
+from livekit.protocol.models import TrackSource
 
 from core import models
 from core.services.participants_management import (
@@ -139,10 +140,9 @@ class RoomRoleService:
         self.set_role(room=room, user=user, role=role, actor=actor)
 
         livekit_synced = self._sync_livekit_role(
-            room_name=room_name,
+            room=room,
             participant_identity=str(participant_identity),
             role=str(role),
-            room=room,
         )
 
         return {
@@ -151,17 +151,31 @@ class RoomRoleService:
         }
 
     @staticmethod
+    def _get_publish_sources(role: str, room: models.Room) -> list:
+        """Determine allowed publishing sources based on role and room configuration."""
+        if role in (models.RoleChoices.ADMIN, models.RoleChoices.OWNER):
+            return list(settings.LIVEKIT_DEFAULT_SOURCES)
+
+        if (
+            room.configuration
+            and room.configuration.get("can_publish_sources") is not None
+        ):
+            return list(room.configuration["can_publish_sources"])
+
+        return list(settings.LIVEKIT_DEFAULT_SOURCES)
+
+    @staticmethod
     def _sync_livekit_role(
-        room_name: str,
+        room: models.Room,
         participant_identity: str,
         role: str,
-        room: Optional[models.Room] = None,
-    ):
+    ) -> bool:
         """Mirror the role to the participant's LiveKit attributes and permissions.
 
         Best-effort: returns False on failure instead of raising, so callers
         can report a partial success. Re-running the action re-syncs.
         """
+        room_name = str(room.pk)
         try:
             pm = ParticipantsManagement()
             participant = pm.get_participant(
@@ -169,29 +183,17 @@ class RoomRoleService:
                 identity=participant_identity,
             )
 
-            if room is None:
-                room = models.Room.objects.filter(pk=room_name).first()
-
-            if role in (
-                models.RoleChoices.ADMIN,
-                models.RoleChoices.OWNER,
-                "administrator",
-                "owner",
-            ):
-                sources = settings.LIVEKIT_DEFAULT_SOURCES
-            elif (
-                room
-                and room.configuration
-                and room.configuration.get("can_publish_sources") is not None
-            ):
-                sources = room.configuration["can_publish_sources"]
-            else:
-                sources = settings.LIVEKIT_DEFAULT_SOURCES
+            sources = RoomRoleService._get_publish_sources(role=role, room=room)
 
             permission = participant.permission
             permission.can_publish = bool(sources)
             del permission.can_publish_sources[:]
-            permission.can_publish_sources.extend([s.upper() for s in sources])
+            permission.can_publish_sources.extend(
+                [
+                    TrackSource.Value(s.upper()) if isinstance(s, str) else s
+                    for s in sources
+                ]
+            )
 
             pm.update(
                 room_name=room_name,
