@@ -8,6 +8,7 @@ import uuid
 from logging import getLogger
 from typing import Dict, Optional
 
+import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import (
     MuteRoomTrackRequest,
@@ -75,7 +76,7 @@ class ParticipantsManagement:
                 )
             )
 
-        except (TwirpError, TimeoutError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             if isinstance(e, TwirpError) and e.code == TwirpErrorCode.NOT_FOUND:
                 logger.warning(
                     "Participant %s not found in room %s, skipping muting",
@@ -132,7 +133,7 @@ class ParticipantsManagement:
             await lkapi.room.remove_participant(
                 RoomParticipantIdentity(room=room_name, identity=identity)
             )
-        except (TwirpError, TimeoutError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             if isinstance(e, TwirpError) and e.code == TwirpErrorCode.NOT_FOUND:
                 logger.warning(
                     "Participant %s not found in room %s, skipping removing",
@@ -203,7 +204,7 @@ class ParticipantsManagement:
                 )
             )
 
-        except (TwirpError, TimeoutError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             if isinstance(e, TwirpError) and e.code == TwirpErrorCode.NOT_FOUND:
                 logger.warning(
                     "Participant %s not found in room %s, skipping update",
@@ -280,7 +281,7 @@ class ParticipantsManagement:
                     identity=identity,
                 )
             )
-        except (TwirpError, TimeoutError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             if isinstance(e, TwirpError) and e.code == TwirpErrorCode.NOT_FOUND:
                 raise ParticipantNotFoundException("Participant does not exist") from e
 

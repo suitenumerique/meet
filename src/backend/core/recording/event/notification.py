@@ -10,6 +10,7 @@ from django.conf import settings
 from django.utils.translation import get_language, gettext, gettext_noop, override
 from django.utils.translation import gettext_lazy as _
 
+import aiohttp
 import requests
 from asgiref.sync import async_to_sync
 from celery.exceptions import OperationalError as CeleryOperationalError
@@ -145,7 +146,12 @@ class NotificationService:
             egress_list = await lkapi.egress.list_egress(
                 livekit_api.ListEgressRequest(egress_id=worker_id)  # pylint: disable=no-member
             )
-        except (livekit_api.TwirpError, OSError, asyncio.TimeoutError):
+        except (
+            livekit_api.TwirpError,
+            OSError,
+            asyncio.TimeoutError,
+            aiohttp.ClientError,
+        ):
             logger.exception("Could not fetch egress info for worker %s", worker_id)
             return None, None
         finally:

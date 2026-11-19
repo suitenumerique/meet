@@ -348,7 +348,7 @@ async def _notify_participants(
                 kind="RELIABLE",
             )
         )
-    except (TwirpError, TimeoutError) as e:
+    except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
         raise NotificationError("Failed to notify room participants") from e
     finally:
         await lkapi.aclose()

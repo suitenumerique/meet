@@ -14,6 +14,7 @@ from unittest import mock
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 
+import aiohttp
 import jwt
 import pytest
 from asgiref.sync import async_to_sync
@@ -333,59 +334,59 @@ def delete_dispatch_rule():
         SIPManagement().delete_dispatch_rule("room")
 
 
-@pytest.mark.parametrize(
-    ("call", "expected"),
-    [
-        pytest.param(
-            lambda: ParticipantsManagement().mute("room", "id", "track"),
-            ParticipantsManagementException,
-            id="mute",
+LIVEKIT_SERVICE_CALLS = [
+    pytest.param(
+        lambda: ParticipantsManagement().mute("room", "id", "track"),
+        ParticipantsManagementException,
+        id="mute",
+    ),
+    pytest.param(
+        lambda: ParticipantsManagement().remove("room", "id"),
+        ParticipantsManagementException,
+        id="remove",
+    ),
+    pytest.param(
+        lambda: ParticipantsManagement().update("room", "id", name="n"),
+        ParticipantsManagementException,
+        id="update",
+    ),
+    pytest.param(
+        lambda: ParticipantsManagement().check_if_in_meeting("room", "id"),
+        ParticipantsManagementException,
+        id="check_if_in_meeting",
+    ),
+    pytest.param(
+        lambda: RoomManagement.update_metadata("room", {}),
+        RoomManagementException,
+        id="update_metadata",
+    ),
+    pytest.param(
+        lambda: RoomManagement.delete_room("room"),
+        RoomManagementException,
+        id="delete_room",
+    ),
+    pytest.param(
+        lambda: SIPManagement().create_dispatch_rule(
+            mock.Mock(pk="room", pin_code="1")
         ),
-        pytest.param(
-            lambda: ParticipantsManagement().remove("room", "id"),
-            ParticipantsManagementException,
-            id="remove",
-        ),
-        pytest.param(
-            lambda: ParticipantsManagement().update("room", "id", name="n"),
-            ParticipantsManagementException,
-            id="update",
-        ),
-        pytest.param(
-            lambda: ParticipantsManagement().check_if_in_meeting("room", "id"),
-            ParticipantsManagementException,
-            id="check_if_in_meeting",
-        ),
-        pytest.param(
-            lambda: RoomManagement.update_metadata("room", {}),
-            RoomManagementException,
-            id="update_metadata",
-        ),
-        pytest.param(
-            lambda: RoomManagement.delete_room("room"),
-            RoomManagementException,
-            id="delete_room",
-        ),
-        pytest.param(
-            lambda: SIPManagement().create_dispatch_rule(
-                mock.Mock(pk="room", pin_code="1")
-            ),
-            SIPException,
-            id="create_dispatch_rule",
-        ),
-        pytest.param(
-            lambda: SIPManagement().has_dispatch_rule("room"),
-            SIPException,
-            id="has_dispatch_rule",
-        ),
-        pytest.param(delete_dispatch_rule, SIPException, id="delete_dispatch_rule"),
-        pytest.param(
-            lambda: notify_participants("room", {}),
-            NotificationError,
-            id="notify_participants",
-        ),
-    ],
-)
+        SIPException,
+        id="create_dispatch_rule",
+    ),
+    pytest.param(
+        lambda: SIPManagement().has_dispatch_rule("room"),
+        SIPException,
+        id="has_dispatch_rule",
+    ),
+    pytest.param(delete_dispatch_rule, SIPException, id="delete_dispatch_rule"),
+    pytest.param(
+        lambda: notify_participants("room", {}),
+        NotificationError,
+        id="notify_participants",
+    ),
+]
+
+
+@pytest.mark.parametrize(("call", "expected"), LIVEKIT_SERVICE_CALLS)
 def test_a_livekit_timeout_raises_the_service_exception(call, expected):
     """A timed-out call fails the way a LiveKit error does, so callers handle it."""
     with (
@@ -396,6 +397,27 @@ def test_a_livekit_timeout_raises_the_service_exception(call, expected):
 
     assert error.type is expected
     assert isinstance(error.value.__cause__, TimeoutError)
+
+
+@pytest.fixture
+def unreachable_livekit(settings):
+    """Make the default LiveKit cluster an address nothing listens on."""
+    server = socket.create_server(("127.0.0.1", 0))
+    url = f"http://127.0.0.1:{server.getsockname()[1]:d}"
+    server.close()
+    settings.LIVEKIT_CONFIGURATION = {**settings.LIVEKIT_CONFIGURATION, "url": url}
+
+
+@pytest.mark.usefixtures("unreachable_livekit")
+@pytest.mark.parametrize(("call", "expected"), LIVEKIT_SERVICE_CALLS)
+def test_an_unreachable_livekit_raises_the_service_exception(call, expected):
+    """A LiveKit cluster that refuses connections fails a call the way a LiveKit
+    error does, so callers handle it."""
+    with pytest.raises(expected) as error:
+        call()
+
+    assert error.type is expected
+    assert isinstance(error.value.__cause__, aiohttp.ClientConnectionError)
 
 
 @pytest.mark.parametrize("verify_ssl", [True, False])

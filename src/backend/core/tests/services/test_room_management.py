@@ -305,6 +305,23 @@ def test_sync_room_metadata_pushes_configuration_and_access_level(mock_update_me
     )
 
 
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_sync_room_metadata_unreachable_livekit(mock_create_livekit_client, caplog):
+    """A LiveKit cluster that cannot be reached never fails the request that
+    pushes a room's settings to it."""
+    client = mock.AsyncMock()
+    client.room.list_rooms.side_effect = aiohttp.ClientConnectionError(
+        "Connection refused"
+    )
+    mock_create_livekit_client.return_value = client
+    room = RoomFactory.build()
+
+    RoomManagement.sync_room_metadata(room)
+
+    assert f"Failed to sync metadata to LiveKit for room {room.id}" in caplog.text
+    client.aclose.assert_awaited_once()
+
+
 def live_room_client():
     """Return a LiveKit client mock on which the room is live, without metadata."""
     client = mock.AsyncMock()

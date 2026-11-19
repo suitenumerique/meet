@@ -2,6 +2,7 @@
 
 from logging import getLogger
 
+import aiohttp
 from asgiref.sync import async_to_sync
 from livekit.api import TwirpError, TwirpErrorCode
 from livekit.protocol.sip import (
@@ -54,7 +55,7 @@ class SIPManagement:
 
         try:
             await lkapi.sip.create_sip_dispatch_rule(create=request)
-        except (TwirpError, TimeoutError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             if isinstance(e, TwirpError) and e.code == TwirpErrorCode.ALREADY_EXISTS:
                 raise DispatchRuleConflictError("Dispatch rule already exists") from e
             logger.exception(
@@ -83,7 +84,7 @@ class SIPManagement:
             existing_rules = await lkapi.sip.list_sip_dispatch_rule(
                 list=ListSIPDispatchRuleRequest()
             )
-        except (TwirpError, TimeoutError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             logger.exception("Failed to list dispatch rules for room %s", room_id)
             raise SIPException("Could not list dispatch rules") from e
         finally:
@@ -155,7 +156,7 @@ class SIPManagement:
 
             return True
 
-        except (TwirpError, TimeoutError) as e:
+        except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
             logger.exception("Failed to delete dispatch rules for room %s", room_id)
             raise SIPException("Could not delete dispatch rules") from e
 

@@ -11,9 +11,11 @@ from unittest import mock
 
 from django.contrib.sites.models import Site
 
+import aiohttp
 import pytest
 from asgiref.sync import async_to_sync
 from celery.exceptions import OperationalError as CeleryOperationalError
+from livekit.api import TwirpError
 
 from core import factories, models
 from core.analytics import UserFeatureFlag
@@ -606,6 +608,33 @@ def test_get_recording_timestamps_on_the_given_cluster(
     client.egress.list_egress.assert_awaited_once()
     [request] = client.egress.list_egress.await_args.args
     assert request.egress_id == "egress-1"
+
+
+@pytest.mark.parametrize(
+    "error",
+    (
+        TwirpError("unavailable", "no node available", status=503),
+        TimeoutError(),
+        aiohttp.ServerDisconnectedError(),
+    ),
+)
+@mock.patch("core.utils.create_livekit_client")
+def test_get_recording_timestamps_unreachable_cluster(
+    mock_create_livekit_client, error, two_livekit_clusters
+):
+    """A cluster that answers with an error, does not answer in time or drops
+    the connection gives no timestamps, its client closed."""
+    _paris, lyon = two_livekit_clusters
+    client = mock.AsyncMock()
+    client.egress.list_egress.side_effect = error
+    mock_create_livekit_client.return_value = client
+
+    timestamps = async_to_sync(NotificationService._get_recording_timestamps)(
+        "egress-1", lyon
+    )
+
+    assert timestamps == (None, None)
+    client.aclose.assert_awaited_once()
 
 
 def test_summary_recipient_is_oldest_access():
