@@ -9,15 +9,16 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from core.livekit.clusters import get_default_livekit_cluster
-from core.livekit.exceptions import LiveKitRoomUnavailableError
+from core.livekit.exceptions import LiveKitRoomEndedError, LiveKitRoomUnavailableError
 from core.utils import build_telephony_config
 
-from .exceptions import LiveKitRoomUnavailable
+from .exceptions import LiveKitRoomUnavailable, MeetingEnded
 
 
 def exception_handler(exc, context):
-    """Handle Django ValidationError as an accepted exception, and answer a
-    LiveKit room that cannot be joined for now with a 503.
+    """Handle Django ValidationError as an accepted exception, answer a
+    LiveKit room that cannot be joined for now with a 503, and one whose
+    meeting ended with a 409.
 
     For the parameters, see ``exception_handler``
     This code comes from twidi's gist:
@@ -37,6 +38,9 @@ def exception_handler(exc, context):
 
     elif isinstance(exc, LiveKitRoomUnavailableError):
         exc = LiveKitRoomUnavailable()
+
+    elif isinstance(exc, LiveKitRoomEndedError):
+        exc = MeetingEnded()
 
     return drf_views.exception_handler(exc, context)
 
@@ -94,6 +98,7 @@ def get_frontend_configuration(request):
             "enable_firefox_proxy_workaround": settings.LIVEKIT_ENABLE_FIREFOX_PROXY_WORKAROUND,
             "default_sources": settings.LIVEKIT_DEFAULT_SOURCES,
             "default_video_codec": settings.LIVEKIT_DEFAULT_VIDEO_CODEC,
+            "connection_recovery": settings.LIVEKIT_CONNECTION_RECOVERY_ENABLED,
             "reconnect": {
                 "backoff_enabled": settings.LIVEKIT_RECONNECT_BACKOFF_ENABLED,
                 "base_delay_ms": settings.LIVEKIT_RECONNECT_BASE_DELAY_MS,

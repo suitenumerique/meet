@@ -9,6 +9,7 @@ default cluster.
 
 import contextlib
 from dataclasses import dataclass
+from enum import StrEnum
 from logging import getLogger
 from typing import Any
 from uuid import uuid4
@@ -25,6 +26,7 @@ from .clusters import LiveKitClusterConfig, get_livekit_clusters
 from .exceptions import (
     LiveKitRoomCloseError,
     LiveKitRoomCreationError,
+    LiveKitRoomEndedError,
     NoCandidateLiveKitClusterError,
     PlacementChangedError,
     RelocationRefusedError,
@@ -45,6 +47,25 @@ def _audit(action: audit.Action, actor: Any, **fields: Any) -> None:
         actor_type=audit.ActorType.SYSTEM if actor is None else None,
         **fields,
     )
+
+
+class LiveKitRoomFailure(StrEnum):
+    """How a LiveKit room failed a frontend: deleted, or missing otherwise."""
+
+    MISSING = "missing"
+    DELETED = "deleted"
+
+
+@dataclass(frozen=True, kw_only=True)
+class JoinIntent:
+    """How a frontend asks where to connect to a LiveKit room."""
+
+    ensure_room: bool = True
+    failed_room_sid: str = ""
+    failure: LiveKitRoomFailure | None = None
+
+
+ENSURE_ROOM = JoinIntent()
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -133,7 +154,7 @@ class PlacementService:
         return get_placement_strategy().choose(candidates, context)
 
     @classmethod
-    def place(cls, room: Room) -> LiveKitRoomLocation:
+    def place(cls, room: Room, intent: JoinIntent = ENSURE_ROOM) -> LiveKitRoomLocation:
         """Make a LiveKit room ready to be joined and return where it lives.
 
         The LiveKit room is created on the cluster of its placement, which then
@@ -146,7 +167,15 @@ class PlacementService:
         changes while its cluster creates the LiveKit room is read again, and
         the LiveKit room created where it then says, a bounded number of times.
 
+        Without ensure_room, or when a failure is reported, the placement
+        decides first, each time it is read: a LiveKit room known to be live on
+        a registered cluster, with a SID other than the failed one, is returned
+        as it is, and one reported deleted ended its meeting when it has no
+        placement, or one still recording its SID.
+
         Raises:
+            LiveKitRoomEndedError: the LiveKit room reported deleted ended its
+                meeting.
             LiveKitRoomUnavailableError: the LiveKit room cannot be placed or
                 created, or its placement kept changing.
         """
@@ -154,7 +183,19 @@ class PlacementService:
         from core.services import room_management  # noqa: PLC0415
 
         room_name = str(room.id)
+        if intent.failure is not None:
+            logger.info(
+                "LiveKit room %s reported %s with SID %r",
+                room_name,
+                intent.failure,
+                intent.failed_room_sid,
+            )
+
         for _attempt in range(PLACEMENT_UPDATE_ATTEMPTS):
+            location = cls._known_location(room_name, intent)
+            if location is not None:
+                return location
+
             placement, cluster, created = cls._get_or_create_placement(room)
             try:
                 livekit_room = room_management.RoomManagement.create_room(
@@ -195,6 +236,28 @@ class PlacementService:
         raise PlacementChangedError(
             f"The placement of LiveKit room {room_name} kept changing."
         )
+
+    @staticmethod
+    def _known_location(
+        room_name: str, intent: JoinIntent
+    ) -> LiveKitRoomLocation | None:
+        """Return where a LiveKit room is known to be live, or None to ensure it."""
+        if intent.ensure_room and intent.failure is None:
+            return None
+
+        placement = Placement.objects.filter(room_name=room_name).first()
+        if placement is None or placement.sid == intent.failed_room_sid:
+            if intent.failure == LiveKitRoomFailure.DELETED:
+                raise LiveKitRoomEndedError(
+                    f"The meeting of LiveKit room {room_name} ended."
+                )
+            return None
+
+        clusters = {cluster.name: cluster for cluster in get_livekit_clusters()}
+        cluster = clusters.get(placement.cluster)
+        if placement.sid and cluster is not None:
+            return LiveKitRoomLocation(cluster=cluster, sid=placement.sid)
+        return None
 
     @classmethod
     def _get_or_create_placement(

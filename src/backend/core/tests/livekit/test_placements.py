@@ -19,13 +19,17 @@ from core.livekit.clusters import get_default_livekit_cluster, get_livekit_clust
 from core.livekit.exceptions import (
     LiveKitRoomCloseError,
     LiveKitRoomCreationError,
+    LiveKitRoomEndedError,
     NoCandidateLiveKitClusterError,
     PlacementChangedError,
     RelocationRefusedError,
 )
 from core.livekit.placements import (
+    ENSURE_ROOM,
     PLACEMENT_CREATION_ATTEMPTS,
     PLACEMENT_UPDATE_ATTEMPTS,
+    JoinIntent,
+    LiveKitRoomFailure,
     LiveKitRoomLocation,
     PlacementService,
 )
@@ -111,6 +115,15 @@ def closing_calls(cluster, room_name="my-room"):
     """Return the calls closing a LiveKit room on a cluster: its deletion alone,
     nothing being announced in its metadata."""
     return [mock.call.delete_room(room_name, cluster=cluster)]
+
+
+LAZY = JoinIntent(ensure_room=False)
+MISSING = JoinIntent(
+    ensure_room=False, failure=LiveKitRoomFailure.MISSING, failed_room_sid="RM_failed"
+)
+DELETED = JoinIntent(
+    ensure_room=False, failure=LiveKitRoomFailure.DELETED, failed_room_sid="RM_failed"
+)
 
 
 def test_cluster_for_single_cluster(django_assert_num_queries):
@@ -689,12 +702,15 @@ def test_place_keeps_changing(two_livekit_clusters, fake_livekit_room_creation, 
     ) in caplog.text
 
 
+@pytest.mark.parametrize(
+    "intent", (ENSURE_ROOM, LAZY, DELETED), ids=("ensure", "lazy", "deleted")
+)
 def test_place_on_unregistered_cluster(
-    two_livekit_clusters, fake_livekit_room_creation, caplog
+    intent, two_livekit_clusters, fake_livekit_room_creation, caplog
 ):
     """
     A LiveKit room placed on a cluster since removed from the registry is
-    placed again, with a warning.
+    placed again, with a warning, unless reported deleted with its SID.
     """
     _paris, lyon = two_livekit_clusters
     room = RoomFactory()
@@ -707,7 +723,7 @@ def test_place_on_unregistered_cluster(
         picking(lyon),
         caplog.at_level(logging.WARNING, logger="core.livekit.placements"),
     ):
-        assert PlacementService.place(room).cluster == lyon
+        assert PlacementService.place(room, intent).cluster == lyon
 
     placement = Placement.objects.get()
     assert placement.pk != unregistered.pk
@@ -733,6 +749,148 @@ def test_place_without_candidate(settings, fake_livekit_room_creation):
 
     assert not Placement.objects.exists()
     fake_livekit_room_creation.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "intent",
+    (
+        pytest.param(LAZY, id="lazy"),
+        pytest.param(MISSING, id="missing"),
+        pytest.param(DELETED, id="deleted"),
+        pytest.param(
+            JoinIntent(failure=LiveKitRoomFailure.DELETED, failed_room_sid="RM_failed"),
+            id="deleted-ensuring",
+        ),
+    ),
+)
+def test_place_known_live_room(
+    intent, two_livekit_clusters, fake_livekit_room_creation, django_assert_num_queries
+):
+    """A LiveKit room known to be live is returned as it is, on a single read."""
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
+    placement = Placement.objects.create(
+        room_name=room_name, cluster="lyon", sid="RM_live"
+    )
+
+    with django_assert_num_queries(1):
+        location = PlacementService.place(room, intent)
+
+    assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_live")
+    fake_livekit_room_creation.assert_not_called()
+    assert_placement_unchanged(placement)
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+@pytest.mark.parametrize(
+    "placed",
+    (
+        pytest.param(None, id="without-placement"),
+        pytest.param({"sid": "RM_failed"}, id="same-sid"),
+        pytest.param(
+            {"sid": "RM_failed", "cluster": "lille"}, id="same-sid-unregistered-cluster"
+        ),
+    ),
+)
+def test_place_ended_meeting(
+    placed, fake_livekit_room_creation, django_assert_num_queries, caplog
+):
+    """
+    A LiveKit room reported deleted ended its meeting when it has no placement,
+    or one still recording its SID: nothing is written, nor created.
+    """
+    room = RoomFactory()
+    room_name = str(room.id)
+    if placed is not None:
+        Placement.objects.create(room_name=room_name, **{"cluster": "lyon", **placed})
+    placements = list(Placement.objects.values())
+
+    with (
+        caplog.at_level(logging.INFO, logger="core.livekit.placements"),
+        django_assert_num_queries(1),
+        pytest.raises(LiveKitRoomEndedError),
+    ):
+        PlacementService.place(room, DELETED)
+
+    fake_livekit_room_creation.assert_not_called()
+    assert list(Placement.objects.values()) == placements
+    assert (
+        f"LiveKit room {room_name} reported deleted with SID 'RM_failed'" in caplog.text
+    )
+
+
+@pytest.mark.parametrize(
+    ("intent", "sid"),
+    (
+        pytest.param(LAZY, None, id="lazy-without-placement"),
+        pytest.param(LAZY, "", id="lazy-without-sid"),
+        pytest.param(MISSING, None, id="missing-without-placement"),
+        pytest.param(MISSING, "RM_failed", id="missing-same-sid"),
+        pytest.param(MISSING, "", id="missing-without-sid"),
+        pytest.param(DELETED, "", id="deleted-without-sid"),
+    ),
+)
+def test_place_room_not_known_live(
+    intent, sid, two_livekit_clusters, fake_livekit_room_creation
+):
+    """A LiveKit room not known to be live is ensured, unless its meeting ended."""
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
+    if sid is not None:
+        Placement.objects.create(room_name=room_name, cluster="lyon", sid=sid)
+    fake_livekit_room_creation.return_value = livekit_room("RM_new")
+
+    with picking(lyon):
+        location = PlacementService.place(room, intent)
+
+    assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_new")
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.sid == "RM_new"
+
+
+def test_place_missing_room_replaced_meanwhile(
+    two_livekit_clusters, fake_livekit_room_creation
+):
+    """
+    A LiveKit room reported missing, given another SID while its cluster
+    created it again, is followed to that SID once its placement is read
+    again, without creating it once more.
+    """
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
+    Placement.objects.create(room_name=room_name, cluster="lyon", sid="RM_failed")
+    fake_livekit_room_creation.side_effect = change_during_first_creation(
+        sid="RM_other"
+    )
+
+    location = PlacementService.place(room, MISSING)
+
+    assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_other")
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
+    assert Placement.objects.get().sid == "RM_other"
+
+
+@pytest.mark.usefixtures("two_livekit_clusters")
+def test_place_deleted_room_gone_meanwhile(fake_livekit_room_creation):
+    """
+    A LiveKit room reported deleted, whose placement is gone once read again
+    after its cluster created it, ended its meeting: it is not placed again.
+    """
+    room = RoomFactory()
+    room_name = str(room.id)
+    Placement.objects.create(room_name=room_name, cluster="lyon")
+    fake_livekit_room_creation.side_effect = change_during_first_creation()
+
+    with pytest.raises(LiveKitRoomEndedError):
+        PlacementService.place(room, DELETED)
+
+    fake_livekit_room_creation.assert_called_once()
+    assert not Placement.objects.exists()
 
 
 def started(sid="RM_started"):

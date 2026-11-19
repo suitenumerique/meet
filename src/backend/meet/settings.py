@@ -818,6 +818,9 @@ class Base(Configuration):
     LIVEKIT_DEFAULT_VIDEO_CODEC = VideoCodecValue(
         "vp9", environ_name="LIVEKIT_DEFAULT_VIDEO_CODEC", environ_prefix=None
     )
+    LIVEKIT_CONNECTION_RECOVERY_ENABLED = values.BooleanValue(
+        True, environ_name="LIVEKIT_CONNECTION_RECOVERY_ENABLED", environ_prefix=None
+    )
     # Livekit websocket reconnection exponential backoff config sent to the frontend.
     # Before its first reconnection attempt, a client waits a random delay up to the base
     # delay. That ceiling doubles after every failed attempt, capped at the max delay, and

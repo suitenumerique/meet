@@ -42,12 +42,12 @@ from rest_framework.settings import api_settings
 
 from core import analytics, audit, auditing, enums, models, utils
 from core.api import throttling
-from core.api.exceptions import ensure_room_not_deleted
+from core.api.exceptions import MeetingEnded, ensure_room_not_deleted
 from core.api.filters import ListFileFilter
 from core.api.locks import room_locked_for_update
 from core.enums import MEDIA_STORAGE_URL_PATTERN
 from core.livekit.clusters import get_default_livekit_cluster
-from core.livekit.placements import PlacementService
+from core.livekit.placements import LiveKitRoomFailure, PlacementService
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import RecordingProcessWebhookAuthentication
 from core.recording.services.metadata_collector import (
@@ -605,14 +605,22 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         on, or the default one for an unregistered room, where it is created
         first. When it cannot be, the response is a 503, and asking again later
         may succeed.
+
+        With ensure_room false, a LiveKit room known to be live is handed out
+        without being created first. A frontend that a LiveKit room failed
+        sends its SID as failed_room_sid with failure, missing or deleted, and
+        is answered a 409 when its meeting ended.
         """
 
         serializer = serializers.JoinRoomSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get("username") or None
+        intent = serializer.validated_data["intent"]
 
         room, slug = self._get_object_or_unregistered_slug()
         if room is None:
+            if intent.failure == LiveKitRoomFailure.DELETED:
+                raise MeetingEnded()
             cluster = get_default_livekit_cluster()
             livekit_room = RoomManagement.create_room(slug, cluster=cluster)
             return drf_response.Response(
@@ -634,7 +642,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         ).data
 
         if LobbyService.can_bypass_lobby(room=room, user=request.user, role=role):
-            location = PlacementService.place(room)
+            location = PlacementService.place(room, intent)
             data["livekit"] = utils.generate_livekit_config(
                 room_id=str(room.id),
                 user=request.user,

@@ -24,6 +24,14 @@ class LiveKitRoomUnavailable(exceptions.APIException):
     default_code = "livekit_room_unavailable"
 
 
+class MeetingEnded(exceptions.APIException):
+    """Raised when the LiveKit room a frontend reports deleted ended its meeting."""
+
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _("This meeting has ended.")
+    default_code = "meeting_ended"
+
+
 def ensure_room_not_deleted(resource):
     """Raise a 410 Gone if the resource is a soft-deleted room.
 

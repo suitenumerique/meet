@@ -19,7 +19,7 @@ from ...factories import RoomFactory, UserFactory
 from ...livekit.exceptions import LiveKitRoomCreationError
 from ...models import Placement, RoomAccessLevel
 from ...services.lobby import LobbyService
-from ..utils import CREATED_LIVEKIT_ROOM_SID, random_remote_addr
+from ..utils import CREATED_LIVEKIT_ROOM_SID, LAZY_JOIN, random_remote_addr, reporting
 
 pytestmark = pytest.mark.django_db
 
@@ -378,15 +378,22 @@ def test_request_entry_public_room_placed_cluster(
     assert claims["video"]["room"] == str(room.id)
 
 
+@pytest.mark.parametrize(
+    ("payload", "room_sid"),
+    [({}, CREATED_LIVEKIT_ROOM_SID), (LAZY_JOIN, "RM_live")],
+    ids=["ensured", "known-live"],
+)
 def test_request_entry_accepted_participant_placed_cluster(
-    two_livekit_clusters, fake_livekit_room_creation
+    payload, room_sid, two_livekit_clusters, fake_livekit_room_creation
 ):
     """A participant admitted from the lobby should be handed out credentials for
-    the LiveKit cluster the LiveKit room is placed on, where it is created: its
-    URL, and a token it signed."""
+    the LiveKit cluster the LiveKit room is placed on, where it is created, unless
+    known to be live and not asked to be ensured: its URL, and a token it signed."""
     _paris, lyon = two_livekit_clusters
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
-    Placement.objects.create(room_name=str(room.id), room=room, cluster="lyon")
+    Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="lyon", sid="RM_live"
+    )
     client = APIClient(REMOTE_ADDR=random_remote_addr())
 
     with mock.patch.object(utils, "notify_participants", return_value=None):
@@ -402,16 +409,19 @@ def test_request_entry_accepted_participant_placed_cluster(
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/request-entry/",
-        {"username": "Guest", "participant_id": participant_id},
+        {"username": "Guest", "participant_id": participant_id, **payload},
     )
-    fake_livekit_room_creation.assert_called_once_with(str(room.id), cluster=lyon)
+    if room_sid == "RM_live":
+        fake_livekit_room_creation.assert_not_called()
+    else:
+        fake_livekit_room_creation.assert_called_once_with(str(room.id), cluster=lyon)
 
     assert response.status_code == 200
     assert response.json()["status"] == "accepted"
 
     config = response.json()["livekit"]
     assert config["url"] == lyon.url
-    assert config["room_sid"] == CREATED_LIVEKIT_ROOM_SID
+    assert config["room_sid"] == room_sid
 
     claims = jwt.decode(config["token"], lyon.api_secret, algorithms=["HS256"])
     assert claims["iss"] == lyon.api_key
@@ -419,11 +429,20 @@ def test_request_entry_accepted_participant_placed_cluster(
 
 
 @pytest.mark.parametrize("access_level", ["public", "restricted"])
-def test_request_entry_room_creation_failure(
-    access_level, settings, fake_livekit_room_creation
+@pytest.mark.parametrize(
+    ("payload", "refusal"),
+    [
+        ({}, (503, "This room cannot be joined for now, please try again.")),
+        (reporting("deleted"), (409, "This meeting has ended.")),
+    ],
+    ids=["unavailable", "ended"],
+)
+def test_request_entry_refused_keeps_the_entry(
+    payload, refusal, access_level, settings, fake_livekit_room_creation
 ):
-    """Entry granted to a room whose LiveKit room cannot be created should be
-    answered with a 503, leaving the participant where they were in the lobby."""
+    """Entry granted to a room whose LiveKit room cannot be created, or whose
+    meeting ended, should be answered with a 503 or a 409, leaving the participant
+    where they were in the lobby."""
     settings.LOBBY_KEY_PREFIX = "mocked-cache-prefix"
     room = RoomFactory(access_level=access_level)
     participant_id = str(uuid.uuid4())
@@ -445,27 +464,32 @@ def test_request_entry_room_creation_failure(
         {
             "username": "Guest",
             "participant_id": _lobby_signer().sign(participant_id),
+            **payload,
         },
     )
 
-    assert response.status_code == 503
-    assert response.json() == {
-        "detail": "This room cannot be joined for now, please try again."
-    }
+    status_code, detail = refusal
+    assert response.status_code == status_code
+    assert response.json() == {"detail": detail}
     assert (
         cache.get(f"mocked-cache-prefix_{room.id}_{participant_id}")["status"] == status
     )
     assert not Placement.objects.exists()
 
 
-def test_request_entry_invalid_data():
+@pytest.mark.parametrize(
+    "data",
+    [{}, {"username": "Guest", "failure": "deleted"}],
+    ids=["without-username", "failure-without-sid"],
+)
+def test_request_entry_invalid_data(data):
     """Should return 400 for invalid request data."""
     room = RoomFactory()
     client = APIClient()
 
     response = client.post(
         f"/api/v1.0/rooms/{room.id}/request-entry/",
-        {},  # Missing required username field
+        data,
     )
 
     assert response.status_code == 400
@@ -887,8 +911,11 @@ def test_request_entry_throttling_authenticated_user(
     assert response.status_code == 429
 
 
-def test_request_entry_with_participant_id(settings):
-    """Echoing the previously issued identifier preserves the lobby identity across requests."""
+@pytest.mark.parametrize(
+    "payload", [{}, reporting("deleted")], ids=["default", "deleted"]
+)
+def test_request_entry_with_participant_id(payload, settings):
+    """Echoing the issued identifier keeps the lobby identity, whatever is reported."""
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     client = APIClient()
 
@@ -900,7 +927,7 @@ def test_request_entry_with_participant_id(settings):
     ):
         response = client.post(
             f"/api/v1.0/rooms/{room.id}/request-entry/",
-            {"username": "test_user"},
+            {"username": "test_user", **payload},
         )
 
         assert response.status_code == 200
@@ -910,7 +937,7 @@ def test_request_entry_with_participant_id(settings):
         # participant: no duplicate in the lobby
         response = client.post(
             f"/api/v1.0/rooms/{room.id}/request-entry/",
-            {"username": "test_user", "participant_id": participant_id},
+            {"username": "test_user", "participant_id": participant_id, **payload},
         )
 
     assert response.status_code == 200

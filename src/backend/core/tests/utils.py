@@ -18,6 +18,7 @@ from core.models import ApplicationScope
 
 CREATED_LIVEKIT_ROOM_SID = "RM_created"
 CREATED_LIVEKIT_ROOM_TIME_MS = 1_763_550_000_123
+LAZY_JOIN = {"ensure_room": False}
 
 
 def livekit_room(
@@ -32,6 +33,11 @@ def livekit_room(
     told otherwise, 0 standing for an unknown creation time.
     """
     return LiveKitRoom(sid=sid, name=name, creation_time_ms=creation_time_ms)
+
+
+def reporting(failure, sid="RM_failed"):
+    """Return the payload of a frontend reporting a LiveKit room that failed it."""
+    return {"ensure_room": False, "failure": failure, "failed_room_sid": sid}
 
 
 def changing_after_reads(change, *, every=False):

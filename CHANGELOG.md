@@ -19,6 +19,7 @@ and this project adheres to
 - ✨(backend) filter users sharing an email in the admin
 - ✨(backend) record livekit rooms on the cluster that started them
 - ✨(backend) hand out the sid of livekit rooms with their credentials
+- ✨(backend) let frontends join live rooms and report failed ones
 
 ### Changed
 

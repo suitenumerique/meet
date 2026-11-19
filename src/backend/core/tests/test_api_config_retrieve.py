@@ -65,3 +65,15 @@ def test_api_config_retrieve_livekit_reconnect_settings(settings):
         "give_up_after_ms": 600000,
         "backoff_reset_ms": 60000,
     }
+
+
+def test_api_config_retrieve_livekit_connection_recovery(settings):
+    """Connection recovery reaches the frontend: on by default, off when disabled."""
+    client = APIClient()
+
+    response = client.get("/api/v1.0/config/")
+    assert response.json()["livekit"]["connection_recovery"] is True
+
+    settings.LIVEKIT_CONNECTION_RECOVERY_ENABLED = False
+    response = client.get("/api/v1.0/config/")
+    assert response.json()["livekit"]["connection_recovery"] is False

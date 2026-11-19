@@ -27,6 +27,7 @@ from timezone_field.rest_framework import TimeZoneSerializerField
 
 from core import models, utils
 from core.api.exceptions import ensure_room_not_deleted
+from core.livekit.placements import JoinIntent, LiveKitRoomFailure
 from core.services.lobby import LobbyService
 
 logger = logging.getLogger(__name__)
@@ -342,7 +343,28 @@ class StartRecordingSerializer(BaseValidationOnlySerializer):
         return value
 
 
-class JoinRoomSerializer(BaseValidationOnlySerializer):
+class JoinIntentSerializer(BaseValidationOnlySerializer):
+    """Validate how a frontend asks where to connect to a LiveKit room."""
+
+    ensure_room = serializers.BooleanField(default=True)
+    failed_room_sid = serializers.CharField(required=False, max_length=63)
+    failure = serializers.ChoiceField(choices=list(LiveKitRoomFailure), required=False)
+
+    def validate(self, attrs):
+        """Build the intent, failure and failed_room_sid going together."""
+        if ("failure" in attrs) != ("failed_room_sid" in attrs):
+            raise serializers.ValidationError(
+                "failure and failed_room_sid go together."
+            )
+        attrs["intent"] = JoinIntent(
+            ensure_room=attrs.pop("ensure_room"),
+            failed_room_sid=attrs.pop("failed_room_sid", ""),
+            failure=attrs.pop("failure", None),
+        )
+        return attrs
+
+
+class JoinRoomSerializer(JoinIntentSerializer):
     """Validate the data sent to join a room."""
 
     username = serializers.CharField(
@@ -355,7 +377,7 @@ class JoinRoomSerializer(BaseValidationOnlySerializer):
     )
 
 
-class RequestEntrySerializer(BaseValidationOnlySerializer):
+class RequestEntrySerializer(JoinIntentSerializer):
     """Validate request entry data."""
 
     username = serializers.CharField(required=True, max_length=DISPLAY_NAME_MAX_LENGTH)

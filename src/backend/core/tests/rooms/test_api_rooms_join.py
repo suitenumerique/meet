@@ -28,9 +28,11 @@ from ...livekit.exceptions import LiveKitRoomCreationError
 from ...models import Placement, RoleChoices, RoomAccessLevel
 from ..utils import (
     CREATED_LIVEKIT_ROOM_SID,
+    LAZY_JOIN,
     generate_user_access_token,
     livekit_cluster_entry,
     livekit_room,
+    reporting,
 )
 
 fake = Faker()
@@ -188,23 +190,36 @@ def test_api_rooms_join_members_num_queries(mock_token, django_assert_num_querie
     assert mock_token.call_args.kwargs["role"] == RoleChoices.MEMBER
 
 
+@pytest.mark.parametrize(
+    ("payload", "num_queries", "room_sid"),
+    [
+        pytest.param({}, 5, CREATED_LIVEKIT_ROOM_SID, id="ensured"),
+        pytest.param(LAZY_JOIN, 4, "RM_live", id="known-live"),
+    ],
+)
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
-def test_api_rooms_join_placed_room_num_queries(mock_token, django_assert_num_queries):
+def test_api_rooms_join_placed_room_num_queries(
+    mock_token, payload, num_queries, room_sid, django_assert_num_queries
+):
     """Once the LiveKit room is placed, its placement is only read and given the
-    SID of the LiveKit room created."""
+    SID of the LiveKit room created, or only read when it is known to be live
+    and not asked to be ensured."""
     user = UserFactory()
     room = RoomFactory(access_level=RoomAccessLevel.RESTRICTED)
     UserResourceAccessFactory(resource=room, user=user, role=RoleChoices.MEMBER)
-    Placement.objects.create(room_name=str(room.id), room=room, cluster="default")
+    Placement.objects.create(
+        room_name=str(room.id), room=room, cluster="default", sid="RM_live"
+    )
     client = APIClient()
     client.force_login(user)
 
-    with django_assert_num_queries(5):
-        response = client.post(join_url(room.id), {}, format="json")
+    with django_assert_num_queries(num_queries):
+        response = client.post(join_url(room.id), payload, format="json")
 
     assert response.status_code == 200
-    assert "livekit" in response.json()
+    assert response.json()["livekit"]["room_sid"] == room_sid
     mock_token.assert_called_once()
+    assert Placement.objects.get().sid == room_sid
 
 
 @pytest.mark.parametrize("role", [RoleChoices.ADMIN, RoleChoices.OWNER])
@@ -263,12 +278,20 @@ def test_api_rooms_join_placed_cluster(
     assert placement.sid == CREATED_LIVEKIT_ROOM_SID
 
 
+@pytest.mark.parametrize(
+    ("payload", "room_sid"),
+    [
+        pytest.param({}, "RM_new", id="ensured"),
+        pytest.param(reporting("deleted", "RM_gone"), "RM_old", id="deleted-moved"),
+    ],
+)
 def test_api_rooms_join_placed_room_sid(
-    two_livekit_clusters, fake_livekit_room_creation
+    payload, room_sid, two_livekit_clusters, fake_livekit_room_creation
 ):
     """
     Joining a placed room should hand out the SID of the LiveKit room its
-    cluster created, which its placement then records.
+    cluster created, which its placement then records, or the SID it records
+    when the LiveKit room reported deleted is another one.
     """
     _paris, lyon = two_livekit_clusters
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
@@ -277,17 +300,20 @@ def test_api_rooms_join_placed_room_sid(
     )
     fake_livekit_room_creation.return_value = livekit_room("RM_new")
 
-    response = APIClient().post(join_url(room.id), {}, format="json")
+    response = APIClient().post(join_url(room.id), payload, format="json")
 
     assert response.status_code == 200
     config = response.json()["livekit"]
     assert config["url"] == lyon.url
-    assert config["room_sid"] == "RM_new"
-    assert Placement.objects.get().sid == "RM_new"
+    assert config["room_sid"] == room_sid
+    assert Placement.objects.get().sid == room_sid
 
 
+@pytest.mark.parametrize(
+    "payload", [{}, LAZY_JOIN, reporting("missing")], ids=["default", "lazy", "missing"]
+)
 def test_api_rooms_join_unregistered_default_cluster(
-    settings, two_livekit_clusters, fake_livekit_room_creation
+    payload, settings, two_livekit_clusters, fake_livekit_room_creation
 ):
     """
     Joining an unregistered room should hand out credentials for the default
@@ -300,7 +326,9 @@ def test_api_rooms_join_unregistered_default_cluster(
     fake_livekit_room_creation.return_value = livekit_room("RM_unregistered")
 
     with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
-        response = APIClient().post(join_url("unregistered-room"), {}, format="json")
+        response = APIClient().post(
+            join_url("unregistered-room"), payload, format="json"
+        )
 
     assert response.status_code == 200
     assert not Placement.objects.exists()
@@ -367,6 +395,30 @@ def test_api_rooms_join_room_creation_failure(
     assert not Placement.objects.exists()
 
 
+@pytest.mark.parametrize("registered", [True, False])
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_meeting_ended(
+    mock_token, registered, settings, fake_livekit_room_creation
+):
+    """Reporting deleted a LiveKit room whose meeting ended should return a 409."""
+    settings.ALLOW_UNREGISTERED_ROOMS = True
+    lookup = "unregistered-room"
+    if registered:
+        room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+        Placement.objects.create(
+            room_name=str(room.id), room=room, cluster="default", sid="RM_failed"
+        )
+        lookup = room.id
+
+    response = APIClient().post(join_url(lookup), reporting("deleted"), format="json")
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "This meeting has ended."}
+    mock_token.assert_not_called()
+    fake_livekit_room_creation.assert_not_called()
+    assert Placement.objects.filter(sid="RM_failed").count() == int(registered)
+
+
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
 def test_api_rooms_join_placed_room_creation_failure(
     mock_token, two_livekit_clusters, fake_livekit_room_creation
@@ -419,6 +471,29 @@ def test_api_rooms_join_without_candidate(
     mock_token.assert_not_called()
     fake_livekit_room_creation.assert_not_called()
     assert "No LiveKit cluster may receive new placements" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("payload", "field"),
+    [
+        ({"failure": "missing"}, "non_field_errors"),
+        ({"failed_room_sid": "RM_failed"}, "non_field_errors"),
+        ({"failure": "lost", "failed_room_sid": "RM_failed"}, "failure"),
+        ({"failure": "missing", "failed_room_sid": ""}, "failed_room_sid"),
+        ({"failure": "missing", "failed_room_sid": "R" * 64}, "failed_room_sid"),
+        ({"ensure_room": "maybe"}, "ensure_room"),
+    ],
+)
+def test_api_rooms_join_invalid_intent(payload, field, fake_livekit_room_creation):
+    """An invalid way of asking where to connect should be rejected with a 400."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    response = APIClient().post(join_url(room.id), payload, format="json")
+
+    assert response.status_code == 400
+    assert list(response.json()) == [field]
+    fake_livekit_room_creation.assert_not_called()
+    assert not Placement.objects.exists()
 
 
 def test_api_rooms_join_get_not_allowed():
@@ -577,21 +652,24 @@ def test_api_rooms_join_unregistered_uuid_slug(
     mock_token.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    "payload", [{}, reporting("deleted")], ids=["default", "deleted"]
+)
 @pytest.mark.parametrize("allow_unregistered_rooms", [True, False])
 @pytest.mark.parametrize("lookup", ["id", "slug"])
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
 def test_api_rooms_join_soft_deleted(
-    mock_token, lookup, allow_unregistered_rooms, settings
+    mock_token, lookup, allow_unregistered_rooms, payload, settings
 ):
     """
-    Joining a soft-deleted room should return a 410, and never fall back
-    to an unregistered room with the same slug.
+    Joining a soft-deleted room should return a 410 whatever it reports, and
+    never fall back to an unregistered room with the same slug.
     """
     settings.ALLOW_UNREGISTERED_ROOMS = allow_unregistered_rooms
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     room.soft_delete()
 
-    response = APIClient().post(join_url(getattr(room, lookup)), {}, format="json")
+    response = APIClient().post(join_url(getattr(room, lookup)), payload, format="json")
 
     assert response.status_code == 410
     assert response.json() == {"detail": "This room has been deleted."}

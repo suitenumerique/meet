@@ -26,6 +26,10 @@ class PlacementChangedError(LiveKitRoomUnavailableError):
     credentials are handed out for it."""
 
 
+class LiveKitRoomEndedError(Exception):
+    """Raised when a LiveKit room reported deleted ended its meeting."""
+
+
 class LiveKitRoomCloseError(Exception):
     """Raised when a LiveKit cluster fails to close a LiveKit room live on it."""
 

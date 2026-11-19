@@ -309,12 +309,13 @@ def test_join_sip_failure(mock_sip_management, mock_capture, settings, client):
     mock_capture.assert_not_called()
 
 
+@pytest.mark.parametrize("sid", [None, "RM_live"])
 @mock.patch("core.roomkit.viewsets.SIPManagement")
 def test_join_places_the_room_first(
-    mock_sip_management, settings, client, fake_livekit_room_creation
+    mock_sip_management, sid, settings, client, fake_livekit_room_creation
 ):
-    """The LiveKit room should be placed and created before the dispatch rule, as
-    the device may be the room's first participant."""
+    """The LiveKit room should be placed and created before the dispatch rule, even
+    when known to be live, as the device may be the room's first participant."""
 
     mock_sip_instance = mock_sip_management.return_value
 
@@ -322,6 +323,10 @@ def test_join_places_the_room_first(
     settings.ROOMKIT_SERVER_TO_SERVER_API_TOKEN = "testAuthToken"
 
     room = RoomFactory(pin_code="1234567890")
+    if sid is not None:
+        Placement.objects.create(
+            room_name=str(room.id), room=room, cluster="default", sid=sid
+        )
     placements_at_rule_creation = []
 
     def ensure_dispatch_rule(rule_room):
