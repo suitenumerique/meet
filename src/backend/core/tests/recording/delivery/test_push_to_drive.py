@@ -287,6 +287,47 @@ def test_push_to_drive_failure_last_attempt(delivery, mock_send_email, audit_eve
 
 
 @responses.activate
+def test_push_to_drive_unexpected_error(delivery, mock_send_email, audit_events):
+    """An unexpected error fails the push at once and releases the token."""
+    mock_upload()
+    responses.replace(
+        responses.POST,
+        f"{API}/items/{FOLDER_ID}/children/",
+        json={"policy": POLICY_URL},
+    )
+
+    with mock.patch.object(push_recording_to_drive, "apply_async") as apply_async:
+        assert push_recording_to_drive(str(delivery.recording_id)) is False
+
+    apply_async.assert_not_called()
+    delivery.refresh_from_db()
+    assert delivery.status == Status.FAILED
+    assert delivery.token is None
+    mock_send_email.delay.assert_not_called()
+
+    [event] = find_events(audit_events, "recording.drive.push")
+    assert event["lasuite"]["outcome"] == "failure"
+
+
+@responses.activate
+def test_push_to_drive_unexpected_error_after_upload(delivery, mock_send_email):
+    """A recording already in Drive stays uploaded when sharing it crashes."""
+    mock_upload()
+
+    with mock.patch(
+        "core.recording.delivery.drive.share", side_effect=RuntimeError("boom")
+    ):
+        assert push_recording_to_drive(str(delivery.recording_id)) is False
+
+    delivery.refresh_from_db()
+    assert delivery.status == Status.UPLOADED
+    assert str(delivery.drive_item_id) == FILE_ID
+    assert delivery.token is None
+    assert delivery.error == "boom"
+    mock_send_email.delay.assert_not_called()
+
+
+@responses.activate
 def test_push_to_drive_refused(delivery, mock_send_email, audit_events):
     """A refused token is audited as an authentication failure."""
     responses.get(f"{API}/items/", status=401)
@@ -356,3 +397,23 @@ def test_push_to_drive_revokes_exchanged_token(delivery, httpx2_mock):
     delivery.refresh_from_db()
     assert delivery.token is None
     assert delivery.token_expires_at is None
+
+
+@responses.activate
+def test_push_to_drive_revocation_crash(delivery):
+    """The token is dropped even if revoking it crashes."""
+    delivery.token_type = models.DriveTokenTypeChoices.TOKEN_EXCHANGE
+    delivery.set_token("exchanged-token", timezone.now() + timedelta(hours=1))
+    delivery.save()
+    mock_upload()
+    mock_share()
+
+    with mock.patch(
+        "core.recording.delivery.credentials.TokenExchangeProvider.release",
+        side_effect=RuntimeError("boom"),
+    ):
+        assert push_recording_to_drive(str(delivery.recording_id)) is True
+
+    delivery.refresh_from_db()
+    assert delivery.status == Status.DELIVERED
+    assert delivery.token is None

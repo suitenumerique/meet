@@ -72,5 +72,11 @@ def push_recording_to_drive(recording_id: str, attempt: int = 1) -> bool:
 
         drive.fail(delivery, exc)
         return False
+    except Exception as exc:  # noqa: BLE001 # pylint: disable=broad-exception-caught
+        # Not worth trying again, but the delivery must not stay PUSHING:
+        # nothing would ever push it again nor release its token.
+        logger.exception("Unexpected error pushing recording %s to Drive", recording_id)
+        drive.fail(delivery, exc)
+        return False
 
     return True

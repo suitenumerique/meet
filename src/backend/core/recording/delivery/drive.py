@@ -31,11 +31,21 @@ DOWNLOAD_TIMEOUT = (API_TIMEOUT[0], 1800)
 SHARE_ROLE = "owner"
 
 def release_token(delivery: models.RecordingDelivery) -> None:
-    """Let go of the delivery's token, without saving: it is a user credential."""
+    """Let go of the delivery's token, without saving: it is a user credential.
+
+    The token is dropped even if releasing it with its provider fails.
+    """
 
     token = delivery.get_token()
     if token and delivery.token_type:
-        get_provider(delivery.token_type).release(token)
+        try:
+            get_provider(delivery.token_type).release(token)
+        except Exception:  # noqa: BLE001 # pylint: disable=broad-exception-caught
+            logger.warning(
+                "Could not release the token of recording %s",
+                delivery.recording_id,
+                exc_info=True,
+            )
 
     delivery.token = None
     delivery.token_expires_at = None
@@ -69,14 +79,19 @@ def audit_push(delivery: models.RecordingDelivery, *, error=None, **details) -> 
 
 
 def fail(delivery: models.RecordingDelivery, error) -> None:
-    """Clean up and log after pushing recording has failed. Notify the audit log."""
+    """Clean up and log after pushing recording has failed. Notify the audit log.
+
+    A recording already uploaded stays UPLOADED: it is in Drive, only sharing
+    or announcing it failed.
+    """
 
     logger.error(
         "Failed to push recording %s to Drive: %s", delivery.recording_id, error
     )
 
     release_token(delivery)
-    delivery.status = models.RecordingDeliveryStatusChoices.FAILED
+    if delivery.status != models.RecordingDeliveryStatusChoices.UPLOADED:
+        delivery.status = models.RecordingDeliveryStatusChoices.FAILED
     delivery.error = str(error)
     delivery.save()
 
@@ -247,7 +262,7 @@ def push(delivery: models.RecordingDelivery) -> None:
     recording = delivery.recording
 
     with DriveClient(token) as drive:
-        folder = get_or_create_folder(drive, delivery.user)
+        folder = get_or_create_folder(drive)
         delivery.drive_item_id = upload(
             drive, recording, build_filename(recording, delivery.user), folder["id"]
         )
