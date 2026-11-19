@@ -14,7 +14,7 @@ import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
-import { menuTrigger } from './menuTrigger'
+import { menuSelect, menuTrigger } from './menuTrigger'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import { useSnapshot } from 'valtio'
@@ -147,18 +147,13 @@ export const VideoDeviceControl = ({
           {({ close }) => (
             <div
               className={css({
-                maxWidth: '36rem',
+                maxWidth: 'calc(100vw - 2rem)',
                 padding: '0.15rem',
                 display: 'flex',
                 gap: '0.5rem',
               })}
             >
-              <div
-                style={{
-                  flex: '1 1 0',
-                  minWidth: 0,
-                }}
-              >
+              <div className={menuSelect}>
                 <SelectDevice
                   context="room"
                   kind={kind}

@@ -72,6 +72,8 @@ const StyledButton = styled(Button, {
 
 const StyledSelectValue = styled(SelectValue, {
   base: {
+    flexGrow: 1,
+    textAlign: 'start',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     textWrap: 'nowrap',
