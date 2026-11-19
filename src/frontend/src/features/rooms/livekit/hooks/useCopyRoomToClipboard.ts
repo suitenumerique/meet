@@ -8,7 +8,9 @@ import { reportError } from '@/features/analytics/telemetry'
 
 const COPY_SUCCESS_TIMEOUT = 3000
 
-export const useCopyRoomToClipboard = (room: ApiRoom | undefined) => {
+export const useCopyRoomToClipboard = (
+  room: Pick<ApiRoom, 'slug' | 'pin_code'> | undefined
+) => {
   const telephony = useTelephony()
   const { t } = useTranslation('global', { keyPrefix: 'clipboardContent' })
 
