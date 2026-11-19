@@ -82,6 +82,7 @@ and this project adheres to
 - 🐛(backend) handle unreachable livekit when updating or closing rooms
 - 🥅(backend) acknowledge livekit webhooks of rooms the backend ignores
 - 🐛(frontend) bound the warm-up of the livekit connection
+- 🐛(frontend) stop rejoining livekit when an admin changes a setting
 
 ## [1.37.0] - 2026-11-01
 

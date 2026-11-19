@@ -20,6 +20,7 @@ import { Screen } from '@/layout/Screen'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
 import { joinRoom } from '../api/joinRoom'
+import type { ApiLiveKit } from '../api/ApiRoom'
 import { useCreateRoom } from '../api/createRoom'
 import { InviteDialog } from './InviteDialog'
 import { VideoConference } from '../livekit/prefabs/VideoConference'
@@ -172,7 +173,7 @@ export const Conference = ({
   const [warmedUpUrls, setWarmedUpUrls] = useState<ReadonlySet<string>>(
     () => new Set()
   )
-  const [isConnectLatched, setIsConnectLatched] = useState(false)
+  const [pinnedLiveKit, setPinnedLiveKit] = useState<ApiLiveKit>()
   const startedWarmUpsRef = useRef(new Set<string>())
   const hasAutoMutedRef = useRef(false)
   const hasConnectedRef = useRef(false)
@@ -242,16 +243,14 @@ export const Conference = ({
     configUrl: apiConfig?.livekit.url,
     joinUrl: createRoomData?.livekit?.url,
     warmedUpUrls,
-    isConnectLatched,
+    isConnectLatched: pinnedLiveKit !== undefined,
   }
   const urlToWarmUp = getUrlToWarmUp(connection)
   const connect = shouldConnect(connection)
+  const liveKit = pinnedLiveKit ?? createRoomData?.livekit
   const serverUrl =
-    connection.joinUrl &&
-    toConnectionUrl(
-      connection.joinUrl,
-      apiConfig?.livekit.force_wss_protocol ?? false
-    )
+    liveKit &&
+    toConnectionUrl(liveKit.url, apiConfig?.livekit.force_wss_protocol ?? false)
 
   const handleConnected = useCallback(async () => {
     hasConnectedRef.current = true
@@ -313,8 +312,8 @@ export const Conference = ({
   }, [room, apiConfig, urlToWarmUp])
 
   useEffect(() => {
-    if (connect) setIsConnectLatched(true)
-  }, [connect])
+    if (connect) setPinnedLiveKit((pinned) => pinned ?? createRoomData?.livekit)
+  }, [connect, createRoomData?.livekit])
 
   if (fetchError?.statusCode == 410) {
     return (
@@ -341,7 +340,7 @@ export const Conference = ({
         <LiveKitRoom
           room={room}
           serverUrl={serverUrl}
-          token={createRoomData?.livekit?.token}
+          token={liveKit?.token}
           connect={connect}
           audio={userConfig.audioEnabled}
           video={

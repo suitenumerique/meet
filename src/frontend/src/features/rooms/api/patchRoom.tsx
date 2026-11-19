@@ -4,10 +4,13 @@ import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 import type { ApiError } from '@/api/ApiError'
 import { queryClient } from '@/api/queryClient'
 import { keys } from '@/api/queryKeys'
+import { fetchRoom } from './fetchRoom'
+
+type RoomSettings = Pick<ApiRoom, 'configuration' | 'access_level'>
 
 export type PatchRoomParams = {
   roomId: string
-  room: Partial<Pick<ApiRoom, 'configuration' | 'access_level'>>
+  room: Partial<RoomSettings>
 }
 
 export const patchRoom = ({ roomId, room }: PatchRoomParams) => {
@@ -18,6 +21,19 @@ export const patchRoom = ({ roomId, room }: PatchRoomParams) => {
 }
 
 export const patchRoomMutationKey = ['patchRoom']
+
+let latestResync = 0
+
+export const resyncRoomSettings = async (roomId: string) => {
+  const resync = ++latestResync
+  const { configuration, access_level } = await fetchRoom({ roomId })
+  if (resync !== latestResync) return
+  if (queryClient.isMutating({ mutationKey: patchRoomMutationKey })) return
+  queryClient.setQueryData<ApiRoom>(
+    [keys.room, roomId],
+    (previous) => previous && { ...previous, configuration, access_level }
+  )
+}
 
 export function usePatchRoom(
   options?: UseMutationOptions<ApiRoom, ApiError, PatchRoomParams>
@@ -33,7 +49,7 @@ export function usePatchRoom(
     },
     onSettled: (_data, _error, { roomId }) => {
       if (queryClient.isMutating({ mutationKey: patchRoomMutationKey }) === 1) {
-        queryClient.invalidateQueries({ queryKey: [keys.room, roomId] })
+        resyncRoomSettings(roomId).catch(() => undefined)
       }
     },
     ...options,
