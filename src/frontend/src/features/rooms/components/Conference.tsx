@@ -16,6 +16,7 @@ import {
 } from 'livekit-client'
 import { getMediaDeviceFailure } from '@/features/rooms/livekit/utils/mediaPermissions'
 import { keys } from '@/api/queryKeys'
+import { queryClient } from '@/api/queryClient'
 import { Screen } from '@/layout/Screen'
 import { QueryAware } from '@/components/QueryAware'
 import { ErrorScreen } from '@/components/ErrorScreen'
@@ -177,6 +178,7 @@ export const Conference = ({
   const startedWarmUpsRef = useRef(new Set<string>())
   const hasAutoMutedRef = useRef(false)
   const hasConnectedRef = useRef(false)
+  const spentRef = useRef(false)
 
   const { mutateAsync: createRoom, isError: isCreateError } = useCreateRoom()
   const {
@@ -254,6 +256,7 @@ export const Conference = ({
 
   const handleConnected = useCallback(async () => {
     hasConnectedRef.current = true
+    spentRef.current = true
     if (!apiConfig) return
     if (
       userPreferencesSnap.is_auto_mute_large_room_enabled &&
@@ -274,6 +277,7 @@ export const Conference = ({
 
   const handleDisconnected = useCallback(
     (reason?: DisconnectReason) => {
+      spentRef.current = true
       navigateTo(
         'feedback',
         {},
@@ -291,6 +295,14 @@ export const Conference = ({
   useEffect(() => {
     void captureMediaEvent('visit-room', { slug: roomId })
   }, [roomId])
+
+  useEffect(
+    () => () => {
+      if (!spentRef.current) return
+      queryClient.removeQueries({ queryKey: [keys.room, roomId], exact: true })
+    },
+    [roomId]
+  )
 
   useEffect(() => {
     if (createRoomData?.livekit) setHasJoined(true)

@@ -83,6 +83,7 @@ and this project adheres to
 - 🥅(backend) acknowledge livekit webhooks of rooms the backend ignores
 - 🐛(frontend) bound the warm-up of the livekit connection
 - 🐛(frontend) stop rejoining livekit when an admin changes a setting
+- 🐛(frontend) ask for new livekit credentials when rejoining
 
 ## [1.37.0] - 2026-11-01
 
