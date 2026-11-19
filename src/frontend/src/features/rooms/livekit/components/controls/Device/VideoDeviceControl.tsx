@@ -14,6 +14,7 @@ import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
+import { menuTrigger } from './menuTrigger'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import { useSnapshot } from 'valtio'
@@ -134,6 +135,7 @@ export const VideoDeviceControl = ({
             aria-label={selectLabel}
             groupPosition="right"
             square
+            className={menuTrigger}
             variant={
               !canPublishTrack || !trackProps.enabled || cannotUseDevice
                 ? 'error2'
