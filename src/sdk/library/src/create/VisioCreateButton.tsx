@@ -42,7 +42,7 @@ export const VisioCreateButton = ({
       }
       style={{
         width: '100%',
-        height: '100px',
+        height: '150px',
         border: 'none',
       }}
     ></iframe>

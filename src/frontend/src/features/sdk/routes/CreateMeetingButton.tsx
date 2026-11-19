@@ -1,5 +1,5 @@
 import { Button } from '@/primitives/Button'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { HStack, VStack } from '@/styled-system/jsx'
@@ -14,6 +14,10 @@ import { useRoomCreationCallback } from '../api/useRoomCreationCallback'
 import { PopupManager } from '../utils/PopupManager'
 import { CallbackCreationRoomData } from '../utils/types'
 import { useSearchParams } from 'wouter'
+import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
+import { buildSdkRoomData } from '../utils/buildSdkRoomData'
+import { formatPinCode } from '@/features/rooms/utils/telephony'
+import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
 
 const popupManager = new PopupManager()
 
@@ -28,8 +32,10 @@ const CreateMeetingButton = () => {
   const initialRoom = useMemo(() => {
     const roomSlug = searchParams.get('slug')
     if (!roomSlug) return undefined
+    const pinCode = searchParams.get('code')?.trim()
     return {
       slug: roomSlug.trim(), // Trim whitespace for safety
+      ...(pinCode && /^\d+$/.test(pinCode) && { pin_code: pinCode }),
     }
   }, [searchParams])
 
@@ -44,9 +50,22 @@ const CreateMeetingButton = () => {
 
   const { data } = useRoomCreationCallback({ callbackId })
 
+  // Ref: the popup message listener is registered once, config loads async
+  const telephony = useTelephony()
+  const telephonyRef = useRef(telephony)
+  telephonyRef.current = telephony
+
+  // Same rule as the ROOM_CREATED payload: shown only when both are known
+  const sdkRoom = useMemo(
+    () => room && buildSdkRoomData(room, telephony),
+    [room, telephony]
+  )
+
   const roomUrl = useMemo(() => {
     if (room?.slug) return getRouteUrl('room', room.slug)
   }, [room])
+
+  const { copyRoomToClipboard } = useCopyRoomToClipboard(room)
 
   const backgroundColor = useMemo(() => {
     const param = searchParams.get('backgroundColor')
@@ -83,10 +102,7 @@ const CreateMeetingButton = () => {
     setCallbackId(undefined)
     setIsPending(false)
     popupManager.sendRoomData({
-      room: {
-        url: getRouteUrl('room', data.room.slug),
-        ...data.room,
-      },
+      room: buildSdkRoomData(data.room, telephonyRef.current),
     })
   }, [data])
 
@@ -97,6 +113,9 @@ const CreateMeetingButton = () => {
         setRoom(data)
         setIsRoomCreatedInSession(true)
         setIsPending(false)
+        popupManager.sendRoomData({
+          room: buildSdkRoomData(data, telephonyRef.current),
+        })
       }
     )
 
@@ -181,10 +200,10 @@ const CreateMeetingButton = () => {
                 variant="quaternaryText"
                 square
                 icon={<RiFileCopyLine />}
-                onPress={() => {
-                  navigator.clipboard.writeText(roomUrl)
-                }}
-                aria-label={t('copyLinkTooltip')}
+                onPress={copyRoomToClipboard}
+                aria-label={
+                  sdkRoom?.code ? t('copyInfoTooltip') : t('copyLinkTooltip')
+                }
               />
               {searchParams.get('readOnly') === 'false' && (
                 <Button
@@ -201,6 +220,18 @@ const CreateMeetingButton = () => {
             <Text variant={'smNote'} margin={false} centered={false}>
               {roomUrl.replace('https://', '')}
             </Text>
+            {sdkRoom?.phone && sdkRoom.code && (
+              <>
+                <Text variant={'smNote'} margin={false} centered={false}>
+                  {t('phone.call')}{' '}
+                  {telephony.country && `(${telephony.country}) `}
+                  {sdkRoom.phone}
+                </Text>
+                <Text variant={'smNote'} margin={false} centered={false}>
+                  {t('phone.pinCode')} {formatPinCode(sdkRoom.code)}
+                </Text>
+              </>
+            )}
             <Text variant={'smNote'} margin={false} centered={false}>
               {t('participantLimit')}
             </Text>

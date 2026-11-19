@@ -3,10 +3,15 @@
     "createButton": "Criar",
     "joinButton": "Entrar com o Visio",
     "copyLinkTooltip": "Copiar link",
+    "copyInfoTooltip": "Copiar informações",
     "resetLabel": "Redefinir",
     "participantLimit": "Até 150 participantes.",
     "popupBlocked": "O pop-up foi bloqueado. Por favor, permita pop-ups para este site.",
-    "settingsTooltip": "Configurações da reunião"
+    "settingsTooltip": "Configurações da reunião",
+    "phone": {
+      "call": "Ligar:",
+      "pinCode": "Código:"
+    }
   },
   "roomSettings": {
     "title": "Configurações da reunião",
