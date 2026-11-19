@@ -107,6 +107,30 @@ class RecordingModeChoices(models.TextChoices):
     TRANSCRIPT = "transcript", _("TRANSCRIPT")
 
 
+class RecordingDeliveryMethodChoices(models.TextChoices):
+    """Where a finished video recording is made available to its users."""
+
+    S3_EMAIL = "s3_email", _("Object storage, with an email")
+    DRIVE = "drive", _("Drive")
+
+
+class RecordingDeliveryStatusChoices(models.TextChoices):
+    """Progress of a recording delivery."""
+
+    PENDING = "pending", _("Pending")
+    PUSHING = "pushing", _("Pushing")
+    UPLOADED = "uploaded", _("Uploaded, not shared with everyone")
+    DELIVERED = "delivered", _("Delivered")
+    FAILED = "failed", _("Failed")
+
+
+class DriveTokenTypeChoices(models.TextChoices):
+    """Kind of token Meet calls Drive with on behalf of the user."""
+
+    TOKEN_EXCHANGE = "token_exchange", _("Token exchanged with Menshen")
+    ACCESS_TOKEN = "access_token", _("OIDC access token")
+
+
 class RoomAccessLevel(models.TextChoices):
     """Room access level choices."""
 
@@ -707,17 +731,6 @@ class Recording(BaseModel):
         verbose_name=_("External Process ID"),
         help_text=_("ID of the external process associated with the recording."),
     )
-    owner_access_token = models.TextField(
-        null=True,
-        blank=True,
-        editable=False,
-        verbose_name=_("Owner access token"),
-        help_text=_(
-            "Encrypted OIDC access token of the user who started the recording, "
-            "used to push the recording to their Drive on their behalf. "
-            "Dropped as soon as the push has been attempted."
-        ),
-    )
 
     class Meta:
         db_table = "meet_recording"
@@ -858,38 +871,118 @@ class Recording(BaseModel):
 
         return self.expired_at < timezone.now()
 
-    def set_owner_access_token(self, access_token: str) -> None:
-        """Store the OIDC access token of the user who started the recording.
 
-        It is stored encrypted, and only long enough for the worker to push the
-        recording to that user's Drive once the recording is over.
-        """
+class RecordingDelivery(BaseModel):
+    """How a finished recording is made available to the user.
 
-        self.owner_access_token = utils.encrypt_secret(access_token)
-        self.save(update_fields=["owner_access_token", "updated_at"])
+    To push to Drive, the credential needed to call it on behalf of the starter
+    is obtained when the recording starts and stored here, encrypted, until
+    the push is over.
+    """
 
-    def get_owner_access_token(self) -> Optional[str]:
-        """Return the stored OIDC access token, or None if there is none left."""
+    recording = models.OneToOneField(
+        Recording,
+        on_delete=models.CASCADE,
+        related_name="delivery",
+        verbose_name=_("Recording"),
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("User"),
+        help_text=_("User who started the recording, on whose behalf it is delivered."),
+    )
+    method = models.CharField(
+        max_length=20,
+        choices=RecordingDeliveryMethodChoices.choices,
+        verbose_name=_("Delivery method"),
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=RecordingDeliveryStatusChoices.choices,
+        default=RecordingDeliveryStatusChoices.PENDING,
+        verbose_name=_("Delivery status"),
+    )
+    token_type = models.CharField(
+        max_length=20,
+        choices=DriveTokenTypeChoices.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("Token type"),
+    )
+    token = models.TextField(
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name=_("Token"),
+        help_text=_(
+            "Encrypted token to call Drive on behalf of the user who started the "
+            "recording. Dropped once the push is over."
+        ),
+    )
+    token_expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Token expiration"),
+    )
+    drive_item_id = models.UUIDField(
+        null=True,
+        blank=True,
+        verbose_name=_("Drive item ID"),
+    )
+    error = models.TextField(
+        blank=True,
+        default="",
+        verbose_name=_("Last error"),
+    )
 
-        if not self.owner_access_token:
+    class Meta:
+        db_table = "meet_recording_delivery"
+        verbose_name = _("Recording delivery")
+        verbose_name_plural = _("Recording deliveries")
+
+    def __str__(self):
+        return (
+            f"Delivery of recording {self.recording_id} ({self.method}, {self.status})"
+        )
+
+    def set_token(self, value: str, expires_at: Optional[datetime]) -> None:
+        """Keep the token, encrypted, without saving."""
+        self.token = utils.encrypt_secret(value)
+        self.token_expires_at = expires_at
+
+    def get_token(self) -> Optional[str]:
+        """Return the stored token, or None if there is none left."""
+
+        if not self.token:
             return None
 
         try:
-            return utils.decrypt_secret(self.owner_access_token)
+            return utils.decrypt_secret(self.token)
         except utils.SecretDecryptionError:
-            logger.exception(
-                "Could not decrypt the access token of recording %s", self.id
-            )
+            logger.exception("Could not decrypt the token of delivery %s", self.id)
             return None
 
-    def clear_owner_access_token(self) -> None:
-        """Drop the stored access token, it is a user credential."""
+    @property
+    def is_token_expired(self) -> bool:
+        """Tell whether the stored token is known to be expired."""
+        return (
+            self.token_expires_at is not None
+            and self.token_expires_at <= timezone.now()
+        )
 
-        if self.owner_access_token is None:
-            return
+    @property
+    def drive_url(self) -> Optional[str]:
+        """Return the link to the file in Drive's interface, once it is there."""
 
-        self.owner_access_token = None
-        self.save(update_fields=["owner_access_token", "updated_at"])
+        if not self.drive_item_id or not settings.DRIVE_FRONTEND_BASE_URL:
+            return None
+
+        base_url = settings.DRIVE_FRONTEND_BASE_URL.rstrip("/")
+        return f"{base_url}/explorer/items/files/{self.drive_item_id}"
 
 
 class RecordingAccess(BaseAccess):

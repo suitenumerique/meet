@@ -4,6 +4,7 @@ from logging import getLogger
 
 from core import models, utils
 from core.models import Recording
+from core.recording.delivery import service as delivery_service
 from core.recording.enums import (
     UNSUCCESSFUL_EVENTS,
     RecordingWorkerEvent,
@@ -260,6 +261,7 @@ class RecordingEventsService:
         """
         recording.status = models.RecordingStatusChoices.FAILED
         recording.save()
+        delivery_service.abandon(recording, "The recording failed.")
 
         cls._notify_participants(recording, RecordingWorkerEvent.FAILED)
 
@@ -272,6 +274,7 @@ class RecordingEventsService:
         """
         recording.status = models.RecordingStatusChoices.ABORTED
         recording.save()
+        delivery_service.abandon(recording, "The recording was aborted.")
 
         cls._notify_participants(recording, RecordingWorkerEvent.ABORTED)
 

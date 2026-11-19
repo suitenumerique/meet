@@ -1037,3 +1037,119 @@ def test_start_recording_anonymous_is_audited(settings):
 
     assert event["lasuite"]["outcome"] == "denied"
     assert event["lasuite"]["actor"]["type"] == "anonymous"
+
+
+def _start_recording_client(room, access_token="user-access-token"):
+    """Return a client of a room owner, whose session holds their access token."""
+    user = UserFactory()
+    room.accesses.create(user=user, role="owner")
+    client = APIClient()
+    client.force_login(user)
+    if access_token:
+        session = client.session
+        session["oidc_access_token"] = access_token
+        session.save()
+    return client, user
+
+
+def test_start_recording_delivery_s3_email(
+    mock_worker_service_factory, mock_worker_manager, settings
+):
+    """By default, a video recording will be delivered by email."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_STORAGE_METHOD = "s3_email"
+    room = RoomFactory()
+    client, user = _start_recording_client(room)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/", {"mode": "screen_recording"}
+    )
+
+    assert response.status_code == 201
+    delivery = Recording.objects.get().delivery
+    assert delivery.method == "s3_email"
+    assert delivery.user == user
+    assert delivery.token is None
+
+
+def test_start_recording_delivery_drive(
+    mock_worker_service_factory, mock_worker_manager, settings, encryption_key
+):
+    """To push to Drive, the user's token is kept, encrypted, when the recording starts."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_STORAGE_METHOD = "drive"
+    settings.RECORDING_DRIVE_AUTH_METHOD = "access_token"
+    room = RoomFactory()
+    client, user = _start_recording_client(room)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/", {"mode": "screen_recording"}
+    )
+
+    assert response.status_code == 201
+    delivery = Recording.objects.get().delivery
+    assert delivery.method == "drive"
+    assert delivery.status == "pending"
+    assert delivery.user == user
+    assert delivery.get_token() == "user-access-token"
+
+
+def test_start_recording_delivery_drive_without_token(
+    mock_worker_service_factory, mock_worker_manager, settings, encryption_key
+):
+    """Without a token, the recording still starts, but will not be pushed."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_STORAGE_METHOD = "drive"
+    settings.RECORDING_DRIVE_AUTH_METHOD = "access_token"
+    room = RoomFactory()
+    client, _user = _start_recording_client(room, access_token=None)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/", {"mode": "screen_recording"}
+    )
+
+    assert response.status_code == 201
+    recording = Recording.objects.get()
+    mock_worker_manager.start.assert_called_once_with(recording)
+    assert recording.delivery.method == "drive"
+    assert recording.delivery.status == "failed"
+
+
+def test_start_recording_delivery_transcript(
+    mock_worker_service_factory, mock_worker_manager, settings, encryption_key
+):
+    """An audio-only transcript gets no delivery."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_STORAGE_METHOD = "drive"
+    settings.RECORDING_DRIVE_AUTH_METHOD = "access_token"
+    room = RoomFactory()
+    client, _user = _start_recording_client(room)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/", {"mode": "transcript"}
+    )
+
+    assert response.status_code == 201
+    assert not hasattr(Recording.objects.get(), "delivery")
+
+
+def test_start_recording_delivery_worker_error_releases_token(
+    mock_worker_service_factory, mock_worker_manager, settings, encryption_key
+):
+    """A recording that fails to start lets go of its token."""
+    settings.RECORDING_ENABLE = True
+    settings.RECORDING_STORAGE_METHOD = "drive"
+    settings.RECORDING_DRIVE_AUTH_METHOD = "access_token"
+    mock_worker_manager.start = mock.Mock(side_effect=RecordingStartError("boom"))
+    room = RoomFactory()
+    client, _user = _start_recording_client(room)
+
+    response = client.post(
+        f"/api/v1.0/rooms/{room.id}/start-recording/", {"mode": "screen_recording"}
+    )
+
+    assert response.status_code == 502
+    delivery = Recording.objects.get().delivery
+    assert delivery.status == "failed"
+    assert delivery.error == "The recording failed to start."
+    assert delivery.token is None

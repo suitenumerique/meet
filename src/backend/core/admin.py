@@ -327,6 +327,30 @@ class RecordingAccessInline(admin.TabularInline):
     autocomplete_fields = ["user"]
 
 
+class RecordingDeliveryInline(admin.StackedInline):
+    """Read-only inline showing how a recording was delivered, and how far it got."""
+
+    model = models.RecordingDelivery
+    extra = 0
+    can_delete = False
+    fields = (
+        "method",
+        "status",
+        "user",
+        "token_type",
+        "token_expires_at",
+        "drive_item_id",
+        "error",
+        "created_at",
+        "updated_at",
+    )
+    readonly_fields = fields
+
+    def has_add_permission(self, request, obj=None):
+        """Deliveries are created when a recording starts, never by hand."""
+        return False
+
+
 @admin.action(description=_("Resend notification to external service"))
 def resend_notification(modeladmin, request, queryset):  # pylint: disable=unused-argument
     """Resend notification to external service for selected recordings."""
@@ -415,7 +439,7 @@ def mark_as_failed_to_stop(modeladmin, request, queryset):
 class RecordingAdmin(admin.ModelAdmin):
     """Recording admin interface declaration."""
 
-    inlines = (RecordingAccessInline,)
+    inlines = (RecordingAccessInline, RecordingDeliveryInline)
     search_fields = [
         "status",
         "=id",

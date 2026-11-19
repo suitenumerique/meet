@@ -128,42 +128,93 @@ RECORDING_STORAGE_EVENT_TOKEN = <token>
 
 ## Push recordings to Drive
 
-Once a recording is over, it can be pushed (streamed) to the user's [Drive](https://github.com/suitenumerique/drive), in addition to staying in the object storage.
+`RECORDING_STORAGE_METHOD` sets where a finished video recording is made available:
 
-Drive is called as a resource server, following its
-[resource server documentation](https://github.com/suitenumerique/drive/blob/main/docs/resource_server.md):
+- `s3_email` (default): it stays in the object storage, and everyone with access
+  to it (its starter and the room's owners and administrators) is emailed a link
+  to download it.
+- `drive`: it is also streamed to the [Drive](https://github.com/suitenumerique/drive)
+  of the user who started it, into a folder at the root of their Drive
+  (`RECORDING_DRIVE_FOLDER_NAME`, created when missing). The file is then shared,
+  as owners, with the room's owners and administrators at the time the recording
+  started. Drive emails them; Meet only emails the starter, with a link to the
+  file. The object storage copy is kept until it expires.
 
+The method is the one set when a recording starts. Audio-only transcripts are not
+concerned: they end up in Docs, through the summary service.
+
+> [!IMPORTANT]
+> Nothing falls back to the download email when a recording cannot be pushed
+> to Drive. Such failures are only visible in the recording's delivery, in the
+> Django admin, and in the audit log (`recording.drive.push`).
+
+Drive is called as a resource server, on behalf of the user who started the
+recording, following its
+[resource server documentation](https://github.com/suitenumerique/drive/blob/main/docs/resource_server.md).
+The token Meet calls it with is obtained when the recording starts, while the
+user is around, and kept encrypted until the push is over.
+`RECORDING_DRIVE_AUTH_METHOD` sets which token:
+
+- `token_exchange` (default): the user's access token is exchanged with
+  [Menshen](https://github.com/suitenumerique/menshen) for a token targeting
+  Drive, revoked once the push is over. Its lifetime is set by Menshen's meet →
+  drive exchange rule (one hour by default): it must outlast the longest
+  recording, plus the time to process and push it.
+- `access_token`: the user's access token itself, assumed to still be valid when
+  the recording is over. Long recordings may therefore fail to be pushed.
+
+If the token cannot be obtained when the recording starts, the recording still
+starts, but will not be pushed.
+
+When the push fails, it is tried again later, up to
+`RECORDING_DRIVE_PUSH_MAX_ATTEMPTS` times, while the token is valid. It runs in
+a Celery worker (`CELERY_ENABLED`): without one, it would run within the
+request ending the recording.
 
 ### Special requirements
 
-- Drive configured as an OIDC resource server, accepting Meet's audience
-  (`OIDC_RS_ALLOWED_AUDIENCES` must contain Meet's client id), with the `items`
-  endpoint allowing the `list`, `children` and `upload_ended` actions.
+- Drive accepting Meet's calls on its external API:
+  - with `token_exchange`: Drive's `MENSHEN_ENABLED`, with a meet → drive
+    exchange rule in Menshen granting the scopes Drive's `MENSHEN_REQUIRED_SCOPES`
+    requires.
+  - with `access_token`: Drive configured as an OIDC resource server accepting
+    Meet's audience (`OIDC_RS_ALLOWED_AUDIENCES` must contain Meet's client id).
+- Drive's `EXTERNAL_API` setting allowing, on `items`, the `list`, `create`,
+  `children` and `upload_ended` and `destroy` actions.
+- To share the file with the room's owners and administrators, Drive's
+  `EXTERNAL_API` must also enable `item_access` and `item_invitation` with the
+  `create` action, and add `list` to `users`. Otherwise the file stays in the
+  starter's Drive only. With `token_exchange`, Drive must also accept Menshen
+  tokens on these endpoints.
 - `OIDC_STORE_ACCESS_TOKEN` enabled on Meet, along with
   `OIDC_STORE_REFRESH_TOKEN_KEY`, the Fernet key encrypting the stored token.
 
-> [!CAUTION]
-> This is a proof of concept: the access token is captured when the recording
-> starts and assumed to still be valid when the recording ends. Long recordings
-> may therefore fail to be pushed. Exchanging it for a long-lived, narrowly
-> scoped token is the intended follow-up.
-
 ### Configuration options
 
-| Option                                                | Type        | Default | Description                                                                                                                                        |
-| ----------------------------------------------------- | ----------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **RECORDING_PUSH_TO_DRIVE_ENABLED**                   | Boolean     | `False` | Enable pushing recordings to the owner's Drive.                                                                                                     |
-| **DRIVE_API_BASE_URL**                                | String      | `None`  | Base URL of Drive's external API, e.g. `https://fichiers.numerique.gouv.fr/external_api/v1.0`.                                                                |
-| **RECORDING_PUSH_TO_DRIVE_SIGNED_URL_EXPIRY_SECONDS** | Integer     | `3600`  | Lifetime of the signed URL the worker downloads the recording from.                                                                                 |
-| **OIDC_STORE_ACCESS_TOKEN**                           | Boolean     | `False` | Keep the user's access token in the session, required to call Drive on their behalf.                                                                 |
-| **OIDC_STORE_REFRESH_TOKEN_KEY**                      | Secret/File | `None`  | Fernet key encrypting OIDC tokens at rest. Generate one with `Fernet.generate_key()`.                                                                |
-| **DRIVE_UPLOAD_STORAGE_NETLOC**                       | String      | `None`  | Development only: `host:port` to reach Drive's object storage at, when the domain Drive signs its upload URLs with only resolves from a browser.     |
+| Option                                         | Type        | Default              | Description                                                                                                                                      |
+| ---------------------------------------------- | ----------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **RECORDING_STORAGE_METHOD**                   | String      | `"s3_email"`         | Where a finished video recording is made available: `s3_email` or `drive`.                                                                        |
+| **RECORDING_DRIVE_AUTH_METHOD**                | String      | `"token_exchange"`   | Token Meet calls Drive with: `token_exchange` or `access_token`.                                                                                  |
+| **RECORDING_DRIVE_FOLDER_NAME**                | String      | `"Visio-Recordings"` | Folder, at the root of the user's Drive, recordings are pushed to.                                                                               |
+| **RECORDING_DRIVE_AUDIENCE**                   | String      | `None`               | Audience Drive is registered under in Menshen. Required with `token_exchange`.                                                                   |
+| **RECORDING_DRIVE_SCOPE**                      | String      | `None`               | Space-separated scopes asked for in the token exchange. When empty, Menshen grants what its exchange rule allows.                               |
+| **RECORDING_DRIVE_PUSH_MAX_ATTEMPTS**          | Integer     | `3`                  | Attempts at pushing a recording to Drive, before giving up.                                                                                      |
+| **RECORDING_DRIVE_SIGNED_URL_EXPIRY_SECONDS**  | Integer     | `3600`               | Lifetime of the signed URL the worker downloads the recording from.                                                                              |
+| **DRIVE_API_BASE_URL**                         | String      | `None`               | Base URL of Drive's external API, e.g. `https://fichiers.numerique.gouv.fr/external_api/v1.0`.                                                   |
+| **DRIVE_FRONTEND_BASE_URL**                    | String      | `None`               | Base URL of Drive's interface, to link to the pushed file, e.g. `https://fichiers.numerique.gouv.fr`.                                            |
+| **MENSHEN_SERVER_URL**, **MENSHEN_CLIENT_ID**, **MENSHEN_CLIENT_SECRET** | String | `None` | Menshen, and Meet's credentials there. Required with `token_exchange`.                                                       |
+| **OIDC_STORE_ACCESS_TOKEN**                    | Boolean     | `False`              | Keep the user's access token in the session, required to call Drive on their behalf.                                                             |
+| **OIDC_STORE_REFRESH_TOKEN_KEY**               | Secret/File | `None`               | Fernet key encrypting OIDC tokens at rest. Generate one with `Fernet.generate_key()`.                                                            |
+| **DRIVE_UPLOAD_STORAGE_NETLOC**                | String      | `None`               | Development only: `host:port` to reach Drive's object storage at, when the domain Drive signs its upload URLs with only resolves from a browser. |
 
 ### Local development
 
 Meet and Drive run as two separate compose projects, joined by the external
 `lasuite-network` (`make create-docker-network`). Meet's backend containers reach
-Drive's nginx at `drive-nginx:8083` and its object storage at `drive-minio:9000`.
+Drive's backend at `drive-app-dev:8000` (Drive's nginx does not route
+`/external_api/`) and its object storage at `drive-minio:9000`.
+This stack has no Menshen, so Meet's development environment uses
+`RECORDING_DRIVE_AUTH_METHOD=access_token`.
 
 On the Drive side:
 

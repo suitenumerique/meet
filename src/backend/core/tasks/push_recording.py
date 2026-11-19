@@ -1,110 +1,76 @@
-"""Task pushing a finished recording to its owner's Drive."""
+"""Task pushing a finished recording to the Drive of the user who started it."""
 
 import logging
 
 from django.conf import settings
 
-import requests
+from celery.exceptions import OperationalError as CeleryOperationalError
 
-from core import models, utils
-from core.services.drive import API_TIMEOUT, DriveClient, DriveError
+from core import models
+from core.recording.delivery import drive
+from core.services.drive import DriveError
 from core.tasks._task import task
 
 logger = logging.getLogger(__name__)
 
-# (connect, read) timeouts for the download, in seconds. The read one has to
-# accommodate a whole recording being relayed.
-DOWNLOAD_TIMEOUT = (API_TIMEOUT[0], 1800)
-
-
-def _build_filename(recording: models.Recording) -> str:
-    """Return a filename for the Drive item."""
-
-    return (
-        f"{recording.room.slug}-"
-        f"{recording.created_at:%Y-%m-%d-%H-%M}."
-        f"{recording.extension}"
-    )
+# Delay before the first new attempt, in seconds, doubled at each attempt.
+RETRY_BASE_DELAY = 60
 
 
 @task
-def push_recording(recording_id: str) -> bool:
-    """Push a recording to the Drive of the user who started it.
+def push_recording_to_drive(recording_id: str, attempt: int = 1) -> bool:
+    """Push a recording to Drive, see `core.recording.delivery.drive`.
 
-    The recording is streamed from object storage to Drive's presigned
-    URL. It is NOT fully downloaded to the worker's disk or memory.
-
-    The access token stored when the recording started is consumed here and
-    dropped afterwards whatever the outcome.
-
-    Mostly taken from: https://github.com/suitenumerique/drive/blob/main/docs/resource_server.md
+    When the push fails, it is tried again later, by queuing this task again,
+    up to RECORDING_DRIVE_PUSH_MAX_ATTEMPTS times and while the token is valid.
     """
 
     try:
-        recording = models.Recording.objects.select_related("room").get(pk=recording_id)
-    except models.Recording.DoesNotExist:
-        logger.error(
-            "Recording %s does not exist, cannot push it to Drive", recording_id
-        )
+        delivery = models.RecordingDelivery.objects.select_related(
+            "recording__room", "user"
+        ).get(recording_id=recording_id)
+    except models.RecordingDelivery.DoesNotExist:
+        logger.error("Recording %s has no delivery, cannot push it", recording_id)
         return False
 
-    access_token = recording.get_owner_access_token()
-
-    if not access_token:
-        logger.error(
-            "No access token stored for recording %s, cannot push it to Drive. "
-            "Was OIDC_STORE_ACCESS_TOKEN enabled when the recording started?",
+    if delivery.status != models.RecordingDeliveryStatusChoices.PUSHING:
+        logger.info(
+            "Delivery of recording %s is %s, nothing to push",
             recording_id,
+            delivery.status,
         )
         return False
-
-    download_url = utils.generate_download_s3_url(
-        recording.key,
-        expires_in=settings.RECORDING_PUSH_TO_DRIVE_SIGNED_URL_EXPIRY_SECONDS,
-        override_domain=False,
-    )
-    filename = _build_filename(recording)
 
     try:
-        with DriveClient(access_token) as drive:
-            item = drive.create_file(filename=filename)
+        drive.push(delivery)
+    except DriveError as exc:
+        if (
+            attempt < settings.RECORDING_DRIVE_PUSH_MAX_ATTEMPTS
+            and not delivery.is_token_expired
+        ):
+            delay = RETRY_BASE_DELAY * 2 ** (attempt - 1)
+            logger.warning(
+                "Push of recording %s to Drive failed (attempt %d), "
+                "trying again in %ds: %s",
+                recording_id,
+                attempt,
+                delay,
+                exc,
+            )
+            delivery.error = str(exc)
+            delivery.save(update_fields=["error", "updated_at"])
 
-            # The bytes are relayed chunk by chunk: the recording is never held
-            # in memory as a whole.
-            with requests.get(
-                download_url, stream=True, timeout=DOWNLOAD_TIMEOUT
-            ) as download:
-                download.raise_for_status()
-
-                content_length = download.headers.get("Content-Length")
-                if content_length is None:
-                    raise DriveError(
-                        "Object storage did not return the recording size, "
-                        "cannot stream it to Drive."
-                    )
-
-                drive.upload_content(
-                    policy_url=item["policy"],
-                    stream=download.raw,
-                    content_length=int(content_length),
-                    content_type=download.headers.get(
-                        "Content-Type", "application/octet-stream"
-                    ),
+            try:
+                push_recording_to_drive.apply_async(
+                    args=(recording_id,),
+                    kwargs={"attempt": attempt + 1},
+                    countdown=delay,
                 )
+            except CeleryOperationalError as queue_exc:
+                drive.fail(delivery, queue_exc)
+            return False
 
-            drive.complete_upload(item["id"])
-
-    except (DriveError, requests.RequestException):
-        logger.exception("Failed to push recording %s to Drive", recording_id)
+        drive.fail(delivery, exc)
         return False
 
-    finally:
-        recording.clear_owner_access_token()
-
-    logger.info(
-        "Recording %s pushed to Drive as '%s' (item %s)",
-        recording_id,
-        filename,
-        item["id"],
-    )
     return True
