@@ -3,10 +3,15 @@
     "createButton": "Create",
     "joinButton": "Join with Visio",
     "copyLinkTooltip": "Copy link",
+    "copyInfoTooltip": "Copy information",
     "resetLabel": "Reset",
     "participantLimit": "Up to 150 participants.",
     "popupBlocked": "Popup was blocked. Please allow popups for this site.",
-    "settingsTooltip": "Meeting settings"
+    "settingsTooltip": "Meeting settings",
+    "phone": {
+      "call": "Call:",
+      "pinCode": "Code:"
+    }
   },
   "roomSettings": {
     "title": "Meeting settings",

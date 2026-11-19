@@ -3,10 +3,15 @@
     "createButton": "Aanmaken",
     "joinButton": "Deelnemen met Visio",
     "copyLinkTooltip": "Link kopiëren",
+    "copyInfoTooltip": "Informatie kopiëren",
     "resetLabel": "Resetten",
     "participantLimit": "Tot 150 deelnemers.",
     "popupBlocked": "Pop-up werd geblokkeerd. Sta pop-ups toe voor deze site.",
-    "settingsTooltip": "Vergaderinstellingen"
+    "settingsTooltip": "Vergaderinstellingen",
+    "phone": {
+      "call": "Bel:",
+      "pinCode": "Code:"
+    }
   },
   "roomSettings": {
     "title": "Vergaderinstellingen",
