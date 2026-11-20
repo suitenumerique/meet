@@ -18,7 +18,7 @@ export const useFeatureFlagEnabled = (flag: string): boolean | undefined => {
     let cancelled = false
     let unsubscribe: (() => void) | undefined
     void getPosthog().then((ph) => {
-      if (cancelled) return
+      if (cancelled || !ph) return
       setEnabled(ph.isFeatureEnabled(flag))
       unsubscribe = ph.onFeatureFlags(() =>
         setEnabled(ph.isFeatureEnabled(flag))

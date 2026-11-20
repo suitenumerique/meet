@@ -6,15 +6,15 @@ import { filterExceptions } from '../exceptionFilters'
 
 export const startAnalyticsSession = (data: ApiUser) => {
   getPosthog().then((ph) => {
-    if (ph._isIdentified()) return
+    if (!ph || ph._isIdentified()) return
     const { id, email } = data
     ph.identify(id, { email })
   })
 }
 
 export const terminateAnalyticsSession = async () => {
-  const ph = await getPosthog()
-  if (!ph._isIdentified()) return
+  const ph = await getPosthog().catch(() => null)
+  if (!ph?._isIdentified()) return
   ph.reset()
 }
 
@@ -32,11 +32,12 @@ export const useAnalytics = ({
   isDisabled,
 }: useAnalyticsProps) => {
   const { user } = useUser()
+  const isEnabled = !!id && !!host && !isDisabled
 
   useEffect(() => {
-    if (!id || !host || isDisabled) return
+    if (!isEnabled) return
     getPosthog().then((ph) => {
-      if (ph.__loaded) return
+      if (!ph || ph.__loaded) return
       ph.init(id, {
         api_host: host,
         flags_api_host: flags_api_host,
@@ -52,12 +53,12 @@ export const useAnalytics = ({
         before_send: filterExceptions,
       })
     })
-  }, [id, host, flags_api_host, isDisabled])
+  }, [isEnabled, id, host, flags_api_host])
 
   useEffect(() => {
-    if (!user) return
+    if (!isEnabled || !user) return
     startAnalyticsSession(user)
-  }, [user])
+  }, [isEnabled, user])
 
   return null
 }
