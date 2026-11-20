@@ -286,6 +286,8 @@ backend:
 
   ## Schedule jobs at fixed times (like cron)
   ## Each cron job can be configured with name, schedule time and command.
+  ## backoffLimit, activeDeadlineSeconds and ttlSecondsAfterFinished, when
+  ## given, are set on its Jobs.
   ## @param backend.cronjobs[0].name Name of the CronJob
   ## @param backend.cronjobs[0].schedule Schedule in cron format
   ## @param backend.cronjobs[0].command The bash command to execute in the CronJob
@@ -295,6 +297,12 @@ backend:
   ## @param backend.cronjobs[2].name Name of the CronJob
   ## @param backend.cronjobs[2].schedule Schedule in cron format
   ## @param backend.cronjobs[2].command The bash command to execute in the CronJob
+  ## @param backend.cronjobs[3].name Name of the CronJob
+  ## @param backend.cronjobs[3].schedule Schedule in cron format
+  ## @param backend.cronjobs[3].command The bash command to execute in the CronJob
+  ## @param backend.cronjobs[3].backoffLimit Number of retries before marking a Job of the CronJob failed
+  ## @param backend.cronjobs[3].activeDeadlineSeconds Duration in seconds a Job of the CronJob may run before it is stopped
+  ## @param backend.cronjobs[3].ttlSecondsAfterFinished Seconds after which a finished Job of the CronJob is deleted
 
   cronjobs:
     - name: clean-pending-files
@@ -315,6 +323,15 @@ backend:
         - "/bin/sh"
         - "-c"
         - "python manage.py purge_inactive_rooms"
+    - name: reconcile-livekit-placements
+      schedule: "* * * * *"
+      command:
+        - "/bin/sh"
+        - "-c"
+        - "python manage.py reconcile_livekit_placements"
+      backoffLimit: 0
+      activeDeadlineSeconds: 240
+      ttlSecondsAfterFinished: 600
 
   ## @param backend.mergeDuplicateUsers.command backend merge_duplicate_users command
   ## @param backend.mergeDuplicateUsers.restartPolicy backend merge_duplicate_users job restart policy

@@ -23,6 +23,7 @@ and this project adheres to
 - ✨(frontend) reconnect participants when their livekit room closes
 - ✨(backend) audit livekit rooms adopted from their placement
 - ✨(backend) reconcile livekit placements with their clusters
+- ✨(helm) reconcile livekit placements every minute
 
 ### Changed
 

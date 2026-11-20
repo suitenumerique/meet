@@ -24,6 +24,15 @@ items:
       failedJobsHistoryLimit: {{ .failedJobsHistoryLimit | default 1 }}
       jobTemplate:
         spec:
+          {{- if hasKey . "backoffLimit" }}
+          backoffLimit: {{ .backoffLimit }}
+          {{- end }}
+          {{- if hasKey . "activeDeadlineSeconds" }}
+          activeDeadlineSeconds: {{ .activeDeadlineSeconds }}
+          {{- end }}
+          {{- if hasKey . "ttlSecondsAfterFinished" }}
+          ttlSecondsAfterFinished: {{ .ttlSecondsAfterFinished }}
+          {{- end }}
           template:
             metadata:
               name: {{ $cronJobName }}
