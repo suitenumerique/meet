@@ -299,7 +299,7 @@ class PlacementService:
 
         clusters = {cluster.name: cluster for cluster in get_livekit_clusters()}
         cluster = clusters.get(placement.cluster)
-        if placement.sid and cluster is not None:
+        if placement.sid and placement.absent_since is None and cluster is not None:
             return LiveKitRoomLocation(cluster=cluster, sid=placement.sid)
         return None
 

@@ -77,6 +77,25 @@ class RoomManagement:
         return livekit_room
 
     @classmethod
+    async def list_rooms(cls, cluster: LiveKitClusterConfig) -> list[LiveKitRoom]:
+        """List the LiveKit rooms live on a LiveKit cluster.
+
+        This is a coroutine, for callers to list several clusters at once. The
+        errors of a cluster that cannot be listed, TwirpError, TimeoutError and
+        aiohttp.ClientError, are raised as they are, for the caller to tell it
+        apart.
+        """
+
+        lkapi = utils.create_livekit_client(cluster=cluster)
+
+        try:
+            response = await lkapi.room.list_rooms(ListRoomsRequest())
+        finally:
+            await lkapi.aclose()
+
+        return list(response.rooms)
+
+    @classmethod
     def update_metadata(
         cls,
         room_name: str,

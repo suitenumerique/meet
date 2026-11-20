@@ -2,16 +2,24 @@
 
 import base64
 import hashlib
+import itertools
 import secrets
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+from functools import partial
 from unittest import mock
 
 from django.conf import settings
 from django.db.models import QuerySet
 
 import jwt
-from livekit.api import AccessToken
+from asgiref.sync import sync_to_async
+from livekit.api import AccessToken, TwirpError
 from livekit.protocol.models import Room as LiveKitRoom  # pylint: disable=E0611
+from livekit.protocol.room import (  # pylint: disable=E0611
+    DeleteRoomResponse,
+    ListRoomsResponse,
+)
 
 from core.factories import ApplicationFactory
 from core.models import ApplicationScope
@@ -38,6 +46,101 @@ def livekit_room(
 def reporting(failure, sid="RM_failed"):
     """Return the payload of a frontend reporting a LiveKit room that failed it."""
     return {"ensure_room": False, "failure": failure, "failed_room_sid": sid}
+
+
+class FakeLiveKitClusters:
+    """Stand for the room services of the LiveKit clusters, as reached through
+    the clients utils.create_livekit_client makes, its `client`.
+
+    `rooms` holds the LiveKit rooms live on each cluster, by cluster name then
+    room name. Each cluster lists them, creates them, giving each new one a SID
+    of its own, and deletes them, which `deleted` records as pairs of cluster
+    and room names. `asked_deletions` records every deletion asked, as pairs
+    too, whether it failed or not. `errors` holds the error raised by every
+    call of a name, list_rooms, create_room or delete_room, to a cluster, by
+    pair of cluster name and call name. `on_list` is called with the name of
+    each cluster listed, before it answers, in the thread that awaits the
+    listing.
+    """
+
+    def __init__(self):
+        """Start with no LiveKit room live anywhere."""
+        self.rooms = defaultdict(dict)
+        self.errors = {}
+        self.deleted = []
+        self.asked_deletions = []
+        self.on_list = None
+        self._created = itertools.count(1)
+
+    def live(  # pylint: disable=too-many-arguments
+        self,
+        cluster_name,
+        room_name,
+        sid,
+        *,
+        num_participants=0,
+        creation_time_ms=CREATED_LIVEKIT_ROOM_TIME_MS,
+    ):
+        """Make a LiveKit room live on a cluster."""
+        self.rooms[cluster_name][room_name] = LiveKitRoom(
+            sid=sid,
+            name=room_name,
+            num_participants=num_participants,
+            creation_time_ms=creation_time_ms,
+        )
+
+    def finish(self, cluster_name, room_name):
+        """Make a LiveKit room finish on a cluster, as when it empties."""
+        del self.rooms[cluster_name][room_name]
+
+    def client(self, *, cluster):
+        """Return a client of the room service of a cluster."""
+        client = mock.Mock()
+        for call in ("list_rooms", "create_room", "delete_room"):
+            answer = partial(getattr(self, f"_{call}"), cluster.name)
+            setattr(client.room, call, mock.AsyncMock(side_effect=answer))
+        client.aclose = mock.AsyncMock()
+        return client
+
+    def _raise_error(self, cluster_name, call):
+        """Raise the error set for a call to a cluster, if any."""
+        error = self.errors.get((cluster_name, call))
+        if error is not None:
+            raise error
+
+    async def _list_rooms(self, cluster_name, request):
+        """List the LiveKit rooms live on a cluster, those named only when
+        names are given."""
+        if self.on_list is not None:
+            await sync_to_async(self.on_list)(cluster_name)
+        self._raise_error(cluster_name, "list_rooms")
+        rooms = self.rooms[cluster_name]
+        names = list(request.names) or list(rooms)
+        return ListRoomsResponse(rooms=[rooms[name] for name in names if name in rooms])
+
+    def _create_room(self, cluster_name, request):
+        """Create a LiveKit room on a cluster, unless it is live there, and
+        return it."""
+        self._raise_error(cluster_name, "create_room")
+        rooms = self.rooms[cluster_name]
+        if request.name not in rooms:
+            created = next(self._created)
+            rooms[request.name] = LiveKitRoom(
+                sid=f"RM_{cluster_name}_{created}",
+                name=request.name,
+                creation_time_ms=CREATED_LIVEKIT_ROOM_TIME_MS + created,
+            )
+        return rooms[request.name]
+
+    def _delete_room(self, cluster_name, request):
+        """Delete a LiveKit room live on a cluster, which answers not found
+        for one that is not."""
+        self.asked_deletions.append((cluster_name, request.room))
+        self._raise_error(cluster_name, "delete_room")
+        if self.rooms[cluster_name].pop(request.room, None) is None:
+            raise TwirpError("not_found", "room not found", status=404)
+        self.deleted.append((cluster_name, request.room))
+        return DeleteRoomResponse()
 
 
 def changing_after_reads(change, *, every=False):

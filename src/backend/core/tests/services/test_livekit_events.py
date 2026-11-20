@@ -1369,10 +1369,25 @@ def test_close_deleted_room_on_a_cluster(
     room_id = uuid.uuid4()
 
     with caplog.at_level(logging.WARNING, logger="core.services.livekit_events"):
-        service.close_deleted_room(room_id, cluster=lyon)
+        assert service.close_deleted_room(room_id, cluster=lyon) is True
 
     mock_delete_room.assert_called_once_with(str(room_id), cluster=lyon)
     assert f"LiveKit room {room_id} started for a deleted room" in caplog.text
+
+
+@mock.patch(
+    "core.services.room_management.RoomManagement.delete_room",
+    side_effect=RoomNotFoundException("Room does not exist"),
+)
+def test_close_deleted_room_not_live(mock_delete_room, two_livekit_clusters, service):
+    """The LiveKit room of a deleted room that is not live on the cluster given
+    is left alone, which is told."""
+    _paris, lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+
+    assert service.close_deleted_room(room_id, cluster=lyon) is False
+
+    mock_delete_room.assert_called_once_with(str(room_id), cluster=lyon)
 
 
 @mock.patch(

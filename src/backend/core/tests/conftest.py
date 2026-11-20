@@ -6,10 +6,15 @@ from unittest import mock
 import pytest
 from dockerflow.logging import request_id_context
 
+from core import utils
 from core.audit.testing import capture_audit
 from core.livekit.clusters import get_livekit_clusters
 from core.services.room_management import RoomManagement
-from core.tests.utils import livekit_cluster_entry, livekit_room
+from core.tests.utils import (
+    FakeLiveKitClusters,
+    livekit_cluster_entry,
+    livekit_room,
+)
 
 USER = "user"
 TEAM = "team"
@@ -72,6 +77,19 @@ def isolated_request_id():
     token = request_id_context.set(None)
     yield
     request_id_context.reset(token)
+
+
+@pytest.fixture
+def fake_livekit_clusters():
+    """Stand for the room services of the LiveKit clusters with a
+    FakeLiveKitClusters, which every LiveKit API client calls, and return it.
+
+    LiveKit rooms are created through it only in tests marked
+    real_livekit_room_creation.
+    """
+    fake = FakeLiveKitClusters()
+    with mock.patch.object(utils, "create_livekit_client", side_effect=fake.client):
+        yield fake
 
 
 @pytest.fixture

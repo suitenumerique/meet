@@ -22,6 +22,7 @@ and this project adheres to
 - ✨(backend) let frontends join live rooms and report failed ones
 - ✨(frontend) reconnect participants when their livekit room closes
 - ✨(backend) audit livekit rooms adopted from their placement
+- ✨(backend) reconcile livekit placements with their clusters
 
 ### Changed
 

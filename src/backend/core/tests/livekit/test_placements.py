@@ -791,6 +791,9 @@ def test_place_known_live_room(
         pytest.param(None, id="without-placement"),
         pytest.param({"sid": "RM_failed"}, id="same-sid"),
         pytest.param(
+            {"sid": "RM_failed", "absent_since": timezone.now()}, id="same-sid-absent"
+        ),
+        pytest.param(
             {"sid": "RM_failed", "cluster": "lille"}, id="same-sid-unregistered-cluster"
         ),
     ),
@@ -823,25 +826,33 @@ def test_place_ended_meeting(
 
 
 @pytest.mark.parametrize(
-    ("intent", "sid"),
+    ("intent", "sid", "absent"),
     (
-        pytest.param(LAZY, None, id="lazy-without-placement"),
-        pytest.param(LAZY, "", id="lazy-without-sid"),
-        pytest.param(MISSING, None, id="missing-without-placement"),
-        pytest.param(MISSING, "RM_failed", id="missing-same-sid"),
-        pytest.param(MISSING, "", id="missing-without-sid"),
-        pytest.param(DELETED, "", id="deleted-without-sid"),
+        pytest.param(LAZY, None, False, id="lazy-without-placement"),
+        pytest.param(LAZY, "", False, id="lazy-without-sid"),
+        pytest.param(LAZY, "RM_other", True, id="lazy-absent"),
+        pytest.param(MISSING, None, False, id="missing-without-placement"),
+        pytest.param(MISSING, "RM_failed", False, id="missing-same-sid"),
+        pytest.param(MISSING, "", False, id="missing-without-sid"),
+        pytest.param(MISSING, "RM_other", True, id="missing-absent"),
+        pytest.param(DELETED, "", False, id="deleted-without-sid"),
+        pytest.param(DELETED, "RM_other", True, id="deleted-absent"),
     ),
 )
 def test_place_room_not_known_live(
-    intent, sid, two_livekit_clusters, fake_livekit_room_creation
+    intent, sid, absent, two_livekit_clusters, fake_livekit_room_creation
 ):
     """A LiveKit room not known to be live is ensured, unless its meeting ended."""
     _paris, lyon = two_livekit_clusters
     room = RoomFactory()
     room_name = str(room.id)
     if sid is not None:
-        Placement.objects.create(room_name=room_name, cluster="lyon", sid=sid)
+        Placement.objects.create(
+            room_name=room_name,
+            cluster="lyon",
+            sid=sid,
+            absent_since=timezone.now() if absent else None,
+        )
     fake_livekit_room_creation.return_value = livekit_room("RM_new")
 
     with picking(lyon):
@@ -852,6 +863,7 @@ def test_place_room_not_known_live(
     placement = Placement.objects.get()
     assert placement.cluster == "lyon"
     assert placement.sid == "RM_new"
+    assert placement.absent_since is None
 
 
 def test_place_missing_room_replaced_meanwhile(

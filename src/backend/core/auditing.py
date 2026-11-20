@@ -51,6 +51,12 @@ LIVEKIT_PLACEMENT_RELOCATE = audit.Action(
 LIVEKIT_PLACEMENT_ADOPT = audit.Action(
     "livekit.placement.adopt", types=(EventType.CREATION,)
 )
+LIVEKIT_PLACEMENT_REPAIR = audit.Action(
+    "livekit.placement.repair", types=(EventType.CHANGE,)
+)
+LIVEKIT_PLACEMENT_DELETE = audit.Action(
+    "livekit.placement.delete", types=(EventType.DELETION,)
+)
 LIVEKIT_ROOM_CLOSE = audit.Action("livekit.room.close", types=(EventType.END,))
 
 # Targets that are not models

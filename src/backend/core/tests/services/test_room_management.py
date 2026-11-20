@@ -7,9 +7,14 @@ from django.db import connection
 
 import aiohttp
 import pytest
+from asgiref.sync import async_to_sync
 from livekit.api import TwirpError
 from livekit.protocol.models import Room as LiveKitRoom  # pylint: disable=E0611
-from livekit.protocol.room import CreateRoomRequest  # pylint: disable=E0611
+from livekit.protocol.room import (  # pylint: disable=E0611
+    CreateRoomRequest,
+    ListRoomsRequest,
+    ListRoomsResponse,
+)
 
 from core.factories import RoomFactory
 from core.livekit.exceptions import LiveKitRoomCreationError
@@ -443,3 +448,48 @@ def test_create_room_failure(
     assert raised.value.__cause__ is error
     client.aclose.assert_awaited_once()
     assert "LiveKit cluster lyon failed to create LiveKit room my-room" in caplog.text
+
+
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_list_rooms(create_livekit_client, two_livekit_clusters):
+    """The LiveKit rooms live on a cluster are all listed there, as the cluster
+    describes them, and its client closed."""
+    _paris, lyon = two_livekit_clusters
+    listed = [
+        livekit_room("RM_a", name="room-a"),
+        livekit_room("RM_b", name="room-b", creation_time_ms=1234),
+    ]
+    client = mock.AsyncMock()
+    client.room.list_rooms.return_value = ListRoomsResponse(rooms=listed)
+    create_livekit_client.return_value = client
+
+    assert async_to_sync(RoomManagement.list_rooms)(lyon) == listed
+
+    create_livekit_client.assert_called_once_with(cluster=lyon)
+    client.room.list_rooms.assert_awaited_once_with(ListRoomsRequest())
+    client.aclose.assert_awaited_once()
+
+
+@pytest.mark.parametrize(
+    "error",
+    (
+        TwirpError("unavailable", "no node available", status=503),
+        TimeoutError(),
+        aiohttp.ClientConnectionError("Connection refused"),
+    ),
+)
+@mock.patch("core.services.room_management.utils.create_livekit_client")
+def test_list_rooms_failure(create_livekit_client, error, two_livekit_clusters):
+    """A cluster that cannot be reached, does not answer in time or answers with
+    an error raises that error, for the caller to tell it apart, its client
+    closed."""
+    _paris, lyon = two_livekit_clusters
+    client = mock.AsyncMock()
+    client.room.list_rooms.side_effect = error
+    create_livekit_client.return_value = client
+
+    with pytest.raises(type(error)) as raised:
+        async_to_sync(RoomManagement.list_rooms)(lyon)
+
+    assert raised.value is error
+    client.aclose.assert_awaited_once()

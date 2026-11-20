@@ -443,12 +443,15 @@ class LiveKitEventsService:
     @staticmethod
     def close_deleted_room(
         room_id: uuid.UUID, *, cluster: LiveKitClusterConfig
-    ) -> None:
+    ) -> bool:
         """Close the LiveKit room of a soft deleted room on a LiveKit cluster.
 
         A join handing out credentials while the room was deleted may create
         it again, and so may participants holding credentials still valid on a
         cluster that creates LiveKit rooms when they join.
+
+        Return whether the LiveKit room was closed: False when it was not live
+        there.
 
         Raises:
             ActionFailedError: the cluster failed to close the LiveKit room.
@@ -462,8 +465,10 @@ class LiveKitEventsService:
             RoomManagement.delete_room(str(room_id), cluster=cluster)
         except RoomNotFoundException:
             logger.info("LiveKit room %s is already closed", room_id)
+            return False
         except RoomManagementException as e:
             raise ActionFailedError(f"Failed to close deleted room {room_id}") from e
+        return True
 
     def _handle_room_finished(self, data):
         """Handle 'room_finished' event.
