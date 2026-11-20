@@ -213,45 +213,62 @@ export const TranscriptSidePanel = () => {
         />
       </VStack>
       <VStack gap={0} marginBottom={25}>
-        <RowWrapper iconName="article" position="first">
-          <Text variant="sm">
-            {data?.transcription_destination ? (
-              <>
-                {t('details.destination')}{' '}
-                <A
-                  href={data.transcription_destination}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  externalIcon
+        <ul
+          style={{
+            width: '100%',
+            listStyle: 'none',
+            padding: 0,
+            margin: 0,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <li style={{ listStyle: 'none' }}>
+            <RowWrapper iconName="article" position="first">
+              <Text variant="sm">
+                {data?.transcription_destination ? (
+                  <>
+                    {t('details.destination')}{' '}
+                    <A
+                      href={data.transcription_destination}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      externalIcon
+                    >
+                      {data.transcription_destination.replace('https://', '')}
+                    </A>
+                  </>
+                ) : (
+                  t('details.destinationUnknown')
+                )}
+              </Text>
+            </RowWrapper>
+          </li>
+          <li style={{ listStyle: 'none' }}>
+            <RowWrapper iconName="mail">
+              <Text variant="sm">{t('details.receiver')}</Text>
+            </RowWrapper>
+          </li>
+          <li style={{ listStyle: 'none' }}>
+            <RowWrapper iconName="language" position="last">
+              <Text variant="sm">{t('details.language')}</Text>
+              <Text variant="sm">
+                <Button
+                  variant="text"
+                  size="xs"
+                  aria-label={t('details.languageAriaLabel', {
+                    language: selectedLanguageLabel,
+                  })}
+                  onPress={() =>
+                    openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
+                  }
                 >
-                  {data.transcription_destination.replace('https://', '')}
-                </A>
-              </>
-            ) : (
-              t('details.destinationUnknown')
-            )}
-          </Text>
-        </RowWrapper>
-        <RowWrapper iconName="mail">
-          <Text variant="sm">{t('details.receiver')}</Text>
-        </RowWrapper>
-        <RowWrapper iconName="language" position="last">
-          <Text variant="sm">{t('details.language')}</Text>
-          <Text variant="sm">
-            <Button
-              variant="text"
-              size="xs"
-              aria-label={t('details.languageAriaLabel', {
-                language: selectedLanguageLabel,
-              })}
-              onPress={() =>
-                openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
-              }
-            >
-              {selectedLanguageLabel}
-            </Button>
-          </Text>
-        </RowWrapper>
+                  {selectedLanguageLabel}
+                </Button>
+              </Text>
+            </RowWrapper>
+          </li>
+        </ul>
         {hasScreenRecordingAccess && (
           <>
             <div className={css({ height: '15px' })} />
