@@ -9,6 +9,7 @@ import { Button as RACButton } from 'react-aria-components'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { StyledToastContainer } from './StyledToastContainer'
+import { stripBidiControls } from '@/features/chat/stripBidiControls'
 
 export function ToastMessageReceived({
   state,
@@ -21,7 +22,8 @@ export function ToastMessageReceived({
   const toast = props.toast
 
   const participant = toast.content.participant
-  const message = toast.content.message
+  const message =
+    toast.content.message && stripBidiControls(toast.content.message)
 
   const { isChatOpen, toggleChat } = useSidePanel()
 
