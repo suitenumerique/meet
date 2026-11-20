@@ -50,6 +50,7 @@ export const useAnalytics = ({
           capture_unhandled_rejections: true,
           capture_console_errors: true,
         },
+        disable_surveys: true,
         before_send: filterExceptions,
       })
     })

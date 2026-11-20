@@ -37,6 +37,7 @@ and this project adheres to
 - ⚡️(frontend) lazy load the settings dialog
 - ⚡️(frontend) serve preset virtual backgrounds as WebP
 - ⚡️(frontend) load posthog-js only when analytics is configured
+- ⚡️(frontend) stop loading posthog surveys
 
 ### Fixed
 
