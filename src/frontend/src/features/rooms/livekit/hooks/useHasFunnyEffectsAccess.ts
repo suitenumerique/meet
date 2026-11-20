@@ -1,4 +1,4 @@
-import { useFeatureFlagEnabled } from 'posthog-js/react'
+import { useFeatureFlagEnabled } from '@/features/analytics/hooks/useFeatureFlagEnabled'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import { FeatureFlags } from '@/features/analytics/enums'
 import useKonami from '@/features/rooms/livekit/hooks/useKonami'

@@ -1,4 +1,4 @@
-import { useFeatureFlagEnabled } from 'posthog-js/react'
+import { useFeatureFlagEnabled } from '@/features/analytics/hooks/useFeatureFlagEnabled'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
 import type { RecordingMode } from '../types'
 import { useIsRecordingModeEnabled } from './useIsRecordingModeEnabled'

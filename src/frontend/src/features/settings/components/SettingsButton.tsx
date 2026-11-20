@@ -1,22 +1,38 @@
+import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DialogTrigger } from 'react-aria-components'
 import { RiSettings3Line } from '@remixicon/react'
 import { Button } from '@/primitives'
-import { SettingsDialog } from './SettingsDialog'
+
+const loadSettingsDialog = () => import('./SettingsDialog')
+const SettingsDialog = lazy(() =>
+  loadSettingsDialog().then((m) => ({ default: m.SettingsDialog }))
+)
 
 export const SettingsButton = () => {
   const { t } = useTranslation('settings')
+  const [hasOpened, setHasOpened] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   return (
-    <DialogTrigger>
+    <>
       <Button
         square
         variant="secondaryText"
         aria-label={t('settingsButtonLabel')}
         tooltip={t('settingsButtonLabel')}
+        onHoverStart={() => void loadSettingsDialog()}
+        onFocus={() => void loadSettingsDialog()}
+        onPress={() => {
+          setHasOpened(true)
+          setIsOpen(true)
+        }}
       >
         <RiSettings3Line />
       </Button>
-      <SettingsDialog />
-    </DialogTrigger>
+      {hasOpened && (
+        <Suspense fallback={null}>
+          <SettingsDialog isOpen={isOpen} onOpenChange={setIsOpen} />
+        </Suspense>
+      )}
+    </>
   )
 }

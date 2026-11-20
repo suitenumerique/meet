@@ -7,6 +7,11 @@ import {
   ProcessorConfig,
   ProcessorType,
 } from '../blur'
+import {
+  getPresetBackgroundPaths,
+  PRESET_BACKGROUNDS_COUNT,
+} from '../blur/preload'
+import { useEffectsPreload } from '../../hooks/useEffectsPreload'
 import { css } from '@/styled-system/css'
 import { useResolvedMediaUrls } from '@/features/files/hooks/useResolvedMediaUrls'
 import { Button, Dialog, H, P, Text, ToggleButton } from '@/primitives'
@@ -116,6 +121,8 @@ export const EffectsConfiguration = ({
   > | null>(null)
   const effectAnnouncementId = useRef(0)
 
+  const { preloadBackground, cancel: cancelPreload } = useEffectsPreload()
+
   const { processorConfig } = useSnapshot(userChoicesStore)
 
   const selectedId = useMemo(
@@ -146,7 +153,7 @@ export const EffectsConfiguration = ({
   const getVirtualBackgroundName = useCallback(
     (imagePath?: string) => {
       if (!imagePath) return ''
-      const match = imagePath.match(/\/backgrounds\/(\d+)\.jpg$/)
+      const match = imagePath.match(/\/backgrounds\/(\d+)\.webp$/)
       if (!match) return ''
       const index = Number(match[1]) - 1
       if (Number.isNaN(index)) return ''
@@ -405,6 +412,7 @@ export const EffectsConfiguration = ({
       tooltip: string
       ariaLabel: string
       thumbnailPath: string
+      imagePath: string
       index: number
     }[]
     remoteCustomVirtualBackgrounds: {
@@ -450,31 +458,33 @@ export const EffectsConfiguration = ({
           config,
         }
       }),
-      virtualBackgrounds: [...Array(8).keys()].map((index) => {
-        const imagePath = `/assets/backgrounds/${index + 1}.jpg`
-        const thumbnailPath = `/assets/backgrounds/thumbnails/${index + 1}.jpg`
-        const config: ProcessorConfig = {
-          type: ProcessorType.VIRTUAL,
-          imagePath,
-        }
-        const id = deriveIdFromProcessorConfig(config)
-        const isSelected = selectedId === id
-        const backgroundName = t(`virtual.presets.descriptions.${index}`)
-        const ariaLabelPrefix = t(
-          isSelected ? `virtual.selectedLabel` : `virtual.apply`
-        )
-        const ariaLabel = `${ariaLabelPrefix} ${backgroundName}`
+      virtualBackgrounds: [...Array(PRESET_BACKGROUNDS_COUNT).keys()].map(
+        (index) => {
+          const { imagePath, thumbnailPath } = getPresetBackgroundPaths(index)
+          const config: ProcessorConfig = {
+            type: ProcessorType.VIRTUAL,
+            imagePath,
+          }
+          const id = deriveIdFromProcessorConfig(config)
+          const isSelected = selectedId === id
+          const backgroundName = t(`virtual.presets.descriptions.${index}`)
+          const ariaLabelPrefix = t(
+            isSelected ? `virtual.selectedLabel` : `virtual.apply`
+          )
+          const ariaLabel = `${ariaLabelPrefix} ${backgroundName}`
 
-        return {
-          tooltip: backgroundName,
-          id,
-          config,
-          isSelected: selectedId === id,
-          thumbnailPath,
-          ariaLabel,
-          index,
+          return {
+            tooltip: backgroundName,
+            id,
+            config,
+            isSelected: selectedId === id,
+            thumbnailPath,
+            imagePath,
+            ariaLabel,
+            index,
+          }
         }
-      }),
+      ),
       remoteCustomVirtualBackgrounds: (filesQ.data?.results ?? [])
         .filter((file) => file.url)
         .map((file) => {
@@ -761,6 +771,10 @@ export const EffectsConfiguration = ({
                                 onChange={getHandleSelectChangeFile(
                                   option.file
                                 )}
+                                onHoverStart={() =>
+                                  preloadBackground(option.file.url!)
+                                }
+                                onHoverEnd={cancelPreload}
                                 isSelected={option.isSelected}
                                 className={css({
                                   bgSize: 'cover',
@@ -921,6 +935,10 @@ export const EffectsConfiguration = ({
                           aria-label={option.ariaLabel}
                           isDisabled={processorOptions.isDisabled}
                           onChange={() => toggleEffect(option.config)}
+                          onHoverStart={() =>
+                            preloadBackground(option.imagePath)
+                          }
+                          onHoverEnd={cancelPreload}
                           isSelected={option.isSelected}
                           className={css({
                             bgSize: 'cover',

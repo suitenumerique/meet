@@ -31,6 +31,11 @@ and this project adheres to
 - 🚸(frontend) bring new speakers to the top of the carousel
 - 🚸(frontend) bring raised hands into view in the carousel
 - ⚡️(frontend) serve illustrations as WebP with a PNG fallback
+- ⚡️(frontend) preload notification sound on the pre-join screen when idle
+- ⚡️(frontend) cache mediapipe models served by nginx
+- ⚡️(frontend) preload background effects assets on hover
+- ⚡️(frontend) lazy load the settings dialog
+- ⚡️(frontend) serve preset virtual backgrounds as WebP
 
 ### Fixed
 
@@ -51,6 +56,7 @@ and this project adheres to
 - ♿️(frontend) show the focus ring on connection test detail cards
 - ♿️(frontend) use a heading for every connection test card title
 - ♿️(frontend) put the ProConnect link label inside the link
+- ⚡️(frontend) serve sounds as content-hashed, long-term cached assets
 
 ## [1.37.0] - 2026-11-01
 
