@@ -4,6 +4,7 @@
 
 import re
 import uuid
+from collections.abc import Iterable
 from enum import Enum
 from logging import getLogger
 
@@ -203,14 +204,14 @@ class LiveKitEventsService:
 
         room_name = data.room.name or data.egress_info.room_name
 
-        if self._is_connection_test_room(room_name):
+        if self.is_connection_test_room(room_name):
             logger.info(
                 "Ignoring webhook event for connection test room '%s'.",
                 room_name,
             )
             return
 
-        if self._filter_regex and not self._filter_regex.search(room_name):
+        if self.is_filtered_out(room_name):
             logger.info("Filtered webhook event for room '%s'", room_name)
             return
 
@@ -327,21 +328,57 @@ class LiveKitEventsService:
         )
 
     @staticmethod
-    def _is_connection_test_room(room_name: str) -> bool:
+    def is_connection_test_room(room_name: str) -> bool:
         """Return True for ephemeral rooms created by the connection test endpoint."""
         return room_name.startswith(settings.CONNECTION_TEST_ROOM_PREFIX)
 
+    def is_filtered_out(self, room_name: str) -> bool:
+        """Return whether LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX leaves a LiveKit
+        room out, which it never does while unset or invalid."""
+        return self._filter_regex is not None and not self._filter_regex.search(
+            room_name
+        )
+
     @staticmethod
-    def _room_id(room_name: str) -> uuid.UUID | None:
-        """Return the id of the room a LiveKit room is named after."""
+    def room_id(room_name: str) -> uuid.UUID | None:
+        """Return the id of the room a LiveKit room is named after, if any."""
         try:
             return uuid.UUID(room_name)
         except ValueError:
+            return None
+
+    @classmethod
+    def _room_id(cls, room_name: str) -> uuid.UUID | None:
+        """Return the id of the room a LiveKit room is named after."""
+        room_id = cls.room_id(room_name)
+        if room_id is None:
             logger.info(
                 "Ignoring room event: room name '%s' is not a valid UUID format.",
                 room_name,
             )
-            return None
+        return room_id
+
+    def get_followed_rooms(
+        self, room_names: Iterable[str]
+    ) -> dict[str, models.Room | None]:
+        """Return the rooms LiveKit rooms are named after, by LiveKit room name.
+
+        Names are filtered as room webhooks are, so those that are not a UUID
+        are left out. The others are mapped to their room, soft deleted ones
+        included, or to None when no room has that id.
+        """
+        room_ids = {}
+        for room_name in room_names:
+            if self.is_connection_test_room(room_name) or self.is_filtered_out(
+                room_name
+            ):
+                continue
+            room_id = self.room_id(room_name)
+            if room_id is not None:
+                room_ids[room_name] = room_id
+
+        rooms = models.Room.all_objects.in_bulk(set(room_ids.values()))
+        return {name: rooms.get(room_id) for name, room_id in room_ids.items()}
 
     def _handle_room_started(self, data):
         """Handle 'room_started' event.
@@ -367,7 +404,7 @@ class LiveKitEventsService:
         # tokens allow users who already entered a room to re-create it,
         # even if it was closed.
         if room.is_deleted:
-            self._close_deleted_room(room_id)
+            self.close_deleted_room(room_id, cluster=self.cluster)
             return
 
         try:
@@ -380,6 +417,16 @@ class LiveKitEventsService:
         if not started:
             return
 
+        self.record_room_start(room)
+
+    def record_room_start(self, room: models.Room) -> None:
+        """Record the start of a room whose LiveKit room started where it is
+        placed.
+
+        Raises:
+            ActionFailedError: the SIP dispatch rule could not be ensured.
+        """
+
         # Update through the queryset to skip the full_clean run by save()
         models.Room.all_objects.filter(pk=room.pk).update(
             last_started_at=timezone.now()
@@ -390,16 +437,21 @@ class LiveKitEventsService:
                 self.sip_management.ensure_dispatch_rule(room)
             except SIPException as e:
                 raise ActionFailedError(
-                    f"Failed to create sip dispatch rule for room {room_id}"
+                    f"Failed to create sip dispatch rule for room {room.id}"
                 ) from e
 
-    def _close_deleted_room(self, room_id):
-        """Close a LiveKit room started after its room was soft deleted.
+    @staticmethod
+    def close_deleted_room(
+        room_id: uuid.UUID, *, cluster: LiveKitClusterConfig
+    ) -> None:
+        """Close the LiveKit room of a soft deleted room on a LiveKit cluster.
 
         A join handing out credentials while the room was deleted may create
         it again, and so may participants holding credentials still valid on a
-        cluster that creates LiveKit rooms when they join. The LiveKit room is
-        closed on the LiveKit cluster it started on.
+        cluster that creates LiveKit rooms when they join.
+
+        Raises:
+            ActionFailedError: the cluster failed to close the LiveKit room.
         """
 
         logger.warning(
@@ -407,7 +459,7 @@ class LiveKitEventsService:
         )
 
         try:
-            RoomManagement.delete_room(str(room_id), cluster=self.cluster)
+            RoomManagement.delete_room(str(room_id), cluster=cluster)
         except RoomNotFoundException:
             logger.info("LiveKit room %s is already closed", room_id)
         except RoomManagementException as e:
@@ -428,22 +480,37 @@ class LiveKitEventsService:
         if not self._end_placement(data.room):
             return
 
-        if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
-            try:
-                self.sip_management.delete_dispatch_rule(room_id)
-            except SIPException as e:
-                raise ActionFailedError(
-                    f"Failed to delete sip dispatch rule for room {room_id}"
-                ) from e
+        self.clean_up_room(room_id)
 
-        self.presence_cache.clear_room(room_id)
+    def clean_up_room(self, room_id: uuid.UUID) -> None:
+        """Clean up a room whose meeting ended.
+
+        Its presence and lobby caches are cleared even when its SIP dispatch
+        rule could not be deleted: lobby admissions would otherwise outlive the
+        meeting.
+
+        Raises:
+            ActionFailedError: the SIP dispatch rule could not be deleted, or
+                the lobby cache cleared.
+        """
 
         try:
-            self.lobby_service.clear_room_cache(room_id)
-        except Exception as e:
-            raise ActionFailedError(
-                f"Failed to clear room cache for room {room_id}"
-            ) from e
+            if settings.ROOM_TELEPHONY_ENABLED or settings.ROOMKIT_ENABLED:
+                try:
+                    self.sip_management.delete_dispatch_rule(room_id)
+                except SIPException as e:
+                    raise ActionFailedError(
+                        f"Failed to delete sip dispatch rule for room {room_id}"
+                    ) from e
+        finally:
+            self.presence_cache.clear_room(room_id)
+
+            try:
+                self.lobby_service.clear_room_cache(room_id)
+            except Exception as e:
+                raise ActionFailedError(
+                    f"Failed to clear room cache for room {room_id}"
+                ) from e
 
     def _end_placement(self, livekit_room) -> bool:
         """Delete the placement of a LiveKit room that finished.

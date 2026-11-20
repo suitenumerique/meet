@@ -968,6 +968,7 @@ def test_handle_room_finished_raises_error_when_cache_clearing_fails(
     )
 
 
+@mock.patch.object(PresenceCache, "clear_room")
 @mock.patch.object(LobbyService, "clear_room_cache")
 @mock.patch.object(
     SIPManagement,
@@ -975,22 +976,27 @@ def test_handle_room_finished_raises_error_when_cache_clearing_fails(
     side_effect=SIPException("Test error"),
 )
 def test_handle_room_finished_raises_error_when_telephony_deletion_fails(
-    mock_delete_dispatch_rule, mock_clear_cache, service, settings
+    mock_delete_dispatch_rule, mock_clear_cache, mock_clear_presence, service, settings
 ):
-    """Should raise ActionFailedError when dispatch rule deletion fails when room finishes."""
+    """Should raise ActionFailedError when dispatch rule deletion fails when room
+    finishes, once its presence and lobby caches are cleared all the same."""
     settings.ROOM_TELEPHONY_ENABLED = True
+    room_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
     mock_data = mock.MagicMock()
-    mock_data.room.name = "00000000-0000-0000-0000-000000000000"
+    mock_data.room.name = str(room_id)
 
     expected_error = (
         "Failed to delete sip dispatch rule for room "
         "00000000-0000-0000-0000-000000000000"
     )
 
-    with pytest.raises(ActionFailedError, match=expected_error):
+    with pytest.raises(ActionFailedError, match=expected_error) as raised:
         service._handle_room_finished(mock_data)
 
-    mock_clear_cache.assert_not_called()
+    assert isinstance(raised.value.__cause__, SIPException)
+    mock_delete_dispatch_rule.assert_called_once_with(room_id)
+    mock_clear_presence.assert_called_once_with(room_id)
+    mock_clear_cache.assert_called_once_with(room_id)
 
 
 @mock.patch.object(SIPManagement, "delete_dispatch_rule")
@@ -1010,6 +1016,62 @@ def test_handle_room_finished_ignores_an_unregistered_room(
     mock_delete_dispatch_rule.assert_not_called()
     for cleanup in room_cleanup:
         cleanup.assert_not_called()
+
+
+@mock.patch.object(PresenceCache, "clear_room")
+@mock.patch.object(LobbyService, "clear_room_cache")
+@mock.patch.object(SIPManagement, "delete_dispatch_rule")
+def test_clean_up_room(
+    mock_delete_dispatch_rule, mock_clear_cache, mock_clear_presence, service, settings
+):
+    """A room is cleaned up without any webhook, by its id: its SIP dispatch
+    rule is deleted, then its presence and lobby caches are cleared."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room_id = uuid.uuid4()
+    calls = mock.Mock()
+    calls.attach_mock(mock_delete_dispatch_rule, "delete_dispatch_rule")
+    calls.attach_mock(mock_clear_presence, "clear_presence")
+    calls.attach_mock(mock_clear_cache, "clear_lobby")
+
+    service.clean_up_room(room_id)
+
+    assert calls.mock_calls == [
+        mock.call.delete_dispatch_rule(room_id),
+        mock.call.clear_presence(room_id),
+        mock.call.clear_lobby(room_id),
+    ]
+
+
+@mock.patch.object(PresenceCache, "clear_room")
+@mock.patch.object(
+    LobbyService, "clear_room_cache", side_effect=Exception("Redis is down")
+)
+@mock.patch.object(
+    SIPManagement,
+    "delete_dispatch_rule",
+    side_effect=SIPException("Test error"),
+)
+def test_clean_up_room_telephony_deletion_and_cache_clearing_fail(
+    mock_delete_dispatch_rule, mock_clear_cache, mock_clear_presence, service, settings
+):
+    """A room whose SIP dispatch rule cannot be deleted, and whose lobby cache
+    cannot be cleared either, fails on its lobby cache, once its presence is
+    cleared: the failure of its SIP dispatch rule comes first in the chain."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room_id = uuid.uuid4()
+
+    with pytest.raises(
+        ActionFailedError, match=f"Failed to clear room cache for room {room_id}"
+    ) as raised:
+        service.clean_up_room(room_id)
+
+    assert str(raised.value.__cause__) == "Redis is down"
+    assert str(raised.value.__cause__.__context__) == (
+        f"Failed to delete sip dispatch rule for room {room_id}"
+    )
+    mock_delete_dispatch_rule.assert_called_once_with(room_id)
+    mock_clear_presence.assert_called_once_with(room_id)
+    mock_clear_cache.assert_called_once_with(room_id)
 
 
 @mock.patch.object(SIPManagement, "ensure_dispatch_rule")
@@ -1255,6 +1317,81 @@ def test_handle_room_started_raises_error_when_closing_deleted_room_fails(
         service._handle_room_started(data)
 
 
+@mock.patch.object(SIPManagement, "ensure_dispatch_rule")
+def test_record_room_start(mock_ensure_dispatch_rule, service, settings):
+    """The start of a room is recorded without any webhook: when it last
+    started, and its SIP dispatch rule, ensured."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+    other_room = RoomFactory()
+
+    now = timezone.now()
+    with mock.patch("django.utils.timezone.now", return_value=now):
+        service.record_room_start(room)
+
+    room.refresh_from_db()
+    assert room.last_started_at == now
+    other_room.refresh_from_db()
+    assert other_room.last_started_at is None
+    mock_ensure_dispatch_rule.assert_called_once_with(room)
+
+
+@mock.patch.object(
+    SIPManagement,
+    "ensure_dispatch_rule",
+    side_effect=SIPException("Test error"),
+)
+def test_record_room_start_dispatch_rule_failure(
+    mock_ensure_dispatch_rule, service, settings
+):
+    """Failing to ensure the SIP dispatch rule of a room raises, once its start
+    is recorded."""
+    settings.ROOM_TELEPHONY_ENABLED = True
+    room = RoomFactory()
+
+    with pytest.raises(
+        ActionFailedError,
+        match=f"Failed to create sip dispatch rule for room {room.id}",
+    ):
+        service.record_room_start(room)
+
+    room.refresh_from_db()
+    assert room.last_started_at is not None
+
+
+@mock.patch("core.services.room_management.RoomManagement.delete_room")
+def test_close_deleted_room_on_a_cluster(
+    mock_delete_room, two_livekit_clusters, service, caplog
+):
+    """The LiveKit room of a deleted room is closed on the cluster given,
+    whichever cluster sent the last webhook, if any."""
+    _paris, lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+
+    with caplog.at_level(logging.WARNING, logger="core.services.livekit_events"):
+        service.close_deleted_room(room_id, cluster=lyon)
+
+    mock_delete_room.assert_called_once_with(str(room_id), cluster=lyon)
+    assert f"LiveKit room {room_id} started for a deleted room" in caplog.text
+
+
+@mock.patch(
+    "core.services.room_management.RoomManagement.delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_close_deleted_room_failure(mock_delete_room, two_livekit_clusters, service):
+    """A cluster failing to close the LiveKit room of a deleted room raises."""
+    _paris, lyon = two_livekit_clusters
+    room_id = uuid.uuid4()
+
+    with pytest.raises(
+        ActionFailedError, match=f"Failed to close deleted room {room_id}"
+    ):
+        service.close_deleted_room(room_id, cluster=lyon)
+
+    mock_delete_room.assert_called_once_with(str(room_id), cluster=lyon)
+
+
 def test_handle_room_started_records_the_sid(service, settings):
     """A LiveKit room started on the cluster its room is placed on, the SID of
     its LiveKit room not known yet, has its SID recorded, and the start of its
@@ -1480,6 +1617,47 @@ def test_receive_filter_processes_matching_events(
     service.receive(mock_request)
 
     mock_handle_room_started.assert_called_once()
+
+
+def test_get_followed_rooms(mock_livekit_config, settings, django_assert_num_queries):
+    """
+    LiveKit rooms are filtered as their webhooks are: connection test rooms,
+    those the filter regex leaves out and those not named after a UUID are
+    left out. The others are mapped to the room they are named after, soft
+    deleted rooms included, or to None when no room has that id, all read in
+    one query.
+    """
+    settings.LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = r"^[0-9a-z-]+$"
+    room, deleted_room, test_room, filtered_room = RoomFactory.create_batch(4)
+    deleted_room.soft_delete()
+    settings.CONNECTION_TEST_ROOM_PREFIX = str(test_room.id)
+    unknown_room_name = str(uuid.uuid4())
+    service = LiveKitEventsService()
+
+    with django_assert_num_queries(1):
+        followed = service.get_followed_rooms(
+            [
+                str(room.id),
+                str(deleted_room.id),
+                unknown_room_name,
+                "my-unregistered-room",
+                str(test_room.id),
+                str(filtered_room.id).upper(),
+            ]
+        )
+
+    assert followed == {
+        str(room.id): room,
+        str(deleted_room.id): deleted_room,
+        unknown_room_name: None,
+    }
+    assert followed[str(deleted_room.id)].is_deleted
+
+
+def test_get_followed_rooms_none(service, django_assert_num_queries):
+    """Without any LiveKit room named after a UUID, no room is read."""
+    with django_assert_num_queries(0):
+        assert service.get_followed_rooms(["my-unregistered-room"]) == {}
 
 
 @mock.patch.object(api.WebhookReceiver, "receive")

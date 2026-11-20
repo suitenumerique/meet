@@ -49,6 +49,7 @@ and this project adheres to
 - ⚡️(frontend) load posthog-js only when analytics is configured
 - ⚡️(frontend) stop loading posthog surveys
 - ⚡️(frontend) skip creating live livekit rooms when joining
+- ♻️(backend) share the handling of livekit rooms started and finished
 
 ### Fixed
 
