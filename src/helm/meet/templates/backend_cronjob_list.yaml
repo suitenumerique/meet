@@ -6,10 +6,14 @@ apiVersion: batch/v1
 kind: CronJobList
 items:
 {{- range .Values.backend.cronjobs }}
+{{- $cronJobName := printf "%s-%s" $fullName .name }}
+{{- if gt (len $cronJobName) 52 }}
+{{- $cronJobName = printf "%s-%s" ($cronJobName | trunc 45 | trimSuffix "-") ($cronJobName | sha256sum | trunc 6) }}
+{{- end }}
   - apiVersion: batch/v1
     kind: CronJob
     metadata:
-      name: {{ $fullName }}-{{ .name }}
+      name: {{ $cronJobName }}
       namespace: {{ $.Release.Namespace | quote }}
       labels:
         {{- include "meet.common.labels" (list $ $component) | nindent 8 }}
@@ -22,7 +26,7 @@ items:
         spec:
           template:
             metadata:
-              name: {{ $fullName }}-{{ .name }}
+              name: {{ $cronJobName }}
               labels:
                 cronjob-name: {{ .name }}
                 {{- include "meet.common.labels" (list $ $component) | nindent 16 }}

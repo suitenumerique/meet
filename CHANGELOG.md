@@ -89,6 +89,7 @@ and this project adheres to
 - 🐛(frontend) bound the warm-up of the livekit connection
 - 🐛(frontend) stop rejoining livekit when an admin changes a setting
 - 🐛(frontend) ask for new livekit credentials when rejoining
+- 🐛(helm) keep backend cronjob names within the kubernetes limit
 
 ## [1.37.0] - 2026-11-01
 
