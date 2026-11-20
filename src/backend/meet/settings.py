@@ -617,6 +617,14 @@ class Base(Configuration):
         environ_name="OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION",
         environ_prefix=None,
     )
+    # WARNING: Enabling this setting allows multiple user accounts to share the same email
+    # address. This may cause security issues and is not recommended for production use when
+    # email is activated as fallback for identification
+    OIDC_ALLOW_DUPLICATE_EMAILS = values.BooleanValue(
+        default=False,
+        environ_name="OIDC_ALLOW_DUPLICATE_EMAILS",
+        environ_prefix=None,
+    )
     OIDC_USER_SUB_FIELD_IMMUTABLE = values.BooleanValue(
         default=True, environ_name="OIDC_USER_SUB_FIELD_IMMUTABLE", environ_prefix=None
     )
@@ -1656,6 +1664,15 @@ class Base(Configuration):
 
         if cls.LIVEKIT_API_TIMEOUT_SECONDS < 1:
             raise ValueError("LIVEKIT_API_TIMEOUT_SECONDS must be at least 1")
+
+        if (
+            cls.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION
+            and cls.OIDC_ALLOW_DUPLICATE_EMAILS
+        ):
+            raise ValueError(
+                "Both OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION and "
+                "OIDC_ALLOW_DUPLICATE_EMAILS cannot be set to True simultaneously."
+            )
 
         if (
             cls.SUMMARY_SERVICE_VERSION == 1

@@ -5,6 +5,7 @@ from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.db import IntegrityError
 
 from core import audit, auditing, models
+from core.utils import normalize_email
 
 
 class ProvisionalUserError(Exception):
@@ -42,7 +43,7 @@ class ProvisionalUserService:
     def _get_by_email(self, email: str) -> models.User | None:
         """Return the user with this email, or None if not found."""
         try:
-            return models.User.objects.get(email__iexact=email)
+            return models.User.objects.get(email=normalize_email(email))
         except models.User.DoesNotExist:
             return None
         except models.User.MultipleObjectsReturned as e:

@@ -13,7 +13,10 @@ and this project adheres to
 - 📝(doc) create complete documentation website for Meet
 - 🌐(i18n) add Portuguese language support
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections
+- ✨(backend) add OIDC_ALLOW_DUPLICATE_EMAILS to let users share an email
 - ✨(frontend) tell participants when a recording is interrupted
+- ✨(backend) show the last login of users in the admin
+- ✨(backend) filter users sharing an email in the admin
 
 ### Changed
 
@@ -31,6 +34,9 @@ and this project adheres to
 - 🚸(frontend) bring new speakers to the top of the carousel
 - 🚸(frontend) bring raised hands into view in the carousel
 - ⚡️(frontend) serve illustrations as WebP with a PNG fallback
+- 💥(backend) refuse new users whose email is already used
+- ♻️(backend) match emails in a single normalized form
+- ⚡️(backend) index user emails for exact lookups
 
 ### Fixed
 
