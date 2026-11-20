@@ -6,7 +6,7 @@ export const captureEvent = (
 ) => {
   void getPosthog()
     .then((ph) => {
-      ph.capture(event, props)
+      ph?.capture(event, props)
     })
     .catch(() => {
       /* telemetry must never break the app */
@@ -43,7 +43,7 @@ export const reportError = (
   const e = error instanceof Error ? error : new Error(String(error))
   void getPosthog()
     .then((ph) => {
-      ph.captureException(e, {
+      ph?.captureException(e, {
         log_code: logCode,
         error_name: e.name,
         error_message: e.message,

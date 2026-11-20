@@ -1,5 +1,6 @@
 import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
+import { queryClient } from './queryClient'
 import { useQuery } from '@tanstack/react-query'
 import type { RecordingMode } from '@/features/recording/types'
 import type { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
@@ -93,10 +94,14 @@ const fetchConfig = (): Promise<ApiConfig> => {
   return fetchApi<ApiConfig>(`config/`)
 }
 
-export const useConfig = () => {
-  return useQuery({
-    queryKey: [keys.config],
-    queryFn: fetchConfig,
-    staleTime: Infinity,
-  })
+const configQueryOptions = {
+  queryKey: [keys.config],
+  queryFn: fetchConfig,
+  staleTime: Infinity,
 }
+
+export const useConfig = () => {
+  return useQuery(configQueryOptions)
+}
+
+export const getConfig = () => queryClient.ensureQueryData(configQueryOptions)

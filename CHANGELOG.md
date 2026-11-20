@@ -36,6 +36,7 @@ and this project adheres to
 - ⚡️(frontend) preload background effects assets on hover
 - ⚡️(frontend) lazy load the settings dialog
 - ⚡️(frontend) serve preset virtual backgrounds as WebP
+- ⚡️(frontend) load posthog-js only when analytics is configured
 
 ### Fixed
 
