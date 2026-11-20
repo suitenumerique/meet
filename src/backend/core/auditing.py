@@ -48,6 +48,9 @@ RECORDING_SUMMARY_REPORT = audit.Action(
 LIVEKIT_PLACEMENT_RELOCATE = audit.Action(
     "livekit.placement.relocate", types=(EventType.CHANGE,)
 )
+LIVEKIT_PLACEMENT_ADOPT = audit.Action(
+    "livekit.placement.adopt", types=(EventType.CREATION,)
+)
 LIVEKIT_ROOM_CLOSE = audit.Action("livekit.room.close", types=(EventType.END,))
 
 # Targets that are not models

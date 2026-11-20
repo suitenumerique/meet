@@ -1392,10 +1392,10 @@ def test_close_deleted_room_failure(mock_delete_room, two_livekit_clusters, serv
     mock_delete_room.assert_called_once_with(str(room_id), cluster=lyon)
 
 
-def test_handle_room_started_records_the_sid(service, settings):
+def test_handle_room_started_records_the_sid(service, settings, audit_events):
     """A LiveKit room started on the cluster its room is placed on, the SID of
     its LiveKit room not known yet, has its SID recorded, and the start of its
-    room is recorded."""
+    room is recorded: it is no adoption."""
     settings.ROOM_TELEPHONY_ENABLED = False
     settings.ROOMKIT_ENABLED = False
     room = RoomFactory()
@@ -1405,6 +1405,8 @@ def test_handle_room_started_records_the_sid(service, settings):
 
     service._handle_room_started(room_started(str(room.id)))
 
+    assert not find_events(audit_events, "livekit.placement.adopt")
+
     recorded = Placement.objects.get()
     assert recorded.pk == placement.pk
     assert recorded.sid == SID
@@ -1412,15 +1414,24 @@ def test_handle_room_started_records_the_sid(service, settings):
     assert room.last_started_at is not None
 
 
-def test_handle_room_started_places_the_livekit_room(service, settings):
+def test_handle_room_started_places_the_livekit_room(service, settings, audit_events):
     """A LiveKit room started without placement is placed on the cluster it
     started on, with its SID, named after its room, and the start of its room
-    is recorded."""
+    is recorded. The adoption is audited, as told by room_started."""
     settings.ROOM_TELEPHONY_ENABLED = False
     settings.ROOMKIT_ENABLED = False
     room = RoomFactory()
 
     service._handle_room_started(room_started(str(room.id)))
+
+    [adopted] = find_events(audit_events, "livekit.placement.adopt")
+    assert adopted["lasuite"]["actor"] == {"type": "system"}
+    assert adopted["entity"]["target"]["id"] == str(room.id)
+    assert adopted["lasuite"]["details"] == {
+        "cluster": "default",
+        "sid": SID,
+        "source": "room_started",
+    }
 
     placement = Placement.objects.get()
     assert placement.room_name == str(room.id)

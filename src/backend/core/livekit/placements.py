@@ -56,6 +56,50 @@ class LiveKitRoomFailure(StrEnum):
     DELETED = "deleted"
 
 
+class StartSource(StrEnum):
+    """What told that a LiveKit room started: its room_started webhook, or a
+    reconciliation listing it live."""
+
+    ROOM_STARTED = "room_started"
+    RECONCILIATION = "reconciliation"
+
+
+class RecordedStart(StrEnum):
+    """What recording a LiveKit room started on a LiveKit cluster did.
+
+    - ADOPTED: it had no placement, and was placed on that cluster.
+    - RECORDED: its SID was recorded on its placement there.
+    - UNCHANGED: nothing was written, as its placement there records a SID
+      already, or as it was told without SID, or left without placement while
+      no cluster may receive new placements.
+    - CLOSED: it was closed there, as its room is placed elsewhere or as that
+      cluster may not receive new placements.
+    - LEFT_ALONE: it was left alone, as its room is placed on a cluster that
+      is not registered, or as it was no longer live where it was to be closed.
+    """
+
+    ADOPTED = "adopted"
+    RECORDED = "recorded"
+    UNCHANGED = "unchanged"
+    CLOSED = "closed"
+    LEFT_ALONE = "left_alone"
+
+    @property
+    def is_current(self) -> bool:
+        """Return whether the LiveKit room started is that of its room: the one
+        its room is placed on, or one left without placement."""
+        return self in (
+            RecordedStart.ADOPTED,
+            RecordedStart.RECORDED,
+            RecordedStart.UNCHANGED,
+        )
+
+    @property
+    def is_new(self) -> bool:
+        """Return whether the start of the LiveKit room was unknown until then."""
+        return self in (RecordedStart.ADOPTED, RecordedStart.RECORDED)
+
+
 @dataclass(frozen=True, kw_only=True)
 class JoinIntent:
     """How a frontend asks where to connect to a LiveKit room."""
@@ -320,15 +364,16 @@ class PlacementService:
         cluster: LiveKitClusterConfig,
         livekit_room: LiveKitRoom,
         room: Room | None = None,
-    ) -> bool:
+        *,
+        source: StartSource = StartSource.ROOM_STARTED,
+    ) -> RecordedStart:
         """Record a LiveKit room a LiveKit cluster tells started on it.
 
-        Return whether it is the LiveKit room its room is placed on, named after
-        the room given, if any:
+        Return what was done with it, named after the room given, if any:
 
         - Without placement, it is placed on its cluster when that cluster may
-          receive new placements, with its SID. It is left alone when no
-          cluster may, and closed otherwise.
+          receive new placements, with its SID: it is adopted. It is left
+          without placement when no cluster may, and closed otherwise.
         - Placed on a cluster this process does not know, it is left alone, and
           so is its placement: processes may disagree on the clusters while
           their registry changes.
@@ -337,6 +382,12 @@ class PlacementService:
         - Placed on its cluster, its SID is recorded when the placement has
           none. A SID recorded is kept: joins create the LiveKit rooms of a
           cluster, and record their SID themselves.
+
+        An adoption is audited as made by the system, with the source given:
+        what told that the LiveKit room started. Only a placement this call
+        inserted and reads back is an adoption: one another request inserted
+        meanwhile is decided upon as any other. It is audited first, as what
+        is then done with the LiveKit room may raise.
 
         A LiveKit room closed is deleted from its cluster, which disconnects its
         participants with the ROOM_DELETED reason. A LiveKit room told without
@@ -347,15 +398,35 @@ class PlacementService:
             PlacementChangedError: the placement kept changing meanwhile.
         """
         if not livekit_room.sid:
-            return True
+            return RecordedStart.UNCHANGED
 
         placements = Placement.objects.filter(room_name=livekit_room.name)
+        adoption = None
         for _attempt in range(PLACEMENT_CREATION_ATTEMPTS):
             placement = placements.first()
             if placement is None:
-                started = cls._place_started(cluster, livekit_room, room)
+                adoption = Placement(
+                    room_name=livekit_room.name,
+                    room=room,
+                    cluster=cluster.name,
+                    sid=livekit_room.sid,
+                )
+                started = cls._place_started(cluster, adoption)
             else:
+                adopted = adoption is not None and placement.pk == adoption.pk
+                adoption = None
+                if adopted:
+                    _audit(
+                        auditing.LIVEKIT_PLACEMENT_ADOPT,
+                        None,
+                        target=auditing.livekit_room_target(livekit_room.name),
+                        cluster=cluster.name,
+                        sid=livekit_room.sid,
+                        source=source,
+                    )
                 started = cls._record_start(cluster, livekit_room, placement)
+                if adopted and started == RecordedStart.UNCHANGED:
+                    started = RecordedStart.ADOPTED
             if started is not None:
                 return started
 
@@ -375,7 +446,7 @@ class PlacementService:
         cluster: LiveKitClusterConfig,
         livekit_room: LiveKitRoom,
         placement: Placement,
-    ) -> bool | None:
+    ) -> RecordedStart | None:
         """Record a LiveKit room started on a cluster, its placement as read.
 
         A SID recorded is kept whatever SID started, as a webhook may be late.
@@ -383,8 +454,8 @@ class PlacementService:
         placement, read again right before, is still on another registered
         cluster.
 
-        Return whether it is the LiveKit room its room is placed on, or None
-        when the placement changed since it was read, and is to be read again.
+        Return what was done, or None when the placement changed since it was
+        read, and is to be read again.
         """
         room_name = livekit_room.name
         registered = {known.name for known in get_livekit_clusters()}
@@ -396,7 +467,7 @@ class PlacementService:
                 cluster.name,
                 placement.cluster,
             )
-            return False
+            return RecordedStart.LEFT_ALONE
 
         if placement.cluster != cluster.name:
             current = Placement.objects.filter(room_name=room_name).first()
@@ -413,8 +484,8 @@ class PlacementService:
                 cluster.name,
                 current.cluster,
             )
-            cls.close_stray_room(cluster, room_name, actor=None)
-            return False
+            closed = cls.close_stray_room(cluster, room_name, actor=None)
+            return RecordedStart.CLOSED if closed else RecordedStart.LEFT_ALONE
 
         if placement.sid:
             if placement.sid != livekit_room.sid:
@@ -426,7 +497,7 @@ class PlacementService:
                     livekit_room.sid,
                     placement.sid,
                 )
-            return True
+            return RecordedStart.UNCHANGED
 
         if Placement.objects.filter(
             pk=placement.pk,
@@ -444,42 +515,30 @@ class PlacementService:
                 cluster.name,
                 livekit_room.sid,
             )
-            return True
+            return RecordedStart.RECORDED
         return None
 
     @classmethod
     def _place_started(
-        cls,
-        cluster: LiveKitClusterConfig,
-        livekit_room: LiveKitRoom,
-        room: Room | None,
-    ) -> bool | None:
+        cls, cluster: LiveKitClusterConfig, adoption: Placement
+    ) -> RecordedStart | None:
         """Place a LiveKit room started on a cluster without placement.
 
-        It is placed there when the cluster may receive new placements, and the
-        placement is to be read again: return None. It is left alone when no
-        cluster may: return True. Otherwise, it is closed: return False.
+        The adoption given, its placement on that cluster, is inserted when the
+        cluster may receive new placements, and the placement is to be read
+        again: return None. The LiveKit room is left without placement when no
+        cluster may, and closed otherwise: return what was done.
         """
         candidates = cls.candidates()
         if any(candidate.name == cluster.name for candidate in candidates):
             logger.info(
                 "LiveKit room %s started on LiveKit cluster %s with SID %s without "
                 "placement: placing it there",
-                livekit_room.name,
+                adoption.room_name,
                 cluster.name,
-                livekit_room.sid,
+                adoption.sid,
             )
-            Placement.objects.bulk_create(
-                [
-                    Placement(
-                        room_name=livekit_room.name,
-                        room=room,
-                        cluster=cluster.name,
-                        sid=livekit_room.sid,
-                    )
-                ],
-                ignore_conflicts=True,
-            )
+            Placement.objects.bulk_create([adoption], ignore_conflicts=True)
             return None
 
         if not candidates:
@@ -487,19 +546,19 @@ class PlacementService:
                 "LiveKit room %s started on LiveKit cluster %s without placement, "
                 "while no LiveKit cluster may receive new placements: leaving it "
                 "alone",
-                livekit_room.name,
+                adoption.room_name,
                 cluster.name,
             )
-            return True
+            return RecordedStart.UNCHANGED
 
         logger.warning(
             "LiveKit room %s started without placement on LiveKit cluster %s, "
             "which may not receive new placements: closing it",
-            livekit_room.name,
+            adoption.room_name,
             cluster.name,
         )
-        cls.close_stray_room(cluster, livekit_room.name, actor=None)
-        return False
+        closed = cls.close_stray_room(cluster, adoption.room_name, actor=None)
+        return RecordedStart.CLOSED if closed else RecordedStart.LEFT_ALONE
 
     @classmethod
     def relocate(

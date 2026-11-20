@@ -414,7 +414,7 @@ class LiveKitEventsService:
                 f"Failed to record LiveKit room {room_id} started on LiveKit "
                 f"cluster {self.cluster.name}"
             ) from e
-        if not started:
+        if not started.is_current:
             return
 
         self.record_room_start(room)

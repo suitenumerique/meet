@@ -21,6 +21,7 @@ and this project adheres to
 - ✨(backend) hand out the sid of livekit rooms with their credentials
 - ✨(backend) let frontends join live rooms and report failed ones
 - ✨(frontend) reconnect participants when their livekit room closes
+- ✨(backend) audit livekit rooms adopted from their placement
 
 ### Changed
 
