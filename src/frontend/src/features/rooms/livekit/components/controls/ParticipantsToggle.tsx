@@ -1,6 +1,6 @@
 import { useCallback, useId } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RiGroupLine } from '@remixicon/react'
+import { RiGroupFill, RiGroupLine } from '@remixicon/react'
 import { ToggleButton, type ToggleButtonProps } from '@/primitives/ToggleButton'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { css } from '@/styled-system/css'
@@ -47,7 +47,7 @@ export const ParticipantsToggle = ({
           data-attr={`controls-participants-${tooltipLabel}`}
           {...props}
         >
-          <RiGroupLine />
+          {isParticipantsOpen ? <RiGroupFill /> : <RiGroupLine />}
         </ToggleButton>
       </VisualOnlyTooltip>
       <ParticipantsCount describedById={countId} />

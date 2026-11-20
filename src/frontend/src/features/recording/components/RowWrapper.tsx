@@ -29,7 +29,7 @@ export const RowWrapper = ({
       }}
       className={css({
         width: '100%',
-        background: 'gray.100',
+        background: 'gray.050',
         paddingBlock: '0.5rem',
         paddingInline: '0',
         display: 'flex',

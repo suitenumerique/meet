@@ -318,7 +318,7 @@ export const Conference = ({
           }
           connectOptions={connectOptions}
           className={css({
-            backgroundColor: 'primaryDark.50 !important',
+            backgroundColor: 'gray.900 !important',
           })}
           onError={handleError}
           onConnected={handleConnected}

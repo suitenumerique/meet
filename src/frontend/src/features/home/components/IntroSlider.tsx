@@ -154,7 +154,7 @@ const carouselNavButton = css({
     outlineOffset: '1px',
   },
   _disabled: {
-    color: 'greyscale.400',
+    color: 'gray.400',
     cursor: 'default',
     pointerEvents: 'none',
     _pressed: {

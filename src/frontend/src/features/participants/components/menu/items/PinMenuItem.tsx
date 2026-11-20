@@ -32,7 +32,7 @@ export const PinMenuItem = ({ participant }: { participant: Participant }) => {
       className={menuRecipe({ icon: true }).item}
       onAction={() => (inFocus ? clearPinnedTrack() : setPinnedTrack(trackRef))}
     >
-      <HStack gap={0.25}>
+      <HStack gap="3xs">
         {inFocus ? (
           <>
             <RiUnpinLine size={20} aria-hidden />

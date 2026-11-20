@@ -49,7 +49,7 @@ export const SupportWidget = () => {
           <RiCheckboxCircleFill
             size={24}
             aria-hidden="true"
-            className={css({ color: 'success.300', flexShrink: 0 })}
+            className={css({ color: 'success.150', flexShrink: 0 })}
           />
           <div>
             <Text margin={false} bold>

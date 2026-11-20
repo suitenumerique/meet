@@ -2,35 +2,43 @@
 */
 [data-lk-theme='visio-light'] {
   color-scheme: light;
-  --lk-bg: var(--colors-white);
-  --lk-room-bg: var(--colors-default-bg);
-  --lk-bg2: var(--colors-gray-100);
-  --lk-bg3: var(--colors-gray-200);
-  --lk-bg4: var(--colors-gray-300);
-  --lk-bg5: var(--colors-gray-400);
-  --lk-fg: var(--colors-text);
-  --lk-fg5: #52525b;
-  --lk-border-color: var(--colors-gray-400);
-  --lk-accent-fg: var(--colors-primary-text);
-  --lk-accent-bg: var(--colors-primary);
-  --lk-accent2: var(--colors-primary-hover);
-  --lk-accent3: var(--colors-primary-active);
-  --lk-accent4: var(--colors-primary-active);
-  --lk-danger-fg: var(--colors-danger-text);
-  --lk-danger: var(--colors-danger);
-  --lk-danger-hover-bg: var(--colors-danger-hover);
-  --lk-danger-active-bg: var(--colors-danger-active);
-  --lk-success-fg: var(--colors-success-text);
-  --lk-success: var(--colors-success);
-  --lk-control-fg: var(--colors-control-text);
-  --lk-control-bg: var(--colors-control);
-  --lk-control-hover-bg: var(--colors-control-hover);
-  --lk-control-toggled-on-bg: var(--colors-control-hover);
-  --lk-control-active-bg: var(--colors-control-active);
-  --lk-control-active-hover-bg: var(--colors-control-active);
-  --lk-connection-excellent: var(--colors-success);
-  --lk-connection-good: var(--colors-warning);
-  --lk-connection-poor: var(--colors-danger);
+  --lk-bg: var(--colors-background-surface-primary);
+  --lk-room-bg: var(--colors-background-surface-primary);
+  --lk-bg2: var(--colors-gray-050);
+  --lk-bg3: var(--colors-gray-100);
+  --lk-bg4: var(--colors-gray-150);
+  --lk-bg5: var(--colors-gray-350);
+  --lk-fg: var(--colors-content-semantic-neutral-primary);
+  --lk-fg5: var(--colors-gray-600);
+  --lk-border-color: var(--colors-gray-350);
+  --lk-accent-fg: var(--colors-content-semantic-brand-on-brand);
+  --lk-accent-bg: var(--colors-background-semantic-brand-primary);
+  --lk-accent2: var(--colors-background-semantic-brand-primary-hover);
+  --lk-accent3: var(--colors-background-semantic-brand-primary-hover);
+  --lk-accent4: var(--colors-background-semantic-brand-primary-hover);
+  --lk-danger-fg: var(--colors-content-semantic-error-on-error);
+  --lk-danger: var(--colors-background-semantic-error-primary);
+  --lk-danger-hover-bg: var(--colors-background-semantic-error-primary-hover);
+  --lk-danger-active-bg: var(--colors-background-semantic-error-primary-hover);
+  --lk-success-fg: var(--colors-content-semantic-success-on-success);
+  --lk-success: var(--colors-background-semantic-success-primary);
+  --lk-control-fg: var(--colors-content-semantic-neutral-primary);
+  --lk-control-bg: var(--colors-background-semantic-neutral-tertiary);
+  --lk-control-hover-bg: var(
+    --colors-background-semantic-neutral-tertiary-hover
+  );
+  --lk-control-toggled-on-bg: var(
+    --colors-background-semantic-neutral-tertiary-hover
+  );
+  --lk-control-active-bg: var(
+    --colors-background-semantic-neutral-secondary-hover
+  );
+  --lk-control-active-hover-bg: var(
+    --colors-background-semantic-neutral-secondary-hover
+  );
+  --lk-connection-excellent: var(--colors-content-semantic-success-tertiary);
+  --lk-connection-good: var(--colors-content-semantic-warning-tertiary);
+  --lk-connection-poor: var(--colors-content-semantic-error-tertiary);
   --lk-line-height: var(--line-heights-1\.5);
   --lk-border-radius: var(--radii-8);
   --lk-box-shadow: var(--shadows-sm);
@@ -40,14 +48,14 @@
 
   --lk-font-family: var(--fonts-sans);
   --lk-font-size: 1rem;
-  --lk-bg6: #6b7280;
+  --lk-bg6: var(--colors-gray-500);
   --lk-control-border-width: 1px;
   --lk-control-border-color: var(--lk-bg5);
   --lk-control-border: var(--lk-control-border-color);
   --lk-control-hover-border: var(--lk-bg6);
 
-  --lk-controlbar-bg: var(--colors-gray-300);
-  --lk-participant-border: var(--colors-gray-400);
+  --lk-controlbar-bg: var(--colors-gray-150);
+  --lk-participant-border: var(--colors-gray-350);
 }
 
 [data-lk-theme] .lk-room-container {
@@ -92,7 +100,7 @@
 }
 
 [data-lk-theme] .lk-disconnect-button {
-  --lk-control-border: var(--colors-danger-hover);
+  --lk-control-border: var(--colors-background-semantic-error-primary-hover);
 }
 
 [data-lk-theme] .lk-disconnect-button:not(:disabled):hover {
@@ -107,7 +115,6 @@
   fill: var(--lk-fg);
 }
 
-[data-lk-theme='visio-light'] .lk-participant-metadata-item,
 [data-lk-theme='visio-light']
   .lk-participant-tile
   .lk-focus-toggle-button:not(:hover) {
@@ -130,25 +137,4 @@
 
 [data-lk-theme] .lk-participant-tile {
   box-shadow: var(--lk-box-shadow);
-}
-
-/* Participant name ellipsis: truncate when overflowing */
-.lk-participant-metadata {
-  gap: 1rem;
-}
-.lk-participant-metadata > *:first-child {
-  min-width: 0;
-}
-.lk-participant-metadata > *:first-child {
-  flex: 1;
-}
-.lk-participant-metadata > *:first-child .lk-participant-metadata-item,
-.lk-participant-metadata
-  .lk-participant-metadata-item
-  .lk-participant-name-wrapper {
-  min-width: 0;
-}
-.lk-participant-metadata > *:first-child .lk-participant-metadata-item {
-  display: flex;
-  align-items: center;
 }

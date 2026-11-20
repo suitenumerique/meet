@@ -22,13 +22,13 @@ type Source = Track.Source
 const SectionHeader = ({ children }: { children: ReactNode }) => (
   <div
     className={css({
-      backgroundColor: 'greyscale.50',
+      backgroundColor: 'gray.025',
       borderTopWidth: '1px',
       borderTopStyle: 'solid',
-      borderTopColor: 'greyscale.250',
+      borderTopColor: 'gray.100',
       borderBottomWidth: '1px',
       borderBottomStyle: 'solid',
-      borderBottomColor: 'greyscale.250',
+      borderBottomColor: 'gray.100',
       padding: '0.75rem 1.5rem',
     })}
   >
@@ -205,7 +205,7 @@ const SettingsPopup = () => {
           padding: '1.5rem',
           borderBottomWidth: '1px',
           borderBottomStyle: 'solid',
-          borderBottomColor: 'greyscale.250',
+          borderBottomColor: 'gray.100',
         })}
       >
         <img
@@ -361,7 +361,7 @@ const SettingsPopup = () => {
           padding: '1rem 1.5rem',
           borderTopWidth: '1px',
           borderTopStyle: 'solid',
-          borderTopColor: 'greyscale.250',
+          borderTopColor: 'gray.100',
         })}
       >
         <Button size="sm" onPress={() => window.close()}>

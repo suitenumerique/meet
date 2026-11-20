@@ -29,7 +29,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'white',
-          color: 'default.text',
+          color: 'content.semantic.neutral.primary',
           flex: '1',
         })}
         style={{

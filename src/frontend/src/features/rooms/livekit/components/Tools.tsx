@@ -33,15 +33,25 @@ const ToolButton = ({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'start',
-        paddingY: '0.5rem',
-        paddingX: '0.75rem 1.5rem',
-        borderRadius: '30px',
+        position: 'relative',
+        paddingY: '0.75rem',
+        paddingX: '0.75rem',
+        borderRadius: '4px',
         width: 'full',
-        backgroundColor: 'gray.50',
+        backgroundColor: 'transparent',
         textAlign: 'start',
-        '&[data-hovered]': {
-          backgroundColor: 'primary.50',
-          cursor: 'pointer',
+        cursor: 'pointer',
+        '&[data-hovered], &[data-pressed]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+        '& + &::before': {
+          content: '""',
+          position: 'absolute',
+          top: '-5px',
+          left: 0,
+          right: 0,
+          borderTop: '1px solid',
+          borderColor: 'gray.100',
         },
       })}
       onPress={onPress}
@@ -56,7 +66,7 @@ const ToolButton = ({
           justifyContent: 'center',
           alignItems: 'center',
           position: 'relative',
-          background: 'primary.800',
+          background: 'brand.550',
           color: 'white',
         })}
       >
@@ -68,8 +78,8 @@ const ToolButton = ({
           as="h2"
           className={css({
             display: 'flex',
-            gap: 0.25,
-            fontWeight: 'semibold',
+            gap: '3xs',
+            fontWeight: 'bold',
           })}
         >
           {title}
@@ -146,7 +156,7 @@ export const Tools = () => {
       flexGrow={1}
       flexDirection="column"
       alignItems="start"
-      gap={0.5}
+      gap="xs"
     >
       <Text
         variant="note"
@@ -172,22 +182,31 @@ export const Tools = () => {
           </A>
         )}
       </Text>
-      {isTranscriptEnabled && (
-        <ToolButton
-          icon={<Icon name="speech_to_text" />}
-          title={t('tools.transcript.title')}
-          description={t('tools.transcript.body')}
-          onPress={() => openTranscript()}
-        />
-      )}
-      {isScreenRecordingEnabled && (
-        <ToolButton
-          icon={<Icon name="mode_standby" />}
-          title={t('tools.screenRecording.title')}
-          description={t('tools.screenRecording.body')}
-          onPress={() => openScreenRecording()}
-        />
-      )}
+      <div
+        className={css({
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '9px',
+          width: 'full',
+        })}
+      >
+        {isTranscriptEnabled && (
+          <ToolButton
+            icon={<Icon name="speech_to_text" />}
+            title={t('tools.transcript.title')}
+            description={t('tools.transcript.body')}
+            onPress={() => openTranscript()}
+          />
+        )}
+        {isScreenRecordingEnabled && (
+          <ToolButton
+            icon={<Icon name="mode_standby" />}
+            title={t('tools.screenRecording.title')}
+            description={t('tools.screenRecording.body')}
+            onPress={() => openScreenRecording()}
+          />
+        )}
+      </div>
     </Div>
   )
 }

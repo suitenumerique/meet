@@ -496,7 +496,7 @@
       "recording": "Start ook een video-opname"
     },
     "button": {
-      "start": "Begin met het transcriberen van de vergadering",
+      "start": "Transcriptie starten",
       "stop": "Stop met het transcriberen van de vergadering",
       "saving": "Opslaan…",
       "starting": "Wordt gestart…",
@@ -569,7 +569,7 @@
       "qualityEdit": "Wijzigen"
     },
     "button": {
-      "start": "Start met opnemen van de vergadering",
+      "start": "Opname starten",
       "stop": "Stop met opnemen van de vergadering",
       "saving": "Bezig met opslaan…",
       "starting": "Wordt gestart…",

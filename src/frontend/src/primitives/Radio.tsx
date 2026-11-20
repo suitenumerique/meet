@@ -5,36 +5,40 @@ import {
 import { styled } from '@/styled-system/jsx'
 import { type StyledVariantProps } from '@/styled-system/types'
 
-// styled taken from example at https://react-spectrum.adobe.com/react-aria/Checkbox.html and changed for round radios
+// Follows the radio of the UI kit, which shares the tokens of its checkbox.
 const StyledRadio = styled(RACRadio, {
   base: {
     display: 'flex',
     // anchor the visually hidden input, so it scrolls with the radio
     position: 'relative',
     alignItems: 'center',
-    gap: 0.375,
+    gap: '2xs',
     forcedColorAdjust: 'none',
     width: 'fit-content',
+    cursor: 'pointer',
     '& .mt-Radio': {
       borderRadius: 'full',
       flexShrink: 0,
-      width: '1.125rem',
-      height: '1.125rem',
-      border: '1px solid {colors.control.border}',
+      width: '1.5rem',
+      height: '1.5rem',
+      border: '1.5px solid',
+      borderColor: 'content.semantic.neutral.tertiary',
+      backgroundColor: 'background.surface.primary',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      transition: 'all 200ms',
+      transition: 'border 250ms, box-shadow 250ms',
     },
     '& .mt-Radio-check': {
-      width: '0.5rem',
-      height: '0.5rem',
+      width: '1rem',
+      height: '1rem',
       borderRadius: 'full',
-      backgroundColor: 'transparent',
-      transition: 'all 200ms',
+      backgroundColor: 'content.semantic.brand.tertiary',
+      transform: 'scale(0)',
+      transition: 'transform 250ms',
     },
-    '&[data-pressed] .mt-Radio': {
-      borderColor: 'primary.active',
+    '&[data-hovered] .mt-Radio': {
+      boxShadow: '0 0 0 1px {colors.content.semantic.neutral.tertiary}',
     },
     '&[data-focus-visible] .mt-Radio': {
       outline: '2px solid!',
@@ -42,24 +46,32 @@ const StyledRadio = styled(RACRadio, {
       outlineOffset: '2px!',
     },
     '&[data-selected] .mt-Radio': {
-      borderColor: 'primary',
+      borderColor: 'content.semantic.brand.tertiary',
+    },
+    '&[data-selected][data-hovered] .mt-Radio': {
+      boxShadow: '0 0 0 1px {colors.content.semantic.brand.tertiary}',
     },
     '&[data-selected] .mt-Radio-check': {
-      backgroundColor: 'primary',
+      transform: 'scale(1)',
     },
-    '&[data-selected][data-pressed] .mt-Radio-check': {
-      backgroundColor: 'primary.active',
+    '&[data-disabled]': {
+      cursor: 'not-allowed',
+    },
+    '&[data-disabled] .mt-Radio': {
+      borderColor: 'content.semantic.disabled.primary',
+    },
+    '&[data-disabled] .mt-Radio-check': {
+      backgroundColor: 'content.semantic.disabled.primary',
     },
   },
   variants: {
     size: {
       sm: {
-        base: {},
-        '& .radio': {
+        '& .mt-Radio': {
           width: '1.125rem',
           height: '1.125rem',
         },
-        '& svg': {
+        '& .mt-Radio-check': {
           width: '0.625rem',
           height: '0.625rem',
         },
@@ -68,9 +80,6 @@ const StyledRadio = styled(RACRadio, {
     alignment: {
       top: {
         alignItems: 'start',
-        '& .mt-Radio': {
-          marginTop: '3px',
-        },
       },
     },
   },

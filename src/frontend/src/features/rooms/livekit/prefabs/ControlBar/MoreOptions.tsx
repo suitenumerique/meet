@@ -51,7 +51,7 @@ export const LateralMenu = () => {
         <Dialog
           className={css({
             width: '65px',
-            backgroundColor: 'primaryDark.50',
+            backgroundColor: 'gray.900',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',

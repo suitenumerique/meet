@@ -23,7 +23,7 @@ export const RemoveMenuItem = React.memo(
         className={menuRecipe({ icon: true }).item}
         onAction={() => removeParticipant(identity)}
       >
-        <HStack gap={0.25}>
+        <HStack gap="3xs">
           <RiCloseLine size={20} aria-hidden />
           {t('label')}
         </HStack>

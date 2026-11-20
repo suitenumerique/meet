@@ -6,42 +6,45 @@ import { styled } from '@/styled-system/jsx'
 import { type StyledVariantProps } from '@/styled-system/types'
 import { RiCheckLine, RiCloseFill } from '@remixicon/react'
 
+// Follows the switch of the UI kit (its `forms-switch` component tokens). The
+// check and the cross on the handle are ours: the state does not rely on
+// color alone.
 const StyledSwitch = styled(RACSwitch, {
   base: {
     display: 'flex',
     // anchor the visually hidden input, so it scrolls with the switch
     position: 'relative',
     alignItems: 'center',
-    gap: '0.571rem',
-    color: 'black',
+    gap: 'xs',
+    color: 'content.semantic.neutral.primary',
     cursor: 'pointer',
     forcedColorAdjust: 'none',
     '& .indicator': {
       position: 'relative',
-      width: '2.6rem',
-      height: '1.563rem',
-      border: '0.125rem solid',
-      borderColor: 'primary.800',
-      borderRadius: '1.143rem',
-      transition: 'all 200ms, outline 200ms',
+      flexShrink: 0,
+      width: '2.8125rem',
+      height: '1.5rem',
+      borderRadius: 'full',
+      backgroundColor: 'content.semantic.neutral.tertiary',
+      transition: 'background-color 250ms, outline 200ms',
       _before: {
         willChange: 'transform',
         content: '""',
-        display: 'block',
-        margin: '0.125rem',
-        width: '1.063rem',
-        height: '1.063rem',
-        borderRadius: '1.063rem',
-        background: 'primary.800',
-        transition: 'transform 200ms, background-color 200ms',
-        transitionDelay: '0ms',
+        position: 'absolute',
+        top: '3px',
+        left: '4px',
+        width: '1.125rem',
+        height: '1.125rem',
+        borderRadius: 'full',
+        backgroundColor: 'content.semantic.contextual.primary',
+        transition: 'transform 250ms, background-color 250ms',
       },
     },
     '& .checkmark, & .cross': {
       position: 'absolute',
-      top: 0,
-      bottom: 0,
-      width: '1.313rem', // knob width + 2 × knob margin
+      top: '3px',
+      width: '1.125rem', // the handle
+      height: '1.125rem',
       display: 'grid',
       placeItems: 'center',
       pointerEvents: 'none',
@@ -53,29 +56,27 @@ const StyledSwitch = styled(RACSwitch, {
       },
     },
     '& .checkmark': {
-      right: 0,
-      color: 'primary.800',
+      left: '24px', // handle offset (4px) + its travel (20px)
+      color: 'content.semantic.brand.tertiary',
       opacity: 0,
     },
     '& .cross': {
-      left: 0,
-      color: 'white',
+      left: '4px',
+      color: 'content.semantic.neutral.tertiary',
       opacity: 1,
-      transition: 'opacity 200ms',
-      transitionDelay: '0ms',
+      transition: 'opacity 100ms',
+      transitionDelay: '180ms',
     },
     '&[data-selected] .indicator': {
-      borderColor: 'primary.800',
-      background: 'primary.800',
+      backgroundColor: 'content.semantic.brand.tertiary',
       _before: {
-        background: 'white',
-        transform: 'translateX(100%)',
+        transform: 'translateX(20px)',
       },
     },
     '&[data-selected] .checkmark': {
       opacity: 1,
-      transition: 'opacity 30ms',
-      transitionDelay: '150ms',
+      transition: 'opacity 100ms',
+      transitionDelay: '180ms',
     },
     '&[data-selected] .cross': {
       opacity: 0,
@@ -84,16 +85,16 @@ const StyledSwitch = styled(RACSwitch, {
     },
     '&[data-disabled]': {
       cursor: 'not-allowed',
+      color: 'content.semantic.disabled.primary',
     },
     '&[data-disabled] .indicator': {
-      borderColor: 'primary.200',
-      background: 'transparent',
+      backgroundColor: 'content.semantic.disabled.primary',
       _before: {
-        background: 'primary.200',
+        backgroundColor: 'content.semantic.disabled.secondary',
       },
     },
-    '&[data-disabled] .cross': {
-      color: 'primary.500',
+    '&[data-disabled] .checkmark, &[data-disabled] .cross': {
+      color: 'content.semantic.disabled.primary',
     },
     '&[data-focus-visible] .indicator': {
       outline: '2px solid!',

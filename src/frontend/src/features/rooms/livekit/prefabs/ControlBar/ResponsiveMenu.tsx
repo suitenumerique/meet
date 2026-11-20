@@ -37,7 +37,7 @@ export function ResponsiveMenu({
     >
       <Modal
         className={css({
-          backgroundColor: 'primaryDark.200',
+          backgroundColor: 'gray.650',
           borderRadius: '20px',
           flexGrow: 1,
           padding: '1.5rem',

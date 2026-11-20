@@ -92,8 +92,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
         </Heading>
         <Div position="absolute" top="5" right="5">
           <Button
-            invisible
-            variant="tertiaryText"
+            variant="tertiaryNeutral"
             size="xs"
             onPress={dismiss}
             aria-label={t('closeDialog')}
@@ -212,7 +211,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
           <HStack>
             <div
               className={css({
-                backgroundColor: 'primary.200',
+                backgroundColor: 'brand.150',
                 borderRadius: '50%',
                 padding: '4px',
                 marginTop: '1rem',
@@ -221,7 +220,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
               <RiSpam2Fill
                 size={22}
                 className={css({
-                  fill: 'primary.500',
+                  fill: 'brand.500',
                 })}
               />
             </div>

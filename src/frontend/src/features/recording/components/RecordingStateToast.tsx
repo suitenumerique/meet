@@ -93,17 +93,23 @@ export const RecordingStateToast = () => {
       <div
         className={css({
           display: 'flex',
+          alignItems: 'center',
           position: 'fixed',
-          top: '10px',
-          left: '10px',
-          paddingY: '0.25rem',
-          paddingX: '0.75rem 0.75rem',
-          backgroundColor: 'danger.700',
-          borderColor: 'white',
+          top: 'xs',
+          left: 'xs',
+          paddingY: '3px',
+          paddingLeft: '3px',
+          paddingRight: '7px',
+          backgroundColor: 'error.750',
           border: '1px solid',
-          color: 'white',
+          borderColor: 'error.700',
+          color: 'error.100',
           borderRadius: '4px',
-          gap: '0.5rem',
+          gap: '3xs',
+          '& svg': {
+            width: '20px',
+            height: '20px',
+          },
         })}
       >
         <RecordingStatusIcon

@@ -22,45 +22,61 @@ const StyledButton = styled(Button, {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingY: 0.125,
-    paddingX: 0.25,
+    paddingY: '4xs',
+    paddingX: '3xs',
     border: '1px solid',
-    borderColor: 'control.border',
-    color: 'control.text',
+    borderColor: 'border.semantic.neutral.tertiary',
+    color: 'content.semantic.neutral.primary',
     borderRadius: 4,
-    boxShadow: '0 1px 2px rgba(0 0 0 / 0.1)',
-    '&[data-focus-visible]': {
-      outline: '2px solid {colors.focusRing}',
-      outlineOffset: '-1px',
+    // The field of the UI kit: its border thickens on hover, with a ring of
+    // the same color, and turns to the brand color when focused or open.
+    boxShadow: '0 0 0 0 {colors.border.semantic.neutral.tertiary}',
+    transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
+    '&[data-hovered]:not([data-focus-visible], [aria-expanded=true])': {
+      boxShadow: '0 0 0 1px {colors.border.semantic.neutral.tertiary}',
+    },
+    '&[data-focus-visible], &[aria-expanded=true]': {
+      borderColor: 'border.semantic.brand.primary',
+      boxShadow: '0 0 0 1px {colors.border.semantic.brand.primary}',
+      outline: 'none!',
     },
     '&[data-pressed]': {
-      backgroundColor: 'control.hover',
+      backgroundColor: 'background.semantic.neutral.tertiary-hover',
     },
     // fixme disabled style is being overridden by placeholder one and needs refinement.
     '&[data-disabled]': {
-      color: 'default.subtle-text',
-      borderColor: 'gray.200',
-      boxShadow: '0 1px 2px rgba(0 0 0 / 0.02)',
+      color: 'content.semantic.neutral.secondary',
+      borderColor: 'gray.100',
     },
   },
   variants: {
     variant: {
       light: {},
       dark: {
-        backgroundColor: 'primaryDark.100',
+        backgroundColor: 'gray.700',
+        borderColor: 'gray.550',
         fontWeight: 'medium !important',
         color: 'white',
+        '&[data-hovered]:not([data-focus-visible], [aria-expanded=true])': {
+          boxShadow: '0 0 0 1px {colors.gray.550}',
+        },
+        // a softer blue on dark surfaces: the one of the selected buttons of
+        // the control bar
+        '&[data-focus-visible], &[aria-expanded=true]': {
+          borderColor: 'brand.250!',
+          boxShadow: '0 0 0 1px {colors.brand.250}!',
+        },
         '&[data-pressed]': {
-          backgroundColor: 'primaryDark.900',
-          color: 'primaryDark.100',
+          backgroundColor: 'gray.100',
+          color: 'gray.700',
         },
         '&[data-hovered]': {
-          backgroundColor: 'primaryDark.300',
+          backgroundColor: 'gray.550',
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'primaryDark.700 !important',
-          color: 'primaryDark.100 !important',
+          backgroundColor: 'gray.250 !important',
+          color: 'gray.700 !important',
         },
       },
     },
@@ -72,11 +88,13 @@ const StyledButton = styled(Button, {
 
 const StyledSelectValue = styled(SelectValue, {
   base: {
+    flexGrow: 1,
+    textAlign: 'start',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     textWrap: 'nowrap',
     '&[data-placeholder]': {
-      color: 'default.subtle-text',
+      color: 'content.semantic.neutral.secondary',
       fontStyle: 'italic',
     },
   },

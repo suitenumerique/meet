@@ -10,7 +10,7 @@ import { captureEvent } from '@/features/analytics/telemetry'
 const Card = styled('div', {
   base: {
     border: '1px solid',
-    borderColor: 'gray.300',
+    borderColor: 'gray.150',
     padding: '1rem',
     marginTop: '1.5rem',
     borderRadius: '0.25rem',
@@ -25,7 +25,7 @@ const Bar = styled('div', {
   base: {
     display: 'flex',
     border: '2px solid',
-    borderColor: 'gray.300',
+    borderColor: 'gray.150',
     borderRadius: '8px',
     overflowY: 'hidden',
     scrollbar: 'hidden',
@@ -48,19 +48,19 @@ const ratingButtonRecipe = cva({
   variants: {
     selected: {
       true: {
-        backgroundColor: 'primary.800',
+        backgroundColor: 'brand.550',
         color: 'white',
       },
       false: {
         '&[data-hovered]': {
-          backgroundColor: 'gray.100',
+          backgroundColor: 'gray.050',
         },
       },
     },
     borderLeft: {
       true: {
         borderLeft: '1px solid',
-        borderColor: 'gray.300',
+        borderColor: 'gray.150',
       },
     },
   },
@@ -118,7 +118,7 @@ const OpenFeedback = ({
           marginBottom: '1rem',
         }}
       />
-      <VStack gap="0.5">
+      <VStack gap="xs">
         <Button
           variant="primary"
           size="sm"

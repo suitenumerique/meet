@@ -56,7 +56,7 @@ const link = cva({
         color: 'blue',
       },
       note: {
-        color: 'default.subtle-text',
+        color: 'content.semantic.neutral.secondary',
       },
     },
   },

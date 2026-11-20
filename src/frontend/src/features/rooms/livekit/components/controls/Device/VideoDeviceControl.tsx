@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
 import { Button, Popover } from '@/primitives'
-import { RiArrowUpSLine, RiImageCircleAiFill } from '@remixicon/react'
+import { RiArrowUpSLine } from '@remixicon/react'
 import { Track, type VideoCaptureOptions, VideoPresets } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
@@ -14,6 +14,7 @@ import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
+import { menuSelect, menuTrigger } from './menuTrigger'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import { useSnapshot } from 'valtio'
@@ -30,16 +31,14 @@ const EffectsButton = ({ onPress }: { onPress: () => void }) => {
   return (
     <Button
       size="sm"
-      square
-      tooltip={t('effects')}
-      aria-label={t('effects')}
       variant="primaryDark"
+      className={css({ flexShrink: 0, borderRadius: 'full!' })}
       onPress={() => {
         if (!isEffectsOpen) toggleEffects()
         onPress()
       }}
     >
-      <RiImageCircleAiFill size={24} />
+      {t('effects')}
     </Button>
   )
 }
@@ -134,6 +133,7 @@ export const VideoDeviceControl = ({
             aria-label={selectLabel}
             groupPosition="right"
             square
+            className={menuTrigger}
             variant={
               !canPublishTrack || !trackProps.enabled || cannotUseDevice
                 ? 'error2'
@@ -145,18 +145,13 @@ export const VideoDeviceControl = ({
           {({ close }) => (
             <div
               className={css({
-                maxWidth: '36rem',
-                padding: '0.15rem',
+                maxWidth: 'calc(100vw - 2rem)',
                 display: 'flex',
+                alignItems: 'center',
                 gap: '0.5rem',
               })}
             >
-              <div
-                style={{
-                  flex: '1 1 0',
-                  minWidth: 0,
-                }}
-              >
+              <div className={menuSelect}>
                 <SelectDevice
                   context="room"
                   kind={kind}

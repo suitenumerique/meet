@@ -23,7 +23,7 @@ const StyledContainer = styled('div', {
     alignItems: 'center',
     gap: '0.2rem',
     borderRadius: '21px',
-    backgroundColor: 'primaryDark.100',
+    backgroundColor: 'gray.700',
     maxWidth: '100%',
     opacity: 0,
     translate: '0 3.25rem',
@@ -31,6 +31,13 @@ const StyledContainer = styled('div', {
     transitionDuration: '0.5s',
     transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
     pointerEvents: 'none',
+    '& button[data-hovered]': {
+      backgroundColor: 'white.100',
+    },
+    '& button[data-pressed]': {
+      backgroundColor: 'white.150',
+      color: 'white',
+    },
   },
   variants: {
     isVisible: {
@@ -56,6 +63,19 @@ const StyledScrollViewport = styled('div', {
     '&::-webkit-scrollbar': { display: 'none' },
     '& > *': {
       flexShrink: 0,
+    },
+  },
+})
+
+const StyledScrollArrow = styled('div', {
+  base: {
+    display: 'flex',
+    paddingY: '0',
+  },
+  variants: {
+    side: {
+      start: { paddingLeft: '0.25rem' },
+      end: { paddingRight: '0.25rem' },
     },
   },
 })
@@ -187,7 +207,7 @@ export const ReactionButtonsContainer = ({
       }
     >
       {overflowing && (
-        <div aria-hidden="true">
+        <StyledScrollArrow side="start" aria-hidden="true">
           <Button
             onPress={() => scrollBy(-SCROLL_AMOUNT)}
             variant="primaryTextDark"
@@ -198,7 +218,7 @@ export const ReactionButtonsContainer = ({
           >
             <RiArrowLeftSLine />
           </Button>
-        </div>
+        </StyledScrollArrow>
       )}
       {/* eslint-disable-next-line jsx-a11y/no-autofocus*/}
       <FocusScope autoFocus>
@@ -209,7 +229,7 @@ export const ReactionButtonsContainer = ({
         </ReactionsKeyboardNavigation>
       </FocusScope>
       {overflowing && (
-        <div aria-hidden="true">
+        <StyledScrollArrow side="end" aria-hidden="true">
           <Button
             onPress={() => scrollBy(SCROLL_AMOUNT)}
             variant="primaryTextDark"
@@ -220,7 +240,7 @@ export const ReactionButtonsContainer = ({
           >
             <RiArrowRightSLine />
           </Button>
-        </div>
+        </StyledScrollArrow>
       )}
     </StyledContainer>
   )

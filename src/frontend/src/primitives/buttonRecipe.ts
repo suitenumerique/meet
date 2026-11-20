@@ -17,15 +17,15 @@ export const buttonRecipe = cva({
     size: {
       default: {
         borderRadius: 4,
-        paddingX: '1',
-        paddingY: '0.625',
-        '--square-padding': '{spacing.0.625}',
+        paddingX: 'base',
+        paddingY: '0.625rem',
+        '--square-padding': '0.625rem',
       },
       sm: {
         borderRadius: 4,
-        paddingX: '0.5',
-        paddingY: '0.25',
-        '--square-padding': '{spacing.0.25}',
+        paddingX: 'xs',
+        paddingY: '3xs',
+        '--square-padding': '{spacing.3xs}',
       },
       xs: {
         borderRadius: 4,
@@ -33,9 +33,9 @@ export const buttonRecipe = cva({
       },
       compact: {
         borderRadius: 4,
-        paddingX: '0.5',
-        paddingY: '0.625',
-        '--square-padding': '{spacing.0.625}',
+        paddingX: 'xs',
+        paddingY: '0.625rem',
+        '--square-padding': '0.625rem',
       },
     },
     square: {
@@ -53,44 +53,57 @@ export const buttonRecipe = cva({
     },
     variant: {
       primary: {
-        backgroundColor: 'primary.800',
+        backgroundColor: 'brand.550',
         color: 'white',
         fontWeight: 'medium !important',
         '&[data-hovered]': {
-          backgroundColor: 'primary.action',
+          backgroundColor: 'brand.650',
         },
         '&[data-pressed]': {
-          backgroundColor: 'primary.action',
+          backgroundColor: 'brand.650',
         },
         '&[data-disabled]': {
-          backgroundColor: 'greyscale.100',
-          color: 'greyscale.400',
+          backgroundColor: 'gray.050',
+          color: 'gray.400',
         },
       },
       secondary: {
         backgroundColor: 'white',
-        color: 'primary.800',
+        color: 'brand.550',
         fontWeight: 'medium !important',
-        borderColor: 'primary.800',
+        borderColor: 'brand.550',
         '&[data-hovered]': {
-          backgroundColor: 'greyscale.100',
+          backgroundColor: 'gray.050',
         },
         '&[data-pressed]': {
-          backgroundColor: 'greyscale.100',
+          backgroundColor: 'gray.050',
+        },
+      },
+      // The bordered brand button of the UI kit.
+      bordered: {
+        backgroundColor: 'transparent',
+        color: 'content.semantic.brand.tertiary',
+        fontWeight: 'medium !important',
+        borderColor: 'border.semantic.neutral.tertiary',
+        '&[data-hovered]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+        '&[data-pressed]': {
+          backgroundColor: 'background.semantic.contextual.primary',
         },
       },
       secondaryText: {
         backgroundColor: 'transparent',
         fontWeight: 'medium !important',
-        color: 'primary.800',
+        color: 'brand.550',
         '&[data-hovered]': {
-          backgroundColor: 'greyscale.100',
+          backgroundColor: 'gray.050',
         },
         '&[data-pressed]': {
-          backgroundColor: 'greyscale.100',
+          backgroundColor: 'gray.050',
         },
         '&[data-disabled]': {
-          color: 'greyscale.400',
+          color: 'gray.400',
         },
       },
       whiteCircle: {
@@ -100,95 +113,122 @@ export const buttonRecipe = cva({
         height: '56px',
         borderRadius: '100%',
         '&[data-hovered]': {
-          backgroundColor: 'greyscale.100/20',
+          backgroundColor: 'gray.050/20',
         },
         '&[data-pressed]': {
-          backgroundColor: 'greyscale.100/50',
+          backgroundColor: 'gray.050/50',
         },
       },
       bigSquare: {
         width: '56px',
         height: '56px',
-        borderColor: 'greyscale.200',
+        borderColor: 'gray.100',
         borderRadius: '4px',
-        backgroundColor: 'greyscale.50',
+        backgroundColor: 'gray.025',
         padding: '0',
         flexShrink: 0,
         '&[data-hovered]': {
-          backgroundColor: 'greyscale.100',
+          backgroundColor: 'gray.050',
         },
         transition: 'box-shadow 0.2s ease-in-out',
         '&[data-selected]': {
           boxShadow:
-            '0 0 0 3px token(colors.primary.600) inset, 0 0 0 5px white inset',
+            '0 0 0 3px token(colors.brand.700) inset, 0 0 0 5px white inset',
         },
         '&[data-disabled]': {
-          backgroundColor: 'greyscale.100',
-          color: 'greyscale.400',
+          backgroundColor: 'gray.050',
+          color: 'gray.400',
           opacity: '0.7',
         },
       },
       tertiary: {
-        backgroundColor: 'primary.100',
+        backgroundColor: 'brand.100',
         fontWeight: 'medium !important',
-        color: 'primary.800',
+        // brand.550 is too light on these tinted backgrounds (4.1:1)
+        color: 'brand.650',
         '&[data-hovered]': {
-          backgroundColor: 'primary.300',
+          backgroundColor: 'brand.150',
         },
         '&[data-pressed]': {
-          backgroundColor: 'primary.300',
+          backgroundColor: 'brand.150',
         },
         '&[data-disabled]': {
           backgroundColor: 'transparent',
-          color: 'primary.400',
+          color: 'brand.400',
         },
       },
       tertiaryText: {
         backgroundColor: 'transparent',
         fontWeight: 'medium !important',
-        color: 'primary.900',
+        color: 'brand.850',
         '&[data-hovered]': {
-          backgroundColor: 'primary.300',
+          backgroundColor: 'brand.150',
         },
         '&[data-pressed]': {
-          backgroundColor: 'primary.300',
+          backgroundColor: 'brand.150',
+        },
+      },
+      tertiaryNeutral: {
+        backgroundColor: 'transparent',
+        fontWeight: 'medium !important',
+        color: 'brand.850',
+        '&[data-hovered]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+        '&[data-pressed]': {
+          backgroundColor: 'background.semantic.contextual.primary',
+        },
+        '&[data-focus-visible]': {
+          backgroundColor: 'background.semantic.contextual.primary',
         },
       },
       primaryDark: {
-        backgroundColor: 'primaryDark.100',
+        backgroundColor: 'gray.700',
         fontWeight: 'medium !important',
         color: 'white',
         '&[data-pressed]': {
-          backgroundColor: 'primaryDark.900',
-          color: 'primaryDark.100',
+          backgroundColor: 'gray.100',
+          color: 'gray.700',
         },
         '&[data-disabled]': {
-          backgroundColor: 'primaryDark.75',
-          color: 'primaryDark.300',
+          backgroundColor: 'gray.850',
+          color: 'gray.550',
         },
         '&[data-hovered]': {
-          backgroundColor: 'primaryDark.300',
+          backgroundColor: 'gray.550',
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'primaryDark.700 !important',
-          color: 'primaryDark.100 !important',
+          backgroundColor: 'brand.250 !important',
+          color: 'brand.850 !important',
+        },
+        '&[data-selected][data-hovered]': {
+          backgroundColor: 'brand.200 !important',
+        },
+        '&[data-selected][data-pressed]': {
+          backgroundColor: 'brand.300 !important',
         },
       },
       secondaryDark: {
-        backgroundColor: 'primaryDark.50',
+        backgroundColor: 'gray.900',
         fontWeight: 'medium !important',
         color: 'white',
         '&[data-pressed]': {
-          backgroundColor: 'primaryDark.200',
+          backgroundColor: 'gray.650',
         },
         '&[data-hovered]': {
-          backgroundColor: 'primaryDark.100',
+          backgroundColor: 'gray.700',
           color: 'white',
         },
         '&[data-selected]': {
-          backgroundColor: 'primaryDark.700 !important',
-          color: 'primaryDark.100 !important',
+          backgroundColor: 'brand.250 !important',
+          color: 'brand.850 !important',
+        },
+        '&[data-selected][data-hovered]': {
+          backgroundColor: 'brand.200 !important',
+        },
+        '&[data-selected][data-pressed]': {
+          backgroundColor: 'brand.300 !important',
         },
       },
       primaryTextDark: {
@@ -196,15 +236,17 @@ export const buttonRecipe = cva({
         fontWeight: 'medium !important',
         color: 'white',
         '&[data-hovered]': {
-          backgroundColor: 'primaryDark.100',
+          backgroundColor: 'gray.700',
         },
         '&[data-pressed]': {
-          backgroundColor: 'primaryDark.700',
-          color: 'primaryDark.100',
+          backgroundColor: 'gray.250',
+          color: 'gray.700',
         },
         '&[data-selected]': {
-          backgroundColor: 'primaryDark.700',
-          color: 'primaryDark.100',
+          color: 'brand.250',
+        },
+        '&[data-selected][data-pressed]': {
+          color: 'brand.250',
         },
         '&[data-focus-visible]': {
           outline: '2px solid',
@@ -218,67 +260,68 @@ export const buttonRecipe = cva({
       quaternaryText: {
         backgroundColor: 'transparent',
         fontWeight: 'medium !important',
-        color: 'greyscale.600',
+        color: 'gray.600',
         '&[data-hovered]': {
-          backgroundColor: 'greyscale.100',
-          color: 'greyscale.700',
+          backgroundColor: 'gray.050',
+          color: 'gray.750',
         },
         '&[data-pressed]': {
-          backgroundColor: 'greyscale.100',
-          color: 'greyscale.700',
+          backgroundColor: 'gray.050',
+          color: 'gray.750',
         },
         '&[data-disabled]': {
           backgroundColor: 'transparent',
-          color: 'greyscale.300',
+          color: 'gray.150',
         },
       },
       greyscale: {
         backgroundColor: 'transparent',
-        color: 'greyscale.400',
+        color: 'gray.400',
         '&[data-hovered]': {
-          color: 'greyscale.800',
+          color: 'gray.850',
         },
         '&[data-pressed]': {
-          color: 'greyscale.800',
+          color: 'gray.850',
         },
         '&[data-selected]': {
-          color: 'greyscale.800',
+          color: 'gray.850',
         },
         '&[data-disabled]': {
-          color: 'greyscale.200',
+          color: 'gray.100',
         },
       },
       danger: {
-        backgroundColor: 'error.400',
+        backgroundColor: 'error.550',
         color: 'white',
         '&[data-hovered]': {
-          backgroundColor: 'error.600',
+          backgroundColor: 'error.400',
         },
         '&[data-pressed]': {
-          backgroundColor: 'error.700',
-          color: 'error.200',
+          backgroundColor: 'error.300',
+          color: 'error.700',
         },
       },
       error2: {
-        backgroundColor: 'error.200',
-        color: 'error.900',
+        backgroundColor: 'error.700',
+        color: 'error.100',
         '&[data-hovered]': {
-          backgroundColor: 'error.300',
+          backgroundColor: 'error.650',
         },
         '&[data-focused]': {
-          backgroundColor: 'error.200',
+          backgroundColor: 'error.700',
         },
         '&[data-pressed]': {
-          backgroundColor: 'error.900',
-          color: 'error.100',
+          backgroundColor: 'error.100',
+          color: 'error.900',
         },
         '&[data-selected]': {
-          backgroundColor: 'error.900 !important',
-          color: 'error.100 !important',
+          backgroundColor: 'error.100 !important',
+          color: 'error.900 !important',
         },
         '&[data-disabled]': {
-          backgroundColor: 'error.200 !important',
-          color: 'error.300 !important',
+          backgroundColor: 'error.700 !important',
+          // error.650 would leave the icon barely visible on error.700 (1.2:1)
+          color: 'error.600 !important',
         },
       },
       errorCircle: {
@@ -288,36 +331,35 @@ export const buttonRecipe = cva({
         borderRadius: '100%',
         color: 'white',
         '&[data-hovered]': {
-          backgroundColor: 'error.600',
+          backgroundColor: 'error.400',
         },
         '&[data-pressed]': {
-          backgroundColor: 'error.700',
-          color: 'error.200',
+          backgroundColor: 'error.300',
+          color: 'error.700',
         },
       },
       // @TODO: better handling of colors… this is a mess
       success: {
-        colorPalette: 'success',
-        color: 'success.subtle-text',
-        backgroundColor: 'success.subtle',
+        color: 'content.semantic.success.secondary',
+        backgroundColor: 'background.semantic.success.tertiary',
         '&[data-hovered]': {
-          backgroundColor: 'success.200',
+          backgroundColor: 'background.semantic.success.tertiary-hover',
         },
         '&[data-pressed]': {
-          backgroundColor: 'success.subtle!',
+          backgroundColor: 'background.semantic.success.tertiary!',
         },
       },
       text: {
-        color: 'primary',
+        color: 'content.semantic.brand.tertiary',
         '&[data-hovered]': {
-          background: 'gray.100 !important',
-          color: 'primary !important',
+          background: 'gray.050 !important',
+          color: 'content.semantic.brand.tertiary !important',
         },
       },
       permission: {
         position: 'relative',
         borderRadius: '100%',
-        color: 'amber.500',
+        color: 'warning.300',
         width: 'fit-content',
         height: 'fit-content',
         padding: '0 !important',
@@ -333,13 +375,13 @@ export const buttonRecipe = cva({
         backgroundColor: 'none!',
         '&[data-hovered]': {
           backgroundColor: 'none!',
-          borderColor: 'colorPalette.active!',
+          borderColor: 'currentcolor!',
         },
         '&[data-pressed]': {
           borderColor: 'currentcolor',
         },
         '&[data-disabled]': {
-          color: 'gray.300',
+          color: 'gray.150',
         },
       },
     },
@@ -387,7 +429,7 @@ export const buttonRecipe = cva({
       shySelected: true,
       css: {
         '&[data-selected]': {
-          backgroundColor: 'primaryDark.100',
+          backgroundColor: 'gray.700',
           color: 'white',
         },
       },

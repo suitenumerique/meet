@@ -1,5 +1,3 @@
-import { useTranslation } from 'react-i18next'
-import { Text } from '@/primitives'
 import { ChatMessages } from './ChatMessages'
 import { ChatTextArea } from './ChatTextArea'
 import { styled } from '@/styled-system/jsx'
@@ -23,24 +21,9 @@ const ChatMessagesContainer = styled('div', {
   },
 })
 
-const TextContainer = styled('div', {
-  base: {
-    display: 'flex',
-    padding: '0.75rem',
-    backgroundColor: 'greyscale.50',
-    borderRadius: 4,
-    marginBottom: '0.75rem',
-  },
-})
-
 export const Chat = () => {
-  const { t } = useTranslation('rooms', { keyPrefix: 'chat' })
-
   return (
     <ChatContainer>
-      <TextContainer>
-        <Text variant="sm">{t('disclaimer')}</Text>
-      </TextContainer>
       <ChatMessagesContainer>
         <ChatMessages />
       </ChatMessagesContainer>

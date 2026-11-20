@@ -148,8 +148,7 @@ export const Dialog = ({
                     {!isAlert && (
                       <Div position="absolute" top="5" right="5">
                         <Button
-                          variant="tertiaryText"
-                          invisible
+                          variant="tertiaryNeutral"
                           size="xs"
                           onPress={() => close()}
                           aria-label={t('closeDialog')}

@@ -496,7 +496,7 @@
       "recording": "Auch eine Videoaufzeichnung starten"
     },
     "button": {
-      "start": "Meeting-Transkription starten",
+      "start": "Transkription starten",
       "stop": "Meeting-Transkription beenden",
       "saving": "Speichern…",
       "starting": "Wird gestartet…",
@@ -569,7 +569,7 @@
       "qualityEdit": "Ändern"
     },
     "button": {
-      "start": "Meeting-Aufzeichnung starten",
+      "start": "Aufzeichnung starten",
       "stop": "Meeting-Aufzeichnung beenden",
       "saving": "Wird gespeichert…",
       "starting": "Wird gestartet…",

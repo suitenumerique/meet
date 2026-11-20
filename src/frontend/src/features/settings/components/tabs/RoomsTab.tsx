@@ -121,7 +121,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
           height: '1px',
           width: '100%',
           flexShrink: 0,
-          background: 'greyscale.250',
+          background: 'gray.100',
         })}
       />
       <H
@@ -179,7 +179,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
           width: '100%',
           flexShrink: 0,
           marginY: '1rem',
-          background: 'greyscale.250',
+          background: 'gray.100',
         })}
       />
       <H

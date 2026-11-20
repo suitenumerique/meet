@@ -34,7 +34,7 @@ export function ToastLowerHand({ state, ...props }: Readonly<ToastProps>) {
           size="sm"
           variant="text"
           className={css({
-            color: 'primary.300',
+            color: 'brand.150',
             marginLeft: '0.5rem',
           })}
           onPress={() => handleDismiss()}

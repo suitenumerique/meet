@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { RiChat1Line } from '@remixicon/react'
+import { RiChat1Fill, RiChat1Line } from '@remixicon/react'
 import { useSnapshot } from 'valtio'
 import { css } from '@/styled-system/css'
 import { ToggleButton } from '@/primitives'
@@ -45,7 +45,7 @@ export const ChatToggle = ({
         data-attr={`controls-chat-${tooltipLabel}`}
         {...props}
       >
-        <RiChat1Line />
+        {isChatOpen ? <RiChat1Fill /> : <RiChat1Line />}
       </ToggleButton>
       {!!chatSnap.unreadMessages && (
         <div
@@ -55,11 +55,11 @@ export const ChatToggle = ({
             right: '-.25rem',
             width: '1rem',
             height: '1rem',
-            backgroundColor: 'alert.notification',
+            backgroundColor: 'background.semantic.error.primary',
             borderRadius: '50%',
             zIndex: 1,
             border: '2px solid',
-            borderColor: 'greyscale.250',
+            borderColor: 'gray.100',
           })}
         />
       )}

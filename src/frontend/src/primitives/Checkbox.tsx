@@ -9,28 +9,33 @@ import { styled } from '@/styled-system/jsx'
 import { FieldErrors } from './FieldErrors'
 import { FieldDescription } from './FieldDescription'
 
-// styled taken from example at https://react-spectrum.adobe.com/react-aria/Checkbox.html
+// Follows the checkbox of the UI kit (its `forms-checkbox` component tokens).
 const StyledCheckbox = styled(RACCheckbox, {
   base: {
     display: 'flex',
     alignItems: 'center',
-    gap: 0.375,
+    gap: 'xs',
     forcedColorAdjust: 'none',
     width: 'fit-content',
+    cursor: 'pointer',
+    color: 'content.semantic.neutral.primary',
+    fontSize: 'sm',
+    fontWeight: 'medium',
     '& .mt-Checkbox-checkbox': {
-      borderColor: 'control.border',
       flexShrink: 0,
-      width: '1.375rem',
-      height: '1.375rem',
-      border: '1px solid',
-      borderRadius: 4,
+      width: '1.5rem',
+      height: '1.5rem',
+      border: '1.5px solid',
+      borderColor: 'content.semantic.neutral.tertiary',
+      borderRadius: 2,
+      backgroundColor: 'background.surface.primary',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      transition: 'all 200ms',
+      transition: 'border 250ms, box-shadow 250ms, background-color 250ms',
     },
     '& svg': {
-      stroke: 'primary.text',
+      stroke: 'content.semantic.contextual.primary',
       width: '0.875rem',
       height: '0.875rem',
       flexShrink: 0,
@@ -40,30 +45,42 @@ const StyledCheckbox = styled(RACCheckbox, {
       strokeDashoffset: '66',
       transition: 'all 200ms',
     },
-    '&[data-pressed] .mt-Checkbox-checkbox': {
-      borderColor: 'focusRing',
+    '&[data-hovered] .mt-Checkbox-checkbox': {
+      boxShadow: '0 0 0 1px {colors.content.semantic.neutral.tertiary}',
     },
     '&[data-focus-visible] .mt-Checkbox-checkbox': {
+      borderColor: 'content.semantic.brand.primary',
+      boxShadow: '0 0 0 1px {colors.content.semantic.brand.primary}',
       outline: '2px solid!',
       outlineColor: 'focusRing!',
       outlineOffset: '2px!',
     },
     '&[data-selected] .mt-Checkbox-checkbox': {
-      borderColor: 'primary',
-      backgroundColor: 'primary',
+      borderColor: 'content.semantic.brand.tertiary',
+      backgroundColor: 'content.semantic.brand.tertiary',
     },
-    '&[data-selected][data-pressed] .mt-Checkbox-checkbox': {
-      borderColor: 'primary.active',
-      backgroundColor: 'primary.active',
+    '&[data-selected][data-hovered] .mt-Checkbox-checkbox': {
+      boxShadow: '0 0 0 1px {colors.content.semantic.brand.tertiary}',
     },
     '&[data-selected] svg': {
       strokeDashoffset: '44',
     },
     '&[data-mt-checkbox-invalid="true"] .mt-Checkbox-checkbox': {
-      borderColor: 'danger',
+      borderColor: 'border.semantic.error.primary',
     },
     '&[data-selected][data-mt-checkbox-invalid="true"] .mt-Checkbox-checkbox': {
-      backgroundColor: 'danger',
+      backgroundColor: 'background.semantic.error.primary',
+    },
+    '&[data-disabled]': {
+      cursor: 'not-allowed',
+      color: 'content.semantic.disabled.primary',
+    },
+    '&[data-disabled] .mt-Checkbox-checkbox': {
+      borderColor: 'content.semantic.disabled.primary',
+    },
+    '&[data-disabled][data-selected] .mt-Checkbox-checkbox': {
+      borderColor: 'content.semantic.disabled.primary',
+      backgroundColor: 'content.semantic.disabled.primary',
     },
   },
   variants: {

@@ -41,7 +41,7 @@ export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
             animationIterationCount: '2',
           }}
         />
-        <Div {...titleProps} marginRight={0.5}>
+        <Div {...titleProps} marginRight="xs">
           {t('raised.description', {
             name: participant.name || t('defaultName'),
           })}
@@ -51,7 +51,7 @@ export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
             size="sm"
             variant="text"
             className={css({
-              color: 'primary.300',
+              color: 'brand.150',
             })}
             onPress={(e) => {
               toggleParticipants()

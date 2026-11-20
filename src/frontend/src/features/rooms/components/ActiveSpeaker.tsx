@@ -6,7 +6,7 @@ const StyledContainer = styled('div', {
     width: '24px',
     height: '24px',
     boxSizing: 'border-box',
-    backgroundColor: 'primary',
+    backgroundColor: 'background.semantic.brand.primary',
     borderRadius: '100%',
     display: 'flex',
     alignItems: 'center',
@@ -20,8 +20,8 @@ const StyledContainer = styled('div', {
         width: '58px',
         borderLeftRadius: 8,
         borderRightRadius: 0,
-        backgroundColor: 'primary.200',
-        border: '1px solid primary.500',
+        backgroundColor: 'brand.150',
+        border: '1px solid brand.500',
         gap: '3px',
       },
     },
@@ -55,7 +55,7 @@ const StyledChild = styled('div', {
     },
     pushToTalk: {
       true: {
-        backgroundColor: 'primary',
+        backgroundColor: 'background.semantic.brand.primary',
         width: '6px',
         height: '6px',
       },

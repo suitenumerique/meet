@@ -64,6 +64,7 @@ export function useRaisedHandPosition({ participant }: useRaisedHandProps) {
   return {
     positionInQueue,
     firstInQueue: positionInQueue === 1,
+    queueLength: sortedHands.length,
   }
 }
 

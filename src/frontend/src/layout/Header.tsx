@@ -45,7 +45,7 @@ const LoginHint = () => {
         maxWidth: 'min(350px, calc(100vw - 2rem))',
         boxShadow: '0 2px 5px rgba(0 0 0 / 0.1)',
         borderRadius: '1rem',
-        backgroundColor: 'primary.200',
+        backgroundColor: 'brand.150',
         _after: {
           content: '""',
           position: 'absolute',
@@ -53,7 +53,7 @@ const LoginHint = () => {
           right: '1.5rem',
           borderWidth: '0 10px 10px 10px',
           borderStyle: 'solid',
-          borderColor: 'transparent transparent #E3E3FB transparent',
+          borderColor: 'transparent transparent {colors.brand.150} transparent',
         },
       })}
     >
@@ -109,15 +109,15 @@ export const Header = () => {
       <FeedbackBanner />
       <div
         className={css({
-          paddingBottom: 1,
-          paddingX: 1,
-          paddingTop: 0.25,
+          paddingBottom: 'base',
+          paddingX: 'base',
+          paddingTop: '3xs',
           flexShrink: 0,
         })}
       >
         <HStack gap={0} justify="space-between" alignItems="center">
           <header>
-            <Stack gap={2.25} direction="row" align="center">
+            <Stack gap="2.25rem" direction="row" align="center">
               <Link
                 className={css({
                   display: 'flex',
@@ -126,7 +126,7 @@ export const Header = () => {
                   gap: { base: '0', sm: '2rem' },
                   padding: { base: '0.5rem', sm: '1rem' },
                   _hover: {
-                    backgroundColor: 'greyscale.100',
+                    backgroundColor: 'gray.050',
                     borderRadius: '4px',
                   },
                 })}
@@ -153,7 +153,7 @@ export const Header = () => {
             </Stack>
           </header>
           <nav>
-            <Stack gap={1} direction="row" align="center">
+            <Stack gap="base" direction="row" align="center">
               <SupportButton />
               {isLoggedIn === false &&
                 !isHome &&

@@ -132,7 +132,7 @@ export const WaitingParticipantNotification = () => {
                 size="sm"
                 variant="text"
                 className={css({
-                  color: 'primary.300',
+                  color: 'brand.150',
                 })}
                 onPress={async () => {
                   await handleParticipantEntry(waitingParticipants[0], true)
@@ -145,7 +145,7 @@ export const WaitingParticipantNotification = () => {
                 size="sm"
                 variant="text"
                 className={css({
-                  color: 'primary.300',
+                  color: 'brand.150',
                 })}
                 onPress={() => {
                   toggleParticipants()
@@ -187,7 +187,7 @@ export const WaitingParticipantNotification = () => {
                     borderRadius: '50%',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    background: 'primaryDark.100',
+                    background: 'gray.700',
                     border: '2px solid white',
                     marginLeft: '-10px',
                   })}
@@ -215,7 +215,7 @@ export const WaitingParticipantNotification = () => {
                 size="sm"
                 variant="text"
                 className={css({
-                  color: 'primary.300',
+                  color: 'brand.150',
                 })}
                 onPress={() => {
                   toggleParticipants()

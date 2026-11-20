@@ -145,10 +145,10 @@ const VisualOnlyTooltipInner = ({
             className={css({
               position: 'fixed',
               padding: '2px 8px',
-              backgroundColor: 'primaryDark.100',
-              color: 'gray.100',
+              backgroundColor: 'gray.700',
+              color: 'gray.050',
               borderRadius: '4px',
-              fontSize: 14,
+              fontSize: 'sm',
               whiteSpace: 'nowrap',
               pointerEvents: 'none',
               zIndex: 100001,
@@ -162,11 +162,11 @@ const VisualOnlyTooltipInner = ({
                 ...(effectiveBottom
                   ? {
                       bottom: '100%',
-                      borderBottomColor: 'primaryDark.100',
+                      borderBottomColor: 'gray.700',
                     }
                   : {
                       top: '100%',
-                      borderTopColor: 'primaryDark.100',
+                      borderTopColor: 'gray.700',
                     }),
               },
             })}

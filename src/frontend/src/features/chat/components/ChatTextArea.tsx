@@ -9,14 +9,26 @@ import {
   persistTextAreaValue,
 } from '@/stores/chat'
 import { ChatSubmitButton } from './ChatSubmitButton'
+import { subtleScrollbar } from '@/styles/scrollbar'
 
 const StyledContainer = styled('div', {
   base: {
     display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '0.125rem',
     margin: '0.75rem 0 1.5rem',
-    padding: '0.5rem',
-    backgroundColor: 'gray.100',
-    borderRadius: 4,
+    padding: '0.75rem',
+    backgroundColor: 'background.surface.primary',
+    border: '1px solid',
+    borderColor: 'border.semantic.neutral.tertiary',
+    borderRadius: 12,
+    '& textarea': {
+      backgroundColor: 'transparent',
+    },
+    '& textarea::placeholder': {
+      color: 'content.semantic.neutral.tertiary',
+    },
   },
 })
 
@@ -66,6 +78,7 @@ export const ChatTextArea = () => {
     <StyledContainer>
       <TextArea
         ref={inputRef}
+        className={subtleScrollbar}
         value={textAreaValue}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
@@ -75,14 +88,16 @@ export const ChatTextArea = () => {
         fieldSizing={'content'}
         style={{
           border: 'none',
+          boxShadow: 'none',
           resize: 'none',
           height: 'auto',
           maxHeight: '240px',
-          minHeight: `34px`,
+          minHeight: '1.25rem',
           lineHeight: 1.25,
-          padding: '7px 10px',
+          // Marianne draws 2px below the line: without room for them, the
+          // text area is scrollable, and shows a scrollbar, even when empty.
+          padding: '0 0 2px',
         }}
-        placeholderStyle="strong"
         spellCheck={false}
         maxLength={2000}
         placeholder={t('textArea.placeholder')}

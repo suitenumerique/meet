@@ -5,8 +5,8 @@ const StyledDescription = styled(Text, {
   base: {
     display: 'block',
     textStyle: 'sm',
-    color: 'default.subtle-text',
-    marginBottom: 0.125,
+    color: 'content.semantic.neutral.secondary',
+    marginBottom: '4xs',
   },
 })
 

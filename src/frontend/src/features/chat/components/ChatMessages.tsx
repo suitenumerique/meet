@@ -6,19 +6,31 @@ import {
 } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { ChatMessage } from './ChatMessage.tsx'
-import { useLayoutEffect, useRef } from 'react'
+import { ChatDisclaimer } from './ChatDisclaimer'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useSnapshot } from 'valtio'
 import { ChatRow, chatStore } from '@/stores/chat'
+import { subtleScrollbar } from '@/styles/scrollbar'
 
 // Estimated height of a chat entry in px. ListLayout measures the real
 // rendered height of each row; this value is only used to size the
 // scrollbar before rows have been measured.
 const ESTIMATED_ROW_HEIGHT = 56
 const BOTTOM_THRESHOLD_PX = 32
+const LIST_PADDING = 4
+const SCROLLBAR_WIDTH = 8
+const SCROLLBAR_GAP = 4
+
+const DISCLAIMER_ID = 'disclaimer'
+type ChatListItem = ChatRow | { id: typeof DISCLAIMER_ID }
 
 export const ChatMessages = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'chat' })
-  const { rows: items } = useSnapshot(chatStore)
+  const { rows } = useSnapshot(chatStore)
+  const items = useMemo<ChatListItem[]>(
+    () => [{ id: DISCLAIMER_ID }, ...rows],
+    [rows]
+  )
 
   const listRef = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
@@ -52,8 +64,8 @@ export const ChatMessages = () => {
       layout={ListLayout}
       layoutOptions={{
         estimatedRowSize: ESTIMATED_ROW_HEIGHT,
-        gap: 4,
-        padding: 4,
+        gap: 6,
+        padding: LIST_PADDING,
       }}
     >
       <ListBox
@@ -61,16 +73,26 @@ export const ChatMessages = () => {
         aria-label={t('messagesLabel', 'Chat messages')}
         items={items}
         selectionMode="none"
+        className={subtleScrollbar}
         style={{
           display: 'block',
           height: '100%',
-          width: '100%',
+          width: `calc(100% + ${2 * LIST_PADDING + SCROLLBAR_GAP + SCROLLBAR_WIDTH}px)`,
+          marginLeft: -LIST_PADDING,
           overflow: 'auto',
+          scrollbarGutter: 'stable',
         }}
       >
-        {(item: ChatRow) => (
-          <ListBoxItem style={{ width: '100%' }}>
-            <ChatMessage item={item} />
+        {(item: ChatListItem) => (
+          <ListBoxItem
+            textValue={item.id === DISCLAIMER_ID ? t('disclaimer') : undefined}
+            style={{ width: '100%', paddingRight: SCROLLBAR_GAP }}
+          >
+            {item.id === DISCLAIMER_ID ? (
+              <ChatDisclaimer />
+            ) : (
+              <ChatMessage item={item as ChatRow} />
+            )}
           </ListBoxItem>
         )}
       </ListBox>

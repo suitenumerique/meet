@@ -16,7 +16,7 @@ import { StepStatusIndicator } from './StepStatusIndicator'
 
 /** Each step is its own bounded card, collapsed or not. */
 const cardClass = css({
-  border: '1px solid {colors.greyscale.900}',
+  border: '1px solid {colors.gray.850}',
   borderRadius: '5px',
   backgroundColor: 'white',
   overflow: 'hidden',
@@ -47,7 +47,7 @@ const identityClass = css({
 const triggerClass = css({
   cursor: 'pointer',
   transition: 'background-color 120ms',
-  _hover: { backgroundColor: 'greyscale.50' },
+  _hover: { backgroundColor: 'gray.025' },
   '&[data-focus-visible]': {
     outline: '2px solid {colors.focusRing}',
     outlineOffset: '-2px!',
@@ -56,13 +56,13 @@ const triggerClass = css({
 
 /** Expanded headers stay tinted so the open card reads as one block. */
 const triggerExpandedClass = css({
-  backgroundColor: 'greyscale.100',
-  _hover: { backgroundColor: 'greyscale.100' },
+  backgroundColor: 'gray.050',
+  _hover: { backgroundColor: 'gray.050' },
 })
 
 const labelClass = css({
   textStyle: 'body',
-  color: 'greyscale.1000',
+  color: 'gray.850',
   fontWeight: 'medium',
 })
 
@@ -74,7 +74,7 @@ const valueClass = css({
 })
 
 const chevronClass = css({
-  color: 'primary.800',
+  color: 'brand.550',
   justifySelf: 'end',
   transition: 'transform 150ms',
 })
@@ -103,7 +103,7 @@ const logListClass = css({
 const logItemClass = css({
   fontFamily: 'mono',
   textStyle: 'xs',
-  color: 'greyscale.700',
+  color: 'gray.750',
   overflowWrap: 'anywhere',
 })
 

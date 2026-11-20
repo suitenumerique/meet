@@ -1,8 +1,8 @@
 import { closeSidePanel, layoutStore } from '@/stores/layout'
-import { css } from '@/styled-system/css'
+import { css, cx } from '@/styled-system/css'
 import { Heading } from 'react-aria-components'
 import { text } from '@/primitives/Text'
-import { Button, Div } from '@/primitives'
+import { Button } from '@/primitives'
 import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from '@/features/participants/components/ParticipantsList'
@@ -13,7 +13,6 @@ import { Effects } from './effects/Effects'
 import { Admin } from './Admin'
 import { Tools } from './Tools'
 import { Info } from './Info'
-import { HStack } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import { useEscapeToClose } from '@/hooks/useEscapeToClose'
@@ -56,9 +55,9 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
       className={css({
         borderWidth: '1px',
         borderStyle: 'solid',
-        borderColor: 'box.border',
-        backgroundColor: 'box.bg',
-        color: 'box.text',
+        borderColor: 'border.surface.primary',
+        backgroundColor: 'background.surface.primary',
+        color: 'content.semantic.neutral.primary',
         borderRadius: 8,
         flex: 1,
         position: 'absolute',
@@ -83,7 +82,7 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
           ? 'translateX(calc(var(--sizes-room-side-panel) + var(--sizes-room-side-panel-margin)))'
           : 'none',
         bottom: isReactionToolbarOpen
-          ? 'calc( var(--sizes-room-control-bar) + var(--sizes-room-reaction-toolbar-height) + calc(var(--lk-grid-gap) / 2))'
+          ? 'calc( var(--sizes-room-control-bar) + var(--sizes-room-reaction-toolbar-height) - var(--sizes-room-reaction-toolbar-offset) + calc(var(--lk-grid-gap) / 2))'
           : 'var(--sizes-room-control-bar)',
       }}
       aria-hidden={isClosed}
@@ -93,13 +92,22 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
       <span id="side-panel-escape-hint" className={srOnly}>
         {escapeHint}
       </span>
-      <HStack alignItems="center">
+      <div
+        className={css({
+          display: isClosed ? 'none' : 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          paddingTop: '1rem',
+          paddingBottom: 'heading',
+          paddingLeft: isSubmenu ? '1rem' : '1.5rem',
+          paddingRight: '1.5rem',
+        })}
+      >
         {isSubmenu && (
           <Button
             variant="secondaryText"
             size="sm"
             square
-            className={css({ marginRight: '0.5rem', marginLeft: '1rem' })}
             aria-label={backButtonLabel}
             onPress={onBack}
           >
@@ -109,37 +117,36 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
         <Heading
           slot="title"
           level={1}
-          className={text({ variant: 'h2' })}
-          style={{
-            paddingLeft: isSubmenu ? 0 : '1.5rem',
-            paddingTop: '1rem',
-            display: isClosed ? 'none' : 'flex',
-            justifyContent: 'start',
-            alignItems: 'center',
-          }}
+          className={cx(
+            text({ variant: 'h2' }),
+            css({
+              flex: 1,
+              minWidth: 0,
+              overflowWrap: 'anywhere',
+              margin: '0!',
+              padding: '0!',
+            })
+          )}
         >
           {title}
         </Heading>
-      </HStack>
-      <Div
-        position="absolute"
-        top="5"
-        right="5"
-        style={{
-          display: isClosed ? 'none' : undefined,
-        }}
-      >
         <Button
-          invisible
-          variant="tertiaryText"
+          variant="tertiaryNeutral"
           size="xs"
           onPress={onClose}
           aria-label={closeButtonTooltip}
           tooltip={closeButtonTooltip}
+          className={css({
+            flexShrink: 0,
+            // The cross is drawn inside its icon, itself inside the border of
+            // the button: this aligns the cross, not its box, with the content
+            // of the panel.
+            marginRight: '-6.6px',
+          })}
         >
           <RiCloseLine />
         </Button>
-      </Div>
+      </div>
       {children}
     </aside>
   )

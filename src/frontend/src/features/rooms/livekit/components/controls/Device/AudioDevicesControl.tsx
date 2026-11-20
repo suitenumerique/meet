@@ -15,6 +15,7 @@ import { useCannotUseDevice } from '../../../hooks/useCannotUseDevice'
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
+import { menuSelect, menuTrigger } from './menuTrigger'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import Source = Track.Source
@@ -94,6 +95,7 @@ export const AudioDevicesControl = ({
             aria-label={selectLabel}
             groupPosition="right"
             square
+            className={menuTrigger}
             variant={
               !canPublishTrack || !trackProps.enabled || cannotUseDevice
                 ? 'error2'
@@ -105,18 +107,13 @@ export const AudioDevicesControl = ({
           {({ close }) => (
             <div
               className={css({
-                maxWidth: '36rem',
-                padding: '0.15rem',
+                maxWidth: 'calc(100vw - 2rem)',
                 display: 'flex',
+                alignItems: 'center',
                 gap: '0.5rem',
               })}
             >
-              <div
-                style={{
-                  flex: '1 1 0',
-                  minWidth: 0,
-                }}
-              >
+              <div className={menuSelect}>
                 <SelectDevice
                   context="room"
                   kind={kind}
@@ -126,12 +123,7 @@ export const AudioDevicesControl = ({
                 />
               </div>
               {!isSafari() && (
-                <div
-                  style={{
-                    flex: '1 1 0',
-                    minWidth: 0,
-                  }}
-                >
+                <div className={menuSelect}>
                   <SelectDevice
                     context="room"
                     kind="audiooutput"

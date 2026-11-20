@@ -14,14 +14,13 @@ export const ChatSubmitButton = React.memo(
     return (
       <Button
         square
-        invisible
-        variant="tertiaryText"
+        variant="primary"
         size="sm"
         onPress={handleSubmit}
         isDisabled={isDisabled}
         aria-label={t('button.label')}
       >
-        <RiSendPlane2Fill />
+        <RiSendPlane2Fill size={18} />
       </Button>
     )
   }

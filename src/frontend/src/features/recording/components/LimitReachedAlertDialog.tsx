@@ -65,7 +65,7 @@ const LimitReachedAlertDialogContent = () => {
   return (
     <Dialog isOpen={isOpen} role="alertdialog" title={t('title')}>
       <LimitDescription />
-      <HStack gap={1}>
+      <HStack gap="base">
         <Button variant="text" size="sm" onPress={() => setIsOpen(false)}>
           {t('button')}
         </Button>

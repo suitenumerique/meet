@@ -5,8 +5,8 @@ const StyledErrors = styled('div', {
   base: {
     display: 'block',
     textStyle: 'sm',
-    color: 'danger',
-    marginTop: 0.125,
+    color: 'content.semantic.error.secondary',
+    marginTop: '4xs',
   },
 })
 

@@ -21,9 +21,14 @@ export const MutedMicIndicator = ({
   return (
     <div
       className={css({
-        backgroundColor: 'red.600',
+        backgroundColor: 'error.550',
         borderRadius: '4px',
-        padding: 0.25,
+        width: 'var(--metadata-item-size)',
+        height: 'var(--metadata-item-size)',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       })}
     >
       <RiMicOffFill size={16} color="white" />

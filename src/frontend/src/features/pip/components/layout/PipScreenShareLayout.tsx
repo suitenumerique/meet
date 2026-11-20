@@ -70,7 +70,7 @@ const CameraTile = styled('div', {
     minWidth: 0,
     borderRadius: '8px',
     overflow: 'hidden',
-    backgroundColor: 'primaryDark.100',
+    backgroundColor: 'gray.700',
     '& .lk-participant-tile': {
       width: '100%',
       height: '100%',
@@ -85,7 +85,7 @@ const ScreenShareSlot = styled('div', {
     minHeight: 0,
     borderRadius: '8px',
     overflow: 'hidden',
-    backgroundColor: 'primaryDark.100',
+    backgroundColor: 'gray.700',
     '& .lk-participant-tile': {
       width: '100%',
       height: '100%',

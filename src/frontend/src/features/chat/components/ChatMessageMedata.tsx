@@ -8,7 +8,7 @@ const StyledContainer = styled('span', {
   base: {
     display: 'flex',
     gap: '0.5rem',
-    paddingTop: '0.75rem',
+    paddingTop: '0.5rem',
   },
 })
 

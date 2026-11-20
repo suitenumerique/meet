@@ -496,7 +496,7 @@
       "recording": "Também iniciar uma gravação"
     },
     "button": {
-      "start": "Iniciar transcrição da reunião",
+      "start": "Iniciar transcrição",
       "stop": "Parar transcrição da reunião",
       "saving": "Salvando…",
       "starting": "Iniciando…",
@@ -569,7 +569,7 @@
       "qualityEdit": "Alterar"
     },
     "button": {
-      "start": "Iniciar gravação da reunião",
+      "start": "Iniciar gravação",
       "stop": "Parar gravação da reunião",
       "saving": "Salvando…",
       "starting": "Iniciando…",

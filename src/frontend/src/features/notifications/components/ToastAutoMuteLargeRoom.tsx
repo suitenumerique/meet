@@ -42,7 +42,7 @@ export function ToastAutoMuteLargeRoom({
           size="sm"
           variant="text"
           className={css({
-            color: 'primary.300',
+            color: 'brand.150',
           })}
           onPress={() => handleDismiss()}
         >

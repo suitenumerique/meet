@@ -47,10 +47,10 @@ export const RequestRecording = ({
   return (
     <div
       className={css({
-        backgroundColor: 'neutral.50',
+        backgroundColor: 'gray.025',
         borderRadius: '5px',
         border: '1px solid',
-        borderColor: 'neutral.200',
+        borderColor: 'gray.100',
         paddingY: '1rem',
         paddingX: '1rem',
         display: 'flex',

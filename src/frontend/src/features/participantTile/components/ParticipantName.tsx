@@ -3,7 +3,7 @@ import { Text } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 
 const participantNameStyles: CSSProperties = {
-  paddingBottom: '0.1rem',
+  fontWeight: 500,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',

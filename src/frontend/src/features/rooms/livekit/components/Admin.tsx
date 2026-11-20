@@ -78,7 +78,7 @@ export const Admin = () => {
             border: 'none',
             height: '1px',
             width: '100%',
-            background: 'greyscale.250',
+            background: 'gray.100',
           })}
         />
         <H
@@ -165,7 +165,7 @@ export const Admin = () => {
             border: 'none',
             height: '1px',
             width: '100%',
-            background: 'greyscale.250',
+            background: 'gray.100',
           })}
         />
         <H

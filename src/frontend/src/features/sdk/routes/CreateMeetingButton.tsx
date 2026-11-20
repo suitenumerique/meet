@@ -152,7 +152,7 @@ const CreateMeetingButton = () => {
       }}
     >
       {roomUrl && room?.slug ? (
-        <VStack justify={'start'} alignItems={'start'} gap={0.25}>
+        <VStack justify={'start'} alignItems={'start'} gap="3xs">
           <HStack>
             <Link
               className={buttonRecipe({ size: 'sm' })}
@@ -197,7 +197,7 @@ const CreateMeetingButton = () => {
               )}
             </HStack>
           </HStack>
-          <VStack justify={'start'} alignItems="start" gap={0.25}>
+          <VStack justify={'start'} alignItems="start" gap="3xs">
             <Text variant={'smNote'} margin={false} centered={false}>
               {roomUrl.replace('https://', '')}
             </Text>

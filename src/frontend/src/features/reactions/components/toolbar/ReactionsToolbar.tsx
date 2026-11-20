@@ -10,7 +10,8 @@ const Container = styled('div', {
     display: 'flex',
     justifyContent: 'center',
     position: 'absolute',
-    bottom: 'var(--sizes-room-control-bar)',
+    bottom:
+      'calc(var(--sizes-room-control-bar) - var(--sizes-room-reaction-toolbar-offset))',
     left: 0,
     right: 0,
     pointerEvents: 'none',

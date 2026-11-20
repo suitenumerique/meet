@@ -23,7 +23,7 @@ export const MuteAlertDialog = ({
       aria-label={t('heading', { name })}
     >
       <P>{t('description', { name })}</P>
-      <HStack gap={1}>
+      <HStack gap="base">
         <Button variant="text" size="sm" onPress={onClose}>
           {t('cancel')}
         </Button>

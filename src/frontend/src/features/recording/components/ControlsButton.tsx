@@ -104,10 +104,11 @@ export const ControlsButton = ({
     return (
       <Layout>
         <Button
-          variant="tertiary"
+          variant="primary"
           fullWidth
           onPress={handle}
           isDisabled={isDisabled}
+          size="compact"
           ref={primaryActionRef}
         >
           {t('button.stop')}
@@ -122,9 +123,9 @@ export const ControlsButton = ({
       {statuses.isAnotherModeStarted && (
         <RACButton
           className={css({
-            backgroundColor: 'primary.50',
+            backgroundColor: 'brand.050',
             border: '1px solid',
-            borderColor: 'primary.200',
+            borderColor: 'brand.150',
             borderRadius: '6px',
             padding: '0.75rem',
             marginBottom: '0.75rem',
@@ -135,15 +136,15 @@ export const ControlsButton = ({
             width: '100%',
             cursor: 'pointer',
             _hover: {
-              backgroundColor: 'primary.100',
-              borderColor: 'primary.400',
+              backgroundColor: 'brand.100',
+              borderColor: 'brand.400',
             },
           })}
           onPress={() => openSidePanel()}
         >
           <Icon
             className={css({
-              color: 'primary.500',
+              color: 'brand.500',
               marginRight: '1rem',
             })}
             name="info"
@@ -153,7 +154,7 @@ export const ControlsButton = ({
           </Text>
           <Icon
             className={css({
-              color: 'primary.500',
+              color: 'brand.500',
               marginLeft: 'auto',
             })}
             name="chevron_right"
@@ -161,7 +162,7 @@ export const ControlsButton = ({
         </RACButton>
       )}
       <Button
-        variant={isDisabled ? 'primary' : 'tertiary'}
+        variant="primary"
         fullWidth
         onPress={handle}
         isDisabled={isDisabled}
