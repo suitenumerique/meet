@@ -25,13 +25,20 @@ const StyledButton = styled(Button, {
     paddingY: '4xs',
     paddingX: '3xs',
     border: '1px solid',
-    borderColor: 'border.semantic.neutral.primary',
+    borderColor: 'border.semantic.neutral.tertiary',
     color: 'content.semantic.neutral.primary',
     borderRadius: 4,
-    boxShadow: '0 1px 2px rgba(0 0 0 / 0.1)',
-    '&[data-focus-visible]': {
-      outline: '2px solid {colors.focusRing}',
-      outlineOffset: '-1px',
+    // The field of the UI kit: its border thickens on hover, with a ring of
+    // the same color, and turns to the brand color when focused or open.
+    boxShadow: '0 0 0 0 {colors.border.semantic.neutral.tertiary}',
+    transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
+    '&[data-hovered]:not([data-focus-visible], [aria-expanded=true])': {
+      boxShadow: '0 0 0 1px {colors.border.semantic.neutral.tertiary}',
+    },
+    '&[data-focus-visible], &[aria-expanded=true]': {
+      borderColor: 'border.semantic.brand.primary',
+      boxShadow: '0 0 0 1px {colors.border.semantic.brand.primary}',
+      outline: 'none!',
     },
     '&[data-pressed]': {
       backgroundColor: 'background.semantic.neutral.tertiary-hover',
@@ -40,7 +47,6 @@ const StyledButton = styled(Button, {
     '&[data-disabled]': {
       color: 'content.semantic.neutral.secondary',
       borderColor: 'gray.100',
-      boxShadow: '0 1px 2px rgba(0 0 0 / 0.02)',
     },
   },
   variants: {
@@ -48,8 +54,18 @@ const StyledButton = styled(Button, {
       light: {},
       dark: {
         backgroundColor: 'gray.700',
+        borderColor: 'gray.550',
         fontWeight: 'medium !important',
         color: 'white',
+        '&[data-hovered]:not([data-focus-visible], [aria-expanded=true])': {
+          boxShadow: '0 0 0 1px {colors.gray.550}',
+        },
+        // a softer blue on dark surfaces: the one of the selected buttons of
+        // the control bar
+        '&[data-focus-visible], &[aria-expanded=true]': {
+          borderColor: 'brand.250!',
+          boxShadow: '0 0 0 1px {colors.brand.250}!',
+        },
         '&[data-pressed]': {
           backgroundColor: 'gray.100',
           color: 'gray.700',

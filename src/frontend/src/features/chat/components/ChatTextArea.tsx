@@ -88,6 +88,7 @@ export const ChatTextArea = () => {
         fieldSizing={'content'}
         style={{
           border: 'none',
+          boxShadow: 'none',
           resize: 'none',
           height: 'auto',
           maxHeight: '240px',
