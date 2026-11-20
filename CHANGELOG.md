@@ -54,6 +54,7 @@ and this project adheres to
 - 🔒️(frontend) bump nginx to 1.31.9 (CERT-EU 2026-022)
 - ⚡️(frontend) animate floating reactions without rendering each frame
 - 🐛(frontend) subscribe useRoomData to the query cache
+- ♿️(frontend) keep floating reactions in place under reduced motion
 
 ## [1.37.0] - 2026-11-01
 

@@ -39,7 +39,10 @@ export function FloatingReaction({
     const element = elementRef.current
     if (!element) return
 
-    const distance = ANIMATION_DISTANCE * speed
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches
+    const distance = prefersReducedMotion ? 0 : ANIMATION_DISTANCE * speed
     const animation = element.animate(
       [
         { transform: 'translateY(0)', opacity: 1 },
