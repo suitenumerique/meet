@@ -254,6 +254,7 @@
   },
   "controls": {
     "region": "Call controls",
+    "toolbar": "Meeting tools",
     "microphone": "Microphone",
     "camera": "Camera",
     "chat": {
