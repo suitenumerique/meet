@@ -6,7 +6,11 @@
     "resetLabel": "Restablecer",
     "participantLimit": "Hasta 150 participantes.",
     "popupBlocked": "Se ha bloqueado la ventana emergente. Permite las ventanas emergentes para este sitio.",
-    "settingsTooltip": "Configuración de la reunión"
+    "settingsTooltip": "Configuración de la reunión",
+    "phone": {
+      "call": "Llama al:",
+      "pinCode": "Código:"
+    }
   },
   "roomSettings": {
     "title": "Configuración de la reunión",

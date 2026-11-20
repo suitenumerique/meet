@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- ✨(sdk) show and send the dial-in number and pin code
 - 📝(doc) create complete documentation website for Meet
 - 🌐(i18n) add Portuguese language support
 - ✨(frontend) add jittered exponential backoff to LiveKit reconnections

@@ -28,7 +28,12 @@ export class PopupWindow {
   public sendRoomData(data: CallbackCreationRoomData, callback?: () => void) {
     this.sendMessageToManager(
       PopupMessageType.ROOM_DATA,
-      { room: { slug: data.slug } },
+      {
+        room: {
+          slug: data.slug,
+          ...(data.pin_code && { pin_code: data.pin_code }),
+        },
+      },
       callback
     )
   }

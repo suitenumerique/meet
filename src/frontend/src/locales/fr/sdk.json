@@ -6,7 +6,11 @@
     "resetLabel": "Réinitialiser",
     "participantLimit": "Jusqu'à 150 participants.",
     "popupBlocked": "La fenêtre pop-up a été bloquée. Veuillez autoriser les pop-ups pour ce site.",
-    "settingsTooltip": "Paramètres de la réunion"
+    "settingsTooltip": "Paramètres de la réunion",
+    "phone": {
+      "call": "Appelez le :",
+      "pinCode": "Code :"
+    }
   },
   "roomSettings": {
     "title": "Paramètres de la réunion",

@@ -1,9 +1,9 @@
-import { getRouteUrl } from '@/navigation/getRouteUrl'
 import {
   CallbackCreationRoomData,
   ClientMessageType,
   PopupMessageData,
   PopupMessageType,
+  SdkRoomData,
 } from './types'
 
 export class PopupManager {
@@ -53,8 +53,7 @@ export class PopupManager {
     this.messageParent(ClientMessageType.STATE_CLEAR, {})
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public sendRoomData(data: { room: any }) {
+  public sendRoomData(data: { room: SdkRoomData }) {
     this.messageParent(ClientMessageType.ROOM_CREATED, data)
   }
 
@@ -72,13 +71,8 @@ export class PopupManager {
           return
         case PopupMessageType.ROOM_DATA:
           if (!data?.room) return
+          // The caller builds and sends ROOM_CREATED (it knows the telephony config)
           onRoomData(data.room)
-          this.sendRoomData({
-            room: {
-              url: getRouteUrl('room', data.room.slug),
-              ...data.room,
-            },
-          })
           return
       }
     }
