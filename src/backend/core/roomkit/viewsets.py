@@ -68,7 +68,7 @@ class RoomKitViewSet(viewsets.ViewSet):
         except models.Room.DoesNotExist as e:
             raise drf_exceptions.NotFound("No room found for this PIN code.") from e
 
-        PlacementService.place(str(room.id), room)
+        PlacementService.place(room)
 
         try:
             created = SIPManagement().ensure_dispatch_rule(room)

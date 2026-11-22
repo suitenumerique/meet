@@ -133,7 +133,7 @@ class PlacementService:
         return get_placement_strategy().choose(candidates, context)
 
     @classmethod
-    def place(cls, room_name: str, room: Room | None = None) -> LiveKitRoomLocation:
+    def place(cls, room: Room) -> LiveKitRoomLocation:
         """Make a LiveKit room ready to be joined and return where it lives.
 
         The LiveKit room is created on the cluster of its placement, which then
@@ -153,8 +153,9 @@ class PlacementService:
         # pylint: disable-next=import-outside-toplevel,cyclic-import
         from core.services import room_management  # noqa: PLC0415
 
+        room_name = str(room.id)
         for _attempt in range(PLACEMENT_UPDATE_ATTEMPTS):
-            placement, cluster, created = cls._get_or_create_placement(room_name, room)
+            placement, cluster, created = cls._get_or_create_placement(room)
             try:
                 livekit_room = room_management.RoomManagement.create_room(
                     room_name, cluster=cluster
@@ -197,7 +198,7 @@ class PlacementService:
 
     @classmethod
     def _get_or_create_placement(
-        cls, room_name: str, room: Room | None
+        cls, room: Room
     ) -> tuple[Placement, LiveKitClusterConfig, bool]:
         """Return the placement of a LiveKit room, placing if needed.
 
@@ -208,6 +209,7 @@ class PlacementService:
         number of times, and its placement deleted when it is on a cluster no
         longer registered.
         """
+        room_name = str(room.id)
         clusters = {cluster.name: cluster for cluster in get_livekit_clusters()}
         for _attempt in range(PLACEMENT_CREATION_ATTEMPTS):
             created = False

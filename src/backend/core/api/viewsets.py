@@ -634,7 +634,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         ).data
 
         if LobbyService.can_bypass_lobby(room=room, user=request.user, role=role):
-            location = PlacementService.place(str(room.id), room)
+            location = PlacementService.place(room)
             data["livekit"] = utils.generate_livekit_config(
                 room_id=str(room.id),
                 user=request.user,

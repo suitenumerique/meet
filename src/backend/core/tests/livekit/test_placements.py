@@ -279,24 +279,21 @@ def test_choose_cluster_without_candidate(settings, caplog):
     ) in caplog.text
 
 
-@pytest.mark.parametrize("registered", (True, False))
-def test_place_new_room(
-    registered, two_livekit_clusters, fake_livekit_room_creation, caplog
-):
+def test_place_new_room(two_livekit_clusters, fake_livekit_room_creation, caplog):
     """
     A LiveKit room without placement is placed on the cluster the placement
     strategy picks
     """
     paris, lyon = two_livekit_clusters
-    room = RoomFactory() if registered else None
-    room_name = str(room.id) if registered else "my-room"
+    room = RoomFactory()
+    room_name = str(room.id)
     fake_livekit_room_creation.return_value = livekit_room("RM_new")
 
     with (
         picking(lyon) as choose,
         caplog.at_level(logging.INFO, logger="core.livekit.placements"),
     ):
-        location = PlacementService.place(room_name, room)
+        location = PlacementService.place(room)
 
     assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_new")
     choose.assert_called_once_with(
@@ -332,7 +329,7 @@ def test_place_placed_room(two_livekit_clusters, fake_livekit_room_creation):
     fake_livekit_room_creation.return_value = livekit_room("RM_new")
 
     with mock.patch.object(WeightedRandomStrategy, "choose") as choose:
-        location = PlacementService.place(str(room.id), room)
+        location = PlacementService.place(room)
 
     assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_new")
     choose.assert_not_called()
@@ -352,15 +349,17 @@ def test_place_twice(two_livekit_clusters, fake_livekit_room_creation):
     ones, which do not ask the placement strategy.
     """
     _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
 
     with picking(lyon) as choose:
-        clusters = [PlacementService.place("my-room").cluster for _call in range(2)]
+        clusters = [PlacementService.place(room).cluster for _call in range(2)]
 
     assert clusters == [lyon, lyon]
     choose.assert_called_once()
     assert (
         fake_livekit_room_creation.call_args_list
-        == [mock.call("my-room", cluster=lyon)] * 2
+        == [mock.call(room_name, cluster=lyon)] * 2
     )
     assert Placement.objects.get().cluster == "lyon"
 
@@ -370,12 +369,14 @@ def test_place_on_cluster_weighing_zero(settings, fake_livekit_room_creation):
     A LiveKit room placed on a cluster that receives no new placements stays
     there.
     """
+    room = RoomFactory()
+    room_name = str(room.id)
     settings.LIVEKIT_CLUSTERS = json.dumps(
         [livekit_cluster_entry("paris"), livekit_cluster_entry("lyon", weight=0)]
     )
-    Placement.objects.create(room_name="my-room", cluster="lyon")
+    Placement.objects.create(room_name=room_name, cluster="lyon")
 
-    assert PlacementService.place("my-room").cluster.name == "lyon"
+    assert PlacementService.place(room).cluster.name == "lyon"
     assert Placement.objects.get().cluster == "lyon"
     fake_livekit_room_creation.assert_called_once()
 
@@ -389,21 +390,21 @@ def test_place_concurrently(two_livekit_clusters, fake_livekit_room_creation):
     places the LiveKit room on Lyon.
     """
     paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
     picks = iter((paris, lyon))
     concurrent_clusters = []
 
     def choose(_strategy, _candidates, context):
         pick = next(picks)
         if pick == paris:
-            concurrent_clusters.append(
-                PlacementService.place(context.room_name).cluster
-            )
+            concurrent_clusters.append(PlacementService.place(context.room).cluster)
         return pick
 
     with mock.patch.object(
         WeightedRandomStrategy, "choose", autospec=True, side_effect=choose
     ):
-        cluster = PlacementService.place("my-room").cluster
+        cluster = PlacementService.place(room).cluster
 
     assert cluster == lyon
     assert concurrent_clusters == [lyon]
@@ -414,7 +415,7 @@ def test_place_concurrently(two_livekit_clusters, fake_livekit_room_creation):
     assert placement.sid == CREATED_LIVEKIT_ROOM_SID
     assert (
         fake_livekit_room_creation.call_args_list
-        == [mock.call("my-room", cluster=lyon)] * 2
+        == [mock.call(room_name, cluster=lyon)] * 2
     )
 
 
@@ -425,6 +426,8 @@ def test_place_placed_meanwhile_creation_failure(
     A concurrent placement should stay when there is a LiveKit API error
     """
     paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
     fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
     bulk_create = Placement.objects.bulk_create
 
@@ -439,9 +442,9 @@ def test_place_placed_meanwhile_creation_failure(
         ),
         pytest.raises(LiveKitRoomCreationError),
     ):
-        PlacementService.place("my-room")
+        PlacementService.place(room)
 
-    fake_livekit_room_creation.assert_called_once_with("my-room", cluster=paris)
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=paris)
     assert Placement.objects.get().cluster == "paris"
 
 
@@ -454,6 +457,8 @@ def test_place_new_room_creation_failure(
     another cluster.
     """
     paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
     fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
 
     with (
@@ -461,18 +466,18 @@ def test_place_new_room_creation_failure(
         caplog.at_level(logging.INFO, logger="core.livekit.placements"),
         pytest.raises(LiveKitRoomCreationError, match="Timed out"),
     ):
-        PlacementService.place("my-room")
+        PlacementService.place(room)
 
-    fake_livekit_room_creation.assert_called_once_with("my-room", cluster=lyon)
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
     assert not Placement.objects.exists()
     assert (
-        "Deleted the placement of LiveKit room my-room on LiveKit cluster lyon, "
-        "which failed to create it"
+        f"Deleted the placement of LiveKit room {room_name} on LiveKit cluster "
+        "lyon, which failed to create it"
     ) in caplog.text
 
     fake_livekit_room_creation.side_effect = None
     with picking(paris):
-        assert PlacementService.place("my-room").cluster == paris
+        assert PlacementService.place(room).cluster == paris
     assert Placement.objects.get().cluster == "paris"
 
 
@@ -483,11 +488,13 @@ def test_place_placed_room_creation_failure(sid, fake_livekit_room_creation):
     The placement of a LiveKit room placed earlier stays when its cluster
     fails to create the LiveKit room.
     """
-    placement = Placement.objects.create(room_name="my-room", cluster="lyon", sid=sid)
+    room = RoomFactory()
+    room_name = str(room.id)
+    placement = Placement.objects.create(room_name=room_name, cluster="lyon", sid=sid)
     fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
 
     with pytest.raises(LiveKitRoomCreationError):
-        PlacementService.place("my-room")
+        PlacementService.place(room)
 
     kept_placement = Placement.objects.get()
     assert kept_placement.cluster == "lyon"
@@ -545,18 +552,20 @@ def test_place_changed_meanwhile(
     room created on the first one is left there.
     """
     paris, lyon = get_livekit_clusters()
-    Placement.objects.create(room_name="my-room", cluster="lyon")
+    room = RoomFactory()
+    room_name = str(room.id)
+    Placement.objects.create(room_name=room_name, cluster="lyon")
     fake_livekit_room_creation.side_effect = change_during_first_creation(**changes)
     room_management.attach_mock(fake_livekit_room_creation, "create_room")
 
     with picking(paris):
-        location = PlacementService.place("my-room")
+        location = PlacementService.place(room)
 
     assert location.cluster.name == expected_cluster
     assert location.sid == "RM_second"
     assert room_management.mock_calls == [
-        mock.call.create_room("my-room", cluster=lyon),
-        mock.call.create_room("my-room", cluster=location.cluster),
+        mock.call.create_room(room_name, cluster=lyon),
+        mock.call.create_room(room_name, cluster=location.cluster),
     ]
 
     placement = Placement.objects.get()
@@ -581,7 +590,9 @@ def test_place_given_the_created_sid_meanwhile(
     LiveKit room created once more, and it is no longer absent.
     """
     _paris, lyon = two_livekit_clusters
-    Placement.objects.create(room_name="my-room", cluster="lyon", sid=sid)
+    room = RoomFactory()
+    room_name = str(room.id)
+    Placement.objects.create(room_name=room_name, cluster="lyon", sid=sid)
     fake_livekit_room_creation.side_effect = change_during_first_creation(
         sid="RM_first", absent_since=timezone.now() if absent else None
     )
@@ -590,10 +601,10 @@ def test_place_given_the_created_sid_meanwhile(
     change_meanwhile = 1
     sid_update = 1
     with django_assert_num_queries(placement_read + change_meanwhile + sid_update):
-        location = PlacementService.place("my-room")
+        location = PlacementService.place(room)
 
     assert location == LiveKitRoomLocation(cluster=lyon, sid="RM_first")
-    fake_livekit_room_creation.assert_called_once_with("my-room", cluster=lyon)
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
 
     placement = Placement.objects.get()
     assert placement.cluster == "lyon"
@@ -627,7 +638,7 @@ def test_place_racing_relocation(
     fake_livekit_room_creation.side_effect = create_room
     room_management.attach_mock(fake_livekit_room_creation, "create_room")
 
-    assert PlacementService.place(room_name, room).cluster == lyon
+    assert PlacementService.place(room).cluster == lyon
 
     assert room_management.mock_calls == [
         mock.call.create_room(room_name, cluster=paris),
@@ -649,7 +660,9 @@ def test_place_keeps_changing(two_livekit_clusters, fake_livekit_room_creation, 
     once more is left as it is.
     """
     _paris, lyon = two_livekit_clusters
-    Placement.objects.create(room_name="my-room", cluster="lyon")
+    room = RoomFactory()
+    room_name = str(room.id)
+    Placement.objects.create(room_name=room_name, cluster="lyon")
 
     def bump_epoch_each_time(room_name, **_kwargs):
         Placement.objects.filter(room_name=room_name).update(epoch=F("epoch") + 1)
@@ -661,18 +674,18 @@ def test_place_keeps_changing(two_livekit_clusters, fake_livekit_room_creation, 
         caplog.at_level(logging.WARNING, logger="core.livekit.placements"),
         pytest.raises(PlacementChangedError, match="kept changing"),
     ):
-        PlacementService.place("my-room")
+        PlacementService.place(room)
 
     assert (
         fake_livekit_room_creation.call_args_list
-        == [mock.call("my-room", cluster=lyon)] * PLACEMENT_UPDATE_ATTEMPTS
+        == [mock.call(room_name, cluster=lyon)] * PLACEMENT_UPDATE_ATTEMPTS
     )
     placement = Placement.objects.get()
     assert placement.epoch == PLACEMENT_UPDATE_ATTEMPTS
     assert placement.sid == ""
     assert (
-        "Placement of LiveKit room my-room kept changing while its LiveKit room "
-        "was created"
+        f"Placement of LiveKit room {room_name} kept changing while its LiveKit "
+        "room was created"
     ) in caplog.text
 
 
@@ -684,24 +697,26 @@ def test_place_on_unregistered_cluster(
     placed again, with a warning.
     """
     _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
     unregistered = Placement.objects.create(
-        room_name="my-room", cluster="lille", sid="RM_old"
+        room_name=room_name, cluster="lille", sid="RM_old"
     )
 
     with (
         picking(lyon),
         caplog.at_level(logging.WARNING, logger="core.livekit.placements"),
     ):
-        assert PlacementService.place("my-room").cluster == lyon
+        assert PlacementService.place(room).cluster == lyon
 
     placement = Placement.objects.get()
     assert placement.pk != unregistered.pk
     assert placement.cluster == "lyon"
     assert placement.sid == CREATED_LIVEKIT_ROOM_SID
-    fake_livekit_room_creation.assert_called_once_with("my-room", cluster=lyon)
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
     assert (
-        "LiveKit room my-room is placed on LiveKit cluster lille, which is not "
-        "registered: placing it again"
+        f"LiveKit room {room_name} is placed on LiveKit cluster lille, which is "
+        "not registered: placing it again"
     ) in caplog.text
 
 
@@ -710,10 +725,11 @@ def test_place_without_candidate(settings, fake_livekit_room_creation):
     A LiveKit room cannot be placed while no cluster may receive new
     placements.
     """
+    room = RoomFactory()
     settings.LIVEKIT_CLUSTERS = json.dumps([livekit_cluster_entry("paris", weight=0)])
 
     with pytest.raises(NoCandidateLiveKitClusterError):
-        PlacementService.place("my-room")
+        PlacementService.place(room)
 
     assert not Placement.objects.exists()
     fake_livekit_room_creation.assert_not_called()
