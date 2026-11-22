@@ -56,6 +56,17 @@
     "failed_other": "{{count}} checks failed",
     "failedHint": "Open the failed checks below for details, then send the report to your IT department."
   },
+  "results": {
+    "complete": "Check complete: {{results}}.",
+    "passed_one": "{{count}} passed",
+    "passed_other": "{{count}} passed",
+    "warnings_one": "{{count}} not optimal",
+    "warnings_other": "{{count}} not optimal",
+    "skipped_one": "{{count}} skipped",
+    "skipped_other": "{{count}} skipped",
+    "failed_one": "{{count}} failed ({{steps}})",
+    "failed_other": "{{count}} failed ({{steps}})"
+  },
   "help": {
     "firewall": "If network tests fail, check your browser permissions and network filtering rules (WebRTC, WebSocket, TURN) with your IT department."
   }

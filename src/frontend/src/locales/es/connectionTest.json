@@ -56,6 +56,17 @@
     "failed_other": "{{count}} verificaciones en error",
     "failedHint": "Abre las verificaciones en error para ver el detalle y transmite después el informe a tu servicio informático."
   },
+  "results": {
+    "complete": "Verificación finalizada: {{results}}.",
+    "passed_one": "{{count}} correcta",
+    "passed_other": "{{count}} correctas",
+    "warnings_one": "{{count}} no óptima",
+    "warnings_other": "{{count}} no óptimas",
+    "skipped_one": "{{count}} omitida",
+    "skipped_other": "{{count}} omitidas",
+    "failed_one": "{{count}} con errores ({{steps}})",
+    "failed_other": "{{count}} con errores ({{steps}})"
+  },
   "help": {
     "firewall": "Si las pruebas de red fallan, comprueba los permisos de tu navegador y las reglas de filtrado de red (WebRTC, WebSocket, TURN) con tu servicio informático."
   }

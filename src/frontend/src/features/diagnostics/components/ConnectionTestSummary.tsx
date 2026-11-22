@@ -4,7 +4,9 @@ import { ProgressBar } from 'react-aria-components'
 import { css, cx } from '@/styled-system/css'
 import { A } from '@/primitives'
 import { useConfig } from '@/api/useConfig'
+import { srOnly } from '@/styles/a11y'
 import type { ConnectionTestStats } from '../types'
+import { getConnectionTestResultMessage } from '../utils/getConnectionTestResultMessage'
 import { statusSquareClass } from './stepAppearance'
 
 type SummaryState =
@@ -219,13 +221,23 @@ export const ConnectionTestSummary = ({
   // Skipped device checks still deserve their hint under a route warning.
   const showPartialHint = state === 'warning' && stats.skipped > 0
 
+  const statusMessage =
+    state === 'running'
+      ? t('summary.running')
+      : state === 'idle'
+        ? ''
+        : getConnectionTestResultMessage(t, stats)
+
   return (
     <section className={cardClass}>
       <div className={headerClass}>
         <h1 className={eyebrowClass}>{t('title')}</h1>
 
-        {/* Announced once per state change rather than on every step update. */}
-        <p className={cx(headlineClass, stateColorClass[state])} role="status">
+        <p role="status" className={srOnly}>
+          {statusMessage}
+        </p>
+
+        <p className={cx(headlineClass, stateColorClass[state])}>
           {state === 'failed'
             ? t('summary.failed', { count: stats.failed })
             : t(`summary.${state}`)}

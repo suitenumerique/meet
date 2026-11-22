@@ -84,6 +84,7 @@ export type ConnectionTestStats = {
   warnings: number
   failed: number
   skipped: number
+  failedSteps: ConnectionTestStepId[]
   hasStarted: boolean
   progress: number
 }
@@ -100,12 +101,15 @@ export const summarizeSteps = (
   let failed = 0
   let skipped = 0
   let pending = 0
+  const failedSteps: ConnectionTestStepId[] = []
 
   for (const step of steps) {
     if (step.status === 'success') passed += 1
     else if (step.status === 'warning') warnings += 1
-    else if (step.status === 'failed') failed += 1
-    else if (step.status === 'skipped') skipped += 1
+    else if (step.status === 'failed') {
+      failed += 1
+      failedSteps.push(step.id)
+    } else if (step.status === 'skipped') skipped += 1
     else if (step.status === 'pending') pending += 1
   }
 
@@ -119,6 +123,7 @@ export const summarizeSteps = (
     warnings,
     failed,
     skipped,
+    failedSteps,
     hasStarted: pending < total,
     progress: total === 0 ? 0 : Math.round((settled / total) * 100),
   }

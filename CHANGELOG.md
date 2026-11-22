@@ -50,6 +50,7 @@ and this project adheres to
 - 🐛(frontend) promote the active speaker in the carousel layout
 - ♿️(frontend) show the focus ring on connection test detail cards
 - ♿️(frontend) use a heading for every connection test card title
+- ♿️(frontend) announce the full connection test results #1899
 - ♿️(frontend) put the ProConnect link label inside the link
 - 🔒️(frontend) bump nginx to 1.31.9 (CERT-EU 2026-022)
 - 🔒️(frontend) upgrade libxml2 to fix CVE-2026-86144

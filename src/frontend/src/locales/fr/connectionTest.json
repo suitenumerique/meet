@@ -56,6 +56,17 @@
     "failed_other": "{{count}} vérifications en échec",
     "failedHint": "Ouvrez les vérifications en échec pour voir le détail, puis transmettez le rapport à votre service informatique."
   },
+  "results": {
+    "complete": "Vérification terminée : {{results}}.",
+    "passed_one": "{{count}} réussie",
+    "passed_other": "{{count}} réussies",
+    "warnings_one": "{{count}} non optimale",
+    "warnings_other": "{{count}} non optimales",
+    "skipped_one": "{{count}} ignorée",
+    "skipped_other": "{{count}} ignorées",
+    "failed_one": "{{count}} en échec ({{steps}})",
+    "failed_other": "{{count}} en échec ({{steps}})"
+  },
   "help": {
     "firewall": "En cas d'échec des tests réseau, vérifiez vos permissions navigateur et les règles de filtrage réseau (WebRTC, WebSocket, TURN) auprès de votre service informatique."
   }

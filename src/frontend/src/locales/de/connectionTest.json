@@ -56,6 +56,17 @@
     "failed_other": "{{count}} Prüfungen fehlgeschlagen",
     "failedHint": "Öffnen Sie die fehlgeschlagenen Prüfungen für weitere Details und senden Sie den Bericht an Ihre IT-Abteilung."
   },
+  "results": {
+    "complete": "Prüfung abgeschlossen: {{results}}.",
+    "passed_one": "{{count}} erfolgreich",
+    "passed_other": "{{count}} erfolgreich",
+    "warnings_one": "{{count}} nicht optimal",
+    "warnings_other": "{{count}} nicht optimal",
+    "skipped_one": "{{count}} übersprungen",
+    "skipped_other": "{{count}} übersprungen",
+    "failed_one": "{{count}} fehlgeschlagen ({{steps}})",
+    "failed_other": "{{count}} fehlgeschlagen ({{steps}})"
+  },
   "help": {
     "firewall": "Wenn Netzwerktests fehlschlagen, überprüfen Sie Ihre Browserberechtigungen und die Netzwerkfilterregeln (WebRTC, WebSocket, TURN) mit Ihrer IT-Abteilung."
   }

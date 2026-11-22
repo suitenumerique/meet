@@ -56,6 +56,17 @@
     "failed_other": "{{count}} controles mislukt",
     "failedHint": "Open de mislukte controles voor meer details en stuur het rapport door naar je IT-afdeling."
   },
+  "results": {
+    "complete": "Controle voltooid: {{results}}.",
+    "passed_one": "{{count}} geslaagd",
+    "passed_other": "{{count}} geslaagd",
+    "warnings_one": "{{count}} niet optimaal",
+    "warnings_other": "{{count}} niet optimaal",
+    "skipped_one": "{{count}} overgeslagen",
+    "skipped_other": "{{count}} overgeslagen",
+    "failed_one": "{{count}} mislukt ({{steps}})",
+    "failed_other": "{{count}} mislukt ({{steps}})"
+  },
   "help": {
     "firewall": "Bij mislukte netwerktests: controleer je browserrechten en netwerkfilterregels (WebRTC, WebSocket, TURN) met je IT-afdeling."
   }
