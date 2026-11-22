@@ -1,6 +1,6 @@
 import { fetchApi } from './fetchApi'
 import { keys } from './queryKeys'
-import { useQuery } from '@tanstack/react-query'
+import { queryOptions, useQuery } from '@tanstack/react-query'
 import { RecordingMode } from '@/features/recording'
 import type { ApiAccessLevel } from '@/features/rooms/api/ApiRoom'
 import type { Track, VideoCodec } from 'livekit-client'
@@ -93,10 +93,12 @@ const fetchConfig = (): Promise<ApiConfig> => {
   return fetchApi<ApiConfig>(`config/`)
 }
 
+export const configQueryOptions = queryOptions({
+  queryKey: [keys.config],
+  queryFn: fetchConfig,
+  staleTime: Infinity,
+})
+
 export const useConfig = () => {
-  return useQuery({
-    queryKey: [keys.config],
-    queryFn: fetchConfig,
-    staleTime: Infinity,
-  })
+  return useQuery(configQueryOptions)
 }
