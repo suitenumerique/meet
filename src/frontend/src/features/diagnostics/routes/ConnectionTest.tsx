@@ -16,9 +16,11 @@ import { useConnectionTestRunner } from '../hooks/useConnectionTestRunner'
 import { ConnectionTestStepRow } from '../components/ConnectionTestStepRow'
 import { ConnectionTestSummary } from '../components/ConnectionTestSummary'
 import { CONNECTION_TEST_GROUPS, summarizeSteps } from '../types'
+import { getConnectionTestResultMessage } from '../utils/getConnectionTestResultMessage'
 import { downloadConnectionTestReport } from '../utils/downloadConnectionTestReport'
 import { useConfig } from '@/api/useConfig'
 import { navigateTo } from '@/navigation/navigateTo'
+import { srOnly } from '@/styles/a11y'
 
 const HIDE_LIVEKIT_VIDEO_CLASS = 'connection-test-hide-livekit-video'
 
@@ -39,6 +41,11 @@ const rowsClass = css({
   flexDirection: 'column',
   gap: '0.5rem',
   marginTop: '0.75rem',
+})
+
+const alertRegionClass = css({
+  width: '100%',
+  _empty: { marginTop: '-1.5rem' },
 })
 
 const helpClass = css({
@@ -149,16 +156,23 @@ const ConnectionTest = () => {
                 </section>
               ))}
 
-            {stats.failed > 0 && !isRunning && (
-              <p className={helpClass}>
-                <RiErrorWarningLine
-                  size={18}
-                  aria-hidden="true"
-                  className={helpIconClass}
-                />
-                {t('help.firewall')}
-              </p>
-            )}
+            <div role="alert" className={alertRegionClass}>
+              {stats.failed > 0 && !isRunning && (
+                <p className={helpClass}>
+                  <RiErrorWarningLine
+                    size={18}
+                    aria-hidden="true"
+                    className={helpIconClass}
+                  />
+                  <span>
+                    <span className={srOnly}>
+                      {getConnectionTestResultMessage(t, stats)}{' '}
+                    </span>
+                    {t('help.firewall')}
+                  </span>
+                </p>
+              )}
+            </div>
           </VStack>
         </Center>
       </CenteredContent>

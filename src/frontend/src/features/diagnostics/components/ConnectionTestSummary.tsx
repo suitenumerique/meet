@@ -221,10 +221,12 @@ export const ConnectionTestSummary = ({
   // Skipped device checks still deserve their hint under a route warning.
   const showPartialHint = state === 'warning' && stats.skipped > 0
 
+  // Failed runs are announced by the page's alert region instead, so the
+  // result is never read twice.
   const statusMessage =
     state === 'running'
       ? t('summary.running')
-      : state === 'idle'
+      : state === 'idle' || state === 'failed'
         ? ''
         : getConnectionTestResultMessage(t, stats)
 
