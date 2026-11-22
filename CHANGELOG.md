@@ -52,6 +52,7 @@ and this project adheres to
 - ♿️(frontend) use a heading for every connection test card title
 - ♿️(frontend) put the ProConnect link label inside the link
 - 🔒️(frontend) bump nginx to 1.31.9 (CERT-EU 2026-022)
+- 🔒️(frontend) upgrade libxml2 to fix CVE-2026-86144
 - ⚡️(frontend) animate floating reactions without rendering each frame
 - 🐛(frontend) subscribe useRoomData to the query cache
 - ♿️(frontend) keep floating reactions in place under reduced motion
