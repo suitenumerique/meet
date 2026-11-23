@@ -3,7 +3,6 @@
 import uuid
 from unittest import mock
 
-from django.test.utils import override_settings
 from django.urls import reverse
 
 import jwt
@@ -17,6 +16,20 @@ from core.api.throttling import (
 from core.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
+
+# TODO: set this to whatever the viewset calls to create the LiveKit room.
+# It could not be verified from the pasted code, so adjust it to match the
+# fixture that already exists in your CI revision.
+ROOM_CREATION_TARGET = "core.api.viewsets.create_connection_test_room"
+
+
+# `name=` keeps the public fixture name while the function gets a different
+# name, which is what silences pylint W0621 (redefined-outer-name).
+@pytest.fixture(name="mock_room_creation")
+def mock_room_creation_fixture():
+    """Replace LiveKit room creation so tests never reach a real server."""
+    with mock.patch(ROOM_CREATION_TARGET) as patched:
+        yield patched
 
 
 def test_api_diagnostics_connection_url():
@@ -32,7 +45,9 @@ def test_api_diagnostics_connection_rejects_get():
     assert response.status_code == 405
 
 
-def test_api_diagnostics_connection_returns_ephemeral_livekit_config(settings, client):
+def test_api_diagnostics_connection_returns_ephemeral_livekit_config(
+    mock_room_creation, settings, client
+):
     """Each request gets a dedicated room and a short-lived token."""
 
     settings.CONNECTION_TEST_TOKEN_TTL_SECONDS = 600
@@ -43,6 +58,7 @@ def test_api_diagnostics_connection_returns_ephemeral_livekit_config(settings, c
 
     assert response_a.status_code == 200
     assert response_b.status_code == 200
+    assert mock_room_creation.call_count == 2
 
     data_a = response_a.json()
     data_b = response_b.json()
@@ -61,8 +77,10 @@ def test_api_diagnostics_connection_returns_ephemeral_livekit_config(settings, c
     assert data_a["livekit"]["token"] != data_b["livekit"]["token"]
 
 
-def test_api_diagnostics_connection_token_is_short_lived_for_user(settings, client):
-    """Connection test tokens expire quickly for users."""
+def test_api_diagnostics_connection_token_is_short_lived_for_anonymous(
+    mock_room_creation, settings
+):
+    """Connection test tokens expire quickly for anonymous visitors."""
 
     settings.CONNECTION_TEST_TOKEN_TTL_SECONDS = 300
 
@@ -70,6 +88,7 @@ def test_api_diagnostics_connection_token_is_short_lived_for_user(settings, clie
     response = client.post("/api/v1.0/diagnostics/connection/")
 
     assert response.status_code == 200
+    mock_room_creation.assert_called_once()
 
     config = response.json()["livekit"]
     payload = jwt.decode(
@@ -86,7 +105,6 @@ def test_api_diagnostics_connection_token_is_short_lived_for_user(settings, clie
     assert payload["exp"] - payload["nbf"] == 300
 
 
-@override_settings()
 def test_api_diagnostics_connection_token_for_authenticated_user(settings, client):
     """Logged-in users get a token bound to their own identity."""
 
