@@ -687,6 +687,7 @@
   "openFeedback": {
     "question": "O que podemos fazer para melhorar?",
     "placeholder": "Descreva seus bugs ou compartilhe suas sugestões…",
+    "optional": "Opcional. Você pode pular esta etapa.",
     "submit": "Enviar",
     "skip": "Pular"
   },

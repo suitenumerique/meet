@@ -96,6 +96,8 @@ const useFocusOnMount = (id: string, moveFocus: boolean) => {
   }, [id, moveFocus])
 }
 
+const TEXT_AREA_ID = 'feedbackInput'
+
 const OpenFeedback = ({
   onNext,
   metadata,
@@ -108,7 +110,8 @@ const OpenFeedback = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'openFeedback' })
   const [feedback, setFeedback] = useState('')
   const questionId = useId()
-  useFocusOnMount(questionId, moveFocus)
+  const optionalId = useId()
+  useFocusOnMount(TEXT_AREA_ID, moveFocus)
 
   const onContinue = () => {
     setFeedback('')
@@ -130,16 +133,19 @@ const OpenFeedback = ({
 
   return (
     <Card>
-      <H lvl={3} centered id={questionId} tabIndex={-1}>
+      <H lvl={3} centered id={questionId}>
         {t('question')}
       </H>
+      <span id={optionalId} className="sr-only">
+        {t('placeholder')} - {t('optional')}
+      </span>
       <TextArea
-        id="feedbackInput"
+        id={TEXT_AREA_ID}
         aria-labelledby={questionId}
+        aria-describedby={optionalId}
         name="feedback"
         placeholder={t('placeholder')}
         css={{ _placeholder: { color: 'default.subtle-text' } }}
-        required
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
         style={{
