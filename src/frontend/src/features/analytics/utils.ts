@@ -1,5 +1,5 @@
 import type { PostHog } from 'posthog-js'
-import { getConfig } from '@/api/useConfig'
+import { getConfig, type ApiConfig } from '@/api/useConfig'
 
 let posthog: PostHog | null = null
 let sdkPromise: Promise<PostHog> | undefined
@@ -18,6 +18,10 @@ const loadSdk = () => {
   return sdkPromise
 }
 
+export const isAnalyticsConfigured = (
+  analytics: ApiConfig['analytics'] | undefined
+): boolean => !!analytics?.id && !!analytics?.host
+
 /**
  * The only way to the SDK. Resolves to null, without downloading it, on
  * instances which have no analytics configured: callers don't have to know.
@@ -28,7 +32,7 @@ const loadSdk = () => {
  */
 export const getPosthog = async (): Promise<PostHog | null> => {
   const { analytics } = await getConfig()
-  return analytics?.id && analytics.host ? loadSdk() : null
+  return isAnalyticsConfigured(analytics) ? loadSdk() : null
 }
 
 /** Synchronous peek: null until the lazy chunk has resolved. */

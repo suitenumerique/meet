@@ -1,6 +1,7 @@
 import { useConfig } from '@/api/useConfig.ts'
+import { isAnalyticsConfigured } from '../utils'
 
 export const useIsAnalyticsEnabled = () => {
   const { data } = useConfig()
-  return !!data?.analytics?.id
+  return isAnalyticsConfigured(data?.analytics)
 }
