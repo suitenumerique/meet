@@ -32,6 +32,7 @@ from core.services.transit_code import TransitCodeService
 
 from ..services.provisional_user_service import (
     ProvisionalUserCreationDisabledError,
+    ProvisionalUserInactiveError,
     ProvisionalUserIntegrityError,
     ProvisionalUserService,
 )
@@ -112,6 +113,10 @@ class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
             user, created = ProvisionalUserService().get_or_create(email, client_id)
         except ProvisionalUserCreationDisabledError as not_found_error:
             raise drf_exceptions.NotFound("User not found.") from not_found_error
+        except ProvisionalUserInactiveError as inactive_error:
+            raise drf_exceptions.PermissionDenied(
+                "User account is disabled."
+            ) from inactive_error
         except ProvisionalUserIntegrityError:
             return drf_response.Response(
                 {"error": "Failed to create or retrieve provisional user."},

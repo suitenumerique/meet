@@ -20,6 +20,10 @@ class ProvisionalUserIntegrityError(ProvisionalUserError):
     """Raised when a provisional user cannot be created or retrieved after a race condition."""
 
 
+class ProvisionalUserInactiveError(ProvisionalUserError):
+    """Raised when the user matching the email is inactive."""
+
+
 class ProvisionalUserService:
     """Handles creation and retrieval of provisional users.
 
@@ -41,15 +45,20 @@ class ProvisionalUserService:
         )
 
     def _get_by_email(self, email: str) -> models.User | None:
-        """Return the user with this email, or None if not found."""
+        """Return the active user with this email, or None if not found."""
         try:
-            return models.User.objects.get(email=normalize_email(email))
+            user = models.User.objects.get(email=normalize_email(email))
         except models.User.DoesNotExist:
             return None
         except models.User.MultipleObjectsReturned as e:
             raise SuspiciousOperation(
                 "Multiple user accounts share a common email."
             ) from e
+
+        if not user.is_active:
+            raise ProvisionalUserInactiveError("User account is disabled.")
+
+        return user
 
     def _audit(self, client_id: str, **fields) -> None:
         """Emit a ``user.provision`` event on behalf of the application.
@@ -79,6 +88,7 @@ class ProvisionalUserService:
             A (user, created) tuple — mirrors get_or_create conventions.
 
         Raises:
+            ProvisionalUserInactiveError: If the user with this email is inactive.
             ProvisionalUserError: If creation and retrieval both fail.
         """
         user = self._get_by_email(email)
