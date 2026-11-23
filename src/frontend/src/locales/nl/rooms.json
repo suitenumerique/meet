@@ -687,6 +687,7 @@
   "openFeedback": {
     "question": "Wat kunnen we doen om ons te verbeteren?",
     "placeholder": "Beschrijf uw problemen of deel uw suggesties ...",
+    "optional": "Optioneel. U kunt deze stap overslaan.",
     "submit": "Indienen",
     "skip": "Overslaan"
   },
