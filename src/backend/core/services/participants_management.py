@@ -195,10 +195,35 @@ class ParticipantsManagement:
         if not room_name or not identity:
             return False
 
+        participant = await self._fetch_participant(room_name, identity)
+
+        return (
+            participant is not None
+            and participant.state != ParticipantInfo.State.DISCONNECTED
+        )
+
+    @async_to_sync
+    async def get_participant(self, room_name: str, identity: str) -> ParticipantInfo:
+        """Return the participant `identity` connected to `room_name`.
+
+        Raises ParticipantNotFoundException when absent or disconnected.
+        """
+
+        participant = await self._fetch_participant(room_name, identity)
+
+        if participant.state == ParticipantInfo.State.DISCONNECTED:
+            raise ParticipantNotFoundException("Participant is disconnected")
+
+        return participant
+
+    @staticmethod
+    async def _fetch_participant(room_name: str, identity: str) -> ParticipantInfo:
+        """Fetch a participant from LiveKit."""
+
         lkapi = utils.create_livekit_client()
 
         try:
-            participant = await lkapi.room.get_participant(
+            return await lkapi.room.get_participant(
                 RoomParticipantIdentity(
                     room=room_name,
                     identity=identity,
@@ -219,8 +244,3 @@ class ParticipantsManagement:
 
         finally:
             await lkapi.aclose()
-
-        return (
-            participant is not None
-            and participant.state != ParticipantInfo.State.DISCONNECTED
-        )

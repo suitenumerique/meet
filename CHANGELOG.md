@@ -76,6 +76,7 @@ and this project adheres to
 - 🐛(frontend) strip text direction overrides from chat messages #1807
 - ♿️(frontend) structure the transcript details as a list
 - ♿️(frontend) structure the more tools panel as a list
+- 🐛(backend) restore publish permissions when promoting to co-host #1980
 
 ## [1.37.0] - 2026-11-01
 

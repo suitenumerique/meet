@@ -5,13 +5,16 @@ Single entry point for changing a user's role on a room, used by:
 - (more to come soon)
 
 `ResourceAccess` is the source of truth. The LiveKit `room_role`
-participant attribute is only a projection of it, synced best-effort.
+participant attribute and publish permissions are only a projection
+of it, synced best-effort.
 """
 
 from logging import getLogger
 from uuid import UUID
 
-from core import models
+from livekit.protocol.models import TrackSource  # pylint: disable=no-name-in-module
+
+from core import models, utils
 from core.services.participants_management import (
     ParticipantNotFoundException,
     ParticipantsManagement,
@@ -102,27 +105,22 @@ class RoomRoleService:
 
         - The participant must be connected (checked against LiveKit).
         - The participant must map to a user account.
-        - The role is persisted in DB then mirrored to LiveKit.
+        - The role is persisted in DB then mirrored to LiveKit, along with
+          the publish permissions it grants.
 
         Returns a dict: {"role", "livekit_synced"}.
         """
 
         room_name = str(room.pk)
-        participants_management = ParticipantsManagement()
 
         try:
-            is_in_meeting = participants_management.check_if_in_meeting(
+            participant = ParticipantsManagement().get_participant(
                 room_name=room_name, identity=str(participant_identity)
             )
         except ParticipantNotFoundException as e:
             raise ParticipantNotInMeetingError(
                 "Participant is not connected to this meeting."
             ) from e
-
-        if not is_in_meeting:
-            raise ParticipantNotInMeetingError(
-                "Participant is not connected to this meeting."
-            )
 
         user = models.User.objects.filter(sub=participant_identity).first()
 
@@ -135,10 +133,10 @@ class RoomRoleService:
         # the role is real and any fresh token will carry it.
         self.set_role(room=room, user=user, role=role, actor=actor)
 
-        livekit_synced = self._sync_livekit_role(
+        livekit_synced = self._sync_livekit_participant(
             room_name=room_name,
             participant_identity=str(participant_identity),
-            role=str(role),
+            **self._get_livekit_changes(room, str(role), participant),
         )
 
         return {
@@ -147,17 +145,43 @@ class RoomRoleService:
         }
 
     @staticmethod
-    def _sync_livekit_role(room_name: str, participant_identity: str, role: str):
-        """Mirror the role to the participant's LiveKit attributes.
+    def _get_livekit_changes(room: models.Room, role: str, participant) -> dict:
+        """Return what LiveKit is missing for `participant` to hold `role`."""
+        changes = {}
+
+        if participant.attributes.get("room_role") != role:
+            changes["attributes"] = {"room_role": role}
+
+        room_sources = room.configuration.get("can_publish_sources")
+        sources = sorted(
+            TrackSource.Value(source.upper())
+            for source in utils.get_publish_sources(role, room_sources)
+        )
+        permission = participant.permission
+        current = (permission.can_publish, sorted(permission.can_publish_sources))
+
+        if current != (bool(sources), sources):
+            permission.can_publish = bool(sources)
+            permission.can_publish_sources[:] = sources
+            changes["permission"] = permission
+
+        return changes
+
+    @staticmethod
+    def _sync_livekit_participant(
+        room_name: str, participant_identity: str, **changes
+    ) -> bool:
+        """Mirror `changes` to the LiveKit participant, in a single call.
 
         Best-effort: returns False on failure instead of raising, so callers
         can report a partial success. Re-running the action re-syncs.
         """
+        if not changes:
+            return True
+
         try:
             ParticipantsManagement().update(
-                room_name=room_name,
-                identity=participant_identity,
-                attributes={"room_role": role},
+                room_name=room_name, identity=participant_identity, **changes
             )
         except ParticipantNotFoundException:
             # The participant left between the presence check and the update:

@@ -61,6 +61,19 @@ def generate_color(identity: str) -> str:
     return f"hsl({hue}, {saturation}%, {lightness}%)"
 
 
+def get_publish_sources(
+    role: Optional[str], room_sources: Optional[List[str]] = None
+) -> List[str]:
+    """Return the media sources a participant can publish in a room.
+
+    Owners and administrators are not bound by the room restrictions.
+    """
+    if room_sources is None or role in ("owner", "administrator"):
+        return settings.LIVEKIT_DEFAULT_SOURCES
+
+    return room_sources
+
+
 def generate_token(  # noqa: PLR0917
     room: str,
     user,
@@ -92,11 +105,7 @@ def generate_token(  # noqa: PLR0917
     """
 
     is_admin_or_owner = role in ("owner", "administrator")
-    if is_admin_or_owner:
-        sources = settings.LIVEKIT_DEFAULT_SOURCES
-
-    if sources is None:
-        sources = settings.LIVEKIT_DEFAULT_SOURCES
+    sources = get_publish_sources(role, sources)
 
     video_grants = VideoGrants(
         room=room,

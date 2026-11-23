@@ -27,6 +27,7 @@ from core.utils import (
     NotificationError,
     create_livekit_client,
     generate_token,
+    get_publish_sources,
     normalize_email,
     notify_participants,
 )
@@ -115,6 +116,53 @@ def test_anonymous_falls_back_to_anonymous_label():
     token = generate_token(room="my-room", user=AnonymousUser())
     claims = decode_token(token)
     assert claims["name"] == "Anonymous"
+
+
+@pytest.mark.parametrize("role", ["owner", "administrator"])
+def test_get_publish_sources_privileged_roles_ignore_room_sources(role, settings):
+    """Owners and administrators can publish every default source."""
+    settings.LIVEKIT_DEFAULT_SOURCES = ["camera", "microphone"]
+
+    assert get_publish_sources(role, ["camera"]) == ["camera", "microphone"]
+    assert get_publish_sources(role, []) == ["camera", "microphone"]
+
+
+@pytest.mark.parametrize("role", ["member", None])
+def test_get_publish_sources_other_roles_follow_room_sources(role, settings):
+    """Other participants can only publish the sources the room allows."""
+    settings.LIVEKIT_DEFAULT_SOURCES = ["camera", "microphone"]
+
+    assert get_publish_sources(role, ["camera"]) == ["camera"]
+    assert get_publish_sources(role, []) == []
+
+
+@pytest.mark.parametrize("role", ["owner", "administrator", "member", None])
+def test_get_publish_sources_defaults_without_room_sources(role, settings):
+    """Everyone can publish the default sources when the room restricts nothing."""
+    settings.LIVEKIT_DEFAULT_SOURCES = ["camera", "microphone"]
+
+    assert get_publish_sources(role) == ["camera", "microphone"]
+    assert get_publish_sources(role, None) == ["camera", "microphone"]
+
+
+@pytest.mark.parametrize(
+    ("role", "expected"),
+    [
+        ("owner", ["camera", "microphone"]),
+        ("administrator", ["camera", "microphone"]),
+        ("member", ["camera"]),
+        (None, ["camera"]),
+    ],
+)
+def test_generate_token_publish_sources_depend_on_role(role, expected, settings):
+    """The token carries the sources the role is allowed to publish."""
+    settings.LIVEKIT_DEFAULT_SOURCES = ["camera", "microphone"]
+
+    token = generate_token(
+        room="my-room", user=UserFactory(), sources=["camera"], role=role
+    )
+
+    assert decode_token(token)["video"]["canPublishSources"] == expected
 
 
 @pytest.fixture
@@ -231,6 +279,11 @@ def delete_dispatch_rule():
             lambda: ParticipantsManagement().check_if_in_meeting("room", "id"),
             ParticipantsManagementException,
             id="check_if_in_meeting",
+        ),
+        pytest.param(
+            lambda: ParticipantsManagement().get_participant("room", "id"),
+            ParticipantsManagementException,
+            id="get_participant",
         ),
         pytest.param(
             lambda: RoomManagement.update_metadata("room", {}),
