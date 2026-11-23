@@ -14,6 +14,7 @@ from core.audit.testing import find_events
 from core.factories import UserFactory
 from core.models import User
 from core.services.provisional_user_service import (
+    ProvisionalUserInactiveError,
     ProvisionalUserIntegrityError,
     ProvisionalUserService,
 )
@@ -36,6 +37,18 @@ def test_get_or_create_existing_user_is_not_audited(audit_events):
     assert ProvisionalUserService().get_or_create(
         "John.Doe@example.com", "my-client"
     ) == (user, False)
+    assert not find_events(audit_events, "user.provision")
+
+
+@pytest.mark.parametrize("sub", [None, "existing-sub"])
+def test_get_or_create_inactive_user(sub, audit_events):
+    """An inactive user should be refused, not replaced by a new provisional user."""
+    UserFactory(sub=sub, email="john.doe@example.com", is_active=False)
+
+    with pytest.raises(ProvisionalUserInactiveError, match="User account is disabled."):
+        ProvisionalUserService().get_or_create("John.Doe@example.com", "my-client")
+
+    assert User.objects.count() == 1
     assert not find_events(audit_events, "user.provision")
 
 

@@ -505,6 +505,34 @@ def test_api_applications_generate_token_user_not_found():
     assert "User not found" in str(response.data)
 
 
+def test_api_applications_generate_token_inactive_user(settings):
+    """An inactive user should return 403 even when provisioning is enabled."""
+    settings.APPLICATION_ALLOW_USER_CREATION = True
+    settings.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION = True
+    settings.OIDC_USER_SUB_FIELD_IMMUTABLE = False
+
+    user = UserFactory(email="user@example.com", is_active=False)
+    plain_secret = "test-secret-123"
+    application = ApplicationFactory(client_secret=plain_secret, is_active=True)
+
+    client = APIClient()
+    response = client.post(
+        "/external-api/v1.0/application/token/",
+        {
+            "client_id": application.client_id,
+            "client_secret": plain_secret,
+            "grant_type": "client_credentials",
+            "scope": user.email,
+        },
+        format="json",
+    )
+
+    assert response.status_code == 403
+    assert "User account is disabled." in str(response.data)
+    assert "access_token" not in response.data
+    assert User.objects.count() == 1
+
+
 @freeze_time("2023-01-15 12:00:00")
 def test_api_applications_token_payload_structure(settings):
     """Generated token should have correct payload structure."""
@@ -1102,6 +1130,24 @@ def test_api_applications_generate_token_unknown_user_is_audited(audit_events):
     assert event["event"]["reason"] == "not_found"
     assert event["lasuite"]["details"] == {"requested_domain": "example.com"}
     assert event["http"]["response"] == {"status_code": 404}
+
+
+def test_api_applications_generate_token_inactive_user_is_audited(audit_events):
+    """An inactive user is a permission denial."""
+    UserFactory(email="user@example.com", is_active=False)
+    application = _application()
+
+    response = _post_token(application.client_id, "test-secret-123", "user@example.com")
+
+    assert response.status_code == 403
+
+    [event] = find_events(audit_events, "application.token.issue")
+
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["actor"] == {"type": "application"}
+    assert event["entity"]["target"]["id"] == str(application.pk)
+    assert event["lasuite"]["details"] == {"requested_domain": "example.com"}
+    assert event["http"]["response"] == {"status_code": 403}
 
 
 def test_api_applications_generate_token_provisioning_is_audited(
