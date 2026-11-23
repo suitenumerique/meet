@@ -273,20 +273,26 @@ const RateQuality = ({
   )
 }
 
-const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
+const ConfirmationMessage = ({
+  onNext,
+}: {
+  onNext: (hadFocus: boolean) => void
+}) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'confirmationMessage' })
   const announce = useScreenReaderAnnounce()
+  const headingId = useId()
+  useFocusOnMount(headingId, true)
 
   useEffect(() => {
-    announce(`${t('heading')}. ${t('body')}`)
+    announce(t('body'))
   }, [announce, t])
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      onNext()
-    }, 10000)
+      onNext(document.activeElement?.id === headingId)
+    }, 15000)
     return () => clearTimeout(timer)
-  }, [onNext])
+  }, [onNext, headingId])
   return (
     <Card
       style={{
@@ -297,7 +303,7 @@ const ConfirmationMessage = ({ onNext }: { onNext: () => void }) => {
       }}
     >
       <VStack gap={0}>
-        <H lvl={3} centered>
+        <H lvl={3} centered id={headingId} tabIndex={-1}>
           {t('heading')}
         </H>
         <Text as="p" variant="paragraph" centered>
@@ -320,9 +326,8 @@ export const Rating = ({
   const isAnalyticsEnabled = useIsAnalyticsEnabled()
   const [step, setStep] = useState(0)
   // Set when the user moves to the next card, so that card takes focus.
-  // Not on first load, nor when the thank-you card goes away on its own.
-  // The thank-you card itself does not take focus: its message is already
-  // sent to the status region, and focusing its heading would read it twice.
+  // Not on first load. When the thank-you card goes away on its own, the
+  // rating card takes focus only if the thank-you card still had it.
   const [moveFocus, setMoveFocus] = useState(false)
 
   const goToNextStep = () => {
@@ -365,8 +370,8 @@ export const Rating = ({
   if (step == 2) {
     return (
       <ConfirmationMessage
-        onNext={() => {
-          setMoveFocus(false)
+        onNext={(hadFocus) => {
+          setMoveFocus(hadFocus)
           setStep(0)
         }}
       />
