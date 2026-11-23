@@ -23,7 +23,7 @@ export const RowWrapper = ({
   position = 'middle',
 }: RowWrapperProps) => {
   return (
-    <div
+    <li
       style={{
         borderRadius: BORDER_RADIUS_MAP[position],
       }}
@@ -58,6 +58,6 @@ export const RowWrapper = ({
       >
         {children}
       </div>
-    </div>
+    </li>
   )
 }

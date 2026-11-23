@@ -213,45 +213,48 @@ export const TranscriptSidePanel = () => {
         />
       </VStack>
       <VStack gap={0} marginBottom={25}>
-        <RowWrapper iconName="article" position="first">
-          <Text variant="sm">
-            {data?.transcription_destination ? (
-              <>
-                {t('details.destination')}{' '}
-                <A
-                  href={data.transcription_destination}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  externalIcon
-                >
-                  {data.transcription_destination.replace('https://', '')}
-                </A>
-              </>
-            ) : (
-              t('details.destinationUnknown')
-            )}
-          </Text>
-        </RowWrapper>
-        <RowWrapper iconName="mail">
-          <Text variant="sm">{t('details.receiver')}</Text>
-        </RowWrapper>
-        <RowWrapper iconName="language" position="last">
-          <Text variant="sm">{t('details.language')}</Text>
-          <Text variant="sm">
-            <Button
-              variant="text"
-              size="xs"
-              aria-label={t('details.languageAriaLabel', {
-                language: selectedLanguageLabel,
-              })}
-              onPress={() =>
-                openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
-              }
-            >
-              {selectedLanguageLabel}
-            </Button>
-          </Text>
-        </RowWrapper>
+        {/* eslint-disable-next-line jsx-a11y/no-redundant-roles */}
+        <ul role="list" className={css({ width: '100%' })}>
+          <RowWrapper iconName="article" position="first">
+            <Text variant="sm">
+              {data?.transcription_destination ? (
+                <>
+                  {t('details.destination')}{' '}
+                  <A
+                    href={data.transcription_destination}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    externalIcon
+                  >
+                    {data.transcription_destination.replace('https://', '')}
+                  </A>
+                </>
+              ) : (
+                t('details.destinationUnknown')
+              )}
+            </Text>
+          </RowWrapper>
+          <RowWrapper iconName="mail">
+            <Text variant="sm">{t('details.receiver')}</Text>
+          </RowWrapper>
+          <RowWrapper iconName="language" position="last">
+            <Text variant="sm">{t('details.language')}</Text>
+            <Text variant="sm">
+              <Button
+                variant="text"
+                size="xs"
+                aria-label={t('details.languageAriaLabel', {
+                  language: selectedLanguageLabel,
+                })}
+                onPress={() =>
+                  openSettingsDialog(SettingsDialogExtendedKey.TRANSCRIPTION)
+                }
+              >
+                {selectedLanguageLabel}
+              </Button>
+            </Text>
+          </RowWrapper>
+        </ul>
         {hasScreenRecordingAccess && (
           <>
             <div className={css({ height: '15px' })} />

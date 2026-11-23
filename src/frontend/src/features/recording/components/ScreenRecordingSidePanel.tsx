@@ -199,44 +199,47 @@ export const ScreenRecordingSidePanel = () => {
         />
       </VStack>
       <VStack gap={0} marginBottom={25}>
-        <RowWrapper iconName="cloud_download" position="first">
-          <Text variant="sm">{t('details.destination')}</Text>
-        </RowWrapper>
-        <RowWrapper
-          iconName="mail"
-          position={isCustomEncodingEnabled ? 'middle' : 'last'}
-        >
-          <Text variant="sm">{t('details.receiver')}</Text>
-        </RowWrapper>
-        {isCustomEncodingEnabled && (
-          <RowWrapper iconName="file_settings_line" position="last">
-            <Text
-              variant="sm"
-              className={css({
-                minWidth: 0,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              })}
-            >
-              {t('details.quality')}
-            </Text>
-            <Text
-              variant="sm"
-              className={css({ flexShrink: 0, whiteSpace: 'nowrap' })}
-            >
-              <Button
-                variant="text"
-                size="xs"
-                onPress={() =>
-                  openSettingsDialog(SettingsDialogExtendedKey.RECORDING)
-                }
-              >
-                {t('details.qualityEdit')}
-              </Button>
-            </Text>
+        {/* eslint-disable-next-line jsx-a11y/no-redundant-roles */}
+        <ul role="list" className={css({ width: '100%' })}>
+          <RowWrapper iconName="cloud_download" position="first">
+            <Text variant="sm">{t('details.destination')}</Text>
           </RowWrapper>
-        )}
+          <RowWrapper
+            iconName="mail"
+            position={isCustomEncodingEnabled ? 'middle' : 'last'}
+          >
+            <Text variant="sm">{t('details.receiver')}</Text>
+          </RowWrapper>
+          {isCustomEncodingEnabled && (
+            <RowWrapper iconName="file_settings_line" position="last">
+              <Text
+                variant="sm"
+                className={css({
+                  minWidth: 0,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                })}
+              >
+                {t('details.quality')}
+              </Text>
+              <Text
+                variant="sm"
+                className={css({ flexShrink: 0, whiteSpace: 'nowrap' })}
+              >
+                <Button
+                  variant="text"
+                  size="xs"
+                  onPress={() =>
+                    openSettingsDialog(SettingsDialogExtendedKey.RECORDING)
+                  }
+                >
+                  {t('details.qualityEdit')}
+                </Button>
+              </Text>
+            </RowWrapper>
+          )}
+        </ul>
         {hasTranscriptAccess && (
           <>
             <div className={css({ height: '15px' })} />

@@ -74,6 +74,7 @@ and this project adheres to
 - ⚡️(frontend) serve sounds as content-hashed, long-term cached assets
 - ♿️(frontend) improve the feedback page accessibility #1918
 - 🐛(frontend) strip text direction overrides from chat messages #1807
+- ♿️(frontend) structure the transcript details as a list
 
 ## [1.37.0] - 2026-11-01
 
