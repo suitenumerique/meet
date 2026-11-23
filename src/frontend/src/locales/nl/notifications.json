@@ -70,5 +70,11 @@
       "member": "Lid"
     }
   },
-  "openMenu": "Menu openen"
+  "openMenu": "Menu openen",
+  "joinedSummary_one": "{{count}} deelnemer is toegetreden",
+  "joinedSummary_other": "{{count}} deelnemers zijn toegetreden",
+  "raisedSummary_one": "{{count}} deelnemer heeft een hand opgestoken",
+  "raisedSummary_other": "{{count}} deelnemers hebben een hand opgestoken",
+  "messagesSummary_one": "{{count}} nieuw bericht",
+  "messagesSummary_other": "{{count}} nieuwe berichten"
 }

@@ -189,6 +189,20 @@ A signed-in user can change their name only where the Meet server allows it.
 
 On the home page, the settings button sets the language. Once you are signed in, it also sets who can join the rooms you create and what participants may publish there. These choices do not apply to a room the Outlook add-in or another application creates for you.
 
+### Notification bursts
+
+Joining, chat and raised-hand notifications are grouped during bursts. The first
+notification appears immediately; each type then updates at most once a second,
+with grouped sounds and chat announcements rather than one per event. Joining
+notifications are suppressed in large meetings at the server's join-sound
+threshold.
+
+Recording, permissions and other important alerts, including prompts with a
+close action, are never discarded to make room for noisy notifications. Up to
+five toasts are visible; if more important alerts arrive, they remain queued.
+Closing a grouped toast dismisses its buffered events, while later events can
+start a new notification. Leaving a meeting clears its pending notifications.
+
 ## Set up by your administrator
 
 A feature missing from your meeting may be off on your Meet server.
