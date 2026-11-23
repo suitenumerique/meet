@@ -110,6 +110,7 @@ const OpenFeedback = ({
   const { t } = useTranslation('rooms', { keyPrefix: 'openFeedback' })
   const [feedback, setFeedback] = useState('')
   const questionId = useId()
+  const optionalId = useId()
   useFocusOnMount(questionId, moveFocus)
 
   const onContinue = () => {
@@ -135,13 +136,16 @@ const OpenFeedback = ({
       <H lvl={3} centered id={questionId} tabIndex={-1}>
         {t('question')}
       </H>
+      <span id={optionalId} className="sr-only">
+        {t('optional')}
+      </span>
       <TextArea
         id="feedbackInput"
         aria-labelledby={questionId}
+        aria-describedby={optionalId}
         name="feedback"
         placeholder={t('placeholder')}
         css={{ _placeholder: { color: 'default.subtle-text' } }}
-        required
         value={feedback}
         onChange={(e) => setFeedback(e.target.value)}
         style={{

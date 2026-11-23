@@ -687,6 +687,7 @@
   "openFeedback": {
     "question": "Was können wir tun, um uns zu verbessern?",
     "placeholder": "Beschreibe deine Fehler oder teile deine Vorschläge…",
+    "optional": "Optional. Du kannst diesen Schritt überspringen.",
     "submit": "Absenden",
     "skip": "Überspringen"
   },
