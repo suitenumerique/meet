@@ -27,3 +27,6 @@ CVE-2026-119379 exp:2026-12-05
 # zlib (fixed in sid 1:1.3.dfsg+really1.3.2-4; trixie still vulnerable)
 CVE-2026-76844 exp:2026-12-05
 CVE-2026-85091 exp:2026-12-05
+
+# openssl (QUIC server only; upstream fix due 2026-12-01)
+CVE-2026-124709 exp:2026-12-05
