@@ -17,13 +17,15 @@ export const useFeatureFlagEnabled = (flag: string): boolean | undefined => {
     if (!isAnalyticsEnabled) return
     let cancelled = false
     let unsubscribe: (() => void) | undefined
-    void getPosthog().then((ph) => {
-      if (cancelled || !ph) return
-      setEnabled(ph.isFeatureEnabled(flag))
-      unsubscribe = ph.onFeatureFlags(() =>
+    void getPosthog()
+      .then((ph) => {
+        if (cancelled || !ph) return
         setEnabled(ph.isFeatureEnabled(flag))
-      )
-    })
+        unsubscribe = ph.onFeatureFlags(() =>
+          setEnabled(ph.isFeatureEnabled(flag))
+        )
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
       unsubscribe?.()
