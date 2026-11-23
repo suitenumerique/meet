@@ -1,10 +1,11 @@
 import { Button, H, Text, TextArea } from '@/primitives'
 import { useEffect, useId, useMemo, useState } from 'react'
-import { cva } from '@/styled-system/css'
+import { css, cva } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { styled, VStack } from '@/styled-system/jsx'
 import {
-  Radio as RACRadio,
+  RadioButton as RACRadioButton,
+  RadioField as RACRadioField,
   RadioGroup as RACRadioGroup,
 } from 'react-aria-components'
 import { useIsAnalyticsEnabled } from '@/features/analytics/hooks/useIsAnalyticsEnabled'
@@ -37,18 +38,24 @@ const Bar = styled(RACRadioGroup, {
   },
 })
 
+// The field only takes its share of the bar, the button inside draws the option
+const ratingFieldClass = css({
+  display: 'flex',
+  flexGrow: '1',
+  flexBasis: 0,
+  minWidth: 0,
+})
+
 const ratingButtonRecipe = cva({
   base: {
     // anchor the visually hidden input, so it scrolls with the radio
     position: 'relative',
+    flexGrow: '1',
     backgroundColor: 'white',
     color: 'initial',
     border: 'none',
     borderRadius: 0,
     padding: { base: '0.5rem 0.25rem', xsm: '0.5rem 0.85rem' },
-    flexGrow: '1',
-    flexBasis: 0,
-    minWidth: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -221,7 +228,7 @@ const RateQuality = ({
         onChange={(value) => setSelectedRating(Number(value))}
       >
         {[...Array(maxRating)].map((_, index) => (
-          <RACRadio
+          <RACRadioField
             key={index}
             value={String(index + 1)}
             aria-label={t('option', { value: index + 1, max: maxRating })}
@@ -232,18 +239,22 @@ const RateQuality = ({
                   ? maxLabelId
                   : undefined
             }
-            className={ratingButtonRecipe({
-              selected: selectedRating === index + 1,
-              borderLeft: index != 0,
-            })}
+            className={ratingFieldClass}
           >
-            {({ isSelected }) => (
-              <>
-                {isSelected && <RiCheckLine size={16} aria-hidden="true" />}
-                {index + 1}
-              </>
-            )}
-          </RACRadio>
+            <RACRadioButton
+              className={ratingButtonRecipe({
+                selected: selectedRating === index + 1,
+                borderLeft: index != 0,
+              })}
+            >
+              {({ isSelected }) => (
+                <>
+                  {isSelected && <RiCheckLine size={16} aria-hidden="true" />}
+                  {index + 1}
+                </>
+              )}
+            </RACRadioButton>
+          </RACRadioField>
         ))}
       </Bar>
       <div
