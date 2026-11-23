@@ -2,7 +2,7 @@ import { A, Div, Icon, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { Button as RACButton } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
-import { ReactNode } from 'react'
+import { ReactNode, useId } from 'react'
 import { SubPanelId, useSidePanel } from '../hooks/useSidePanel'
 import { useRestoreFocus } from '@/hooks/useRestoreFocus'
 import {
@@ -26,8 +26,11 @@ const ToolButton = ({
   description,
   onPress,
 }: ToolsButtonProps) => {
+  const descriptionId = useId()
   return (
     <RACButton
+      aria-label={title}
+      aria-describedby={descriptionId}
       className={css({
         display: 'flex',
         flexDirection: 'row',
@@ -71,10 +74,11 @@ const ToolButton = ({
             gap: 0.25,
             fontWeight: 'semibold',
           })}
+          aria-hidden="true"
         >
           {title}
         </Text>
-        <Text as="p" variant="smNote" wrap="pretty">
+        <Text as="p" variant="smNote" wrap="pretty" id={descriptionId}>
           {description}
         </Text>
       </div>
@@ -172,22 +176,37 @@ export const Tools = () => {
           </A>
         )}
       </Text>
-      {isTranscriptEnabled && (
-        <ToolButton
-          icon={<Icon name="speech_to_text" />}
-          title={t('tools.transcript.title')}
-          description={t('tools.transcript.body')}
-          onPress={() => openTranscript()}
-        />
-      )}
-      {isScreenRecordingEnabled && (
-        <ToolButton
-          icon={<Icon name="mode_standby" />}
-          title={t('tools.screenRecording.title')}
-          description={t('tools.screenRecording.body')}
-          onPress={() => openScreenRecording()}
-        />
-      )}
+      {/* eslint-disable-next-line jsx-a11y/no-redundant-roles */}
+      <ul
+        role="list"
+        className={css({
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.5,
+          width: 'full',
+        })}
+      >
+        {isTranscriptEnabled && (
+          <li>
+            <ToolButton
+              icon={<Icon name="speech_to_text" />}
+              title={t('tools.transcript.title')}
+              description={t('tools.transcript.body')}
+              onPress={() => openTranscript()}
+            />
+          </li>
+        )}
+        {isScreenRecordingEnabled && (
+          <li>
+            <ToolButton
+              icon={<Icon name="mode_standby" />}
+              title={t('tools.screenRecording.title')}
+              description={t('tools.screenRecording.body')}
+              onPress={() => openScreenRecording()}
+            />
+          </li>
+        )}
+      </ul>
     </Div>
   )
 }
