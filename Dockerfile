@@ -26,7 +26,7 @@ ENV UV_LINK_MODE=copy
 ENV UV_PYTHON_DOWNLOADS=0
 
 # install uv
-COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /uvx /bin/
 
 WORKDIR /app
 
@@ -126,7 +126,7 @@ USER root:root
 RUN apk add postgresql-client
 
 # Install development dependencies
-RUN --mount=from=ghcr.io/astral-sh/uv:0.13.4,source=/uv,target=/bin/uv \
+RUN --mount=from=ghcr.io/astral-sh/uv:0.13.9,source=/uv,target=/bin/uv \
   uv sync --all-extras --locked
 
 # Restore the un-privileged user running the application
