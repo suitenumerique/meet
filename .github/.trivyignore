@@ -1,5 +1,6 @@
-# Debian 13 base image (python:3.14-slim): no fixed version available yet.
-# Review regularly and remove entries once Debian ships a fix.
+# Debian 13 base image of the agents (python:3.14-slim): no fixed version
+# shipped in the image yet.
+# Review regularly and remove entries once the image ships a fix.
 
 # util-linux
 CVE-2026-76642 exp:2026-12-05
@@ -24,8 +25,7 @@ CVE-2026-119373 exp:2026-12-05
 CVE-2026-119374 exp:2026-12-05
 CVE-2026-119379 exp:2026-12-05
 
-# zlib (fixed in sid 1:1.3.dfsg+really1.3.2-4; trixie still vulnerable)
-CVE-2026-76844 exp:2026-12-05
+# zlib (fixed in trixie 1:1.3.dfsg+really1.3.1-1+deb13u1; not yet in the image)
 CVE-2026-85091 exp:2026-12-05
 
 # openssl (QUIC server only; upstream fix due 2026-12-01)
