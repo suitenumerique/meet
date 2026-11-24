@@ -140,10 +140,15 @@ rtc:
 When the WebSocket drops, after a LiveKit node crash or a Redis outage for instance, every client in every room loses it at once. So that they do not all reconnect together, each client waits a random delay before each attempt:
 
 - The first delay is at most [`LIVEKIT_RECONNECT_BASE_DELAY_MS`](../../reference/env-variables.md#LIVEKIT_RECONNECT_BASE_DELAY_MS). That ceiling doubles after each failed attempt, up to [`LIVEKIT_RECONNECT_MAX_DELAY_MS`](../../reference/env-variables.md#LIVEKIT_RECONNECT_MAX_DELAY_MS), and each later delay falls between half the ceiling and the ceiling. The first attempt always starts within 5 seconds of the drop.
-- A client gives up after trying for [`LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS`](../../reference/env-variables.md#LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS), then shows a "connection lost" page. While only signaling is down and its media still flows, it keeps trying.
+- A client gives up after trying for [`LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS`](../../reference/env-variables.md#LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS). While only signaling is down and its media still flows, it keeps trying. When it gives up and [`LIVEKIT_CONNECTION_RECOVERY_ENABLED`](../../reference/env-variables.md#LIVEKIT_CONNECTION_RECOVERY_ENABLED) is on, it [asks the backend where its room is](multi-cluster.md#when-a-livekit-room-fails) and connects there. This way it follows a room that moved to another LiveKit cluster. If the setting is off, or if this recovery fails, it shows a "connection lost" page.
 - A client that loses the connection again less than [`LIVEKIT_RECONNECT_BACKOFF_RESET_MS`](../../reference/env-variables.md#LIVEKIT_RECONNECT_BACKOFF_RESET_MS) after reconnecting resumes the backoff one step above where it stopped.
 
 [`LIVEKIT_RECONNECT_BACKOFF_ENABLED=False`](../../reference/env-variables.md#LIVEKIT_RECONNECT_BACKOFF_ENABLED) falls back to LiveKit's default policy.
+
+## Room auto-creation
+
+The backend creates the LiveKit room of each meeting before it hands out credentials for it.
+With auto-creation on, a participant handed credentials for a LiveKit room that has since closed still connects, and LiveKit creates the room again under a SID the backend does not know: the meeting may then not be cleaned up when it ends.
 
 ## Webhook
 

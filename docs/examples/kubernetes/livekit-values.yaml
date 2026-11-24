@@ -13,6 +13,9 @@ livekit:
     udp_port: 7882
   logging:
     level: info
+  # Only Meet's backend creates rooms
+  room:
+    auto_create: false
   webhook:
     api_key: meet
     urls:

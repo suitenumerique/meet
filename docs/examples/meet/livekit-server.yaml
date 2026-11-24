@@ -20,6 +20,9 @@ rtc:
   # LiveKit will attempt to use STUN to discover the true IP, and advertise
   # that IP with its clients
   use_external_ip: true
+# Only the backend creates rooms: LiveKit must not create them as participants join.
+room:
+  auto_create: false
 # Sends room and participant events to the backend: lobby, presence, telephony and recording rely on them.
 webhook:
   api_key: meet

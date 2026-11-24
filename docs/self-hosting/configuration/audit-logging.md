@@ -162,7 +162,7 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | Field | Meaning |
 |---|---|
 | `entity.target.id` | Its primary key |
-| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess`, or `transit_code`, whose `id` is the code's SHA-256 |
+| `entity.target.sub_type` | Its model: `room`, `recording`, `user`, `application`, `resourceaccess`, `livekit_room`, or `transit_code`, whose `id` is the code's SHA-256 |
 | `entity.target.type` | `user` for an account, `application` for an application |
 | `entity.target.name` | Its name, when its model registers one |
 | `entity.target.raw.*` | The other fields its model registers, such as a room's `slug` and `access_level`, or a user's OIDC `sub` |
@@ -229,6 +229,18 @@ Transcripts and summaries come from a recording, so their actions sit under `rec
 | `recording.summary.report` | The summary service reports on a summary | As `recording.transcript.report` |
 
 A recording target's `mode` is how it was captured, `screen_recording` or `transcript`, and `requested_mode` what the user asked for. They differ for a transcript with **Also start a video recording** ticked. `is_transcribed` says whether it goes to the summary service.
+
+### LiveKit rooms
+
+A LiveKit room is the LiveKit object for a live meeting, roughly one session of a room. In every event below, `entity.target` is the LiveKit room, and `lasuite.actor.type` is `system` unless a user is named as the actor of a relocation, or of a close after a relocation or from the shell.
+
+| `event.action` | Emitted when | Notable fields |
+|---|---|---|
+| `livekit.placement.relocate` | A room is relocated to another LiveKit cluster, see [Multi-cluster LiveKit](multi-cluster.md#relocating-a-room). A refused relocation changes nothing and emits nothing | `lasuite.details` holds `source_cluster`, `target_cluster` and `relocation_id` |
+| `livekit.placement.adopt` | A LiveKit room without placement is placed on the cluster where it is live, if that cluster may receive new placements. This happens when it starts there (`room_started`, see [Multi-cluster LiveKit](multi-cluster.md#recording-the-livekit-rooms-that-start)), or when a reconciliation finds it live there. Nothing is emitted when another request placed it meanwhile | `lasuite.details` holds `cluster`, `sid` and `source` (`room_started` or `reconciliation`) |
+| `livekit.placement.repair` | A reconciliation finds a placement's LiveKit room live on its cluster under a SID the placement does not record, and records that SID on the placement, see [Multi-cluster LiveKit](multi-cluster.md#reconciling-placements). Nothing is emitted when another request changed the placement meanwhile | `lasuite.details` holds `cluster` and `sid`. `sid.from` is the previous SID, or `null` if the placement recorded none, and `sid.to` is the new one |
+| `livekit.placement.delete` | A reconciliation deletes a placement whose LiveKit room stayed missing from its cluster, for example because its `room_finished` webhook was lost. It then cleans up the placement's room, see [Multi-cluster LiveKit](multi-cluster.md#reconciling-placements). Nothing is emitted when another request changed the placement meanwhile | `lasuite.details` holds `cluster`, `cause` (`absent`), and `sid` when the placement recorded one |
+| `livekit.room.close` | The backend closes a LiveKit room on a cluster it is not placed on, or fails to. This happens after a relocation, when a stray LiveKit room is closed from the shell or by a reconciliation (see [Multi-cluster LiveKit](multi-cluster.md#reconciling-placements)), and when a LiveKit room starts on such a cluster. This includes a LiveKit room without placement, when its cluster may not receive new placements while another cluster may. Nothing is emitted when the LiveKit room is not live there | `service.target.name` is `livekit`. `lasuite.details` holds `cluster`, and the `relocation_id` after a relocation |
 
 ### Sign-in and the admin
 

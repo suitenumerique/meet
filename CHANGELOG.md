@@ -53,6 +53,7 @@ and this project adheres to
 - ⚡️(frontend) stop loading posthog surveys
 - ⚡️(frontend) skip creating live livekit rooms when joining
 - ♻️(backend) share the handling of livekit rooms started and finished
+- 📝(docs) document multi-cluster livekit
 
 ### Fixed
 

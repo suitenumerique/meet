@@ -11,6 +11,8 @@ With neither set, it deletes nothing. Both are in [Environment Variables: Room p
 
 A room is inactive when LiveKit's `room_started` [webhook](livekit.md#webhook) last reported it more than [`ROOM_INACTIVITY_DELETION_DAYS`](../../reference/env-variables.md#ROOM_INACTIVITY_DELETION_DAYS) days ago, or never did and it was created more than that many days ago.
 
+A `room_started` webhook does not count when the backend [closes or ignores](multi-cluster.md#recording-the-livekit-rooms-that-start) the LiveKit room that the webhook reports, such as one started on a LiveKit cluster the room is not placed on. If that webhook is lost, the [reconciliation of placements](multi-cluster.md#reconciling-placements) records the date when it adopts the LiveKit room or repairs the SID of its placement. If the placement already has the SID of that LiveKit room, the reconciliation does not record the date.
+
 !!! warning
     If the webhook does not reach the backend, rooms in daily use look inactive and get purged.
 

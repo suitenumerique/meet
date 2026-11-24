@@ -93,6 +93,30 @@ must not compare them case-sensitively: it should strip both and lowercase their
 another user is now refused, by the OIDC login and by external API calls made with a Menshen token, instead of getting
 a second account. To keep creating users with a duplicate email, set the new `OIDC_ALLOW_DUPLICATE_EMAILS=True`.
 
+### LiveKit rooms created by the backend only
+
+The backend now creates the LiveKit room of a meeting before handing out credentials for it. LiveKit must no longer
+create rooms when participants join, so every LiveKit cluster needs `room.auto_create: false` (see
+[Multi-cluster LiveKit](docs/self-hosting/configuration/multi-cluster.md#preparing-each-cluster)). Earlier releases rely
+on this auto-creation, so turn it off only once every backend process runs this release:
+
+1. Deploy this release with `LIVEKIT_CONNECTION_RECOVERY_ENABLED=false`. Frontends then have every join create the
+   LiveKit room, and they do not reconnect on their own.
+2. Once every backend process runs this release, set `room.auto_create: false` on every LiveKit cluster.
+3. Set `LIVEKIT_CONNECTION_RECOVERY_ENABLED` back to `true`, its default.
+
+Without these steps, a frontend that was handed credentials for a LiveKit room that has already closed still connects
+while auto-creation is on. LiveKit then creates the LiveKit room again, under a SID the backend does not know. The room
+may not be cleaned up when that LiveKit room finishes, and the participants of a meeting that ended may be reconnected
+to a new one.
+
+### LiveKit placements reconciled every minute
+
+The new `reconcile_livekit_placements` command makes up for lost LiveKit webhooks and should run every minute. The Helm
+chart schedules it as the `reconcile-livekit-placements` entry of `backend.cronjobs`. If you do not use the Helm chart,
+or if you override `backend.cronjobs`, schedule `python manage.py reconcile_livekit_placements` every minute yourself.
+See [Reconciling placements](docs/self-hosting/configuration/multi-cluster.md#reconciling-placements).
+
 ## v1.37.0
 
 ### Crisp support chat replaced by the LaSuite support form

@@ -24,6 +24,7 @@ Most of what an administrator can change is a backend setting, an environment va
 ## Configuration
 
 - [LiveKit and TURN](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/livekit.md): the media server, its ports and TURN
+- [Multi-cluster LiveKit](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/multi-cluster.md): spreading rooms over several LiveKit clusters, relocating them, and what happens when a cluster is down
 - [Firewall and ports](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/firewall.md): every port to open, the traffic flows and the Docker networks
 - [SSO and authentication](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/sso.md): OpenID Connect providers and unauthenticated access
 - [Recording](https://raw.githubusercontent.com/suitenumerique/meet/main/docs/self-hosting/configuration/recording.md): LiveKit Egress, S3-compatible storage and download links

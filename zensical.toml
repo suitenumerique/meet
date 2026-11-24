@@ -40,6 +40,7 @@ nav = [
     {"Scalingo" = "self-hosting/scalingo.md"},
     {"Configuration" = [
       {"LiveKit & TURN" = "self-hosting/configuration/livekit.md"},
+      {"Multi-cluster LiveKit" = "self-hosting/configuration/multi-cluster.md"},
       {"Firewall & Ports" = "self-hosting/configuration/firewall.md"},
       {"SSO & Authentication" = "self-hosting/configuration/sso.md"},
       {"Recording" = "self-hosting/configuration/recording.md"},

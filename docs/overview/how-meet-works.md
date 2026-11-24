@@ -205,6 +205,8 @@ sequenceDiagram
     participant Mail as Mail server
 
     U->>BE: Start recording
+    BE->>BE: Create the recording on the LiveKit cluster the room is placed on
+    Note over BE,LK: Every later call about this recording goes to that cluster
     BE->>LK: Create room composite egress
     LK->>EG: Start a recording worker
     EG-->>LK: Join the room, capture audio and video
@@ -276,7 +278,12 @@ sequenceDiagram
     participant SIP as LiveKit SIP
     participant P as Phone
 
-    B->>LK: First person joins
+    B->>BE: First person joins
+    opt LiveKit room not known to be live
+        BE->>LK: Create the LiveKit room
+    end
+    BE-->>B: LiveKit URL and pass
+    B->>LK: Connect
     LK-->>BE: Webhook: room started
     BE->>LK: Create the rule: this PIN → this room
     P->>SIP: Call the number, type the PIN
