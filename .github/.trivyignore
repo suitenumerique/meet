@@ -30,3 +30,7 @@ CVE-2026-85091 exp:2026-12-05
 
 # openssl (QUIC server only; upstream fix due 2026-12-01)
 CVE-2026-124709 exp:2026-12-05
+
+# openssl (QUIC only; patched upstream on the 3.5 branch, unfixed in every
+# Debian release, so no python:3.14-slim variant ships a fix)
+CVE-2026-107494 exp:2026-12-05
