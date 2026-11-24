@@ -1,7 +1,7 @@
 
 [project]
 name = "summary"
-version = "1.37.0"
+version = "1.38.0"
 requires-python = ">=3.13"
 dependencies = [
     "certifi>=2026.10.19",

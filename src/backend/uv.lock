@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.13"
 
 [[package]]
@@ -1375,7 +1375,7 @@ wheels = [
 
 [[package]]
 name = "meet"
-version = "1.37.0"
+version = "1.38.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },

@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.38.0] - 2026-11-24
+
 ### Added
 
 - 📝(doc) create complete documentation website for Meet

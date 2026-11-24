@@ -16,6 +16,8 @@ the following command inside your docker container:
 
 ## [Unreleased]
 
+## v1.38.0 - 2026-11-24
+
 ### Illustrations served as WebP with a PNG fallback
 
 The illustrations in `assets/intro-slider/` are now served as WebP, the PNG files being kept as a fallback for browsers
