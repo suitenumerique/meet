@@ -7,12 +7,21 @@ export const VisioCreateButton = ({
   onClear,
   readOnly = false,
   slug,
+  code,
 }: {
   onRoomCreated: (roomData: RoomData) => void
   onClear: () => void
   readOnly?: boolean
+  // An existing room to show again, as received with `onRoomCreated`
   slug?: string
+  code?: string
 }) => {
+  const params = new URLSearchParams({ readOnly: String(readOnly) })
+  if (slug) {
+    params.set('slug', slug)
+    if (code) params.set('code', code)
+  }
+
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       // Make sure it is the correct origin.
@@ -36,10 +45,7 @@ export const VisioCreateButton = ({
     // eslint-disable-next-line jsx-a11y/iframe-has-title
     <iframe
       allow="clipboard-read; clipboard-write"
-      src={
-        DEFAULT_CONFIG.url +
-        `/create-button?readOnly=${readOnly}${slug ? '&slug=' + slug : ''}`
-      }
+      src={`${DEFAULT_CONFIG.url}/create-button?${params}`}
       style={{
         width: '100%',
         height: '150px',
