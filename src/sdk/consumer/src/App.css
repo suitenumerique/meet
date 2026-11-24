@@ -3,3 +3,83 @@
 
   text-align: center;
 }
+
+.page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  text-align: left;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 400;
+}
+
+.checkbox input {
+  width: auto;
+  height: auto;
+  padding: 0;
+}
+
+.debug {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 380px;
+}
+
+.frame {
+  width: 100%;
+}
+
+.debug .url {
+  height: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-all;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.actions button {
+  height: 36px;
+  padding: 0 1rem;
+  border: none;
+  font-size: 14px;
+}
+
+.status.error {
+  color: rgb(185, 28, 28);
+}
+
+.debug h3 {
+  margin: 1rem 0 0;
+  font-size: 16px;
+}
+
+.debug pre,
+.debug code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+.debug pre {
+  margin: 0.25rem 0 0;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: white;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
