@@ -71,7 +71,7 @@
     }
   },
   "speakerChanged": {
-    "granted": "Je bent nu spreker. Je kunt je microfoon, camera en schermdeling gebruiken.",
+    "granted": "Je bent nu spreker. De beperkingen van de organisator gelden niet meer voor jou.",
     "removed": "Je bent geen spreker meer."
   },
   "openMenu": "Menu openen"

@@ -71,7 +71,7 @@
     }
   },
   "speakerChanged": {
-    "granted": "You are now a speaker. You can use your microphone, camera and screen sharing.",
+    "granted": "You are now a speaker. The host's restrictions no longer apply to you.",
     "removed": "You are no longer a speaker."
   },
   "openMenu": "Open menu"

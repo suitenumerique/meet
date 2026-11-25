@@ -770,8 +770,8 @@
       "ariaLabel": "Make {{name}} a speaker"
     },
     "removeSpeaker": {
-      "label": "Remove speaker",
-      "ariaLabel": "Remove {{name}} as speaker"
+      "label": "Remove speaker role",
+      "ariaLabel": "Remove {{name}}'s speaker role"
     }
   },
   "pinAnnouncements": {

@@ -71,7 +71,7 @@
     }
   },
   "speakerChanged": {
-    "granted": "Ahora eres ponente. Puedes usar tu micrófono, tu cámara y compartir pantalla.",
+    "granted": "Ahora eres ponente. Las restricciones del organizador ya no se te aplican.",
     "removed": "Ya no eres ponente."
   },
   "openMenu": "Abrir el menú"

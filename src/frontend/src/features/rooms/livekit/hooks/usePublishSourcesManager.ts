@@ -95,7 +95,7 @@ export const usePublishSourcesManager = () => {
           )
         }
 
-        if (!enabled) {
+        if (!enabled && restrictedRemoteParticipants.length > 0) {
           /*
            * We can't rely solely on the ParticipantPermissionsChanged event here,
            * because for local participants it is emitted twice (once from Participant, once from LocalParticipant).
