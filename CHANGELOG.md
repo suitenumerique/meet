@@ -17,6 +17,7 @@ and this project adheres to
 - 🔒️(agents) upgrade libzstd1 to fix CVE-2026-124851
 - ♿️(frontend) name the header settings tabs on small screens
 - ♿️(frontend) announce the copy of the connection details
+- ♿️(frontend) name the in-meeting settings dialog on small screens
 
 ## [1.38.0] - 2026-11-24
 

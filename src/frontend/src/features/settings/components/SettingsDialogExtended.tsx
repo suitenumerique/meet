@@ -96,11 +96,13 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             paddingRight: !isWideScreen ? '1rem' : undefined,
           }}
         >
-          {isWideScreen && (
-            <Heading slot="title" level={1} className={text({ variant: 'h1' })}>
-              {t('dialog.heading')}
-            </Heading>
-          )}
+          <Heading
+            slot="title"
+            level={1}
+            className={isWideScreen ? text({ variant: 'h1' }) : 'sr-only'}
+          >
+            {t('dialog.heading')}
+          </Heading>
           <TabList border={false}>
             <Tab
               icon
