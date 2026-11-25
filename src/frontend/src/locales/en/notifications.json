@@ -70,5 +70,9 @@
       "member": "Member"
     }
   },
+  "speakerChanged": {
+    "granted": "You are now a speaker. The host's restrictions no longer apply to you.",
+    "removed": "You are no longer a speaker."
+  },
   "openMenu": "Open menu"
 }

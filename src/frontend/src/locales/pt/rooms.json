@@ -708,6 +708,7 @@
     "host": "Anfitrião",
     "cohost": "Co-anfitrião",
     "member": "Membro",
+    "speaker": "Palestrante",
     "contributors": "Colaboradores",
     "collapsable": {
       "open": "Abrir lista {{name}}",
@@ -763,6 +764,14 @@
     "demote": {
       "label": "Remover papel de co-anfitrião",
       "ariaLabel": "Remover papel de co-anfitrião de {{name}}"
+    },
+    "makeSpeaker": {
+      "label": "Tornar palestrante",
+      "ariaLabel": "Tornar {{name}} palestrante"
+    },
+    "removeSpeaker": {
+      "label": "Remover papel de palestrante",
+      "ariaLabel": "Remover papel de palestrante de {{name}}"
     }
   },
   "pinAnnouncements": {

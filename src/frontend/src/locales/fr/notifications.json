@@ -70,5 +70,9 @@
       "member": "Membre"
     }
   },
+  "speakerChanged": {
+    "granted": "Vous êtes maintenant intervenant. Les restrictions de l'organisateur ne s'appliquent plus à vous.",
+    "removed": "Vous n'êtes plus intervenant."
+  },
   "openMenu": "Ouvrir le menu"
 }

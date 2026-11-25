@@ -24,4 +24,5 @@ export enum NotificationType {
   RecordingSaving = 'recordingSaving',
   PermissionsRemoved = 'permissionsRemoved',
   RoleChanged = 'roleChanged',
+  SpeakerChanged = 'speakerChanged',
 }

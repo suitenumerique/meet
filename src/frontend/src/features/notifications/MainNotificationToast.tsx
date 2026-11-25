@@ -15,6 +15,8 @@ import { Emoji } from '@/features/reactions/types'
 import { useReactions } from '@/features/reactions/hooks/useReactions'
 import { NotificationProvider } from './NotificationProvider'
 import { useConfig } from '@/api/useConfig'
+import { SPEAKER_ATTRIBUTE } from '@/features/participants/api/updateParticipantSpeaker'
+import { useHasLockedSource } from '@/features/rooms/livekit/hooks/useRoomPublishSources'
 
 export const MainNotificationToast = () => {
   const room = useRoomContext()
@@ -24,6 +26,7 @@ export const MainNotificationToast = () => {
   const announce = useScreenReaderAnnounce()
 
   const { appendReaction } = useReactions()
+  const hasLockedSource = useHasLockedSource()
 
   useEffect(() => {
     const handleChatMessage = (
@@ -179,13 +182,28 @@ export const MainNotificationToast = () => {
       changedAttributes: Record<string, string>,
       participant: Participant
     ) => {
-      if (!participant.isLocal || !('room_role' in changedAttributes)) return
-      const newRole = changedAttributes['room_role']
+      if (!participant.isLocal) return
+      if ('room_role' in changedAttributes) {
+        toastQueue.add(
+          {
+            participant,
+            type: NotificationType.RoleChanged,
+            newRole: changedAttributes['room_role'],
+          },
+          {
+            timeout: NotificationDuration.ROLE_CHANGED,
+          }
+        )
+        return
+      }
+      if (!(SPEAKER_ATTRIBUTE in changedAttributes)) return
+      const isSpeaker = changedAttributes[SPEAKER_ATTRIBUTE] === 'true'
+      if (!isSpeaker && !hasLockedSource) return
       toastQueue.add(
         {
           participant,
-          type: NotificationType.RoleChanged,
-          newRole: newRole,
+          type: NotificationType.SpeakerChanged,
+          isSpeaker,
         },
         {
           timeout: NotificationDuration.ROLE_CHANGED,
@@ -197,7 +215,7 @@ export const MainNotificationToast = () => {
     return () => {
       room.off(RoomEvent.ParticipantAttributesChanged, handleAttributeChanged)
     }
-  }, [room])
+  }, [room, hasLockedSource])
 
   useEffect(() => {
     const removeParticipantNotifications = (participant: Participant) => {

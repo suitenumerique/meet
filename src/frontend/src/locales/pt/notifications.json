@@ -70,5 +70,9 @@
       "member": "Membro"
     }
   },
+  "speakerChanged": {
+    "granted": "Agora você é palestrante. As restrições do anfitrião não se aplicam mais a você.",
+    "removed": "Você não é mais palestrante."
+  },
   "openMenu": "Abrir menu"
 }

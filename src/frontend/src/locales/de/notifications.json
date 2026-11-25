@@ -70,5 +70,9 @@
       "member": "Mitglied"
     }
   },
+  "speakerChanged": {
+    "granted": "Du bist jetzt Sprecher. Die Einschränkungen der Moderation gelten für dich nicht mehr.",
+    "removed": "Du bist nicht mehr Sprecher."
+  },
   "openMenu": "Menü öffnen"
 }
