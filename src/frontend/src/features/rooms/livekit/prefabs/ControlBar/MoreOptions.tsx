@@ -106,7 +106,7 @@ export const MoreOptions = ({
   const [isWide, setIsWide] = useState<boolean | null>(null)
 
   return (
-    <nav
+    <div
       className={css({
         display: 'flex',
         justifyContent: 'flex-end',
@@ -121,6 +121,6 @@ export const MoreOptions = ({
         onWideChange={setIsWide}
       />
       {isWide !== null && (isWide ? <NavigationControls /> : <LateralMenu />)}
-    </nav>
+    </div>
   )
 }

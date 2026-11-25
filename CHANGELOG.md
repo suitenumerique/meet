@@ -23,6 +23,7 @@ and this project adheres to
 - ♿️(frontend) stop exposing the header actions as a navigation
 - ♿️(frontend) size video elements in CSS, not with HTML attributes
 - 🐛(backend) return RFC 6749 errors from the application token endpoint
+- ♿️(frontend) stop exposing the meeting controls as a navigation #1883
 
 ## [1.38.0] - 2026-11-24
 
