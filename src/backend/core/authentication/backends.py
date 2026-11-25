@@ -17,6 +17,7 @@ from rest_framework.authentication import SessionAuthentication
 
 from core import audit, auditing
 from core.models import DuplicateEmailError, User
+from core.recording.delivery.credentials import store_in_session
 from core.utils import normalize_email
 from core.validators import sub_validator
 
@@ -29,6 +30,16 @@ class OIDCAuthenticationBackend(LaSuiteOIDCAuthenticationBackend):
     This class overrides the default OIDC Authentication Backend to accommodate differences
     in the User and Identity models, and handles signed and/or encrypted UserInfo response.
     """
+
+    def authenticate(self, request, **kwargs):
+        """Authenticate a user, and get required credentials to push to their Drive."""
+
+        user = super().authenticate(request, **kwargs)
+
+        if user is not None and user.is_active:
+            store_in_session(request, user, self._token_info.get("access_token"))
+
+        return user
 
     def get_extra_claims(self, user_info):
         """

@@ -9,7 +9,7 @@ from unittest import mock
 
 import pytest
 
-from core.factories import RecordingFactory
+from core.factories import RecordingDeliveryFactory, RecordingFactory
 from core.recording.enums import RecordingWorkerEvent
 from core.recording.services.recording_events import (
     RecordingEventsError,
@@ -88,6 +88,31 @@ def test_handle_failed_success(mock_notify, mode, notification_type, service):
     mock_notify.assert_called_once_with(
         room_name=str(recording.room.id), notification_data={"type": notification_type}
     )
+
+
+@pytest.mark.parametrize(
+    ("handler", "error"),
+    (
+        ("_handle_failed", "The recording failed."),
+        ("_handle_aborted", "The recording was aborted."),
+    ),
+)
+@mock.patch("core.utils.notify_participants")
+def test_handle_failure_abandons_delivery(  # pylint: disable=unused-argument
+    mock_notify, handler, error, service, encryption_key
+):
+    """A recording that will never be saved drops its delivery's token."""
+
+    delivery = RecordingDeliveryFactory(recording__status="active")
+    delivery.set_token("exchanged-token", None)
+    delivery.save()
+
+    getattr(service, handler)(delivery.recording)
+
+    delivery.refresh_from_db()
+    assert delivery.status == "failed"
+    assert delivery.error == error
+    assert delivery.token is None
 
 
 @pytest.mark.parametrize(

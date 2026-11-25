@@ -703,6 +703,9 @@ class Base(Configuration):
     OIDC_STORE_ID_TOKEN = values.BooleanValue(
         default=True, environ_name="OIDC_STORE_ID_TOKEN", environ_prefix=None
     )
+    OIDC_STORE_REFRESH_TOKEN = values.BooleanValue(
+        default=False, environ_name="OIDC_STORE_REFRESH_TOKEN", environ_prefix=None
+    )
     # Fernet key used to encrypt tokens at rest: the refresh token django-lasuite
     # stores in the session, and the token to call Drive with, stored in the session
     # and on a recording. Generate one with `Fernet.generate_key()`.
@@ -927,6 +930,65 @@ class Base(Configuration):
         None, environ_name="RECORDING_MAX_DURATION", environ_prefix=None
     )
 
+    # Where a finished video recording is made available (audio-only transcripts
+    # are not concerned):
+    # - "s3_email": it stays in the object storage, and everyone with access to it
+    #   is emailed a download link.
+    # - "drive": it is also pushed to the Drive of the user who started it, in
+    #   RECORDING_DRIVE_FOLDER_NAME, and shared with the room's owners and
+    #   administrators. Only the starter is emailed, with a link to the file.
+    #   The object storage copy is kept until it expires. Nobody is emailed when
+    #   the push fails. Without a token to call Drive with when the recording
+    #   starts, see RECORDING_DRIVE_EMAIL_FALLBACK_ENABLED.
+    RECORDING_STORAGE_METHOD = values.Value(
+        "s3_email", environ_name="RECORDING_STORAGE_METHOD", environ_prefix=None
+    )
+    # How Meet calls Drive on behalf of the user who started the recording:
+    # - "token_exchange": their access token is exchanged with Menshen, when they log
+    #   in, for a token targeting Drive (RECORDING_DRIVE_AUDIENCE). Its lifetime, set
+    #   by Menshen's exchange rule, must outlast the session (SESSION_COOKIE_AGE),
+    #   plus the recording and its push.
+    # It requires OIDC_STORE_REFRESH_TOKEN_KEY to encrypt the token, kept in the
+    # session, then on the recording while it runs.
+    RECORDING_DRIVE_AUTH_METHOD = values.Value(
+        "token_exchange",
+        environ_name="RECORDING_DRIVE_AUTH_METHOD",
+        environ_prefix=None,
+    )
+    # Deliver a recording by email, as "s3_email" does, when there is no token to call
+    # Drive with as it starts, e.g. the user logged in while Menshen was unavailable,
+    # or before recordings were pushed to Drive. Otherwise it is not delivered at all.
+    RECORDING_DRIVE_EMAIL_FALLBACK_ENABLED = values.BooleanValue(
+        True,
+        environ_name="RECORDING_DRIVE_EMAIL_FALLBACK_ENABLED",
+        environ_prefix=None,
+    )
+    # Folder, at the root of the user's Drive, recordings are pushed to. It is
+    # created when missing.
+    RECORDING_DRIVE_FOLDER_NAME = values.Value(
+        "Visio-Recordings",
+        environ_name="RECORDING_DRIVE_FOLDER_NAME",
+        environ_prefix=None,
+    )
+    # Audience Drive is registered under in Menshen, for "token_exchange".
+    RECORDING_DRIVE_AUDIENCE = values.Value(
+        None, environ_name="RECORDING_DRIVE_AUDIENCE", environ_prefix=None
+    )
+    # Space-separated scopes asked for in the token exchange. Menshen grants the
+    # ones its exchange rule allows when left empty.
+    RECORDING_DRIVE_SCOPE = values.Value(
+        None, environ_name="RECORDING_DRIVE_SCOPE", environ_prefix=None
+    )
+    # Attempts at pushing a recording to Drive, before giving up.
+    RECORDING_DRIVE_PUSH_MAX_ATTEMPTS = values.PositiveIntegerValue(
+        3, environ_name="RECORDING_DRIVE_PUSH_MAX_ATTEMPTS", environ_prefix=None
+    )
+    # Lifetime of the signed URL the worker downloads the recording from.
+    RECORDING_DRIVE_SIGNED_URL_EXPIRY_SECONDS = values.PositiveIntegerValue(
+        60 * 60,
+        environ_name="RECORDING_DRIVE_SIGNED_URL_EXPIRY_SECONDS",
+        environ_prefix=None,
+    )
     # Base URL of Drive's external API, e.g. https://fichiers.numerique.gouv.fr/external_api/v1.0
     DRIVE_API_BASE_URL = values.Value(
         None, environ_name="DRIVE_API_BASE_URL", environ_prefix=None
@@ -1623,6 +1685,48 @@ class Base(Configuration):
             )
 
     @classmethod
+    def _check_recording_storage(cls):
+        """Ensure the recording storage method has what it needs.
+
+        The values mirror RecordingDeliveryMethodChoices and DriveTokenTypeChoices,
+        models cannot be imported from the settings.
+        """
+        methods = {"s3_email", "drive"}
+        if cls.RECORDING_STORAGE_METHOD not in methods:
+            raise ImproperlyConfigured(
+                f"RECORDING_STORAGE_METHOD must be one of {sorted(methods)}, "
+                f"got {cls.RECORDING_STORAGE_METHOD!r}."
+            )
+
+        if cls.RECORDING_STORAGE_METHOD != "drive":
+            return
+
+        auth_methods = {"token_exchange"}
+        if cls.RECORDING_DRIVE_AUTH_METHOD not in auth_methods:
+            raise ImproperlyConfigured(
+                f"RECORDING_DRIVE_AUTH_METHOD must be one of {sorted(auth_methods)}, "
+                f"got {cls.RECORDING_DRIVE_AUTH_METHOD!r}."
+            )
+
+        required = [
+            "DRIVE_API_BASE_URL",
+            "DRIVE_FRONTEND_BASE_URL",
+            "OIDC_STORE_REFRESH_TOKEN_KEY",
+        ]
+        if cls.RECORDING_DRIVE_AUTH_METHOD == "token_exchange":
+            required += [
+                "MENSHEN_SERVER_URL",
+                "MENSHEN_CLIENT_ID",
+                "MENSHEN_CLIENT_SECRET",
+                "RECORDING_DRIVE_AUDIENCE",
+            ]
+        missing = [name for name in required if not getattr(cls, name)]
+        if missing:
+            raise ImproperlyConfigured(
+                f"RECORDING_STORAGE_METHOD=drive requires {', '.join(missing)}."
+            )
+
+    @classmethod
     def _configure_database_pool(cls):
         """Inject the psycopg pool options into the default database when enabled."""
         if not cls.DB_PSYCOPG_POOL_ENABLED:
@@ -1680,6 +1784,7 @@ class Base(Configuration):
             )
 
         cls._check_recording_encoding_maps()
+        cls._check_recording_storage()
         cls._check_audit_log_data_stream_namespace()
         cls._configure_database_pool()
 

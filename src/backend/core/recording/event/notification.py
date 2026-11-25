@@ -17,6 +17,7 @@ from livekit import api as livekit_api
 
 from core import audit, auditing, models, utils
 from core.analytics import UserFeatureFlag, is_user_feature_flag_enabled
+from core.recording.delivery import service as delivery_service
 from core.tasks.mail import send_email
 from core.utils import generate_download_s3_url
 
@@ -54,8 +55,8 @@ class NotificationService:
             if recording.is_transcribed:
                 summary_success = self._notify_summary_service(recording)
 
-            email_success = self._notify_user_by_email(recording)
-            return email_success and summary_success
+            delivery_success = self._deliver_recording(recording)
+            return delivery_success and summary_success
 
         logger.error(
             "Unknown recording mode %s for recording %s",
@@ -238,6 +239,18 @@ class NotificationService:
             .first()
         )
         return oldest_access.user if oldest_access else None
+
+    @classmethod
+    def _deliver_recording(cls, recording: models.Recording) -> bool:
+        """Make a video recording available, by the method chosen when it started."""
+
+        if (
+            delivery_service.get_method(recording)
+            == models.RecordingDeliveryMethodChoices.DRIVE
+        ):
+            return delivery_service.dispatch_to_drive(recording)
+
+        return cls._notify_user_by_email(recording)
 
     @staticmethod
     def _notify_summary_service_v1(recording: models.Recording):

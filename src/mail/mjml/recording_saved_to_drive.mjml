@@ -1,0 +1,64 @@
+<mjml>
+  <mj-include path="./partial/header.mjml" />
+
+  <mj-body mj-class="bg--blue-100">
+    <!--
+      We load django tags here so they appear in the body of the HTML output.
+      This ensures html-to-text also includes them in the plain text template.
+    -->
+    <mj-raw>{% load i18n static extra_tags %}</mj-raw>
+    <mj-wrapper css-class="wrapper" padding="5px 25px 0px 25px">
+      <mj-section css-class="wrapper-logo">
+        <mj-column>
+          <mj-image
+            align="center"
+            src="{{logo_img}}"
+            width="320px"
+            alt="{%trans 'Logo email' %} {{brandname}}"
+          />
+        </mj-column>
+      </mj-section>
+      <mj-section mj-class="bg--white-100" padding="0px 20px 60px 20px">
+        <mj-column>
+          <mj-text align="center">
+            <h1>{% trans "Your recording is in your Drive!"%}</h1>
+          </mj-text>
+          <!-- Main Message -->
+          <mj-text>
+            {% blocktrans %}
+            Your recording of "{{room_name}}" on {{recording_date}} at {{recording_time}} has been saved to the "{{folder_name}}" folder of your Drive.
+            {% endblocktrans %}
+          </mj-text>
+          <mj-button
+            href="{{link}}"
+            background-color="#000091"
+            color="white"
+            padding-bottom="30px"
+          >
+            {% trans "Open in Drive"%}
+          </mj-button>
+          <mj-text>
+            {% blocktrans %}
+            If you have any questions or need assistance, please contact our support team at {{support_email}}.
+            {% endblocktrans %}
+          </mj-text>
+          <mj-divider
+            border-width="1px"
+            border-style="solid"
+            border-color="#DDDDDD"
+            width="30%"
+            align="center"
+          />
+          <!-- Signature -->
+          <mj-text>
+            <p>
+              {% blocktrans %}
+              Thank you for using {{brandname}}.
+              {% endblocktrans %}
+            </p>
+          </mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>
