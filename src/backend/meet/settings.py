@@ -921,6 +921,16 @@ class Base(Configuration):
         None, environ_name="RECORDING_MAX_DURATION", environ_prefix=None
     )
 
+    # Base URL of Drive's external API, e.g. https://fichiers.numerique.gouv.fr/external_api/v1.0
+    DRIVE_API_BASE_URL = values.Value(
+        None, environ_name="DRIVE_API_BASE_URL", environ_prefix=None
+    )
+    # Development only: host:port to reach Drive's object storage at, when the
+    # domain Drive signs its upload URLs with is only resolvable from a browser.
+    DRIVE_UPLOAD_STORAGE_NETLOC = values.Value(
+        None, environ_name="DRIVE_UPLOAD_STORAGE_NETLOC", environ_prefix=None
+    )
+
     # Recording encoding options for LiveKit Egress (video composite egress only).
     # These settings affect screen recordings handled by VideoCompositeEgressService;
     # they are silently ignored by AudioCompositeEgressService (audio-only transcript
