@@ -134,6 +134,7 @@ The browser login. See [SSO & Authentication](../self-hosting/configuration/sso.
 | `OIDC_VERIFY_SSL`{#OIDC_VERIFY_SSL} | No | `True` | Verify SSL certificates when contacting the OIDC provider |
 | `OIDC_USE_NONCE`{#OIDC_USE_NONCE} | No | `True` | Use nonce to prevent replay attacks |
 | `OIDC_STORE_ID_TOKEN`{#OIDC_STORE_ID_TOKEN} | No | `True` | Store the ID token returned by the OIDC provider |
+| `OIDC_STORE_REFRESH_TOKEN_KEY`{#OIDC_STORE_REFRESH_TOKEN_KEY} | For `drive` | -- | Fernet key encrypting tokens at rest, required to [push recordings to Drive](../self-hosting/configuration/recording.md#push-recordings-to-drive). Generate one with `Fernet.generate_key()`, from Python's `cryptography`. |
 | `OIDC_REDIRECT_FIELD_NAME`{#OIDC_REDIRECT_FIELD_NAME} | No | `returnTo` | Query parameter name used for redirect after login |
 | `OIDC_TIMEOUT`{#OIDC_TIMEOUT} | No | `5` | Timeout in seconds for HTTP requests to the OIDC provider |
 | `OIDC_PROXY`{#OIDC_PROXY} | No | -- | Proxy URL used for requests to the OIDC provider |
@@ -243,6 +244,17 @@ See [Recording](../self-hosting/configuration/recording.md) for setup, and [Conf
 | `RECORDING_ENCODING_AVAILABLE_PROFILES`{#RECORDING_ENCODING_AVAILABLE_PROFILES} | No | `talking_heads`, `text`, `mixed`, `full` | Profiles by name, each a frame rate and a video bitrate in kbps for every resolution, as a one-line dict. The built-in values are in [Configuring recording encoding](../self-hosting/configuration/recording.md#configuring-recording-encoding). The backend refuses to start unless each profile has a bitrate for exactly the resolutions of [`RECORDING_ENCODING_AVAILABLE_RESOLUTIONS`](#RECORDING_ENCODING_AVAILABLE_RESOLUTIONS). |
 | `RECORDING_ENCODING_AUDIO_BITRATE_KBPS`{#RECORDING_ENCODING_AUDIO_BITRATE_KBPS} | No | `128` | AAC audio bitrate in kbps |
 | `RECORDING_ENCODING_KEY_FRAME_INTERVAL_S`{#RECORDING_ENCODING_KEY_FRAME_INTERVAL_S} | No | `0.0` | Key frame interval in seconds. `0.0` leaves it to LiveKit Egress. |
+| `RECORDING_STORAGE_METHOD`{#RECORDING_STORAGE_METHOD} | No | `s3_email` | Where a finished video recording is made available: `s3_email` or `drive`, see [Push recordings to Drive](../self-hosting/configuration/recording.md#push-recordings-to-drive) |
+| `RECORDING_DRIVE_AUTH_METHOD`{#RECORDING_DRIVE_AUTH_METHOD} | No | `token_exchange` | Token Meet calls Drive with. Only `token_exchange` for now. |
+| `RECORDING_DRIVE_EMAIL_FALLBACK_ENABLED`{#RECORDING_DRIVE_EMAIL_FALLBACK_ENABLED} | No | `True` | Deliver a recording by email when there is no token to call Drive with as it starts. With `False`, it is not delivered. |
+| `RECORDING_DRIVE_FOLDER_NAME`{#RECORDING_DRIVE_FOLDER_NAME} | No | `Visio-Recordings` | Folder, at the root of the user's Drive, recordings are pushed to |
+| `RECORDING_DRIVE_AUDIENCE`{#RECORDING_DRIVE_AUDIENCE} | For `drive` | -- | Audience Drive is registered under in Menshen |
+| `RECORDING_DRIVE_SCOPE`{#RECORDING_DRIVE_SCOPE} | No | -- | Space-separated scopes asked for in the token exchange. When empty, Menshen grants what its exchange rule allows. |
+| `RECORDING_DRIVE_PUSH_MAX_ATTEMPTS`{#RECORDING_DRIVE_PUSH_MAX_ATTEMPTS} | No | `3` | Attempts at pushing a recording to Drive before giving up |
+| `RECORDING_DRIVE_SIGNED_URL_EXPIRY_SECONDS`{#RECORDING_DRIVE_SIGNED_URL_EXPIRY_SECONDS} | No | `3600` | Seconds the signed URL the worker downloads the recording from stays valid |
+| `DRIVE_API_BASE_URL`{#DRIVE_API_BASE_URL} | For `drive` | -- | Base URL of Drive's external API: `https://drive.example.com/external_api/v1.0` |
+| `DRIVE_FRONTEND_BASE_URL`{#DRIVE_FRONTEND_BASE_URL} | For `drive` | -- | Base URL of Drive's interface, to link to the pushed file: `https://drive.example.com` |
+| `DRIVE_UPLOAD_STORAGE_NETLOC`{#DRIVE_UPLOAD_STORAGE_NETLOC} | No | -- | Development only: `host:port` to reach Drive's object storage at, when the domain Drive signs its upload URLs with only resolves from a browser |
 | `SCREEN_RECORDING_BASE_URL`{#SCREEN_RECORDING_BASE_URL} | No | -- | **Deprecated.** Use [`RECORDING_DOWNLOAD_BASE_URL`](#RECORDING_DOWNLOAD_BASE_URL) instead. Still accepted but logs a warning. |
 
 ### Transcription
@@ -401,7 +413,7 @@ Lets an application call the external API with the access token its user got fro
 
 ### External API (Menshen token exchange)
 
-These settings connect Meet to the [Menshen token exchange](external-api.md#menshen-token-exchange), through which another LaSuite service calls the external API.
+These settings connect Meet to the [Menshen token exchange](external-api.md#menshen-token-exchange), through which another LaSuite service calls the external API. Meet also exchanges tokens there to [push recordings to Drive](../self-hosting/configuration/recording.md#push-recordings-to-drive), which needs all of them but `MENSHEN_ENABLED`.
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
