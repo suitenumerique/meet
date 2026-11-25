@@ -21,10 +21,21 @@ from ...factories import (
     UserResourceAccessFactory,
 )
 from ...models import RoleChoices, RoomAccessLevel
+from ...services.room_management import RoomManagementException
 from ..utils import generate_user_access_token
 
 fake = Faker()
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def mock_room_creation():
+    """Mock the LiveKit room creation performed before a token is issued."""
+    with mock.patch(
+        "core.services.room_management.RoomManagement.create_room"
+    ) as mock_create_room:
+        yield mock_create_room
+
 
 livekit_token = fake.sha256()
 
@@ -146,6 +157,40 @@ def test_api_rooms_join_by_slug(mock_token):
     mock_token.assert_called_once()
 
 
+def test_api_rooms_join_creates_livekit_room(mock_room_creation):
+    """Joining creates the LiveKit room with its current settings."""
+    room = RoomFactory(
+        access_level=RoomAccessLevel.PUBLIC,
+        configuration={"everyone_can_mute": True},
+    )
+
+    response = APIClient().post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 200
+    mock_room_creation.assert_called_once_with(
+        str(room.id),
+        metadata={
+            "configuration": {"everyone_can_mute": True},
+            "access_level": RoomAccessLevel.PUBLIC,
+        },
+    )
+
+
+@pytest.mark.parametrize("lookup", ["id", "unregistered-room"])
+def test_api_rooms_join_room_creation_failure(mock_room_creation, lookup, settings):
+    """The join fails when its LiveKit room cannot be created."""
+    settings.ALLOW_UNREGISTERED_ROOMS = True
+    mock_room_creation.side_effect = RoomManagementException("Could not create room")
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+
+    response = APIClient().post(
+        join_url(room.id if lookup == "id" else lookup), {}, format="json"
+    )
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Could not create the room, please try again."}
+
+
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
 def test_api_rooms_join_members_num_queries(mock_token, django_assert_num_queries):
     """The role of the requester should only be looked up once."""
@@ -195,7 +240,9 @@ def test_api_rooms_join_get_not_allowed():
 
 @pytest.mark.parametrize("authenticated", [False, True])
 @mock.patch("core.utils.generate_token", return_value=livekit_token)
-def test_api_rooms_join_unregistered_allowed(mock_token, authenticated, settings):
+def test_api_rooms_join_unregistered_allowed(
+    mock_token, mock_room_creation, authenticated, settings
+):
     """
     Joining an unregistered room should return LiveKit credentials for the
     room named after the slug, when unregistered rooms are allowed.
@@ -223,6 +270,7 @@ def test_api_rooms_join_unregistered_allowed(mock_token, authenticated, settings
             "token": livekit_token,
         },
     }
+    mock_room_creation.assert_called_once_with("unregistered-room")
     mock_token.assert_called_once_with(
         room="unregistered-room",
         user=user,

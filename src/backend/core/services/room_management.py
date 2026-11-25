@@ -11,6 +11,7 @@ from django.conf import settings
 
 from asgiref.sync import async_to_sync
 from livekit.api import (
+    CreateRoomRequest,
     DeleteRoomRequest,
     ListRoomsRequest,
     TwirpError,
@@ -36,6 +37,70 @@ class RoomNotFoundException(RoomManagementException):
 
 class RoomManagement:
     """Service for managing LiveKit rooms."""
+
+    @staticmethod
+    def _metadata_for_room(room: Room) -> Dict:
+        """Build the LiveKit metadata describing a room."""
+        return {
+            "configuration": room.configuration,
+            "access_level": room.access_level,
+        }
+
+    @classmethod
+    @async_to_sync
+    async def create_room(cls, room_name: str, metadata: Optional[Dict] = None):
+        """Ensure a LiveKit room exists, creating it if it does not.
+
+        This is what lets the server keep `room.auto_create: false`, since a
+        room then has to be created before a participant is given a token for it.
+
+        The room is only created when missing: LiveKit's CreateRoom updates the
+        metadata of an existing room, which would wipe the recording state the
+        room carries while a recording is in progress.
+
+        The `room_name` corresponds to the LiveKit room identifier
+        (i.e. the Room model's UUID as a string, or an unregistered room's slug).
+
+        Raises:
+            RoomManagementException: the room could not be created.
+        """
+
+        lkapi = utils.create_livekit_client()
+
+        try:
+            response = await lkapi.room.list_rooms(ListRoomsRequest(names=[room_name]))
+
+            if response.rooms:
+                return
+
+            await lkapi.room.create_room(
+                CreateRoomRequest(
+                    name=room_name,
+                    metadata=json.dumps(metadata) if metadata is not None else "",
+                )
+            )
+
+        except (TwirpError, TimeoutError) as e:
+            # A concurrent join may have created the room between the check and
+            # the call; that is the outcome we want anyway.
+            if isinstance(e, TwirpError) and e.code == TwirpErrorCode.ALREADY_EXISTS:
+                logger.debug("LiveKit room %s already exists", room_name)
+                return
+
+            logger.exception("Unexpected error ensuring room %s exists", room_name)
+            raise RoomManagementException("Could not create room") from e
+
+        finally:
+            await lkapi.aclose()
+
+    @classmethod
+    def ensure_room(cls, room: Room):
+        """Create a room's LiveKit room, carrying its current settings.
+
+        Raises:
+            RoomManagementException: the room could not be created.
+        """
+        cls.create_room(str(room.id), metadata=cls._metadata_for_room(room))
 
     @classmethod
     @async_to_sync
@@ -178,15 +243,10 @@ class RoomManagement:
         should never fail the request that triggered the update.
         """
 
-        metadata = {
-            "configuration": room.configuration,
-            "access_level": room.access_level,
-        }
-
         try:
             cls.update_metadata(
                 room_name=str(room.id),
-                metadata=metadata,
+                metadata=cls._metadata_for_room(room),
             )
         except RoomNotFoundException:
             logger.info(

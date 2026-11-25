@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from core import models, utils
+from core.services.room_management import RoomManagement
 
 logger = logging.getLogger(__name__)
 
@@ -194,6 +195,7 @@ class LobbyService:
                 self.clear_participant_cache(room.id, participant.id)
             participant.status = LobbyParticipantStatus.ACCEPTED
 
+            RoomManagement.ensure_room(room)
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
                 user=user,
@@ -216,6 +218,7 @@ class LobbyService:
 
         elif participant.status == LobbyParticipantStatus.ACCEPTED:
             # wrongly named, contains access token to join a room
+            RoomManagement.ensure_room(room)
             livekit_config = utils.generate_livekit_config(
                 room_id=room_id,
                 user=user,

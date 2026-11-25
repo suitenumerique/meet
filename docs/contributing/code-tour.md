@@ -129,6 +129,8 @@ Accessibility follows these patterns:
 
 The pass is the LiveKit access token the backend signs for each participant; the browser connects to LiveKit with it, as [Joining a meeting](../overview/how-meet-works.md#joining-a-meeting) describes.
 
+Before issuing a pass, the backend makes sure the room exists in LiveKit, creating it with the room's configuration and access level as metadata. LiveKit is thus never asked to create a room on join, so its `room.auto_create` setting can stay `false`.
+
 [`generate_token()`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) in `core/utils.py` builds it. The token's name is the participant's display name, and it carries three attributes: `room_role`, `is_authenticated` and `color`, the last derived from the participant's identity.
 
 Owners and administrators get LiveKit's `room_admin` grant, which lets them moderate.
@@ -147,6 +149,7 @@ sequenceDiagram
     participant LiveKit
 
     Browser->>Backend: POST /api/v1.0/rooms/{id}/join/ {username}
+    Backend->>LiveKit: Create the room if it does not exist
     Backend-->>Browser: room, with livekit {url, token, room}
     Browser->>LiveKit: WebSocket with the token
     Browser->>LiveKit: publish microphone and camera
@@ -160,6 +163,7 @@ Every call goes through the client that [`create_livekit_client()`](https://gith
 
 | What | Backend side | What the frontend does with it |
 |---|---|---|
+| Creating a room before handing out a pass, and creating the rooms of unregistered links and connection tests | `RoomManagement.create_room()` and `ensure_room()` in [`core/services/room_management.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/services/room_management.py) | Nothing: the pass only works once the room exists |
 | Room metadata: the room's configuration and access level, and the recording state | `RoomManagement.update_metadata()` in [`core/services/room_management.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/services/room_management.py) | [`RoomMetadataSynchronizer`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/rooms/livekit/components/RoomMetadataSynchronizer.tsx) copies the configuration and access level into the cached room, and [`useRecordingStatuses`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/recording/hooks/useRecordingStatuses.ts) reads the recording state |
 | Data messages to every participant, such as someone waiting to enter | `notify_participants()` in [`core/utils.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/utils.py) | [`MainNotificationToast.tsx`](https://github.com/suitenumerique/meet/blob/main/src/frontend/src/features/notifications/MainNotificationToast.tsx) turns them into toasts and sounds |
 | Muting, removing and updating a participant | [`core/services/participants_management.py`](https://github.com/suitenumerique/meet/blob/main/src/backend/core/services/participants_management.py) | LiveKit applies it to the participant's connection |

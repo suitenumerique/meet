@@ -2,6 +2,8 @@
 
 LiveKit is the media server: every participant sends it their audio and video, and it forwards each stream to the others. The [Deployment Guide](../compose/deployment-guide.md)'s [`livekit-server.yaml`](https://github.com/suitenumerique/meet/blob/main/docs/examples/meet/livekit-server.yaml) works as shipped. The backend's LiveKit variables are in [Environment Variables: LiveKit](../../reference/env-variables.md#livekit).
 
+That file sets `room.auto_create: false`: Meet creates each room through LiveKit's API before it hands out a join token. Keep this setting. It is what lets Meet share its LiveKit instance with services that require room creation to stay under their control.
+
 ## How media connects
 
 [Signaling](../../overview/how-meet-works.md#key-concepts) goes through your reverse proxy on 443 to LiveKit's port 7880, which stays [private](firewall.md#never-public). Media goes straight between the browser and LiveKit, on the first path the network allows:

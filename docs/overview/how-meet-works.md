@@ -64,7 +64,7 @@ Each piece's ports are in [Firewall & Ports](../self-hosting/configuration/firew
 - **Signaling and media.** Signaling is the control talk of a call, such as joining or who publishes what, over a WebSocket on port 443. Media is the audio and video, over UDP, or TCP when UDP is blocked. See [Getting through firewalls](#firewalls).
 - **[Simulcast](https://bloggeek.me/webrtcglossary/simulcast/) and [SVC](https://bloggeek.me/webrtcglossary/svc/).** Each camera sends its video at up to three qualities, and LiveKit forwards to each viewer the one that fits their connection and the size their video is shown at.
 - **The LiveKit pass.** What the browser shows LiveKit to join a meeting: a signed [JWT](https://datatracker.ietf.org/doc/html/rfc7519) the backend issues. See [What happens when someone joins?](#joining-a-meeting)
-- **Room and meeting.** A room is the lasting record, its code, settings and roles, kept in the PostgreSQL database. A meeting is the live session LiveKit opens when the first person joins the room and closes when the last one leaves. See [What happens when a meeting ends?](#when-the-meeting-ends)
+- **Room and meeting.** A room is the lasting record, its code, settings and roles, kept in the PostgreSQL database. A meeting is the live session the backend opens in LiveKit when someone asks to join the room, and LiveKit closes it when the last participant leaves. See [What happens when a meeting ends?](#when-the-meeting-ends).
 - **Roles and access levels.** A role ties a user to a room: owner, co-host or member. The access level decides who walks straight in and who waits. See [Who can do what?](#who-gets-in)
 - **The waiting room.** **Lobby** in the app: where a visitor waits until a host admits them. See [Who can do what?](#who-gets-in)
 - **Webhooks.** LiveKit calls the backend over HTTP when a meeting starts or ends, someone leaves, or a recording changes state. These calls feed recordings, phone dial-in, the clean-up after a meeting and the [room purge](../self-hosting/configuration/room-purge.md#how-a-room-becomes-purgeable); see [Webhook](../self-hosting/configuration/livekit.md#webhook).
@@ -106,6 +106,8 @@ A meeting lives at a room code, such as `meet.example.com/abc-defg-hij`. When yo
 - It is signed with LiveKit's API secret, so LiveKit trusts it without ever seeing a user account.
 - It names you, the room and what you may publish: microphone, camera, screen share.
 - It stays valid for 6 hours.
+
+Before handing it out, the backend creates the room in LiveKit if it does not exist yet. LiveKit can therefore run with `room.auto_create: false`, as sharing an instance with services that require this setting to be false for security reasons.
 
 If you may not walk straight in, you go through the [waiting room](#who-gets-in) first. With the pass, the browser opens a WebSocket to LiveKit and starts sending and receiving audio and video.
 
@@ -176,6 +178,7 @@ sequenceDiagram
     end
     H->>BE: Admit the visitor
     V->>BE: POST …/request-entry/ again
+    BE->>LK: Create the room if it does not exist
     BE-->>V: Admitted, with the LiveKit pass
     V->>LK: Join the meeting
 ```
@@ -276,9 +279,11 @@ sequenceDiagram
     participant SIP as LiveKit SIP
     participant P as Phone
 
-    B->>LK: First person joins
+    B->>BE: Join the room
+    BE->>LK: Create the room
     LK-->>BE: Webhook: room started
     BE->>LK: Create the rule: this PIN → this room
+    B->>LK: Join the meeting
     P->>SIP: Call the number, type the PIN
     SIP->>LK: Join the meeting, audio only
     Note over B,P: The last person leaves
@@ -286,7 +291,7 @@ sequenceDiagram
     BE->>LK: Delete the rule
 ```
 
-Meeting-room video systems dial in over SIP the same way, through Roomkit. For them, LiveKit SIP first sends the PIN to the backend, at `POST /api/v1.0/roomkit/join/`. The backend finds the room with that PIN and, if the room has no rule yet, creates one on the spot. The device can then open a meeting nobody has joined yet.
+Meeting-room video systems dial in over SIP the same way, through Roomkit. For them, LiveKit SIP first sends the PIN to the backend, at `POST /api/v1.0/roomkit/join/`. The backend finds the room with that PIN, then creates the room in LiveKit and its dispatch rule, so the device can open a meeting nobody has joined yet.
 
 Setup is in [Telephony](../self-hosting/configuration/telephony.md).
 

@@ -17,8 +17,18 @@ from ... import utils
 from ...factories import RoomFactory, UserFactory
 from ...models import RoomAccessLevel
 from ...services.lobby import LobbyService
+from ...services.room_management import RoomManagementException
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def mock_room_creation():
+    """Mock the LiveKit room creation performed before a token is issued."""
+    with mock.patch(
+        "core.services.room_management.RoomManagement.create_room"
+    ) as mock_create_room:
+        yield mock_create_room
 
 
 def _lobby_signer():
@@ -203,7 +213,7 @@ def test_request_entry_with_existing_participants(settings):
 
 
 @freeze_time("2025-01-01 10:00:00")
-def test_request_entry_public_room(settings):
+def test_request_entry_public_room(settings, mock_room_creation):
     """Entry requests to public rooms should return ACCEPTED status with LiveKit config."""
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
@@ -244,6 +254,28 @@ def test_request_entry_public_room(settings):
 
     assert not cache.keys(f"mocked-cache-prefix_{room.id}_*")
     assert not LobbyService()._index_members(room.id)
+    mock_room_creation.assert_called_once_with(
+        str(room.id),
+        metadata={
+            "configuration": room.configuration,
+            "access_level": room.access_level,
+        },
+    )
+
+
+@freeze_time("2025-01-01 10:00:00")
+def test_request_entry_room_creation_failure(mock_room_creation, settings):
+    """A room that cannot be created in LiveKit fails the entry request."""
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    mock_room_creation.side_effect = RoomManagementException("Could not create room")
+
+    response = APIClient().post(
+        f"/api/v1.0/rooms/{room.id}/request-entry/",
+        {"username": "test_user"},
+    )
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "Could not create the room, please try again."}
 
 
 @freeze_time("2025-01-01 10:00:00")
