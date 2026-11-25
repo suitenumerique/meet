@@ -137,11 +137,21 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
             </Heading>
           )}
           <TabList border={false}>
-            <Tab icon highlight id={SettingsDialogTabKey.GENERAL}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogTabKey.GENERAL}
+              aria-label={t(`tabs.${SettingsDialogTabKey.GENERAL}`)}
+            >
               <RiSettings3Line />
               {isWideScreen && t(`tabs.${SettingsDialogTabKey.GENERAL}`)}
             </Tab>
-            <Tab icon highlight id={SettingsDialogTabKey.ROOMS}>
+            <Tab
+              icon
+              highlight
+              id={SettingsDialogTabKey.ROOMS}
+              aria-label={t(`tabs.${SettingsDialogTabKey.ROOMS}`)}
+            >
               <RiDoorOpenLine />
               {isWideScreen && t(`tabs.${SettingsDialogTabKey.ROOMS}`)}
             </Tab>
