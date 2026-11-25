@@ -703,6 +703,12 @@ class Base(Configuration):
     OIDC_STORE_ID_TOKEN = values.BooleanValue(
         default=True, environ_name="OIDC_STORE_ID_TOKEN", environ_prefix=None
     )
+    # Fernet key used to encrypt tokens at rest: the refresh token django-lasuite
+    # stores in the session, and the token to call Drive with, stored in the session
+    # and on a recording. Generate one with `Fernet.generate_key()`.
+    OIDC_STORE_REFRESH_TOKEN_KEY = SecretFileValue(
+        None, environ_name="OIDC_STORE_REFRESH_TOKEN_KEY", environ_prefix=None
+    )
     ALLOW_LOGOUT_GET_METHOD = values.BooleanValue(
         default=True, environ_name="ALLOW_LOGOUT_GET_METHOD", environ_prefix=None
     )
@@ -924,6 +930,11 @@ class Base(Configuration):
     # Base URL of Drive's external API, e.g. https://fichiers.numerique.gouv.fr/external_api/v1.0
     DRIVE_API_BASE_URL = values.Value(
         None, environ_name="DRIVE_API_BASE_URL", environ_prefix=None
+    )
+    # Base URL of Drive's interface, to link to the pushed file, e.g.
+    # https://fichiers.numerique.gouv.fr
+    DRIVE_FRONTEND_BASE_URL = values.Value(
+        None, environ_name="DRIVE_FRONTEND_BASE_URL", environ_prefix=None
     )
     # Development only: host:port to reach Drive's object storage at, when the
     # domain Drive signs its upload URLs with is only resolvable from a browser.
