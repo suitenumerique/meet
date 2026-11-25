@@ -12,6 +12,8 @@ export type SdkRoomData = {
   phone?: string
   // Room PIN code (digits only), to enter after dialing `phone`
   code?: string
+  // Ready-to-share text, the one of the copy button
+  displayText: string
 }
 
 export enum ClientMessageType {

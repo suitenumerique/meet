@@ -1,7 +1,7 @@
 import { useTelephony } from './useTelephony'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useState } from 'react'
-import { formatPinCode } from '@/features/rooms/utils/telephony'
+import { formatRoomInfo } from '@/features/rooms/utils/telephony'
 import type { ApiRoom } from '@/features/rooms/api/ApiRoom'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { reportError } from '@/features/analytics/telemetry'
@@ -47,13 +47,11 @@ export const useCopyRoomToClipboard = (
     if (!roomUrl || !room) return ''
     if (!hasTelephonyInfo) return roomUrl
 
-    return [
-      t('url', { roomUrl }),
-      t('numberAndPin', {
-        phoneNumber: telephony?.internationalPhoneNumber,
-        pinCode: formatPinCode(room.pin_code),
-      }),
-    ].join('\n')
+    return formatRoomInfo(t, {
+      roomUrl,
+      phoneNumber: telephony.internationalPhoneNumber,
+      pinCode: room.pin_code,
+    })
   }, [roomUrl, hasTelephonyInfo, telephony, room, t])
 
   const copyRoomToClipboard = async () => {

@@ -55,10 +55,16 @@ const CreateMeetingButton = () => {
   const telephonyRef = useRef(telephony)
   telephonyRef.current = telephony
 
+  const { t: tClipboard } = useTranslation('global', {
+    keyPrefix: 'clipboardContent',
+  })
+  const tClipboardRef = useRef(tClipboard)
+  tClipboardRef.current = tClipboard
+
   // Same rule as the ROOM_CREATED payload: shown only when both are known
   const sdkRoom = useMemo(
-    () => room && buildSdkRoomData(room, telephony),
-    [room, telephony]
+    () => room && buildSdkRoomData(room, telephony, tClipboard),
+    [room, telephony, tClipboard]
   )
 
   const roomUrl = useMemo(() => {
@@ -102,7 +108,11 @@ const CreateMeetingButton = () => {
     setCallbackId(undefined)
     setIsPending(false)
     popupManager.sendRoomData({
-      room: buildSdkRoomData(data.room, telephonyRef.current),
+      room: buildSdkRoomData(
+        data.room,
+        telephonyRef.current,
+        tClipboardRef.current
+      ),
     })
   }, [data])
 
@@ -114,7 +124,11 @@ const CreateMeetingButton = () => {
         setIsRoomCreatedInSession(true)
         setIsPending(false)
         popupManager.sendRoomData({
-          room: buildSdkRoomData(data, telephonyRef.current),
+          room: buildSdkRoomData(
+            data,
+            telephonyRef.current,
+            tClipboardRef.current
+          ),
         })
       }
     )

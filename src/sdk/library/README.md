@@ -43,6 +43,9 @@ type RoomData = {
   // Only when the Visio instance has telephony enabled
   phone?: string; // dial-in number, e.g. "+33 1 23 45 67 89"
   code?: string; // PIN code to enter after dialing, e.g. "1234567890"
+  // Ready-to-share text, the one of the copy button, in the user's language:
+  // the link alone, or two lines with the dial-in details
+  displayText?: string;
 };
 ```
 
