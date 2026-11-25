@@ -11,10 +11,14 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import SuspiciousOperation, ValidationError
 
-import requests
 from lasuite.oidc_resource_server.backend import ResourceServerBackend as LaSuiteBackend
-from menshen_client import Configuration, IntrospectionRequest, TokenExchangeClient
-from menshen_client.exceptions import ResponseParsingError
+from menshen_client import (
+    Configuration,
+    IntrospectionRequest,
+    InvalidTokenError,
+    MenshenClientError,
+    TokenExchangeClient,
+)
 from rest_framework import authentication, exceptions
 
 from core import audit, auditing
@@ -405,7 +409,10 @@ class MenshenAuthentication(authentication.BaseAuthentication):
 
         try:
             response = client.introspect(IntrospectionRequest(token=token))
-        except (requests.RequestException, ResponseParsingError) as e:
+        except InvalidTokenError:
+            # Not shaped like a Menshen token: defer to next authentication backend
+            return None
+        except MenshenClientError as e:
             logger.warning("Menshen introspection failed: %s", e)
             return None
 

@@ -227,6 +227,60 @@ RECORDING_ENCODING_DEFAULT_PROFILE=small
 - The two defaults must name entries of these sets.
 - The **Recording** tab has labels for the four built-in profiles only.
 
+## Push recordings to Drive
+
+[`RECORDING_STORAGE_METHOD`](../../reference/env-variables.md#RECORDING_STORAGE_METHOD) sets where a finished video recording is made available:
+
+| Value | Where the recording goes | Who is emailed |
+|---|---|---|
+| `s3_email`, the default | It stays in the object storage | Everyone with access to it: its starter, and the room's host and co-hosts |
+| `drive` | It is also streamed to the [Drive](https://github.com/suitenumerique/drive) of the user who started it, into a folder at the root of their Drive, created when missing. The file is shared, as owners, with the room's host and co-hosts when the recording started | Meet emails the starter, with a link to the file. Drive emails the people it is shared with |
+
+- The method is the one set when a recording starts.
+- The object storage copy is kept either way.
+- Audio-only transcripts are not concerned: they go to Docs, through the [summary service](transcription.md).
+
+!!! warning "A failed push falls back to nothing"
+    When pushing a recording to Drive fails, no download email is sent. The failure only shows in the recording's delivery in the Django admin, and in the [audit log](audit-logging.md) as `recording.drive.push`.
+
+### The token Meet calls Drive with
+
+Meet calls Drive as a [resource server](https://github.com/suitenumerique/drive/blob/main/docs/resource_server.md), on behalf of the user who started the recording. It obtains the token when the user logs in, the only time their access token is sure to be fresh, and keeps it encrypted in their session. A recording that starts gets a copy, dropped once the push is over.
+
+[`RECORDING_DRIVE_AUTH_METHOD`](../../reference/env-variables.md#RECORDING_DRIVE_AUTH_METHOD) sets which token. There is only `token_exchange` for now: the user's access token is exchanged with [Menshen](https://github.com/suitenumerique/menshen) for a token targeting Drive, shared by the recordings of the session. It is never revoked: it stays valid until it expires, even if the user logs out or is disabled meanwhile.
+
+Without a valid token, a recording still starts, but is not pushed. The user may have logged in while Menshen was unavailable or before recordings were pushed to Drive, or be embedding Meet without a session of their own. Until they log in again, their recordings are delivered by email, or not at all with [`RECORDING_DRIVE_EMAIL_FALLBACK_ENABLED`](../../reference/env-variables.md#RECORDING_DRIVE_EMAIL_FALLBACK_ENABLED) off. The audit log's `recording.drive.push` tells which, in `delivery_method`.
+
+A failed push is tried again, up to [`RECORDING_DRIVE_PUSH_MAX_ATTEMPTS`](../../reference/env-variables.md#RECORDING_DRIVE_PUSH_MAX_ATTEMPTS) times, while the token is valid. It runs in a Celery worker: without [`CELERY_ENABLED`](../../reference/env-variables.md#CELERY_ENABLED), it runs within the request ending the recording.
+
+### Set it up
+
+1. **In Menshen**, add a Meet to Drive exchange rule granting the scopes Drive's `MENSHEN_REQUIRED_SCOPES` requires. Grant nothing more: the token is long-lived.
+2. **In Menshen**, make tokens outlast the session, [`SESSION_COOKIE_AGE`](../../reference/env-variables.md#SESSION_COOKIE_AGE), plus the longest recording and the time to process and push it: 8 days for sessions of 7, for example. Set the duration of the exchange rule, one hour by default, and raise `TOKEN_EXCHANGE_MAX_EXPIRES_IN`, 24 hours by default, accordingly. Meet logs a warning when tokens do not outlast the session.
+3. **In Drive**, set `MENSHEN_ENABLED`, and allow these actions in `EXTERNAL_API`:
+
+    | Resource | Actions | What for |
+    |---|---|---|
+    | `items` | `list`, `create`, `children`, `upload_ended` | Required |
+    | `items` | `destroy` | Optional: Meet moves the files whose upload failed to the user's trash. Without it, schedule Drive's `clean_pending_items` and `purge_deleted_items` commands |
+    | `item_access`, `item_invitation` | `create` | Sharing with the room's host and co-hosts. Drive must also accept Menshen tokens on these endpoints. Otherwise the file stays in the starter's Drive only |
+    | `users` | `list` | Same |
+
+4. **In Meet**, set the Drive variables:
+
+    ```dotenv title="env.d/common"
+    RECORDING_STORAGE_METHOD=drive
+    RECORDING_DRIVE_AUDIENCE=drive
+    DRIVE_API_BASE_URL=https://drive.example.com/external_api/v1.0
+    DRIVE_FRONTEND_BASE_URL=https://drive.example.com
+    MENSHEN_SERVER_URL=https://menshen.example.com
+    MENSHEN_CLIENT_ID=meet
+    MENSHEN_CLIENT_SECRET=<Meet's secret at Menshen>
+    OIDC_STORE_REFRESH_TOKEN_KEY=<your Fernet key>
+    ```
+
+    `RECORDING_DRIVE_AUDIENCE` is the audience Drive is registered under in Menshen. [`OIDC_STORE_REFRESH_TOKEN_KEY`](../../reference/env-variables.md#OIDC_STORE_REFRESH_TOKEN_KEY) tells how to generate the key. The backend refuses to start when one of these is missing.
+
 ## Test it
 
 1. Start a meeting, open **More tools** → **Record**, and click **Start recording the meeting**.

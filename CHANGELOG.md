@@ -12,6 +12,7 @@ and this project adheres to
 
 - ✨(summary) make the STT request timeout configurable
 - ✨(summary) make ASR response format configurable #1946
+- ✨(backend) add Drive as a recording storage method
 
 ### Fixed
 

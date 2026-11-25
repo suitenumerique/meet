@@ -1,7 +1,9 @@
 """Tests for the external API MenshenAuthentication."""
 
 from unittest import mock
+from urllib.parse import urlencode
 
+import httpx2
 import pytest
 import responses
 from lasuite.oidc_resource_server.authentication import ResourceServerAuthentication
@@ -15,7 +17,8 @@ pytestmark = pytest.mark.django_db
 
 SERVER_URL = "https://menshen.example.com"
 INTROSPECTION_ENDPOINT = f"{SERVER_URL}/auth/token/introspect/"
-TOKEN = "menshen-exchanged-token"
+# Opaque tokens shorter than 43 characters are refused by the client
+TOKEN = "menshen-exchanged-token".ljust(43, "x")
 
 
 @pytest.fixture(autouse=True)
@@ -45,18 +48,17 @@ def _create_room(token=TOKEN):
     return client.post("/external-api/v1.0/rooms/", {}, format="json")
 
 
-@responses.activate
-def test_menshen_active_token():
+def test_menshen_active_token(httpx2_mock):
     """An active token with a mapped scope should create a room owned by the user."""
 
     user = UserFactory()
 
     # Catch and mock external HTTP requests
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json=_introspection(user.sub),
-        match=[responses.matchers.urlencoded_params_matcher({"token": TOKEN})],
+        match_content=urlencode({"token": TOKEN}).encode(),
     )
 
     response = _create_room()
@@ -64,12 +66,11 @@ def test_menshen_active_token():
     assert response.status_code == 201
     room = Room.objects.get(id=response.data["id"])
     assert room.get_role(user) == RoleChoices.OWNER
-    assert responses.calls[0].request.headers["Authorization"].startswith("Basic ")
+    assert httpx2_mock.get_request().headers["Authorization"].startswith("Basic ")
 
 
-@responses.activate
 @mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
-def test_menshen_other_token_type_ignored(mock_rs_authenticate):
+def test_menshen_other_token_type_ignored(mock_rs_authenticate, httpx2_mock):
     """A token sent with another scheme than Bearer should not be introspected."""
 
     client = APIClient()
@@ -77,13 +78,12 @@ def test_menshen_other_token_type_ignored(mock_rs_authenticate):
     response = client.post("/external-api/v1.0/rooms/", {}, format="json")
 
     assert response.status_code == 401
-    assert len(responses.calls) == 0
+    assert not httpx2_mock.get_requests()
     mock_rs_authenticate.assert_called_once()
 
 
-@responses.activate
 @mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
-def test_menshen_disabled(mock_rs_authenticate, settings):
+def test_menshen_disabled(mock_rs_authenticate, settings, httpx2_mock):
     """Menshen should not be called when disabled."""
 
     settings.MENSHEN_ENABLED = False
@@ -91,20 +91,19 @@ def test_menshen_disabled(mock_rs_authenticate, settings):
     response = _create_room()
 
     assert response.status_code == 401
-    assert len(responses.calls) == 0
+    assert not httpx2_mock.get_requests()
     mock_rs_authenticate.assert_called_once()
 
 
-@responses.activate
 @mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
-def test_menshen_inactive_token_defers(mock_rs_authenticate):
+def test_menshen_inactive_token_defers(mock_rs_authenticate, httpx2_mock):
     """An inactive token should defer to the next authentication backend."""
 
     user = UserFactory()
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json=_introspection(user.sub, scope="meet:room:create", active=False),
     )
 
@@ -114,12 +113,11 @@ def test_menshen_inactive_token_defers(mock_rs_authenticate):
     mock_rs_authenticate.assert_called_once()
 
 
-@responses.activate
 @mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
-def test_menshen_error_defers(mock_rs_authenticate):
+def test_menshen_error_defers(mock_rs_authenticate, httpx2_mock):
     """A Menshen error should defer to the next authentication backend."""
 
-    responses.add(responses.POST, INTROSPECTION_ENDPOINT, status=500)
+    httpx2_mock.add_response(method="POST", url=INTROSPECTION_ENDPOINT, status_code=500)
 
     response = _create_room()
 
@@ -127,14 +125,13 @@ def test_menshen_error_defers(mock_rs_authenticate):
     mock_rs_authenticate.assert_called_once()
 
 
-@responses.activate
 @mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
-def test_menshen_unparsable_response_defers(mock_rs_authenticate):
+def test_menshen_unparsable_response_defers(mock_rs_authenticate, httpx2_mock):
     """A response the client can't parse should defer to the next backend."""
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json={"active": True, "unexpected": "field"},
     )
 
@@ -145,7 +142,7 @@ def test_menshen_unparsable_response_defers(mock_rs_authenticate):
 
 
 @responses.activate
-def test_menshen_resource_server_token(settings):
+def test_menshen_resource_server_token(settings, httpx2_mock):
     """End to end: a token issued by the OIDC provider is unknown to Menshen and
     should still authenticate through the resource server."""
 
@@ -153,14 +150,15 @@ def test_menshen_resource_server_token(settings):
     settings.OIDC_OP_URL = "https://oidc.example.com"
 
     user = UserFactory()
-    token = "oidc-access-token"
+    token = "oidc-access-token".ljust(43, "x")
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json={"active": False},
-        match=[responses.matchers.urlencoded_params_matcher({"token": token})],
+        match_content=urlencode({"token": token}).encode(),
     )
+    # The resource server backend calls the OIDC provider with requests
     responses.add(
         responses.POST,
         "https://oidc.example.com/introspect",
@@ -178,19 +176,48 @@ def test_menshen_resource_server_token(settings):
     assert response.status_code == 201
     room = Room.objects.get(id=response.data["id"])
     assert room.get_role(user) == RoleChoices.OWNER
-    responses.assert_call_count(INTROSPECTION_ENDPOINT, 1)
+    assert len(httpx2_mock.get_requests(url=INTROSPECTION_ENDPOINT)) == 1
     responses.assert_call_count("https://oidc.example.com/introspect", 1)
 
 
-@responses.activate
-def test_menshen_unmapped_scope():
+@mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
+def test_menshen_token_rejected_defers(mock_rs_authenticate, httpx2_mock, caplog):
+    """A token Menshen rejects as malformed should defer to the next backend."""
+
+    httpx2_mock.add_response(method="POST", url=INTROSPECTION_ENDPOINT, status_code=422)
+
+    response = _create_room()
+
+    assert response.status_code == 401
+    assert "Menshen introspection failed" not in caplog.text
+    mock_rs_authenticate.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "error",
+    [httpx2.ConnectError("Connection refused"), httpx2.ReadTimeout("Timed out")],
+)
+@mock.patch.object(ResourceServerAuthentication, "authenticate", return_value=None)
+def test_menshen_unreachable_defers(mock_rs_authenticate, error, httpx2_mock, caplog):
+    """An unreachable Menshen should defer to the next authentication backend."""
+
+    httpx2_mock.add_exception(error)
+
+    response = _create_room()
+
+    assert response.status_code == 401
+    assert "Menshen introspection failed" in caplog.text
+    mock_rs_authenticate.assert_called_once()
+
+
+def test_menshen_unmapped_scope(httpx2_mock):
     """Scopes granted for other services or other Meet actions should not grant access."""
 
     user = UserFactory()
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json=_introspection(user.sub, scope="drive:item:create meet:room:list"),
     )
 
@@ -201,11 +228,12 @@ def test_menshen_unmapped_scope():
     assert not Room.objects.exists()
 
 
-@responses.activate
-def test_menshen_missing_sub():
+def test_menshen_missing_sub(httpx2_mock):
     """An active token without sub should be rejected."""
 
-    responses.add(responses.POST, INTROSPECTION_ENDPOINT, json=_introspection(None))
+    httpx2_mock.add_response(
+        method="POST", url=INTROSPECTION_ENDPOINT, json=_introspection(None)
+    )
 
     response = _create_room()
 
@@ -213,14 +241,13 @@ def test_menshen_missing_sub():
     assert "invalid token claims." in str(response.data).lower()
 
 
-@responses.activate
-def test_menshen_invalid_sub(settings):
+def test_menshen_invalid_sub(settings, httpx2_mock):
     """An active token with an invalid sub should be rejected without creating a user."""
 
     settings.OIDC_CREATE_USER = True
 
-    responses.add(
-        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("invalid\nsub")
+    httpx2_mock.add_response(
+        method="POST", url=INTROSPECTION_ENDPOINT, json=_introspection("invalid\nsub")
     )
 
     response = _create_room()
@@ -230,13 +257,14 @@ def test_menshen_invalid_sub(settings):
     assert not User.objects.exists()
 
 
-@responses.activate
-def test_menshen_inactive_user():
+def test_menshen_inactive_user(httpx2_mock):
     """An active token for an inactive user should be rejected."""
 
     user = UserFactory(is_active=False)
 
-    responses.add(responses.POST, INTROSPECTION_ENDPOINT, json=_introspection(user.sub))
+    httpx2_mock.add_response(
+        method="POST", url=INTROSPECTION_ENDPOINT, json=_introspection(user.sub)
+    )
 
     response = _create_room()
 
@@ -244,14 +272,13 @@ def test_menshen_inactive_user():
     assert "user account is disabled." in str(response.data).lower()
 
 
-@responses.activate
-def test_menshen_unknown_user_created(settings):
+def test_menshen_unknown_user_created(settings, httpx2_mock):
     """An unknown sub should create a user when OIDC_CREATE_USER is set."""
 
     settings.OIDC_CREATE_USER = True
 
-    responses.add(
-        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
+    httpx2_mock.add_response(
+        method="POST", url=INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
     )
 
     response = _create_room()
@@ -262,14 +289,13 @@ def test_menshen_unknown_user_created(settings):
     assert user.is_active is True
 
 
-@responses.activate
-def test_menshen_unknown_user_not_created(settings):
+def test_menshen_unknown_user_not_created(settings, httpx2_mock):
     """An unknown sub should be rejected when OIDC_CREATE_USER is unset."""
 
     settings.OIDC_CREATE_USER = False
 
-    responses.add(
-        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
+    httpx2_mock.add_response(
+        method="POST", url=INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
     )
 
     response = _create_room()
@@ -279,10 +305,11 @@ def test_menshen_unknown_user_not_created(settings):
     assert not User.objects.filter(sub="new-sub").exists()
 
 
-@responses.activate
 @pytest.mark.parametrize("fallback", [True, False])
 @pytest.mark.parametrize("existing_sub", [None, "other-sub"])
-def test_menshen_unknown_user_email_already_used(settings, existing_sub, fallback):
+def test_menshen_unknown_user_email_already_used(
+    settings, existing_sub, fallback, httpx2_mock
+):
     """An unknown sub should not create a second account with an email already
     used, by a provisional user or a user with another sub, whether
     OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION is set or not."""
@@ -292,9 +319,9 @@ def test_menshen_unknown_user_email_already_used(settings, existing_sub, fallbac
 
     existing_user = UserFactory(sub=existing_sub, email="user@example.com")
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json=_introspection("new-sub", email=" User@Example.COM "),
     )
 
@@ -308,10 +335,9 @@ def test_menshen_unknown_user_email_already_used(settings, existing_sub, fallbac
     assert not Room.objects.exists()
 
 
-@responses.activate
 @pytest.mark.parametrize("existing_sub", [None, "other-sub"])
 def test_menshen_unknown_user_email_already_used_allowed(
-    audit_events, settings, existing_sub
+    audit_events, settings, existing_sub, httpx2_mock
 ):
     """An unknown sub should get its own account, even with an email already used,
     when OIDC_ALLOW_DUPLICATE_EMAILS=True."""
@@ -322,9 +348,9 @@ def test_menshen_unknown_user_email_already_used_allowed(
 
     existing_user = UserFactory(sub=existing_sub, email="user@example.com")
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json=_introspection("new-sub", email=" User@Example.COM "),
     )
 
@@ -345,17 +371,16 @@ def test_menshen_unknown_user_email_already_used_allowed(
     assert provision["entity"]["target"]["id"] == str(user.pk)
 
 
-@responses.activate
-def test_menshen_is_audited_as_application(audit_events):
+def test_menshen_is_audited_as_application(audit_events, httpx2_mock):
     """A call with a Menshen token is made by the client Menshen reports, acting for
     the user. Neither the token, nor the jti Menshen derives from an opaque token,
     nor the email ever appear."""
 
     user = UserFactory(email="user@example.com")
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json=_introspection(user.sub, email="user@example.com", jti=TOKEN[:50]),
     )
 
@@ -374,15 +399,14 @@ def test_menshen_is_audited_as_application(audit_events):
     assert "user@example.com" not in str(audit_events)
 
 
-@responses.activate
-def test_menshen_unknown_user_created_is_audited(audit_events, settings):
+def test_menshen_unknown_user_created_is_audited(audit_events, settings, httpx2_mock):
     """A user created for an unknown sub is provisioned by the client Menshen reports,
     before the call it makes as that user."""
 
     settings.OIDC_CREATE_USER = True
 
-    responses.add(
-        responses.POST, INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
+    httpx2_mock.add_response(
+        method="POST", url=INTROSPECTION_ENDPOINT, json=_introspection("new-sub")
     )
 
     response = _create_room()
@@ -414,8 +438,9 @@ def test_menshen_unknown_user_created_is_audited(audit_events, settings):
     assert create["user"]["id"] == str(user.pk)
 
 
-@responses.activate
-def test_menshen_unknown_user_email_already_used_is_audited(audit_events, settings):
+def test_menshen_unknown_user_email_already_used_is_audited(
+    audit_events, settings, httpx2_mock
+):
     """A user that is not created because its email is already used is a conflict
     with the existing account, recorded with the sub that was refused."""
 
@@ -424,9 +449,9 @@ def test_menshen_unknown_user_email_already_used_is_audited(audit_events, settin
 
     existing_user = UserFactory(sub=None, email="user@example.com")
 
-    responses.add(
-        responses.POST,
-        INTROSPECTION_ENDPOINT,
+    httpx2_mock.add_response(
+        method="POST",
+        url=INTROSPECTION_ENDPOINT,
         json=_introspection("new-sub", email=" User@Example.COM "),
     )
 

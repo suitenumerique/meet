@@ -46,6 +46,7 @@ from core.api.exceptions import ensure_room_not_deleted
 from core.api.filters import ListFileFilter
 from core.api.locks import room_locked_for_update
 from core.enums import MEDIA_STORAGE_URL_PATTERN
+from core.recording.delivery import service as delivery_service
 from core.recording.enums import FileExtension
 from core.recording.event.authentication import RecordingProcessWebhookAuthentication
 from core.recording.services.metadata_collector import (
@@ -503,6 +504,9 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
                 status=drf_status.HTTP_409_CONFLICT,
             )
 
+        # Outside the transaction: it may call Menshen
+        delivery_service.prepare(request, recording)
+
         worker_service = get_worker_service(mode=recording.mode)
         worker_manager = WorkerServiceMediator(worker_service=worker_service)
 
@@ -512,6 +516,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
             models.Recording.objects.filter(pk=recording.pk).update(
                 status=models.RecordingStatusChoices.FAILED_TO_START
             )
+            delivery_service.abandon(recording, "The recording failed to start.")
             return drf_response.Response(
                 {"error": f"Recording failed to start for room {room.slug}"},
                 status=drf_status.HTTP_502_BAD_GATEWAY,
