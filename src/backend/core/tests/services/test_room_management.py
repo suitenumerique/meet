@@ -1,5 +1,6 @@
 """Tests for the RoomManagement service."""
 
+import json
 import logging
 from unittest import mock
 
@@ -17,7 +18,11 @@ from livekit.protocol.room import (  # pylint: disable=E0611
 )
 
 from core.factories import RoomFactory
-from core.livekit.exceptions import LiveKitRoomCreationError
+from core.livekit.clusters import get_livekit_cluster
+from core.livekit.exceptions import (
+    LiveKitClusterUnavailableError,
+    LiveKitRoomCreationError,
+)
 from core.models import Placement, Room, RoomAccessLevel
 from core.services.room_management import (
     RoomManagement,
@@ -25,7 +30,11 @@ from core.services.room_management import (
     RoomNotFoundException,
 )
 from core.services.sip_management import SIPException, SIPManagement
-from core.tests.utils import livekit_room
+from core.tests.utils import (
+    livekit_cluster_entry,
+    livekit_room,
+    open_livekit_breaker,
+)
 
 
 @mock.patch("core.services.room_management.utils.create_livekit_client")
@@ -493,3 +502,81 @@ def test_list_rooms_failure(create_livekit_client, error, two_livekit_clusters):
 
     assert raised.value is error
     client.aclose.assert_awaited_once()
+
+
+@pytest.fixture(name="refusing_cluster")
+def refusing_cluster_fixture(settings, livekit_breakers, fake_livekit_server):
+    """Register a LiveKit cluster whose circuit breaker is open, its room
+    service failing on the fake LiveKit API, and return it."""
+    name = livekit_breakers()
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry(name, api_url=fake_livekit_server.url)]
+    )
+    cluster = get_livekit_cluster(name)
+    fake_livekit_server.status = 503
+    open_livekit_breaker(cluster)
+    return cluster
+
+
+@pytest.mark.real_livekit_room_creation
+def test_create_room_refused_by_breaker(refusing_cluster, fake_livekit_server, caplog):
+    """A cluster whose circuit breaker is open fails to create a LiveKit room
+    at once, without being called. This is logged as a warning, without the
+    traceback logged for other failures, since it happens on every join of the
+    rooms placed there."""
+    calls = list(fake_livekit_server.paths)
+    caplog.clear()
+
+    with (
+        caplog.at_level(logging.INFO, logger="core.services.room_management"),
+        pytest.raises(
+            LiveKitRoomCreationError,
+            match=f"LiveKit cluster {refusing_cluster.name} failed to create "
+            "LiveKit room my-room",
+        ) as raised,
+    ):
+        RoomManagement.create_room("my-room", cluster=refusing_cluster)
+
+    assert isinstance(raised.value.__cause__, LiveKitClusterUnavailableError)
+    assert fake_livekit_server.paths == calls
+    [record] = [
+        record
+        for record in caplog.records
+        if record.name == "core.services.room_management"
+    ]
+    assert record.levelname == "WARNING"
+    assert record.getMessage() == (
+        f"LiveKit cluster {refusing_cluster.name} failed to create LiveKit room "
+        "my-room: its circuit breaker refused the call"
+    )
+    assert record.exc_info is None
+
+
+@pytest.mark.parametrize("manage_room", ROOM_CALLS)
+def test_room_management_refused_by_breaker(
+    manage_room, refusing_cluster, fake_livekit_server, caplog
+):
+    """A LiveKit room cannot be managed on a cluster whose circuit breaker is
+    open, which is not called. This is logged as a warning, without the
+    traceback logged for unexpected errors: the cluster failed to answer
+    lately, which its breaker logged already."""
+    calls = list(fake_livekit_server.paths)
+    caplog.clear()
+
+    with (
+        caplog.at_level(logging.INFO, logger="core.services.room_management"),
+        pytest.raises(RoomManagementException) as raised,
+    ):
+        manage_room("room-abc", cluster=refusing_cluster)
+
+    assert not isinstance(raised.value, RoomNotFoundException)
+    assert isinstance(raised.value.__cause__, LiveKitClusterUnavailableError)
+    assert fake_livekit_server.paths == calls
+    [record] = [record for record in caplog.records if record.name.startswith("core.")]
+    assert record.name == "core.services.room_management"
+    assert record.levelname == "WARNING"
+    assert record.getMessage().endswith(
+        f"room room-abc: LiveKit cluster {refusing_cluster.name} is unavailable: "
+        "its circuit breaker refused the call."
+    )
+    assert record.exc_info is None

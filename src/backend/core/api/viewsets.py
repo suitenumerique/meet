@@ -1763,13 +1763,13 @@ class DiagnosticsViewSet(viewsets.ViewSet):
         gets its own room so two people testing at the same time never meet.
 
         The room is created on the LiveKit cluster the placement strategy
-        picks, but has no placement: no one else ever joins it. When it cannot
-        be created, the response is a 503.
+        picks, or another one when that cluster fails to, but has no placement:
+        no one else ever joins it. When it cannot be created, the response is a
+        503.
         """
         room = f"{settings.CONNECTION_TEST_ROOM_PREFIX}-{uuid4()}"
         expires_in = settings.CONNECTION_TEST_TOKEN_TTL_SECONDS
-        cluster = PlacementService.choose_cluster(room)
-        RoomManagement.create_room(room, cluster=cluster)
+        cluster = PlacementService.create_unplaced_room(room)
 
         # LiveKit refreshes tokens for connected clients, so JWT TTL alone does not
         # eject someone who stays connected. Schedule a hard DeleteRoom when Celery

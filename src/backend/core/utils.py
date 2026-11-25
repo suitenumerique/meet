@@ -36,6 +36,7 @@ from livekit.api import (  # pylint: disable=E0611
     VideoGrants,
 )
 
+from core.livekit.breaker import guard_room_service
 from core.livekit.clusters import LiveKitClusterConfig, get_default_livekit_cluster
 
 logger = logging.getLogger(__name__)
@@ -285,6 +286,11 @@ def create_livekit_client(
 ) -> LiveKitClient:
     """Create a LiveKit API client calling a LiveKit cluster.
 
+    While LIVEKIT_BREAKER_ENABLED is on, the calls of a client built for a
+    cluster to its room service go through the cluster's circuit breaker, which
+    counts their timeouts too. A client built from a custom configuration has
+    no breaker.
+
     Args:
         custom_configuration (Optional[dict]): The URL, API key and secret to call
                          LiveKit with, in place of the cluster's.
@@ -293,14 +299,19 @@ def create_livekit_client(
         timeout (Optional[float]): Seconds after which each request of this client
                          gives up. Defaults to LIVEKIT_API_TIMEOUT_SECONDS.
     """
-    configuration = custom_configuration or livekit_api_configuration(cluster)
     if timeout is None:
         timeout = settings.LIVEKIT_API_TIMEOUT_SECONDS
+    middlewares = (bound_livekit_requests(timeout),)
+    if custom_configuration:
+        configuration = custom_configuration
+    else:
+        cluster = cluster or get_default_livekit_cluster()
+        configuration = livekit_api_configuration(cluster)
+        if settings.LIVEKIT_BREAKER_ENABLED:
+            middlewares = (guard_room_service(cluster.name, timeout), *middlewares)
 
     connector = None if settings.LIVEKIT_VERIFY_SSL else aiohttp.TCPConnector(ssl=False)
-    session = aiohttp.ClientSession(
-        connector=connector, middlewares=(bound_livekit_requests(timeout),)
-    )
+    session = aiohttp.ClientSession(connector=connector, middlewares=middlewares)
 
     return LiveKitClient(session=session, **configuration)
 

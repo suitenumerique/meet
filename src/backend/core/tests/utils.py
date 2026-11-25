@@ -1,9 +1,13 @@
 """Shared helpers for tests in the Meet core application"""
 
 import base64
+import contextlib
 import hashlib
 import itertools
+import json
 import secrets
+import socket
+import threading
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from functools import partial
@@ -12,9 +16,14 @@ from unittest import mock
 from django.conf import settings
 from django.db.models import QuerySet
 
+import aiohttp
 import jwt
-from asgiref.sync import sync_to_async
-from livekit.api import AccessToken, TwirpError
+from asgiref.sync import async_to_sync, sync_to_async
+from livekit.api import (  # pylint: disable=no-name-in-module
+    AccessToken,
+    ListRoomsRequest,
+    TwirpError,
+)
 from livekit.protocol.models import Room as LiveKitRoom  # pylint: disable=E0611
 from livekit.protocol.room import (  # pylint: disable=E0611
     DeleteRoomResponse,
@@ -22,11 +31,17 @@ from livekit.protocol.room import (  # pylint: disable=E0611
 )
 
 from core.factories import ApplicationFactory
+from core.livekit.breaker import BreakerState, breaker_state
 from core.models import ApplicationScope
+from core.utils import create_livekit_client
 
 CREATED_LIVEKIT_ROOM_SID = "RM_created"
 CREATED_LIVEKIT_ROOM_TIME_MS = 1_763_550_000_123
 LAZY_JOIN = {"ensure_room": False}
+
+UNREACHABLE_LIVEKIT_URL = "http://127.0.0.1:1"
+
+TWIRP_ERROR_CODES = {404: "not_found", 500: "internal", 503: "unavailable"}
 
 
 def livekit_room(
@@ -141,6 +156,124 @@ class FakeLiveKitClusters:
             raise TwirpError("not_found", "room not found", status=404)
         self.deleted.append((cluster_name, request.room))
         return DeleteRoomResponse()
+
+
+class FakeLiveKitServer:
+    """A LiveKit API listening on a local port until closed.
+
+    It records the path of each call in `paths` as the call arrives, then
+    answers it with `status` once `released` is set, as it is at first: with
+    an empty body for 200, else with a Twirp error.
+    """
+
+    def __init__(self):
+        self.status = 200
+        self.paths = []
+        self.released = threading.Event()
+        self.released.set()
+        self._server = socket.create_server(("127.0.0.1", 0))
+        self._accepting = threading.Thread(target=self._accept, daemon=True)
+        self._accepting.start()
+
+    @property
+    def url(self):
+        """The URL of the fake LiveKit API."""
+        return f"http://127.0.0.1:{self._server.getsockname()[1]:d}"
+
+    def close(self):
+        """Answer the calls held, then stop listening.
+
+        Closing the socket alone would leave the thread accepting connections
+        blocked, still listening: shutting it down first wakes that thread up.
+        The socket is closed once that thread is over: until then the thread
+        may accept again on the number of its descriptor, which the socket of
+        the next server takes as soon as it is free.
+        """
+        self.released.set()
+        with contextlib.suppress(OSError):
+            self._server.shutdown(socket.SHUT_RDWR)
+        self._accepting.join()
+        self._server.close()
+
+    def _accept(self):
+        """Answer each connection in a thread of its own until the socket is
+        shut down, then close them all."""
+        connections = []
+        while True:
+            try:
+                connection, _ = self._server.accept()
+            except OSError:
+                break
+            connections.append(connection)
+            threading.Thread(
+                target=self._answer, args=(connection,), daemon=True
+            ).start()
+        for connection in connections:
+            connection.close()
+
+    def _answer(self, connection):
+        """Read the call made on a connection, record it, then answer it."""
+        with (
+            contextlib.suppress(OSError),
+            connection,
+            connection.makefile("rb") as request,
+        ):
+            path = request.readline().split()[1].decode()
+            content_length = 0
+            while (line := request.readline()) not in (b"\r\n", b""):
+                name, _, value = line.decode().partition(":")
+                if name.strip().lower() == "content-length":
+                    content_length = int(value)
+            request.read(content_length)
+            self.paths.append(path)
+            self.released.wait()
+            status = self.status
+            body = (
+                b""
+                if status == 200
+                else json.dumps(
+                    {"code": TWIRP_ERROR_CODES.get(status, "unknown"), "msg": "fake"}
+                ).encode()
+            )
+            connection.sendall(
+                f"HTTP/1.1 {status} Fake\r\nContent-Type: application/json\r\n"
+                f"Content-Length: {len(body)}\r\nConnection: close\r\n\r\n".encode()
+                + body
+            )
+
+
+async def list_livekit_rooms(cluster=None, *, timeout=None, custom_configuration=None):
+    """Call the room service of a LiveKit cluster once, with a new client.
+
+    The client is built for the cluster, or from the custom configuration.
+    Return the error the call raised, or None when it was answered.
+    """
+    client = create_livekit_client(
+        custom_configuration, cluster=cluster, timeout=timeout
+    )
+    try:
+        await client.room.list_rooms(ListRoomsRequest())
+    except (TwirpError, TimeoutError, aiohttp.ClientError) as error:
+        return error
+    finally:
+        await client.aclose()
+    return None
+
+
+def call_room_service(cluster=None, *, timeout=None, custom_configuration=None):
+    """Call the room service of a LiveKit cluster once, as list_livekit_rooms
+    does, from synchronous code."""
+    return async_to_sync(list_livekit_rooms)(
+        cluster, timeout=timeout, custom_configuration=custom_configuration
+    )
+
+
+def open_livekit_breaker(cluster):
+    """Open the circuit breaker of a LiveKit cluster failing to answer, calling
+    its room service as many times as it takes."""
+    for _call in range(settings.LIVEKIT_BREAKER_FAILURE_THRESHOLD):
+        call_room_service(cluster)
+    assert breaker_state(cluster.name) is BreakerState.OPEN
 
 
 def changing_after_reads(change, *, every=False):

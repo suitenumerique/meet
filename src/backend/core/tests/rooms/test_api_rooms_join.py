@@ -2,10 +2,11 @@
 Test rooms API endpoints in the Meet core app: join.
 """
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,too-many-lines
 
 import json
 import logging
+import time
 from unittest import mock
 
 from django.conf import settings
@@ -23,15 +24,17 @@ from ...factories import (
     UserFactory,
     UserResourceAccessFactory,
 )
-from ...livekit.clusters import get_default_livekit_cluster
+from ...livekit.clusters import get_default_livekit_cluster, get_livekit_clusters
 from ...livekit.exceptions import LiveKitRoomCreationError
 from ...models import Placement, RoleChoices, RoomAccessLevel
 from ..utils import (
     CREATED_LIVEKIT_ROOM_SID,
     LAZY_JOIN,
+    UNREACHABLE_LIVEKIT_URL,
     generate_user_access_token,
     livekit_cluster_entry,
     livekit_room,
+    open_livekit_breaker,
     reporting,
 )
 
@@ -471,6 +474,127 @@ def test_api_rooms_join_without_candidate(
     mock_token.assert_not_called()
     fake_livekit_room_creation.assert_not_called()
     assert "No LiveKit cluster may receive new placements" in caplog.text
+
+
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_fails_over(
+    mock_token, two_livekit_clusters, fake_livekit_room_creation
+):
+    """
+    Joining a room whose LiveKit room the cluster picked fails to create should
+    hand out credentials for another cluster, which created it.
+    """
+    paris, lyon = two_livekit_clusters
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    fake_livekit_room_creation.side_effect = [
+        LiveKitRoomCreationError("Timed out"),
+        livekit_room("RM_paris"),
+    ]
+
+    with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
+        response = APIClient().post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 200
+    assert response.json()["livekit"] == {
+        "url": paris.url,
+        "room": str(room.id),
+        "room_sid": "RM_paris",
+        "token": livekit_token,
+    }
+    assert mock_token.call_args.kwargs["cluster"] == paris
+    assert fake_livekit_room_creation.call_args_list == [
+        mock.call(str(room.id), cluster=lyon),
+        mock.call(str(room.id), cluster=paris),
+    ]
+    assert Placement.objects.get().cluster == "paris"
+
+
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_without_available_candidate(
+    mock_token, settings, livekit_breakers, fake_livekit_room_creation, caplog
+):
+    """
+    Joining a room should return a 503 without credentials while every LiveKit
+    cluster has its circuit breaker open, as each failed to answer lately: no
+    cluster may receive new placements, which is logged as critical, once.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [
+            livekit_cluster_entry(livekit_breakers(), api_url=UNREACHABLE_LIVEKIT_URL)
+            for _cluster in range(2)
+        ]
+    )
+    for cluster in get_livekit_clusters():
+        open_livekit_breaker(cluster)
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    caplog.clear()
+
+    with caplog.at_level(logging.CRITICAL, logger="core.livekit.placements"):
+        response = APIClient().post(join_url(room.id), {}, format="json")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    mock_token.assert_not_called()
+    fake_livekit_room_creation.assert_not_called()
+    assert not Placement.objects.exists()
+    assert [record.levelname for record in caplog.records] == ["CRITICAL"]
+    assert "No LiveKit cluster may receive new placements" in caplog.text
+
+
+@pytest.mark.real_livekit_room_creation
+@mock.patch("core.utils.generate_token", return_value=livekit_token)
+def test_api_rooms_join_placed_on_unavailable_cluster(
+    mock_token, settings, livekit_breakers, fake_livekit_server, caplog
+):
+    """
+    Joining a room placed on a LiveKit cluster whose circuit breaker is open
+    should return a 503 without credentials at once, rather than once the
+    cluster failed to create its LiveKit room in time, without calling the
+    cluster nor logging a traceback. The placement stays: participants may be
+    connected there.
+    """
+    settings.LIVEKIT_API_TIMEOUT_SECONDS = 10
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [
+            livekit_cluster_entry(livekit_breakers(), api_url=fake_livekit_server.url)
+            for _cluster in range(2)
+        ]
+    )
+    _available, unavailable = get_livekit_clusters()
+    fake_livekit_server.status = 503
+    open_livekit_breaker(unavailable)
+    fake_livekit_server.released.clear()
+    calls = list(fake_livekit_server.paths)
+    room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
+    placement = Placement.objects.create(
+        room_name=str(room.id), room=room, cluster=unavailable.name, sid="RM_old"
+    )
+    caplog.clear()
+
+    started = time.monotonic()
+    with caplog.at_level(logging.INFO):
+        response = APIClient().post(join_url(room.id), {}, format="json")
+    elapsed = time.monotonic() - started
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "This room cannot be joined for now, please try again."
+    }
+    assert elapsed < 5
+    assert fake_livekit_server.paths == calls
+    mock_token.assert_not_called()
+    kept_placement = Placement.objects.get()
+    assert kept_placement.pk == placement.pk
+    assert kept_placement.cluster == unavailable.name
+    assert kept_placement.sid == "RM_old"
+    assert kept_placement.updated_at == placement.updated_at
+    assert not [record for record in caplog.records if record.exc_info]
+    assert (
+        f"LiveKit cluster {unavailable.name} failed to create LiveKit room "
+        f"{room.id!s}: its circuit breaker refused the call"
+    ) in caplog.text
 
 
 @pytest.mark.parametrize(

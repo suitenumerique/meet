@@ -2,6 +2,9 @@
 
 import json
 from unittest import mock
+from uuid import uuid4
+
+from django.core.cache import cache
 
 import pytest
 from dockerflow.logging import request_id_context
@@ -12,6 +15,7 @@ from core.livekit.clusters import get_livekit_clusters
 from core.services.room_management import RoomManagement
 from core.tests.utils import (
     FakeLiveKitClusters,
+    FakeLiveKitServer,
     livekit_cluster_entry,
     livekit_room,
 )
@@ -102,3 +106,31 @@ def two_livekit_clusters(settings):
         [livekit_cluster_entry("paris"), livekit_cluster_entry("lyon")]
     )
     return get_livekit_clusters()
+
+
+@pytest.fixture
+def fake_livekit_server():
+    """Run a fake LiveKit API on a local port during the test."""
+    server = FakeLiveKitServer()
+    yield server
+    server.close()
+
+
+@pytest.fixture
+def livekit_breakers(settings):
+    """Enable the circuit breakers of the LiveKit clusters.
+
+    Return a function giving the name of a LiveKit cluster that no other test
+    uses: breakers keep their state in the cache, which tests running at the
+    same time share. The state of their breakers is deleted after the test.
+    """
+    settings.LIVEKIT_BREAKER_ENABLED = True
+    names = []
+
+    def unique_name():
+        names.append(f"breaker-{uuid4().hex[:8]}")
+        return names[-1]
+
+    yield unique_name
+    for name in names:
+        cache.delete_pattern(f"livekit-breaker_{name}_*")

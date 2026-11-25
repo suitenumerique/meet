@@ -91,14 +91,14 @@ sequenceDiagram
 The backend answers with a `503` and `{"detail": "This room cannot be joined for now, please try again."}` when it cannot ensure the LiveKit room:
 
 - No cluster may receive the room, for example because every cluster weighs 0.
-- The room's cluster cannot be reached, does not answer in time, or answers CreateRoom with an error. If the request created the placement, the backend deletes it, since nobody received credentials for it. The next attempt may then place the room on another cluster. A placement older than the request is kept, and the next attempt tries the same cluster again.
+- The room's cluster cannot be reached, does not answer in time, or answers CreateRoom with an error. If the request created the placement, the backend deletes it, since nobody received credentials for it, and places the room on another candidate in the same request: a request creates the LiveKit room on two clusters at most. A placement older than the request is kept, and the next attempt tries the same cluster again.
 - The placement keeps changing while the LiveKit room is created.
 
 The roomkit join places the room and ensures its LiveKit room the same way, because a meeting-room device may be its first participant.
 
 An unregistered room is never placed, since the backend does not follow its lifecycle. Its LiveKit room is created on the default cluster whatever the frontend asks, unless the frontend reports it `deleted`. That report gets a `409`, as for a room without placement, see [What the backend answers](#what-the-backend-answers).
 
-The connection test (`CONNECTION_TEST_ENABLED`) creates its LiveKit room on the candidate the placement strategy picks, without a placement, because nobody else ever joins it. It tries no other cluster, so it answers with a `503` when that cluster fails to create the LiveKit room. With Celery, its LiveKit room is later deleted on that cluster.
+The connection test (`CONNECTION_TEST_ENABLED`) creates its LiveKit room on the candidate the placement strategy picks, without a placement, because nobody else ever joins it. When that cluster fails to create the LiveKit room, it tries another candidate as a join does, and answers with a `503` when that fails too. With Celery, its LiveKit room is later deleted on that cluster.
 
 ### When a LiveKit room fails
 
@@ -249,12 +249,14 @@ Rooms placed on a cluster that is down keep their placement and its SID. A place
 - A join that trusts a LiveKit room known to be live hands out credentials for that cluster without calling it. The browser waits 5 seconds at most for the warm-up and fails to connect. It then asks where the room is, gets the same answer, and ends up on the "Unable to join the meeting" screen.
 - Participants connected when the cluster went down keep reconnecting for `LIVEKIT_RECONNECT_GIVE_UP_AFTER_MS`. They then ask where the room is, without reporting a failure, fail to connect to the LiveKit room in the answer, and ask once more. Until the room is relocated, they get the same answer and end up on the "The connection to the meeting was lost" screen.
 
-Only the requests for credentials that ensure the LiveKit room get a `503`, after `LIVEKIT_API_TIMEOUT_SECONDS`:
+Only the requests for credentials that ensure the LiveKit room get a `503`, after `LIVEKIT_API_TIMEOUT_SECONDS`, or at once while the cluster's circuit breaker is open:
 
 - Every request from a frontend of an earlier release, and the roomkit join.
 - Every join from a frontend while `LIVEKIT_CONNECTION_RECOVERY_ENABLED` is off.
 - A request for a room whose placement records no SID or an absence.
 - A report of a `missing` LiveKit room, which a frontend only sends after LiveKit refused its connection (a `404`, `401` or `403`).
+
+Each cluster has a circuit breaker, kept in the Django cache and shared by every backend process. `LIVEKIT_BREAKER_FAILURE_THRESHOLD` CreateRoom or ListRooms calls in a row that cannot reach the cluster, time out or get a server error open it. For `LIVEKIT_BREAKER_OPEN_SECONDS`, the cluster then receives no new room, and its room service is not called: those calls fail at once. Then the next CreateRoom or ListRooms call probes the cluster, while the cluster may receive new rooms again: an answer closes the breaker, a failure opens it again.
 
 Set the cluster's weight to 0 to stop it from receiving new rooms, and relocate its rooms. While that cluster cannot be listed, a reconciliation keeps the placements relocated away from it, even when their LiveKit room is missing from the new cluster. The LiveKit rooms left on the cluster that is down may still hold participants, see [Reconciling placements](#reconciling-placements).
 
@@ -371,4 +373,7 @@ Joins trust a LiveKit room known to be live, as with several clusters. Joins tha
 |---|---|---|---|
 | **LIVEKIT_CLUSTERS** | JSON | unset | The LiveKit clusters, see [Registering the clusters](#registering-the-clusters). Read from the file that `LIVEKIT_CLUSTERS_FILE` names, when set. When unset, a single cluster named `default` is built from `LIVEKIT_API_URL`, `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET` |
 | **LIVEKIT_PLACEMENT_STRATEGY** | String | `core.livekit.strategies.WeightedRandomStrategy` | Dotted path of the placement strategy, see [Placement strategies](#placement-strategies) |
+| **LIVEKIT_BREAKER_ENABLED** | Boolean | `true` | Puts the room service of each cluster behind a circuit breaker, see [A cluster is down](#a-cluster-is-down) |
+| **LIVEKIT_BREAKER_FAILURE_THRESHOLD** | Integer | `3` | Failed CreateRoom or ListRooms calls in a row that open a cluster's circuit breaker |
+| **LIVEKIT_BREAKER_OPEN_SECONDS** | Integer | `30` | Seconds a circuit breaker stays open before the next call probes its cluster |
 | **LIVEKIT_CONNECTION_RECOVERY_ENABLED** | Boolean | `true` | Lets frontends join a LiveKit room known to be live without the backend creating it, and ask for credentials again when their LiveKit room fails, see [When a LiveKit room fails](#when-a-livekit-room-fails). `GET /api/v1.0/config/` exposes it as `livekit.connection_recovery`. When `false`, frontends have every join ensure the LiveKit room, and end the conference as soon as their connection ends. Keep it `false` while upgrading from a release that relied on room auto-creation, see the [upgrade instructions](https://github.com/suitenumerique/meet/blob/main/UPGRADE.md) |

@@ -5,6 +5,7 @@
 import json
 import logging
 import uuid
+from datetime import timedelta
 from unittest import mock
 
 from django.db.models import F
@@ -12,10 +13,15 @@ from django.utils import timezone
 
 import aiohttp
 import pytest
+from freezegun import freeze_time
 
 from core.audit.testing import find_events
 from core.factories import RoomFactory, UserFactory
-from core.livekit.clusters import get_default_livekit_cluster, get_livekit_clusters
+from core.livekit.clusters import (
+    get_default_livekit_cluster,
+    get_livekit_cluster,
+    get_livekit_clusters,
+)
 from core.livekit.exceptions import (
     LiveKitRoomCloseError,
     LiveKitRoomCreationError,
@@ -44,9 +50,11 @@ from core.services.room_management import (
 )
 from core.tests.utils import (
     CREATED_LIVEKIT_ROOM_SID,
+    UNREACHABLE_LIVEKIT_URL,
     changing_after_reads,
     livekit_cluster_entry,
     livekit_room,
+    open_livekit_breaker,
 )
 
 pytestmark = pytest.mark.django_db
@@ -91,6 +99,18 @@ def picking(cluster):
     """Patch the default placement strategy to pick a cluster."""
     return mock.patch.object(
         WeightedRandomStrategy, "choose", autospec=True, return_value=cluster
+    )
+
+
+def preferring(cluster):
+    """Patch the default placement strategy to pick a cluster while it is a
+    candidate, and the first candidate otherwise."""
+
+    def choose(_strategy, candidates, _context):
+        return cluster if cluster in candidates else candidates[0]
+
+    return mock.patch.object(
+        WeightedRandomStrategy, "choose", autospec=True, side_effect=choose
     )
 
 
@@ -294,6 +314,115 @@ def test_choose_cluster_without_candidate(settings, caplog):
     ) in caplog.text
 
 
+def test_choose_cluster_excluded(two_livekit_clusters):
+    """Clusters excluded, as those that failed to create the LiveKit room
+    already, are not chosen."""
+    paris, _lyon = two_livekit_clusters
+
+    assert PlacementService.choose_cluster("my-room", excluded={"lyon"}) == paris
+
+
+def test_candidates_breakers(settings, livekit_breakers, django_assert_num_queries):
+    """Clusters whose circuit breaker is open, as they failed to answer lately,
+    receive no new placements. A half-open one may receive them again, so that
+    a cluster answering again gets new placements even when nothing else calls
+    it. Breakers cost no query."""
+    settings.LIVEKIT_BREAKER_OPEN_SECONDS = 10
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [
+            livekit_cluster_entry(livekit_breakers(), api_url=UNREACHABLE_LIVEKIT_URL)
+            for _cluster in range(3)
+        ]
+    )
+    closed, opened, half_opened = get_livekit_clusters()
+
+    with freeze_time("2026-11-07 12:00:00", real_asyncio=True) as frozen:
+        open_livekit_breaker(half_opened)
+        frozen.tick(timedelta(seconds=10))
+        open_livekit_breaker(opened)
+
+        with django_assert_num_queries(0):
+            candidates = PlacementService.candidates()
+
+    assert candidates == (closed, half_opened)
+
+
+def test_choose_cluster_without_available_candidate(settings, livekit_breakers, caplog):
+    """With the circuit breaker of every cluster open, as each failed to answer
+    lately, no LiveKit room can be placed: this is logged as critical, once."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [
+            livekit_cluster_entry(livekit_breakers(), api_url=UNREACHABLE_LIVEKIT_URL)
+            for _cluster in range(2)
+        ]
+    )
+    for cluster in get_livekit_clusters():
+        open_livekit_breaker(cluster)
+    caplog.clear()
+
+    with (
+        caplog.at_level(logging.CRITICAL, logger="core.livekit.placements"),
+        pytest.raises(
+            NoCandidateLiveKitClusterError,
+            match="No LiveKit cluster may receive new placements",
+        ),
+    ):
+        PlacementService.choose_cluster("my-room")
+
+    assert [record.levelname for record in caplog.records] == ["CRITICAL"]
+
+
+def test_create_unplaced_room(two_livekit_clusters, fake_livekit_room_creation):
+    """A LiveKit room that is never placed is created on the cluster the
+    placement strategy picks, which is returned, and gets no placement."""
+    _paris, lyon = two_livekit_clusters
+
+    with picking(lyon):
+        assert PlacementService.create_unplaced_room("my-room") == lyon
+
+    fake_livekit_room_creation.assert_called_once_with("my-room", cluster=lyon)
+    assert not Placement.objects.exists()
+
+
+def test_create_unplaced_room_fails_over(
+    two_livekit_clusters, fake_livekit_room_creation
+):
+    """A cluster that fails to create a LiveKit room that is never placed
+    leaves it to another candidate."""
+    paris, lyon = two_livekit_clusters
+    fake_livekit_room_creation.side_effect = [
+        LiveKitRoomCreationError("Timed out"),
+        livekit_room(),
+    ]
+
+    with preferring(lyon):
+        assert PlacementService.create_unplaced_room("my-room") == paris
+
+    assert fake_livekit_room_creation.call_args_list == [
+        mock.call("my-room", cluster=lyon),
+        mock.call("my-room", cluster=paris),
+    ]
+
+
+@pytest.mark.parametrize("cluster_names", (("lyon",), ("paris", "lyon", "marseille")))
+def test_create_unplaced_room_creation_failures(
+    cluster_names, settings, fake_livekit_room_creation
+):
+    """A LiveKit room that is never placed is created on two clusters at most,
+    or on the only candidate, and raises the failure of the last one."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry(name) for name in cluster_names]
+    )
+    fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
+
+    with pytest.raises(LiveKitRoomCreationError, match="Timed out"):
+        PlacementService.create_unplaced_room("my-room")
+
+    assert fake_livekit_room_creation.call_count == min(
+        len(cluster_names), PLACEMENT_UPDATE_ATTEMPTS
+    )
+
+
 def test_place_new_room(two_livekit_clusters, fake_livekit_room_creation, caplog):
     """
     A LiveKit room without placement is placed on the cluster the placement
@@ -463,37 +592,117 @@ def test_place_placed_meanwhile_creation_failure(
     assert Placement.objects.get().cluster == "paris"
 
 
-def test_place_new_room_creation_failure(
+def test_place_new_room_fails_over(
     two_livekit_clusters, fake_livekit_room_creation, caplog
 ):
     """
     A placement created by a call whose cluster fails to create the LiveKit
-    room is deleted, so that the next call may place the LiveKit room on
-    another cluster.
+    room is deleted, and the LiveKit room placed again on another candidate in
+    the same call.
     """
     paris, lyon = two_livekit_clusters
     room = RoomFactory()
     room_name = str(room.id)
+    fake_livekit_room_creation.side_effect = [
+        LiveKitRoomCreationError("Timed out"),
+        livekit_room("RM_paris"),
+    ]
+
+    with (
+        preferring(lyon) as choose,
+        caplog.at_level(logging.INFO, logger="core.livekit.placements"),
+    ):
+        location = PlacementService.place(room)
+
+    assert location == LiveKitRoomLocation(cluster=paris, sid="RM_paris")
+    assert fake_livekit_room_creation.call_args_list == [
+        mock.call(room_name, cluster=lyon),
+        mock.call(room_name, cluster=paris),
+    ]
+    assert [call.args[1] for call in choose.call_args_list] == [(paris, lyon), (paris,)]
+    placement = Placement.objects.get()
+    assert placement.cluster == "paris"
+    assert placement.sid == "RM_paris"
+    assert (
+        f"Deleted the placement of LiveKit room {room_name} on LiveKit cluster "
+        "lyon, which failed to create it"
+    ) in caplog.text
+    assert (
+        f"Placing LiveKit room {room_name} again, on another cluster than lyon"
+    ) in caplog.text
+
+
+def test_place_new_room_creation_failures(settings, fake_livekit_room_creation):
+    """
+    A call creates the LiveKit room on two clusters at most: when the second
+    fails too, the call fails, without placement, the third cluster untried.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry(name) for name in ("paris", "lyon", "marseille")]
+    )
+    room = RoomFactory()
+    fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
+
+    with pytest.raises(LiveKitRoomCreationError, match="Timed out"):
+        PlacementService.place(room)
+
+    tried = [call.kwargs["cluster"] for call in fake_livekit_room_creation.mock_calls]
+    assert len(tried) == PLACEMENT_UPDATE_ATTEMPTS == 2
+    assert tried[0] != tried[1]
+    assert not Placement.objects.exists()
+
+
+def test_place_new_room_creation_failure_without_other_candidate(
+    settings, fake_livekit_room_creation, caplog
+):
+    """
+    A LiveKit room the only candidate fails to create is not placed again:
+    the call fails, without placement, and logs nothing as critical.
+    """
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry("paris", weight=0), livekit_cluster_entry("lyon")]
+    )
+    lyon = get_livekit_cluster("lyon")
+    room = RoomFactory()
     fake_livekit_room_creation.side_effect = LiveKitRoomCreationError("Timed out")
 
     with (
-        picking(lyon),
         caplog.at_level(logging.INFO, logger="core.livekit.placements"),
         pytest.raises(LiveKitRoomCreationError, match="Timed out"),
     ):
         PlacementService.place(room)
 
-    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
+    fake_livekit_room_creation.assert_called_once_with(str(room.id), cluster=lyon)
     assert not Placement.objects.exists()
-    assert (
-        f"Deleted the placement of LiveKit room {room_name} on LiveKit cluster "
-        "lyon, which failed to create it"
-    ) in caplog.text
+    assert "again" not in caplog.text
+    assert not [record for record in caplog.records if record.levelname == "CRITICAL"]
 
-    fake_livekit_room_creation.side_effect = None
-    with picking(paris):
-        assert PlacementService.place(room).cluster == paris
-    assert Placement.objects.get().cluster == "paris"
+
+def test_place_new_room_creation_failure_recorded_meanwhile(
+    two_livekit_clusters, fake_livekit_room_creation
+):
+    """
+    A placement that another request recorded a SID on while its cluster failed
+    to create the LiveKit room is kept, and the LiveKit room not placed again:
+    credentials may have been handed out for it.
+    """
+    _paris, lyon = two_livekit_clusters
+    room = RoomFactory()
+    room_name = str(room.id)
+
+    def recorded_meanwhile(name, **_kwargs):
+        Placement.objects.filter(room_name=name).update(sid="RM_other")
+        raise LiveKitRoomCreationError("Timed out")
+
+    fake_livekit_room_creation.side_effect = recorded_meanwhile
+
+    with picking(lyon), pytest.raises(LiveKitRoomCreationError):
+        PlacementService.place(room)
+
+    fake_livekit_room_creation.assert_called_once_with(room_name, cluster=lyon)
+    placement = Placement.objects.get()
+    assert placement.cluster == "lyon"
+    assert placement.sid == "RM_other"
 
 
 @pytest.mark.usefixtures("two_livekit_clusters")
@@ -501,7 +710,8 @@ def test_place_new_room_creation_failure(
 def test_place_placed_room_creation_failure(sid, fake_livekit_room_creation):
     """
     The placement of a LiveKit room placed earlier stays when its cluster
-    fails to create the LiveKit room.
+    fails to create the LiveKit room, which is not placed again: participants
+    may be connected there.
     """
     room = RoomFactory()
     room_name = str(room.id)
@@ -511,6 +721,7 @@ def test_place_placed_room_creation_failure(sid, fake_livekit_room_creation):
     with pytest.raises(LiveKitRoomCreationError):
         PlacementService.place(room)
 
+    fake_livekit_room_creation.assert_called_once()
     kept_placement = Placement.objects.get()
     assert kept_placement.cluster == "lyon"
     assert kept_placement.sid == sid
@@ -1908,3 +2119,55 @@ def test_close_stray_room_failure(error, room_management, audit_events, caplog):
     }
     assert event["log"]["level"] == "error"
     assert event["lasuite"]["details"] == {"cluster": "default"}
+
+
+def test_close_stray_room_refused(
+    settings, livekit_breakers, fake_livekit_server, audit_events, caplog
+):
+    """A cluster whose circuit breaker is open fails to close a LiveKit room at
+    once, without being called, which is audited. This is logged as warnings,
+    without the traceback logged for other failures: the cluster failed to
+    answer lately, which its breaker logged already."""
+    name = livekit_breakers()
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry(name, api_url=fake_livekit_server.url)]
+    )
+    cluster = get_livekit_cluster(name)
+    fake_livekit_server.status = 503
+    open_livekit_breaker(cluster)
+    calls = list(fake_livekit_server.paths)
+    caplog.clear()
+
+    with (
+        caplog.at_level(logging.INFO),
+        pytest.raises(LiveKitRoomCloseError),
+    ):
+        PlacementService.close_stray_room(cluster, "my-room", actor=None)
+
+    assert fake_livekit_server.paths == calls
+    assert [
+        (record.name, record.levelname, record.getMessage(), record.exc_info)
+        for record in caplog.records
+        if record.name.startswith("core.")
+    ] == [
+        (
+            "core.services.room_management",
+            "WARNING",
+            f"Could not delete room my-room: LiveKit cluster {name} is "
+            "unavailable: its circuit breaker refused the call.",
+            None,
+        ),
+        (
+            "core.livekit.placements",
+            "WARNING",
+            f"LiveKit cluster {name} failed to close LiveKit room my-room: its "
+            "circuit breaker refused the call",
+            None,
+        ),
+    ]
+    [event] = find_events(audit_events, "livekit.room.close")
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["error"] == {
+        "type": "core.services.room_management.RoomManagementException"
+    }
+    assert event["lasuite"]["details"]["cluster"] == name

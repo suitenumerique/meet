@@ -8,6 +8,7 @@ default cluster.
 """
 
 import contextlib
+from collections.abc import Collection
 from dataclasses import dataclass
 from enum import StrEnum
 from logging import getLogger
@@ -22,8 +23,10 @@ from livekit.protocol.models import Room as LiveKitRoom
 from core import audit, auditing
 from core.models import Placement, Room
 
+from .breaker import admitting_clusters
 from .clusters import LiveKitClusterConfig, get_livekit_clusters
 from .exceptions import (
+    LiveKitClusterUnavailableError,
     LiveKitRoomCloseError,
     LiveKitRoomCreationError,
     LiveKitRoomEndedError,
@@ -166,25 +169,35 @@ class PlacementService:
         """Return the LiveKit clusters that may receive new placements.
 
         They are the registered clusters, in registry order, but for those
-        weighing 0, which keep their live rooms and receive no new placement.
+        weighing 0, which keep their live rooms and receive no new placement,
+        and those whose circuit breaker refuses calls, as they failed to answer
+        lately: an open one, or a half-open one while a call probes the
+        cluster. Otherwise a half-open one is a candidate again, so that a
+        cluster that recovered receives new placements again.
         """
-        return tuple(
-            cluster for cluster in get_livekit_clusters() if cluster.weight > 0
-        )
+        weighing = [cluster for cluster in get_livekit_clusters() if cluster.weight > 0]
+        admitting = admitting_clusters(cluster.name for cluster in weighing)
+        return tuple(cluster for cluster in weighing if cluster.name in admitting)
 
     @classmethod
     def choose_cluster(
-        cls, room_name: str, room: Room | None = None
+        cls,
+        room_name: str,
+        room: Room | None = None,
+        *,
+        excluded: Collection[str] = (),
     ) -> LiveKitClusterConfig:
         """Return the LiveKit cluster on which to place a LiveKit room.
 
         The placement strategy named by LIVEKIT_PLACEMENT_STRATEGY picks it
-        among the candidates, knowing the LiveKit room's name and the room it is
-        named after, if any. Without any candidate, no LiveKit room can be
-        placed anywhere: this is logged as critical and raises
-        NoCandidateLiveKitClusterError.
+        among the candidates, but for those named in `excluded`, knowing the
+        LiveKit room's name and the room it is named after, if any. Without any
+        candidate, no LiveKit room can be placed anywhere: this is logged as
+        critical and raises NoCandidateLiveKitClusterError.
         """
-        candidates = cls.candidates()
+        candidates = tuple(
+            cluster for cluster in cls.candidates() if cluster.name not in excluded
+        )
         if not candidates:
             logger.critical(
                 "No LiveKit cluster may receive new placements: LiveKit room %s "
@@ -205,11 +218,13 @@ class PlacementService:
         records the SID the cluster returns. A LiveKit room without placement,
         or placed on a cluster no longer registered, is placed first, on the
         cluster the placement strategy picks. A placement created by this call
-        is deleted when its cluster fails to create the LiveKit room, for the
-        next call to place it again, as long as it still has the epoch read and
-        no SID: no one was handed out credentials for it then. A placement that
-        changes while its cluster creates the LiveKit room is read again, and
-        the LiveKit room created where it then says, a bounded number of times.
+        is deleted when its cluster fails to create the LiveKit room, as long as
+        it still has the epoch read and no SID: no one was handed out
+        credentials for it then. The LiveKit room is then placed again, on
+        another candidate. A placement that changes while its cluster creates
+        the LiveKit room is read again, and the LiveKit room created where it
+        then says. A call creates the LiveKit room PLACEMENT_UPDATE_ATTEMPTS
+        times at most.
 
         Without ensure_room, or when a failure is reported, the placement
         decides first, each time it is read: a LiveKit room known to be live on
@@ -235,29 +250,33 @@ class PlacementService:
                 intent.failed_room_sid,
             )
 
-        for _attempt in range(PLACEMENT_UPDATE_ATTEMPTS):
+        failed = set()
+        for attempt in range(1, PLACEMENT_UPDATE_ATTEMPTS + 1):
             location = cls._known_location(room_name, intent)
             if location is not None:
                 return location
 
-            placement, cluster, created = cls._get_or_create_placement(room)
+            placement, cluster, created = cls._get_or_create_placement(
+                room, excluded=failed
+            )
             try:
                 livekit_room = room_management.RoomManagement.create_room(
                     room_name, cluster=cluster
                 )
             except LiveKitRoomCreationError:
-                if created:
-                    deleted, _ = Placement.objects.filter(
-                        pk=placement.pk, epoch=placement.epoch, sid=""
-                    ).delete()
-                    if deleted:
-                        logger.info(
-                            "Deleted the placement of LiveKit room %s on LiveKit "
-                            "cluster %s, which failed to create it",
-                            room_name,
-                            cluster.name,
-                        )
-                raise
+                if not (created and cls._delete_failed_placement(placement)):
+                    raise
+                failed.add(cluster.name)
+                if attempt == PLACEMENT_UPDATE_ATTEMPTS or not cls._may_fail_over(
+                    failed
+                ):
+                    raise
+                logger.info(
+                    "Placing LiveKit room %s again, on another cluster than %s",
+                    room_name,
+                    cluster.name,
+                )
+                continue
 
             sid = livekit_room.sid
             if Placement.objects.filter(
@@ -280,6 +299,58 @@ class PlacementService:
         raise PlacementChangedError(
             f"The placement of LiveKit room {room_name} kept changing."
         )
+
+    @staticmethod
+    def _delete_failed_placement(placement: Placement) -> bool:
+        """Delete a placement whose cluster failed to create its LiveKit room,
+        as long as it still has the epoch read and no SID. Return whether it
+        was deleted."""
+        deleted, _ = Placement.objects.filter(
+            pk=placement.pk, epoch=placement.epoch, sid=""
+        ).delete()
+        if deleted:
+            logger.info(
+                "Deleted the placement of LiveKit room %s on LiveKit cluster %s, "
+                "which failed to create it",
+                placement.room_name,
+                placement.cluster,
+            )
+        return bool(deleted)
+
+    @classmethod
+    def _may_fail_over(cls, failed: Collection[str]) -> bool:
+        """Return whether a candidate other than the clusters named in `failed`,
+        which failed to create a LiveKit room, may create it."""
+        return any(cluster.name not in failed for cluster in cls.candidates())
+
+    @classmethod
+    def create_unplaced_room(cls, room_name: str) -> LiveKitClusterConfig:
+        """Create a LiveKit room that is never placed, such as a connection
+        test's, on the cluster the placement strategy picks, and return it.
+
+        A cluster that fails to create it leaves it to another candidate, as
+        when placing a LiveKit room: PLACEMENT_UPDATE_ATTEMPTS clusters at most.
+
+        Raises:
+            LiveKitRoomUnavailableError: no cluster may receive it, or none
+                created it.
+        """
+        # pylint: disable-next=import-outside-toplevel,cyclic-import
+        from core.services import room_management  # noqa: PLC0415
+
+        failed = set()
+        while True:
+            cluster = cls.choose_cluster(room_name, excluded=failed)
+            try:
+                room_management.RoomManagement.create_room(room_name, cluster=cluster)
+            except LiveKitRoomCreationError:
+                failed.add(cluster.name)
+                if len(failed) == PLACEMENT_UPDATE_ATTEMPTS or not cls._may_fail_over(
+                    failed
+                ):
+                    raise
+            else:
+                return cluster
 
     @staticmethod
     def _known_location(
@@ -305,7 +376,7 @@ class PlacementService:
 
     @classmethod
     def _get_or_create_placement(
-        cls, room: Room
+        cls, room: Room, *, excluded: Collection[str] = ()
     ) -> tuple[Placement, LiveKitClusterConfig, bool]:
         """Return the placement of a LiveKit room, placing if needed.
 
@@ -314,7 +385,8 @@ class PlacementService:
         inserting it, which is way less intense than relying on PostgreSQL
         advisory locks. On conflict, the LiveKit room is placed again, a bounded
         number of times, and its placement deleted when it is on a cluster no
-        longer registered.
+        longer registered. A new placement goes to a candidate not named in
+        `excluded`.
         """
         room_name = str(room.id)
         clusters = {cluster.name: cluster for cluster in get_livekit_clusters()}
@@ -322,7 +394,7 @@ class PlacementService:
             created = False
             placement = Placement.objects.filter(room_name=room_name).first()
             if placement is None:
-                chosen_cluster = cls.choose_cluster(room_name, room)
+                chosen_cluster = cls.choose_cluster(room_name, room, excluded=excluded)
                 new_placement = Placement(
                     room_name=room_name,
                     room=room,
@@ -713,11 +785,19 @@ class PlacementService:
             )
             return False
         except Exception as failure:  # pylint: disable=broad-exception-caught
-            logger.exception(
-                "LiveKit cluster %s failed to close LiveKit room %s",
-                cluster.name,
-                room_name,
-            )
+            if isinstance(failure.__cause__, LiveKitClusterUnavailableError):
+                logger.warning(
+                    "LiveKit cluster %s failed to close LiveKit room %s: its "
+                    "circuit breaker refused the call",
+                    cluster.name,
+                    room_name,
+                )
+            else:
+                logger.exception(
+                    "LiveKit cluster %s failed to close LiveKit room %s",
+                    cluster.name,
+                    room_name,
+                )
             error = failure
         else:
             logger.info(

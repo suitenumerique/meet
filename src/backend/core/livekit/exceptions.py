@@ -5,6 +5,15 @@ class UnknownLiveKitClusterError(LookupError):
     """Raised when no registered LiveKit cluster has the requested name."""
 
 
+class LiveKitClusterUnavailableError(TimeoutError):
+    """Raised in place of a call to the room service of a LiveKit cluster
+    whose circuit breaker refuses it, without reaching the network.
+
+    It is a TimeoutError, so that callers handle it as a call to the cluster
+    that timed out.
+    """
+
+
 class LiveKitRoomUnavailableError(Exception):
     """Raised when a LiveKit room cannot be joined for now.
 

@@ -23,7 +23,10 @@ from livekit.protocol.models import Room as LiveKitRoom
 
 from core import utils
 from core.livekit.clusters import LiveKitClusterConfig
-from core.livekit.exceptions import LiveKitRoomCreationError
+from core.livekit.exceptions import (
+    LiveKitClusterUnavailableError,
+    LiveKitRoomCreationError,
+)
 from core.livekit.placements import PlacementService
 from core.models import Room
 
@@ -62,11 +65,19 @@ class RoomManagement:
                 CreateRoomRequest(name=room_name)
             )
         except (TwirpError, TimeoutError, aiohttp.ClientError) as e:
-            logger.exception(
-                "LiveKit cluster %s failed to create LiveKit room %s",
-                cluster.name,
-                room_name,
-            )
+            if isinstance(e, LiveKitClusterUnavailableError):
+                logger.warning(
+                    "LiveKit cluster %s failed to create LiveKit room %s: its "
+                    "circuit breaker refused the call",
+                    cluster.name,
+                    room_name,
+                )
+            else:
+                logger.exception(
+                    "LiveKit cluster %s failed to create LiveKit room %s",
+                    cluster.name,
+                    room_name,
+                )
             raise LiveKitRoomCreationError(
                 f"LiveKit cluster {cluster.name} failed to create LiveKit room "
                 f"{room_name}."
@@ -160,10 +171,15 @@ class RoomManagement:
             if isinstance(e, TwirpError) and e.code == TwirpErrorCode.NOT_FOUND:
                 raise RoomNotFoundException("Room does not exist") from e
 
-            logger.exception(
-                "Unexpected error updating metadata for room %s",
-                room_name,
-            )
+            if isinstance(e, LiveKitClusterUnavailableError):
+                logger.warning(
+                    "Could not update metadata for room %s: %s", room_name, e
+                )
+            else:
+                logger.exception(
+                    "Unexpected error updating metadata for room %s",
+                    room_name,
+                )
             raise RoomManagementException("Could not update room metadata") from e
 
         finally:
@@ -204,7 +220,10 @@ class RoomManagement:
                 )
                 raise RoomNotFoundException("Room does not exist") from e
 
-            logger.exception("Unexpected error deleting room %s", room_name)
+            if isinstance(e, LiveKitClusterUnavailableError):
+                logger.warning("Could not delete room %s: %s", room_name, e)
+            else:
+                logger.exception("Unexpected error deleting room %s", room_name)
             raise RoomManagementException("Could not delete room") from e
         finally:
             await lkapi.aclose()

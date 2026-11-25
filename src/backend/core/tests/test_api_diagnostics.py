@@ -19,7 +19,7 @@ from core.factories import UserFactory
 from core.livekit.clusters import get_livekit_cluster
 from core.livekit.exceptions import LiveKitRoomCreationError
 from core.models import Placement
-from core.tests.utils import livekit_cluster_entry, random_remote_addr
+from core.tests.utils import livekit_cluster_entry, livekit_room, random_remote_addr
 
 pytestmark = pytest.mark.django_db
 
@@ -142,6 +142,32 @@ def test_api_diagnostics_connection_chosen_cluster(
         config["room"], cluster=get_livekit_cluster("lyon")
     )
     assert not Placement.objects.exists()
+
+
+def test_api_diagnostics_connection_fails_over(settings, fake_livekit_room_creation):
+    """The connection is tested on another LiveKit cluster when the one the
+    placement strategy picks fails to create the room."""
+    settings.LIVEKIT_CLUSTERS = json.dumps(
+        [livekit_cluster_entry("paris"), livekit_cluster_entry("lyon")]
+    )
+    paris, lyon = get_livekit_cluster("paris"), get_livekit_cluster("lyon")
+    fake_livekit_room_creation.side_effect = [
+        LiveKitRoomCreationError("Timed out"),
+        livekit_room(),
+    ]
+
+    with mock.patch("core.livekit.strategies.SystemRandom.random", return_value=0.75):
+        response = APIClient(REMOTE_ADDR=random_remote_addr()).post(
+            "/api/v1.0/diagnostics/connection/"
+        )
+
+    assert response.status_code == 200
+    config = response.json()["livekit"]
+    assert config["url"] == paris.url
+    assert fake_livekit_room_creation.call_args_list == [
+        mock.call(config["room"], cluster=lyon),
+        mock.call(config["room"], cluster=paris),
+    ]
 
 
 @mock.patch("core.api.viewsets.delete_connection_test_room.apply_async")

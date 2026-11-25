@@ -24,6 +24,7 @@ and this project adheres to
 - ✨(backend) audit livekit rooms adopted from their placement
 - ✨(backend) reconcile livekit placements with their clusters
 - ✨(helm) reconcile livekit placements every minute
+- ✨(backend) fail over and fail fast on failing livekit clusters
 
 ### Changed
 

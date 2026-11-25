@@ -873,6 +873,15 @@ class Base(Configuration):
     LIVEKIT_API_TIMEOUT_SECONDS = values.PositiveIntegerValue(
         10, environ_name="LIVEKIT_API_TIMEOUT_SECONDS", environ_prefix=None
     )
+    LIVEKIT_BREAKER_ENABLED = values.BooleanValue(
+        True, environ_name="LIVEKIT_BREAKER_ENABLED", environ_prefix=None
+    )
+    LIVEKIT_BREAKER_FAILURE_THRESHOLD = values.PositiveIntegerValue(
+        3, environ_name="LIVEKIT_BREAKER_FAILURE_THRESHOLD", environ_prefix=None
+    )
+    LIVEKIT_BREAKER_OPEN_SECONDS = values.PositiveIntegerValue(
+        30, environ_name="LIVEKIT_BREAKER_OPEN_SECONDS", environ_prefix=None
+    )
     # Regex to filter webhook events by room name. Only matching events are processed.
     LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX = values.Value(
         None, environ_name="LIVEKIT_WEBHOOK_EVENTS_FILTER_REGEX", environ_prefix=None
@@ -1704,8 +1713,13 @@ class Base(Configuration):
         cls._configure_database_pool()
         cls._check_livekit_clusters()
 
-        if cls.LIVEKIT_API_TIMEOUT_SECONDS < 1:
-            raise ValueError("LIVEKIT_API_TIMEOUT_SECONDS must be at least 1")
+        for setting_name in (
+            "LIVEKIT_API_TIMEOUT_SECONDS",
+            "LIVEKIT_BREAKER_FAILURE_THRESHOLD",
+            "LIVEKIT_BREAKER_OPEN_SECONDS",
+        ):
+            if getattr(cls, setting_name) < 1:
+                raise ValueError(f"{setting_name} must be at least 1")
 
         if (
             cls.OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION
@@ -1881,6 +1895,7 @@ class Test(Base):
         "url": "http://127.0.0.1.nip.io:7880",
     }
     LIVEKIT_CLUSTERS = None
+    LIVEKIT_BREAKER_ENABLED = False
 
     APPLICATION_ENABLED = True
     APPLICATION_JWT_SECRET_KEY = "secret-key-padded-for-minimum-len!-application"  # noqa:S105
