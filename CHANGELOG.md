@@ -12,6 +12,10 @@ and this project adheres to
 
 - ✨(summary) make the STT request timeout configurable
 
+### Fixed
+
+- 🔒️(agents) upgrade libzstd1 to fix CVE-2026-124851
+
 ## [1.38.0] - 2026-11-24
 
 ### Added

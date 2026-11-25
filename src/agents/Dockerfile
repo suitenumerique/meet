@@ -8,6 +8,7 @@ RUN sed -i "s|^URIs: http://|URIs: https://|" /etc/apt/sources.list.d/debian.sou
     libgobject-2.0-0 \
     libpcre2-8-0 \
     libssl3t64 \
+    libzstd1 \
     && rm -rf /var/lib/apt/lists/*
 
 
