@@ -36,6 +36,9 @@ export const LaterMeetingDialog = ({
   return (
     <Dialog isOpen={!!room} {...dialogProps} title={t('heading')}>
       <P>{t('description')}</P>
+      <div role="status" className="sr-only">
+        {isCopied || isRoomUrlCopied ? t('copied') : ''}
+      </div>
       {!!roomUrl && (
         <>
           {isTelephonyReadyForUse ? (
