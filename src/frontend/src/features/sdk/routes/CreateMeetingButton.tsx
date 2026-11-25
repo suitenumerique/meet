@@ -1,5 +1,5 @@
 import { Button } from '@/primitives/Button'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { HStack, VStack } from '@/styled-system/jsx'
@@ -15,6 +15,7 @@ import { PopupManager } from '../utils/PopupManager'
 import { CallbackCreationRoomData } from '../utils/types'
 import { useSearchParams } from 'wouter'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
+import { useConfig } from '@/api/useConfig'
 import { buildSdkRoomData } from '../utils/buildSdkRoomData'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
@@ -50,16 +51,16 @@ const CreateMeetingButton = () => {
 
   const { data } = useRoomCreationCallback({ callbackId })
 
-  // Ref: the popup message listener is registered once, config loads async
   const telephony = useTelephony()
-  const telephonyRef = useRef(telephony)
-  telephonyRef.current = telephony
+  const { isPending: isConfigPending } = useConfig()
 
   const { t: tClipboard } = useTranslation('global', {
     keyPrefix: 'clipboardContent',
   })
-  const tClipboardRef = useRef(tClipboard)
-  tClipboardRef.current = tClipboard
+
+  const [createdRoom, setCreatedRoom] = useState<
+    CallbackCreationRoomData | undefined
+  >(undefined)
 
   // Same rule as the ROOM_CREATED payload: shown only when both are known
   const sdkRoom = useMemo(
@@ -103,40 +104,32 @@ const CreateMeetingButton = () => {
 
   useEffect(() => {
     if (!data?.room?.slug) return
-    setRoom(data.room)
-    setIsRoomCreatedInSession(true)
     setCallbackId(undefined)
-    setIsPending(false)
-    popupManager.sendRoomData({
-      room: buildSdkRoomData(
-        data.room,
-        telephonyRef.current,
-        tClipboardRef.current
-      ),
-    })
+    setCreatedRoom(data.room)
   }, [data])
 
   useEffect(() => {
     popupManager.setupMessageListener(
       (id) => setCallbackId(id),
-      (data) => {
-        setRoom(data)
-        setIsRoomCreatedInSession(true)
-        setIsPending(false)
-        popupManager.sendRoomData({
-          room: buildSdkRoomData(
-            data,
-            telephonyRef.current,
-            tClipboardRef.current
-          ),
-        })
-      }
+      (data) => setCreatedRoom(data)
     )
 
     return () => popupManager.cleanup()
   }, [])
 
+  useEffect(() => {
+    if (!createdRoom || isConfigPending) return
+    setCreatedRoom(undefined)
+    setRoom(createdRoom)
+    setIsRoomCreatedInSession(true)
+    setIsPending(false)
+    popupManager.sendRoomData({
+      room: buildSdkRoomData(createdRoom, telephony, tClipboard),
+    })
+  }, [createdRoom, isConfigPending, telephony, tClipboard])
+
   const resetState = () => {
+    setCreatedRoom(undefined)
     setRoom(undefined)
     setIsRoomCreatedInSession(false)
     setCallbackId(undefined)
