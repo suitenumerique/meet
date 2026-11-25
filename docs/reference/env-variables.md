@@ -557,6 +557,8 @@ Every variable marked **Yes** must be set for the service to start, even with su
 | `WHISPERX_ASR_MODEL`{#WHISPERX_ASR_MODEL} | No | `whisper-1` | ASR model name. Use `whisper-1` for the OpenAI Whisper API, or a WhisperX model like `large-v3` for a self-hosted instance. |
 | `WHISPERX_DEFAULT_LANGUAGE`{#WHISPERX_DEFAULT_LANGUAGE} | No | -- | ISO 639-1 language code, such as `fr` or `en`. When set, skips automatic language detection. |
 | `WHISPERX_ALLOWED_LANGUAGES`{#WHISPERX_ALLOWED_LANGUAGES} | No | `{"en","fr","de","nl"}` | Set of accepted ISO 639-1 language codes. Requests with other codes are rejected. |
+| `WHISPERX_CONNECT_TIMEOUT`{#WHISPERX_CONNECT_TIMEOUT} | No | `60` | Seconds to wait for the connection to the speech-to-text API. |
+| `WHISPERX_READ_TIMEOUT`{#WHISPERX_READ_TIMEOUT} | No | `600` | Seconds to wait for the answer of the speech-to-text API, which only comes once the whole recording is transcribed. Raise it when the API runs on CPU, where a recording can take about as long to transcribe as it lasts. |
 | `RECORDING_MAX_DURATION` | No | -- | Maximum recording duration in **seconds**; longer recordings are not transcribed. Separate from the backend's own `RECORDING_MAX_DURATION`, which is in milliseconds. |
 | `HALLUCINATION_PATTERNS`{#HALLUCINATION_PATTERNS} | No | `["Vap'n'Roll Thierry"]` | Transcript substrings treated as known WhisperX hallucinations and filtered out |
 | `IS_RESOLVE_SPEAKER_IDENTITIES_ENABLED`{#IS_RESOLVE_SPEAKER_IDENTITIES_ENABLED} | No | `True` | Put participant names on the `SPEAKER_00`-style speakers WhisperX finds, from the metadata collector's record of who spoke when |

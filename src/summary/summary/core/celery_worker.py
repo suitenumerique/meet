@@ -186,8 +186,10 @@ def transcribe_audio(
                 },
                 files={"file": audio_file},
                 headers={"Authorization": f"Bearer {api_key}"},
-                # Mimic OpenAI's timeout settings
-                timeout=(60, 10 * 60),
+                timeout=(
+                    settings.whisperx_connect_timeout,
+                    settings.whisperx_read_timeout,
+                ),
             )
             if res.status_code == 400:
                 logger.info(

@@ -96,6 +96,8 @@ class Settings(BaseSettings):
     # ISO 639-1 language code (e.g., "en", "fr", "es")
     whisperx_default_language: Optional[str] = None
     whisperx_allowed_languages: Set[str] = {"en", "fr", "de", "nl"}
+    whisperx_connect_timeout: int = 60
+    whisperx_read_timeout: int = 10 * 60
     llm_base_url: str
     llm_api_key: SecretStr
     llm_model: str

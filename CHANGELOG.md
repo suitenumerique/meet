@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- ✨(summary) make the STT request timeout configurable
+
 ## [1.38.0] - 2026-11-24
 
 ### Added

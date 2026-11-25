@@ -16,6 +16,8 @@ The variables are under [Transcription](../../reference/env-variables.md#transcr
 
 The summary service rejects a transcription whose language is outside [`WHISPERX_ALLOWED_LANGUAGES`](../../reference/env-variables.md#WHISPERX_ALLOWED_LANGUAGES).
 
+It waits 10 minutes for the WhisperX API to answer, which only happens once the whole recording is transcribed. On a GPU that is plenty. On CPU, where a recording can take about as long to transcribe as it lasts, raise [`WHISPERX_READ_TIMEOUT`](../../reference/env-variables.md#WHISPERX_READ_TIMEOUT), and consider [`CELERY_MAX_RETRIES=0`](../../reference/env-variables.md#CELERY_MAX_RETRIES) so that a timeout does not send the same recording again while the API is still working on it.
+
 ## Setup
 
 ### Step 1: Summary service environment
