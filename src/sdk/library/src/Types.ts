@@ -12,4 +12,5 @@ export type RoomData = {
   url: string
   phone?: string
   code?: string
+  displayText?: string
 }
