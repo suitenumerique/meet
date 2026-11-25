@@ -582,9 +582,9 @@ export const EffectsConfiguration = ({
         {videoTrack && !videoTrack.isMuted ? (
           <video
             ref={videoRef}
-            width="100%"
             muted
             style={{
+              width: '100%',
               transform: 'rotateY(180deg)',
               [layout === 'vertical' ? 'height' : 'minHeight']: '175px',
               borderRadius: '8px',

@@ -19,6 +19,7 @@ and this project adheres to
 - ♿️(frontend) announce the copy of the connection details
 - ♿️(frontend) name the in-meeting settings dialog on small screens
 - ♿️(frontend) stop exposing the header actions as a navigation
+- ♿️(frontend) size video elements in CSS, not with HTML attributes
 
 ## [1.38.0] - 2026-11-24
 

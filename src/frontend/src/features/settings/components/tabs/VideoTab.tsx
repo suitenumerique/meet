@@ -163,8 +163,6 @@ export const VideoTab = ({ id }: VideoTabProps) => {
               {/* eslint-disable jsx-a11y/media-has-caption */}
               <video
                 ref={videoCallbackRef}
-                width="160px"
-                height="56px"
                 style={{
                   display: !localParticipant.isCameraEnabled
                     ? 'none'

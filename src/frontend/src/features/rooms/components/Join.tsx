@@ -126,6 +126,7 @@ const styles = {
     position: 'absolute',
     transform: 'rotateY(180deg)',
     opacity: 0,
+    width: '100%',
     height: '100%',
     transition: 'opacity 0.3s ease-in-out',
     objectFit: 'cover',
@@ -356,8 +357,6 @@ const VideoPreview = ({
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
                 ref={videoEl}
-                width="1280"
-                height="720"
                 style={{
                   display: !videoEnabled || cameraDenied ? 'none' : undefined,
                 }}
