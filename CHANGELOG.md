@@ -18,6 +18,7 @@ and this project adheres to
 - ♿️(frontend) name the header settings tabs on small screens
 - ♿️(frontend) announce the copy of the connection details
 - ♿️(frontend) name the in-meeting settings dialog on small screens
+- ♿️(frontend) stop exposing the header actions as a navigation
 
 ## [1.38.0] - 2026-11-24
 

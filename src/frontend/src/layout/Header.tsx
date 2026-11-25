@@ -152,7 +152,7 @@ export const Header = () => {
               </Link>
             </Stack>
           </header>
-          <nav>
+          <div>
             <Stack gap={1} direction="row" align="center">
               <SupportButton />
               {isLoggedIn === false &&
@@ -207,7 +207,7 @@ export const Header = () => {
               )}
               <SettingsButton />
             </Stack>
-          </nav>
+          </div>
         </HStack>
       </div>
     </>
