@@ -3,8 +3,11 @@ Test rooms API endpoints in the Meet core app: create.
 """
 
 # pylint: disable=redefined-outer-name,unused-argument
+from unittest import mock
+
 from django.conf import settings
 from django.core.cache import cache
+from django.db import DatabaseError
 
 import pytest
 from rest_framework.test import APIClient
@@ -13,8 +16,9 @@ from ...api.throttling import (
     RoomCreationDailyUserRateThrottle,
     RoomCreationUserRateThrottle,
 )
+from ...audit.testing import find_events
 from ...factories import RoomFactory, UserFactory
-from ...models import Room, RoomAccessLevel
+from ...models import ResourceAccess, Room, RoomAccessLevel
 from ..utils import generate_user_access_token
 
 pytestmark = pytest.mark.django_db
@@ -29,8 +33,11 @@ def reset_cache():
         cache.delete(*keys)
 
 
-def test_api_rooms_create_anonymous():
-    """Anonymous users should not be allowed to create rooms."""
+def test_api_rooms_create_anonymous(audit_events):
+    """
+    Anonymous users should not be allowed to create rooms, and the attempt is
+    recorded as a denied authentication.
+    """
     client = APIClient()
 
     response = client.post(
@@ -42,6 +49,15 @@ def test_api_rooms_create_anonymous():
 
     assert response.status_code == 401
     assert Room.objects.exists() is False
+
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["category"] == ["api", "authentication"]
+    assert event["event"]["type"] == ["creation", "denied"]
+    assert event["event"]["reason"] == "authentication_failed"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["lasuite"]["actor"] == {"type": "anonymous"}
+    assert "entity" not in event
 
 
 def test_api_rooms_create_authenticated(reset_cache):
@@ -73,9 +89,10 @@ def test_api_rooms_create_authenticated(reset_cache):
     assert not rooms_data
 
 
-def test_api_rooms_create_generation_cache(reset_cache):
+def test_api_rooms_create_generation_cache(reset_cache, audit_events):
     """
     Authenticated users creating a room with a callback ID should have room data stored in cache.
+    The creation records its creator and the room, without details.
     """
     user = UserFactory()
 
@@ -95,6 +112,18 @@ def test_api_rooms_create_generation_cache(reset_cache):
 
     room_data = cache.get("room-creation-callback_1234")
     assert room_data.get("slug") == "my-room"
+
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["type"] == ["creation"]
+    assert event["event"]["outcome"] == "success"
+    assert event["user"]["id"] == str(user.pk)
+    assert event["lasuite"]["auth"] == {"method": "session"}
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["entity"]["target"]["sub_type"] == "room"
+    assert event["entity"]["target"]["raw"]["slug"] == "my-room"
+    assert "details" not in event["lasuite"]
+    assert event["http"]["response"] == {"status_code": 201}
 
 
 def test_api_rooms_create_generation_cache_telephony(reset_cache, settings):
@@ -538,3 +567,26 @@ def test_api_rooms_create_authenticated_with_user_access_token():
     room = Room.objects.get()
     assert room.accesses.filter(role="owner", user=user).exists()
     assert "livekit" not in response.json()
+
+
+@mock.patch.object(ResourceAccess.objects, "create", side_effect=DatabaseError("boom"))
+def test_api_rooms_create_crashing_is_audited(
+    mock_create_access, reset_cache, audit_events
+):
+    """A room saved without its owner's access is recorded as a failure on it."""
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_login(user)
+    with pytest.raises(DatabaseError):
+        client.post("/api/v1.0/rooms/", {"name": "my room"})
+
+    mock_create_access.assert_called_once()
+    room = Room.objects.get()
+    [event] = find_events(audit_events, "room.create")
+
+    assert event["event"]["reason"] == "internal_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["http"]["response"] == {"status_code": 500}
+    assert event["error"] == {"type": "django.db.utils.DatabaseError"}

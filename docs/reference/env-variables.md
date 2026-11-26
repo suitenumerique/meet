@@ -455,7 +455,7 @@ Showing Meet in an iframe depends on `X-Frame-Options` and CSP `frame-ancestors`
 The backend writes a JSON event to [`AUDIT_LOG_STREAM`](#AUDIT_LOG_STREAM) for each:
 
 - sign-in;
-- room action made through the external API;
+- room action;
 - recording action;
 - Django admin change.
 

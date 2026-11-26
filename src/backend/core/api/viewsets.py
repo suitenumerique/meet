@@ -1,6 +1,7 @@
 """API endpoints"""
 # pylint: disable=too-many-lines
 
+import copy
 import uuid
 from datetime import timedelta
 from logging import getLogger
@@ -288,6 +289,13 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
     API endpoints to access and perform actions on rooms.
     """
 
+    audit_actions = {
+        "create": auditing.ROOM_CREATE,
+        "update": auditing.ROOM_UPDATE,
+        "partial_update": auditing.ROOM_UPDATE,
+        "destroy": auditing.ROOM_DELETE,
+    }
+
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
@@ -363,6 +371,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
 
         The room and its recordings are kept in database for traceability.
         """
+        self.audit_target = instance
         try:
             RoomManagement.soft_delete(instance)
         except RoomManagementException as e:
@@ -401,6 +410,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
             save_kwargs["configuration"] = user.default_room_configuration
 
         room = serializer.save(**save_kwargs)
+        self.audit_target = room
         models.ResourceAccess.objects.create(
             resource=room,
             user=self.request.user,
@@ -431,18 +441,27 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         with room_locked_for_update(serializer.instance) as locked_room:
             serializer.instance = locked_room
 
-            old_configuration = locked_room.configuration
-            old_access_level = locked_room.access_level
+            previous_values = {
+                "access_level": locked_room.access_level,
+                "configuration": copy.deepcopy(locked_room.configuration),
+            }
 
             room = serializer.save()
 
-        if (
-            room.configuration == old_configuration
-            and room.access_level == old_access_level
-        ):
-            return
+        self.audit_target = room
 
-        RoomManagement.sync_room_metadata(room)
+        updated_fields = sorted(
+            field
+            for field, previous_value in previous_values.items()
+            if getattr(room, field) != previous_value
+        )
+        self.audit_details = {
+            "updated_fields": updated_fields,
+            "previous_access_level": previous_values["access_level"],
+        }
+
+        if updated_fields:
+            RoomManagement.sync_room_metadata(room)
 
     @decorators.action(
         detail=True,

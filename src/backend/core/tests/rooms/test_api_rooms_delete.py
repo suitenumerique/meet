@@ -8,9 +8,14 @@ import pytest
 from rest_framework.test import APIClient
 
 from ...analytics import AnalyticsEvent
+from ...audit.testing import find_events
 from ...factories import RoomFactory, UserFactory
 from ...models import Room, RoomAccessLevel
-from ...services.room_management import RoomManagement, RoomNotFoundException
+from ...services.room_management import (
+    RoomManagement,
+    RoomManagementException,
+    RoomNotFoundException,
+)
 from ...services.sip_management import SIPManagement
 
 pytestmark = pytest.mark.django_db
@@ -69,10 +74,10 @@ def test_api_rooms_delete_members():
     assert Room.objects.count() == 1
 
 
-def test_api_rooms_delete_administrators():
+def test_api_rooms_delete_administrators(audit_events):
     """
     Authenticated users should not be allowed to delete a room for which they are
-    administrator.
+    administrator. The refused deletion names the room it was aimed at.
     """
     user = UserFactory()
     room = RoomFactory(users=[(user, "administrator")])
@@ -87,15 +92,22 @@ def test_api_rooms_delete_administrators():
     assert response.status_code == 403
     assert Room.objects.count() == 1
 
+    [event] = find_events(audit_events, "room.delete")
+
+    assert event["event"]["type"] == ["deletion", "denied"]
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+
 
 @mock.patch("core.api.viewsets.analytics.capture")
 @mock.patch.object(SIPManagement, "delete_dispatch_rule")
 @mock.patch.object(RoomManagement, "delete_room")
-def test_api_rooms_delete_owners(mock_delete_room, _, mock_capture):
+def test_api_rooms_delete_owners(mock_delete_room, _, mock_capture, audit_events):
     """
     Authenticated users should be able to delete a room for which they are directly
-    owner. The room is soft deleted, its LiveKit room is closed and a ROOM_DELETED
-    analytics event is emitted.
+    owner. The room is soft deleted, its LiveKit room is closed, a ROOM_DELETED
+    analytics event is emitted and the deletion records its owner and the room.
     """
     user = UserFactory()
     room = RoomFactory(users=[(user, "owner")], access_level=RoomAccessLevel.TRUSTED)
@@ -117,6 +129,16 @@ def test_api_rooms_delete_owners(mock_delete_room, _, mock_capture):
         AnalyticsEvent.ROOM_DELETED,
         {"room_id": str(room.pk), "access_level": RoomAccessLevel.TRUSTED},
     )
+
+    [event] = find_events(audit_events, "room.delete")
+
+    assert event["event"]["type"] == ["deletion"]
+    assert event["event"]["outcome"] == "success"
+    assert event["user"]["id"] == str(user.pk)
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["entity"]["target"]["sub_type"] == "room"
+    assert event["entity"]["target"]["raw"]["slug"] == room.slug
+    assert event["http"]["response"] == {"status_code": 204}
 
 
 @mock.patch.object(SIPManagement, "delete_dispatch_rule")
@@ -188,3 +210,31 @@ def test_api_rooms_delete_soft_deleted_not_owner(mock_delete_room):
 
     assert response.status_code == 403
     mock_delete_room.assert_not_called()
+
+
+@mock.patch.object(
+    RoomManagement,
+    "delete_room",
+    side_effect=RoomManagementException("Could not delete room"),
+)
+def test_api_rooms_delete_failing_is_audited(mock_delete_room, audit_events, settings):
+    """A deletion rolled back because LiveKit failed is recorded as a failure."""
+    settings.ROOM_TELEPHONY_ENABLED = False
+    settings.ROOMKIT_ENABLED = False
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")])
+
+    client = APIClient()
+    client.force_login(user)
+    response = client.delete(f"/api/v1.0/rooms/{room.id}/")
+
+    assert response.status_code == 500
+
+    mock_delete_room.assert_called_once_with(str(room.id))
+    assert Room.objects.filter(id=room.id).exists()
+    [event] = find_events(audit_events, "room.delete")
+
+    assert event["event"]["reason"] == "internal_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["http"]["response"] == {"status_code": 500}

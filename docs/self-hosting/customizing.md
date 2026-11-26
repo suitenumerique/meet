@@ -178,7 +178,7 @@ A new install usually starts with these:
     |---|---|
     | [Deleting unused rooms, and rooms their host deleted, for good](configuration/room-purge.md) | Off: every room is kept |
     | [Deleting uploaded backgrounds for good, once their owner removes them](../reference/env-variables.md#FILE_PURGE_GRACE_DAYS) | After 7 days |
-    | [The audit log of sign-ins, recordings, and external API and admin actions](configuration/audit-logging.md) | Always on, in the backend's output |
+    | [The audit log of sign-ins, room and recording actions, and admin changes](configuration/audit-logging.md) | Always on, in the backend's output |
     | [Usage analytics in the browser, with [PostHog](https://posthog.com/)](../reference/env-variables.md#FRONTEND_ANALYTICS) | Off |
     | [Usage analytics from the server](../reference/env-variables.md#ANALYTICS_BACKEND) | Off |
     | [Adding new users to a marketing mailing list](../reference/env-variables.md#SIGNUP_NEW_USER_TO_MARKETING_EMAIL) | Off |

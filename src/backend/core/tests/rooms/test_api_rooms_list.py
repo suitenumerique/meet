@@ -8,6 +8,7 @@ import pytest
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
+from ...audit.testing import find_events
 from ...factories import RoomFactory, UserFactory
 from ...models import RoomAccessLevel
 from ..utils import generate_user_access_token
@@ -30,10 +31,10 @@ def test_api_rooms_list_anonymous():
     assert len(results) == 0
 
 
-def test_api_rooms_list_authenticated():
+def test_api_rooms_list_authenticated(audit_events):
     """
     Authenticated users listing rooms, should only see the rooms
-    to which they are related.
+    to which they are related. Listing emits no audit event.
     """
     user = UserFactory()
     client = APIClient()
@@ -62,6 +63,7 @@ def test_api_rooms_list_authenticated():
     results_id = {result["id"] for result in results}
     assert expected_ids == results_id
     assert all("livekit" not in result for result in results)
+    assert find_events(audit_events, "room.list") == []
 
 
 @mock.patch.object(PageNumberPagination, "get_page_size", return_value=2)

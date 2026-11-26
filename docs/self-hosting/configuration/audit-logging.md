@@ -1,6 +1,6 @@
 # Audit logging
 
-The **audit log** records who did what in Meet, to what, from where, and whether it worked: a sign-in, a room created through the external API, a recording, a change in the Django admin.
+The **audit log** records who did what in Meet, to what, from where, and whether it worked: a sign-in, a room created, a recording, a change in the Django admin.
 
 - It is always on and needs no setting.
 - Each event is one JSON line on the backend's standard output, from the `audit` logger, apart from the application logs.
@@ -103,7 +103,7 @@ Every audit variable is in [Environment Variables: Audit logging](../../referenc
 
 ### Who created, changed or deleted this room?
 
-Filter on `entity.target.sub_type: room` and the room's `entity.target.id`, or its slug in `entity.target.raw.slug`. Only the external API, `room.*`, and the Django admin, `admin.room.*`, are audited.
+Filter on `entity.target.sub_type: room` and the room's `entity.target.id`, or its slug in `entity.target.raw.slug`. Only the external API and the web app's API, `room.*`, and the Django admin, `admin.room.*`, are audited.
 
 ### What has this application done?
 
@@ -207,12 +207,12 @@ Actions read `<target>.<verb>`.
 
 ### Rooms
 
-`room.*` covers the external API, successes and failures alike. The Django admin's are `admin.room.*`.
+`room.*` covers the external API and the web app's API, successes and failures alike. `room.retrieve` and `room.list` come from the external API only. The Django admin's are `admin.room.*`.
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
 | `room.create` | A room is created | `entity.target` is the room |
-| `room.update` | A room is updated | `lasuite.details.updated_fields`, `previous_access_level` |
+| `room.update` | A room is updated | `lasuite.details.updated_fields`, the changed ones among `access_level` and `configuration`, and `previous_access_level` |
 | `room.delete` | A room is soft-deleted, see [Room purge](room-purge.md), and its LiveKit room closed | `entity.target` is the room |
 | `room.retrieve` | A room is read | `entity.target` is the room |
 | `room.list` | Rooms are listed | `lasuite.details.total` |

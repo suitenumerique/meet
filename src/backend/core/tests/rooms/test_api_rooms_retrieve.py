@@ -9,6 +9,7 @@ from django.utils import timezone as dj_timezone
 import pytest
 from rest_framework.test import APIClient
 
+from ...audit.testing import find_events
 from ...factories import (
     RoomFactory,
     UserFactory,
@@ -213,10 +214,11 @@ def test_api_rooms_retrieve_soft_deleted(
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
-def test_api_rooms_retrieve_anonymous_public(mock_token):
+def test_api_rooms_retrieve_anonymous_public(mock_token, audit_events):
     """
     Anonymous users should be able to retrieve a public room with its pin code,
-    but should not be given any token: those are obtained by joining.
+    but should not be given any token: those are obtained by joining. Reading a
+    room emits no audit event.
     """
     room = RoomFactory(access_level=RoomAccessLevel.PUBLIC)
     client = APIClient()
@@ -233,6 +235,7 @@ def test_api_rooms_retrieve_anonymous_public(mock_token):
     }
 
     mock_token.assert_not_called()
+    assert find_events(audit_events, "room.retrieve") == []
 
 
 @mock.patch("core.utils.generate_token", return_value="foo")
