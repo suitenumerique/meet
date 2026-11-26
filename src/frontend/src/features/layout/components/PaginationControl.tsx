@@ -10,11 +10,11 @@ const paginationToolbar = cva({
     display: 'flex',
     alignItems: 'center',
     gap: '0.125rem',
-    backgroundColor: 'gray.900',
+    backgroundColor: 'background.surface.tertiary',
     borderRadius: '2rem',
     border: '1px solid',
-    borderColor: 'gray.650',
-    padding: '0.375rem',
+    borderColor: 'border.surface.primary',
+    padding: '0.25rem',
   },
   variants: {
     placement: {
@@ -98,6 +98,7 @@ export function PaginationControl({
   return (
     <div
       role="group"
+      data-theme="dark"
       aria-label={`${t('label')}, ${pageCount}`}
       className={paginationToolbar({ placement })}
     >
@@ -107,6 +108,7 @@ export function PaginationControl({
         onPress={isFirstPage ? undefined : prevPage}
         size="sm"
         square
+        round
         variant="primaryTextDark"
         className={arrowButtonClass}
         aria-label={t('previous')}
@@ -117,9 +119,9 @@ export function PaginationControl({
       <span
         role="status"
         className={css({
-          color: 'white',
-          fontSize: '0.8125rem',
-          fontWeight: 500,
+          color: 'content.semantic.neutral.primary',
+          fontSize: 'sm',
+          fontWeight: 'medium',
           minWidth: '3.5rem',
           textAlign: 'center',
           userSelect: 'none',
@@ -135,6 +137,7 @@ export function PaginationControl({
         onPress={isLastPage ? undefined : nextPage}
         size="sm"
         square
+        round
         variant="primaryTextDark"
         className={arrowButtonClass}
         aria-label={t('next')}
