@@ -3,7 +3,19 @@ import resourcesToBackend from 'i18next-resources-to-backend'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 const i18nDefaultNamespace = 'global'
-const fallbackLng = 'fr'
+const supportedLngs = ['en', 'fr', 'nl', 'de', 'es', 'pt'] as const
+type SupportedLanguage = (typeof supportedLngs)[number]
+
+// Fallback language used when the browser language is missing or unsupported.
+// Configurable through the VITE_DEFAULT_LANGUAGE environment variable,
+// defaults to French.
+const configuredDefaultLanguage = import.meta.env.VITE_DEFAULT_LANGUAGE
+const isSupportedLanguage = (lang: string): lang is SupportedLanguage =>
+  (supportedLngs as readonly string[]).includes(lang)
+const fallbackLng: SupportedLanguage =
+  configuredDefaultLanguage && isSupportedLanguage(configuredDefaultLanguage)
+    ? configuredDefaultLanguage
+    : 'fr'
 
 i18n.setDefaultNamespace(i18nDefaultNamespace)
 i18n
@@ -15,7 +27,7 @@ i18n
   .use(initReactI18next)
   .use(LanguageDetector)
   .init({
-    supportedLngs: ['en', 'fr', 'nl', 'de', 'es', 'pt'],
+    supportedLngs: [...supportedLngs],
     fallbackLng,
     ns: i18nDefaultNamespace,
     detection: {
