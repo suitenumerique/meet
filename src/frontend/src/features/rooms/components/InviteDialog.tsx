@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { Div, Button, P, Bold } from '@/primitives'
+import { roomInfoCard, roomInfoCopied } from './roomInfoCard'
 import { HStack, styled, VStack } from '@/styled-system/jsx'
 import { Heading, Dialog } from 'react-aria-components'
 import { Text, text } from '@/primitives/Text'
@@ -34,9 +35,10 @@ const StyledRACDialog = styled(Dialog, {
     width: '24.5rem',
     borderRadius: '8px',
     padding: '1.5rem',
-    boxShadow:
-      '0 1px 2px 0 rgba(60, 64, 67, .3), 0 2px 6px 2px rgba(60, 64, 67, .15)',
-    backgroundColor: 'white',
+    border: '1px solid',
+    borderColor: 'border.surface.primary',
+    boxShadow: '0 6px 20px 0 rgba(0, 0, 18, 0.1)',
+    backgroundColor: 'background.surface.primary',
     '&[data-entering]': { animation: 'fade 200ms' },
     '&[data-exiting]': { animation: 'fade 150ms reverse ease-in' },
   },
@@ -102,16 +104,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
         </Div>
         <P>{t('description')}</P>
         {isTelephonyReadyForUse ? (
-          <div
-            className={css({
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              marginTop: '0.5rem',
-              gap: '1rem',
-              overflow: 'visible',
-            })}
-          >
+          <div className={roomInfoCard}>
             <div
               className={css({
                 display: 'flex',
@@ -124,9 +117,10 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
               </Text>
               {isTelephonyReadyForUse && roomUrl && (
                 <Button
-                  variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
+                  variant={isRoomUrlCopied ? 'success' : 'tertiaryNeutral'}
                   square
                   size={'sm'}
+                  className={isRoomUrlCopied ? roomInfoCopied : undefined}
                   onPress={copyRoomUrlToClipboard}
                   aria-label={isRoomUrlCopied ? t('copied') : t('copyUrl')}
                   tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
@@ -160,6 +154,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
               size="sm"
               fullWidth
               aria-label={isCopied ? t('copied') : t('copy')}
+              className={isCopied ? roomInfoCopied : undefined}
               style={{
                 justifyContent: 'start',
               }}

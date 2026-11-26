@@ -6,6 +6,10 @@ import { HStack } from '@/styled-system/jsx'
 import { RiCheckLine, RiFileCopyLine, RiSpam2Fill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { ApiAccessLevel, ApiRoom } from '@/features/rooms/api/ApiRoom'
+import {
+  roomInfoCard,
+  roomInfoCopied,
+} from '@/features/rooms/components/roomInfoCard'
 import { useTelephony } from '@/features/rooms/livekit/hooks/useTelephony'
 import { formatPinCode } from '@/features/rooms/utils/telephony'
 import { useCopyRoomToClipboard } from '@/features/rooms/livekit/hooks/useCopyRoomToClipboard'
@@ -39,19 +43,7 @@ export const LaterMeetingDialog = ({
       {!!roomUrl && (
         <>
           {isTelephonyReadyForUse ? (
-            <div
-              className={css({
-                width: '100%',
-                backgroundColor: 'gray.025',
-                borderRadius: '0.75rem',
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1.75rem 1.5rem',
-                marginTop: '0.5rem',
-                gap: '1rem',
-                overflow: 'hidden',
-              })}
-            >
+            <div className={roomInfoCard}>
               <div
                 className={css({
                   display: 'flex',
@@ -64,9 +56,10 @@ export const LaterMeetingDialog = ({
                 </Text>
                 {isTelephonyReadyForUse && (
                   <Button
-                    variant={isRoomUrlCopied ? 'success' : 'tertiaryText'}
+                    variant={isRoomUrlCopied ? 'success' : 'tertiaryNeutral'}
                     square
                     size={'sm'}
+                    className={isRoomUrlCopied ? roomInfoCopied : undefined}
                     onPress={copyRoomUrlToClipboard}
                     aria-label={t('copyUrl')}
                     tooltip={t('copyUrl')}
@@ -99,6 +92,7 @@ export const LaterMeetingDialog = ({
                 size="sm"
                 fullWidth
                 aria-label={t('copy')}
+                className={isCopied ? roomInfoCopied : undefined}
                 style={{
                   justifyContent: 'start',
                 }}
