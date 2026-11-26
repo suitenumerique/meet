@@ -12,6 +12,7 @@ import { LowerAllHandsButton } from './LowerAllHandsButton'
 import { MuteEveryoneButton } from './MuteEveryoneButton'
 import { WaitingParticipantsSection } from './WaitingParticipantsSection'
 import { RaisedHandRow } from './RaisedHandRow'
+import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
 const JoinedParticipantsSections = () => {
   const room = useRoomContext()
@@ -83,14 +84,14 @@ export const ParticipantsList = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participants' })
 
   return (
-    <Div overflowY="scroll">
+    <Div className={sidePanelScrollArea({ inset: 'xs' })}>
       <H
         lvl={2}
         className={css({
           fontSize: '0.875rem',
           fontWeight: 'bold',
           color: 'gray.600',
-          padding: '0 1.5rem',
+          padding: '0 0.875rem',
           marginBottom: '0.83em',
         })}
       >

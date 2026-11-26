@@ -5,6 +5,7 @@ import { LoginPrompt } from './LoginPrompt'
 import { RequestRecording } from './RequestRecording'
 import { useUser } from '@/features/auth/api/useUser'
 import { HStack, VStack } from '@/styled-system/jsx'
+import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
 const Divider = ({ label }: { label: string }) => (
   <HStack gap="1rem" alignItems="center" width="100%" marginY="1rem">
@@ -39,8 +40,7 @@ export const NoAccessView = ({
   return (
     <Div
       display="flex"
-      overflowY="scroll"
-      padding="0 1.5rem"
+      className={sidePanelScrollArea()}
       flexGrow={1}
       flexDirection="column"
       alignItems="center"

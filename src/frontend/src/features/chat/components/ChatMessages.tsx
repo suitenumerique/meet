@@ -19,7 +19,7 @@ const ESTIMATED_ROW_HEIGHT = 56
 const BOTTOM_THRESHOLD_PX = 32
 const LIST_PADDING = 4
 const SCROLLBAR_WIDTH = 8
-const SCROLLBAR_GAP = 4
+const SCROLLBAR_GAP = 10
 
 const DISCLAIMER_ID = 'disclaimer'
 type ChatListItem = ChatRow | { id: typeof DISCLAIMER_ID }

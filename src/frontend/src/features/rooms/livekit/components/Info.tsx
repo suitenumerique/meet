@@ -9,6 +9,7 @@ import { useRoomData } from '../hooks/useRoomData'
 import { formatPinCode } from '../../utils/telephony'
 import { useTelephony } from '../hooks/useTelephony'
 import { useCopyRoomToClipboard } from '../hooks/useCopyRoomToClipboard'
+import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
 export const Info = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'info' })
@@ -27,8 +28,7 @@ export const Info = () => {
   return (
     <Div
       display="flex"
-      overflowY="scroll"
-      padding="0 1.5rem"
+      className={sidePanelScrollArea()}
       flexGrow={1}
       flexDirection="column"
       alignItems="start"

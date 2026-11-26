@@ -1,9 +1,9 @@
 import { useLocalParticipant } from '@livekit/components-react'
 import type { LocalVideoTrack } from 'livekit-client'
-import { css } from '@/styled-system/css'
 import { EffectsConfiguration } from './EffectsConfiguration'
 import { useCanPublishTrack } from '@/features/rooms/livekit/hooks/useCanPublishTrack'
 import { TrackSource } from '@livekit/protocol'
+import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
 export const Effects = () => {
   const { cameraTrack } = useLocalParticipant()
@@ -12,12 +12,7 @@ export const Effects = () => {
   const canPublishCamera = useCanPublishTrack(TrackSource.CAMERA)
 
   return (
-    <div
-      className={css({
-        padding: '0 1.5rem',
-        overflowY: 'scroll',
-      })}
-    >
+    <div className={sidePanelScrollArea()}>
       <EffectsConfiguration
         isDisabled={!canPublishCamera}
         videoTrack={localCameraTrack}

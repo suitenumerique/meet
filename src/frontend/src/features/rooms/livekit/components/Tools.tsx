@@ -12,6 +12,7 @@ import {
   ScreenRecordingSidePanel,
 } from '@/features/recording'
 import { useConfig } from '@/api/useConfig'
+import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
 export interface ToolsButtonProps {
   icon: ReactNode
@@ -151,8 +152,7 @@ export const Tools = () => {
   return (
     <Div
       display="flex"
-      overflowY="scroll"
-      padding="0 0.75rem"
+      className={sidePanelScrollArea({ inset: 'sm' })}
       flexGrow={1}
       flexDirection="column"
       alignItems="start"

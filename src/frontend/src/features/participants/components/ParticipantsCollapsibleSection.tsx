@@ -7,7 +7,7 @@ const Container = styled('div', {
     border: '1px solid',
     borderColor: 'gray.100',
     borderRadius: 4,
-    margin: '0 .625rem 0.9375rem',
+    marginBottom: '0.9375rem',
   },
 })
 

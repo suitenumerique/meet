@@ -12,6 +12,7 @@ import { useEffect } from 'react'
 import { closeSidePanel } from '@/stores/layout'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 import { reportError } from '@/features/analytics/telemetry'
+import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -51,8 +52,7 @@ export const Admin = () => {
   return (
     <Div
       display="flex"
-      overflowY="scroll"
-      padding="0 1.5rem"
+      className={sidePanelScrollArea()}
       flexGrow={1}
       flexDirection="column"
       alignItems="start"

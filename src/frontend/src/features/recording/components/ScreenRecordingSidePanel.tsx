@@ -38,6 +38,7 @@ import {
 import { FeatureFlags } from '@/features/analytics/enums'
 import { LimitDescription } from './LimitDescription'
 import { captureEvent, reportError } from '@/features/analytics/telemetry'
+import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
 export const ScreenRecordingSidePanel = () => {
   const { data } = useConfig()
@@ -163,8 +164,7 @@ export const ScreenRecordingSidePanel = () => {
   return (
     <Div
       display="flex"
-      overflowY="scroll"
-      padding="0 1.5rem"
+      className={sidePanelScrollArea()}
       flexGrow={1}
       flexDirection="column"
       alignItems="center"
