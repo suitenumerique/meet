@@ -37,6 +37,9 @@ RECORDING_START = audit.Action("recording.start", types=(EventType.START,))
 RECORDING_STOP = audit.Action("recording.stop", types=(EventType.END,))
 RECORDING_END = audit.Action("recording.end", types=(EventType.END,))
 RECORDING_DELETE = audit.Action("recording.delete", types=(EventType.DELETION,))
+RECORDING_DOWNLOAD = audit.Action(
+    "recording.download", category=EventCategory.FILE, types=(EventType.ACCESS,)
+)
 RECORDING_TRANSCRIPT_REQUEST = audit.Action(
     "recording.transcript.request", types=(EventType.START,)
 )

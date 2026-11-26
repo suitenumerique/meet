@@ -1313,7 +1313,12 @@ class RecordingViewSet(
             logger.warning("Failed to extract parameters from subrequest URL: %s", exc)
             raise drf_exceptions.PermissionDenied() from exc
 
-    @decorators.action(detail=False, methods=["get"], url_path="media-auth")
+    @decorators.action(
+        detail=False,
+        methods=["get"],
+        url_path="media-auth",
+        audit_action=auditing.RECORDING_DOWNLOAD,
+    )
     def media_auth(self, request, *args, **kwargs):
         """
         This view is used by an Nginx subrequest to control access to a recording's
@@ -1322,6 +1327,7 @@ class RecordingViewSet(
         the request going through thanks to the nginx.ingress.kubernetes.io/auth-response-headers
         annotation. The request will then be proxied to the object storage backend who will
         respond with the file after checking the signature included in headers.
+        A request let through is audited only when it reads the file from its first byte.
         """
 
         parsed_url = self._auth_get_original_url(request)
@@ -1332,15 +1338,22 @@ class RecordingViewSet(
 
         user = request.user
         recording_id = url_params["recording_id"]
+        self.audit_target = {
+            "id": str(uuid.UUID(recording_id)),
+            "sub_type": "recording",
+        }
 
         extension = url_params["extension"]
         if extension not in [file.value for file in FileExtension]:
             raise drf_exceptions.ValidationError({"detail": "Unsupported extension."})
 
         try:
-            recording = models.Recording.objects.get(id=recording_id)
+            recording = models.Recording.objects.select_related("room").get(
+                id=recording_id
+            )
         except models.Recording.DoesNotExist as e:
             raise drf_exceptions.NotFound("No recording found for this event.") from e
+        self.audit_target = recording
 
         if extension != recording.extension:
             raise drf_exceptions.NotFound("No recording found with this extension.")
@@ -1355,7 +1368,10 @@ class RecordingViewSet(
             logger.debug("Recording '%s' has not been saved", recording)
             raise drf_exceptions.PermissionDenied()
 
+        byte_range = request.headers.get("Range")
         request = utils.generate_s3_authorization_headers(recording.key)
+        if byte_range and not enums.FIRST_BYTE_RANGE_PATTERN.match(byte_range):
+            self.audit_skip = True
 
         return drf_response.Response("authorized", headers=request.headers, status=200)
 

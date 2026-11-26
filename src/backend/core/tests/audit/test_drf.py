@@ -400,3 +400,13 @@ def test_failing_audit_never_fails_the_response(audit_events):
 
     assert response.status_code == 200
     assert audit_events == []
+
+
+def test_skipped_response_is_not_audited(audit_events):
+    """A view can emit no event for the response it builds."""
+    view = ListingViewSet.as_view({"get": "list"}, audit_skip=True)
+
+    response = view(APIRequestFactory().get("/things/"))
+
+    assert response.status_code == 200
+    assert audit_events == []

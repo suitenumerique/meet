@@ -22,6 +22,8 @@ MEDIA_STORAGE_URL_PATTERN = re.compile(
     rf"(?P<key>{settings.FILE_UPLOAD_PATH:s}/(?P<pk>{UUID_REGEX:s})\.{FILE_EXT_REGEX:s})$"
 )
 
+FIRST_BYTE_RANGE_PATTERN = re.compile(r"\s*bytes\s*=\s*0+\s*-", re.IGNORECASE)
+
 
 # Django sets `LANGUAGES` by default with all supported languages. We can use it for
 # the choice of languages which should not be limited to the few languages active in
