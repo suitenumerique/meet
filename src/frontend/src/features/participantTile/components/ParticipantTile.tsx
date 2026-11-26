@@ -1,3 +1,4 @@
+import { css, cx } from '@/styled-system/css'
 import React from 'react'
 import {
   AudioTrack,
@@ -48,6 +49,40 @@ interface ParticipantTileExtendedProps extends ParticipantTileProps {
   disableMetadata?: boolean
   disableTileControls?: boolean
 }
+
+/**
+ * Ring around the tile of a participant who is speaking, in place of the one
+ * LiveKit draws inside the tile.
+ */
+const speakingRing = css({
+  '&::after': {
+    display: 'none!',
+  },
+  outline: '3px solid transparent!',
+  outlineOffset: 0,
+  transition: 'outline-color 400ms 500ms',
+  '&[data-lk-speaking=true]:not([data-lk-source=screen_share])': {
+    outlineColor: 'brand.350!',
+    transition: 'outline-color 200ms',
+  },
+  '.lk-carousel &': {
+    '&, &:not(#_):not(#_)': {
+      outlineColor: 'transparent!',
+    },
+    '&::after': {
+      display: 'block!',
+      border: '3px solid transparent!',
+      transition: 'border-color 400ms 500ms!',
+    },
+    '&[data-lk-speaking=true]:not([data-lk-source=screen_share])::after': {
+      borderColor: 'brand.350!',
+      transition: 'border-color 200ms!',
+    },
+  },
+  _motionReduce: {
+    transition: 'none',
+  },
+})
 
 export const ParticipantTile: (
   props: ParticipantTileExtendedProps & React.RefAttributes<HTMLDivElement>
@@ -118,6 +153,7 @@ export const ParticipantTile: (
 
   const interactiveProps = {
     ...elementProps,
+    className: cx(elementProps.className, speakingRing),
     tabIndex: 0,
     'aria-label': t('containerLabel', { name: participantName }),
     onFocus: (event: React.FocusEvent<HTMLDivElement>) => {
