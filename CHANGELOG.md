@@ -16,6 +16,7 @@ and this project adheres to
 - ✨(backend) add AUDIT_LOG_PERSONAL_DATA to audit emails and full names
 - ✨(backend) log the OIDC sub of the account an audit event is about
 - ✨(backend) audit room creation, update and deletion in the web app's API
+- ✨(backend) audit roomkit joins by PIN code
 
 ### Fixed
 

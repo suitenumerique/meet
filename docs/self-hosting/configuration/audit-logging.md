@@ -130,14 +130,14 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | `@timestamp` | When the event was emitted: ISO 8601, UTC, milliseconds |
 | `data_stream.*`, `event.dataset` | `logs`, `<service name>.audit` from [`AUDIT_LOG_SERVICE_NAME`](../../reference/env-variables.md#AUDIT_LOG_SERVICE_NAME), and [`AUDIT_LOG_DATA_STREAM_NAMESPACE`](../../reference/env-variables.md#AUDIT_LOG_DATA_STREAM_NAMESPACE): what sets the audit stream apart |
 | `service.name`, `service.environment`, `service.version`, `service.node.name` | The backend instance that wrote the event, never the caller. On Kubernetes, the node name is the pod |
-| `service.origin.name` | The internal service that called the backend, for a `service` actor: `summary` or `livekit` |
+| `service.origin.name` | The internal service that called the backend, for a `service` actor: `summary`, `livekit` or `roomkit` |
 | `service.target.name` | The service the backend called, such as `summary` |
 | `event.id` | Unique, so a shipper's retry cannot create a duplicate |
 | `event.action` | What was attempted, from the [Catalog](#catalog), whatever the result |
 | `event.category`, `event.type` | The ECS classification, see [Classification](#classification) |
 | `event.outcome` | `success`, `failure`, refusals included, or `unknown` |
 | `event.reason` | Why it failed: `authentication_failed`, `permission_denied`, `rate_limited`, `validation_error`, `not_found`, `conflict`, `internal_error` |
-| `lasuite.outcome` | As `event.outcome`, with refusals, a 401, 403 or 429, kept apart as `denied` |
+| `lasuite.outcome` | As `event.outcome`, with refusals, a 401, 403 or 429, or an unknown roomkit PIN code, kept apart as `denied` |
 | `lasuite.actor.type` | `user`, `application`, `service`, `system` or `anonymous`, see [Actors](#actors) |
 | `lasuite.actor.sub` | The OIDC `sub` of the account in `user.*`, shared with the other LaSuite products |
 | `lasuite.user_target.sub` | The OIDC `sub` of the account in `user.target.*`. Absent for an account without one, such as a pending user |
@@ -176,7 +176,7 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 |---|---|---|
 | `user` | An account acting for itself: session, OIDC or password login, add-on token, or the LiveKit token of a known account | That account |
 | `application` | A client application acting for a user: a Meet application through its credentials, application token or embedded frontend, or a LaSuite application through the resource server or Menshen. `lasuite.application.client_id` names it | The delegating user |
-| `service` | An internal service calling with a shared secret, named in `service.origin.name`: `summary` or `livekit` | Absent |
+| `service` | An internal service calling with a shared secret, named in `service.origin.name`: `summary`, `livekit` or `roomkit` | Absent |
 | `system` | The backend itself, with no request, as in a Celery task | Absent |
 | `anonymous` | A caller that did not authenticate, or failed to | Absent |
 
@@ -216,6 +216,7 @@ Actions read `<target>.<verb>`.
 | `room.delete` | A room is soft-deleted, see [Room purge](room-purge.md), and its LiveKit room closed | `entity.target` is the room |
 | `room.retrieve` | A room is read | `entity.target` is the room |
 | `room.list` | Rooms are listed | `lasuite.details.total` |
+| `roomkit.join` | A meeting-room device dials in with a PIN code and the SIP module asks for its room, every attempt. An unknown PIN code is `denied`, `not_found` | `service.origin.name` `roomkit` once its token verifies. `entity.target` is the room once found. `lasuite.details.dispatch_rule_created`. The PIN code is never recorded |
 
 ### Recordings, transcripts and summaries
 
