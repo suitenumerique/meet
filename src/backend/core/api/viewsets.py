@@ -566,7 +566,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         room = self.get_object()
 
         try:
-            recording = models.Recording.objects.get(
+            recording = models.Recording.objects.select_related("room").get(
                 room=room, status=models.RecordingStatusChoices.ACTIVE
             )
         except models.Recording.DoesNotExist as e:
@@ -1182,7 +1182,7 @@ class RecordingViewSet(
 
     pagination_class = Pagination
     permission_classes = [permissions.HasAbilityPermission]
-    queryset = models.Recording.objects.all()
+    queryset = models.Recording.objects.select_related("room")
     serializer_class = serializers.RecordingSerializer
 
     audit_actions = {"destroy": auditing.RECORDING_DELETE}
@@ -1234,7 +1234,9 @@ class RecordingViewSet(
         self.audit_process_type = validated_data.get("type")
         self.audit_details = {"job_id": job_id, "status": validated_data.get("status")}
         try:
-            recording = models.Recording.objects.get(external_process_id=job_id)
+            recording = models.Recording.objects.select_related("room").get(
+                external_process_id=job_id
+            )
         except models.Recording.DoesNotExist as e:
             logger.warning("No recording found for job_id %s: %s", job_id, e)
             return ok_response

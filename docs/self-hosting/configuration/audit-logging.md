@@ -226,13 +226,13 @@ Transcripts and summaries come from a recording, so their actions sit under `rec
 |---|---|---|
 | `recording.start` | Someone [allowed to record](recording.md#who-can-record) starts a recording, or the attempt fails | `entity.target` is the recording, or the room when none was created. `lasuite.details.collect_metadata` |
 | `recording.stop` | Someone allowed to record stops it, or the attempt fails | `entity.target` is the recording, or the room when none is active |
-| `recording.end` | LiveKit's `egress_ended` webhook reports the end: `success` with a media file, `failure` when aborted or failed, `unknown` otherwise | `service.origin.name` `livekit`. `lasuite.details.worker_event` and `error_code` |
+| `recording.end` | LiveKit's `egress_ended` webhook reports the end: `success` with a media file, `failure` when aborted or failed, `unknown` otherwise | `service.origin.name` `livekit`. `lasuite.details.worker_event`, `error_code`, `end_reason` from LiveKit, such as `Source closed` or `StopEgress API`, and `stop_requested`: `false` when it was not stopped through Meet |
 | `recording.delete` | A recording is deleted, or the attempt fails | `entity.target` is the recording |
 | `recording.transcript.request` | The backend sends a recording to the summary service, or fails to | Actor `system`, `service.target.name` `summary`. `lasuite.details.summary_requested`, `job_id` |
 | `recording.transcript.report` | The summary service reports on a transcript, or its call is refused | `service.origin.name` `summary`. `lasuite.details.job_id`, `status` |
 | `recording.summary.report` | The summary service reports on a summary | As `recording.transcript.report` |
 
-A recording target's `mode` is how it was captured, `screen_recording` or `transcript`, and `requested_mode` what the user asked for. They differ for a transcript with **Also start a video recording** ticked. `is_transcribed` says whether it goes to the summary service.
+A recording target's `room_id` and `room_slug` name its room. Its `mode` is how it was captured, `screen_recording` or `transcript`, and `requested_mode` what the user asked for. They differ for a transcript with **Also start a video recording** ticked. `is_transcribed` says whether it goes to the summary service.
 
 ### Sign-in and the admin
 

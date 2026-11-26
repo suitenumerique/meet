@@ -17,6 +17,7 @@ and this project adheres to
 - ✨(backend) log the OIDC sub of the account an audit event is about
 - ✨(backend) audit room creation, update and deletion in the web app's API
 - ✨(backend) audit roomkit joins by PIN code
+- ✨(backend) audit why a recording ended and the slug of its room
 
 ### Fixed
 

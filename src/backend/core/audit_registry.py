@@ -66,7 +66,14 @@ audit.register(
 )
 audit.register(
     models.Recording,
-    fields=("room_id", "status", "mode", "requested_mode", "is_transcribed"),
+    fields=(
+        "room_id",
+        "room_slug",
+        "status",
+        "mode",
+        "requested_mode",
+        "is_transcribed",
+    ),
     admin_values=("status", "mode"),
 )
 audit.register(models.File, admin_values=("title", "upload_state"))

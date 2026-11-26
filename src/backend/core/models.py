@@ -847,6 +847,11 @@ class Recording(BaseModel):
         return (self.options or {}).get("original_mode") or self.mode
 
     @property
+    def room_slug(self) -> str:
+        """Return the slug of the room the recording was made in."""
+        return self.room.slug
+
+    @property
     def is_transcribed(self) -> bool:
         """Tell whether the recording is sent to the summary service."""
         return self.mode == RecordingModeChoices.TRANSCRIPT or bool(
