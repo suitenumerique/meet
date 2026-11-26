@@ -130,11 +130,15 @@ export const buttonRecipe = cva({
         '&[data-hovered]': {
           backgroundColor: 'background.semantic.neutral.tertiary',
         },
-        boxShadow: '0 0 0 0 {colors.border.semantic.brand.primary}',
+        // kit: a brand border, thickened by a ring of the same color. A white
+        // line inside detaches it from the picture of a background.
+        boxShadow:
+          '0 0 0 0 {colors.border.semantic.brand.primary}, inset 0 0 0 0 {colors.background.surface.primary}',
         transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
         '&[data-selected]': {
           borderColor: 'border.semantic.brand.primary',
-          boxShadow: '0 0 0 1px {colors.border.semantic.brand.primary}',
+          boxShadow:
+            '0 0 0 1px {colors.border.semantic.brand.primary}, inset 0 0 0 2px {colors.background.surface.primary}',
         },
         '&[data-disabled]': {
           backgroundColor: 'gray.050',
