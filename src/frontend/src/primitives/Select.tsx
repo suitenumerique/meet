@@ -13,7 +13,8 @@ import { useTranslation } from 'react-i18next'
 import { Box } from './Box'
 import { StyledPopover } from './StyledPopover'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
-import { css } from '@/styled-system/css'
+import { css, cx } from '@/styled-system/css'
+import { chevronFlip } from '@/styles/animations'
 import type { Placement } from '@react-types/overlays'
 
 const StyledButton = styled(Button, {
@@ -146,7 +147,7 @@ export const Select = <T extends string | number>({
             <StyledSelectValue />
             <RiArrowDropDownLine
               aria-hidden="true"
-              className={css({ flexShrink: 0 })}
+              className={cx(chevronFlip, css({ flexShrink: 0 }))}
             />
           </StyledButton>
           <StyledPopover placement={placement}>

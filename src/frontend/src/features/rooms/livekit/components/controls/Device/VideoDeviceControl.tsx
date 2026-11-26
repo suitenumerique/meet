@@ -14,7 +14,8 @@ import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
-import { menuSelect, menuTrigger } from './menuTrigger'
+import { menuSelect } from './menuTrigger'
+import { chevronFlip } from '@/styles/animations'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
 import { useSnapshot } from 'valtio'
@@ -133,14 +134,13 @@ export const VideoDeviceControl = ({
             aria-label={selectLabel}
             groupPosition="right"
             square
-            className={menuTrigger}
             variant={
               !canPublishTrack || !trackProps.enabled || cannotUseDevice
                 ? 'error2'
                 : 'primaryDark'
             }
           >
-            <RiArrowUpSLine />
+            <RiArrowUpSLine className={chevronFlip} />
           </Button>
           {({ close }) => (
             <div

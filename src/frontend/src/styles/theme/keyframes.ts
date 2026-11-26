@@ -70,4 +70,12 @@ export const keyframes = defineKeyframes({
     from: { opacity: 0 },
     to: { opacity: 0.6 },
   },
+  chevron_flip_open: {
+    from: { transform: 'rotate(0deg)' },
+    to: { transform: 'rotate(180deg)' },
+  },
+  chevron_flip_close: {
+    from: { transform: 'rotate(180deg)' },
+    to: { transform: 'rotate(0deg)' },
+  },
 })
