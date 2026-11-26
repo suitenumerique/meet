@@ -29,6 +29,7 @@ const StyledButton = styled(Button, {
     borderColor: 'border.semantic.neutral.tertiary',
     color: 'content.semantic.neutral.primary',
     borderRadius: 4,
+    cursor: 'pointer',
     // The field of the UI kit: its border thickens on hover, with a ring of
     // the same color, and turns to the brand color when focused or open.
     boxShadow: '0 0 0 0 {colors.border.semantic.neutral.tertiary}',
@@ -46,6 +47,7 @@ const StyledButton = styled(Button, {
     },
     // fixme disabled style is being overridden by placeholder one and needs refinement.
     '&[data-disabled]': {
+      cursor: 'default',
       color: 'content.semantic.neutral.secondary',
       borderColor: 'gray.100',
     },
