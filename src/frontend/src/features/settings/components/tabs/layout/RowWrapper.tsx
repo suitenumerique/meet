@@ -37,7 +37,7 @@ export const RowWrapper = ({ heading, children, beta }: RowWrapperProps) => {
     <>
       {heading && (
         <HStack>
-          <H lvl={2}>{heading}</H>
+          <H lvl={3}>{heading}</H>
           {beta && <BetaBadge />}
         </HStack>
       )}

@@ -111,7 +111,7 @@ export const RoomsTab = ({ id }: RoomsTabProps) => {
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <H lvl={2}>{t('heading')}</H>
+      <H lvl={3}>{t('heading')}</H>
       <Text variant="note" margin={'md'}>
         {t('description')}
       </Text>

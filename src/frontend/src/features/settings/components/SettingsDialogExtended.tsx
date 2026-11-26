@@ -1,7 +1,12 @@
 import { Dialog, type DialogProps } from '@/primitives'
 import { Tab, Tabs, TabList } from '@/primitives/Tabs.tsx'
-import { css } from '@/styled-system/css'
-import { text } from '@/primitives/Text.tsx'
+import {
+  contentStyle,
+  contentTitleStyle,
+  sidebarStyle,
+  SIDEBAR_WIDTH,
+  tabsStyle,
+} from './settingsDialogLayout'
 import { Icon } from '@/primitives/Icon'
 import { Heading } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
@@ -22,7 +27,7 @@ import { AudioTab } from './tabs/AudioTab'
 import { VideoTab } from './tabs/VideoTab'
 import { TranscriptionTab } from './tabs/TranscriptionTab'
 import { ShortcutTab } from './tabs/ShortcutTab'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
@@ -33,45 +38,6 @@ import {
   useIsRecordingModeEnabled,
   useRecordingEncoding,
 } from '@/features/recording'
-
-const tabsStyle = css({
-  maxHeight: 'var(--settings-dialog-max-height)',
-  width: '50rem', // fixme size copied from meet settings modal
-  // fixme hacky solution to cancel modal padding, so the tab list fills the
-  // modal from edge to edge
-  margin: '-1.5rem',
-  maxWidth: 'calc(100% + 3rem)',
-  overflow: 'hidden',
-  height: 'calc(100vh - 2rem)',
-  borderRadius: 7, // modal radius, minus its border
-})
-
-const tabListContainerStyle = css({
-  display: 'flex',
-  flexDirection: 'column',
-  backgroundColor: 'background.surface.tertiary',
-  borderRight: '1px solid {colors.border.surface.primary}',
-  paddingY: '1.5rem',
-  paddingX: '1rem',
-  // aligns the title with the label of the tabs
-  '& > [slot=title]': {
-    paddingLeft: '10px',
-  },
-})
-
-const tabPanelContainerStyle = css({
-  display: 'flex',
-  flexGrow: '1',
-  marginTop: '4rem',
-  // the scrollbar of a tab is 8px wide, 2px away from the border of the dialog
-  paddingRight: '2px',
-  paddingBottom: '0.5rem',
-  minWidth: 0,
-  '& > [role=tabpanel]': {
-    scrollbarGutter: 'stable',
-    paddingRight: 'calc(3.5rem - 10px)',
-  },
-})
 
 export type SettingsDialogExtended = Pick<
   DialogProps,
@@ -87,6 +53,10 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
 
+  const [selectedTab, setSelectedTab] = useState(
+    props.defaultSelectedTab ?? SettingsDialogExtendedKey.ACCOUNT
+  )
+
   const isAdminOrOwner = useIsAdminOrOwner()
   const isScreenRecordingEnabled = useIsRecordingModeEnabled(
     RecordingMode.ScreenRecording
@@ -100,17 +70,19 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
       <Tabs
         orientation="vertical"
         className={tabsStyle}
-        defaultSelectedKey={props.defaultSelectedTab}
+        selectedKey={selectedTab}
+        onSelectionChange={(key) =>
+          setSelectedTab(key as SettingsDialogExtendedKey)
+        }
       >
         <div
-          className={tabListContainerStyle}
+          className={sidebarStyle}
           style={{
-            flex: isWideScreen ? '0 0 16rem' : undefined,
-            paddingTop: !isWideScreen ? '64px' : undefined,
+            flex: isWideScreen ? `0 0 ${SIDEBAR_WIDTH}` : undefined,
           }}
         >
           {isWideScreen && (
-            <Heading slot="title" level={1} className={text({ variant: 'h1' })}>
+            <Heading slot="title" level={1}>
               {t('dialog.heading')}
             </Heading>
           )}
@@ -208,7 +180,8 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
             </Tab>
           </TabList>
         </div>
-        <div className={tabPanelContainerStyle}>
+        <div className={contentStyle}>
+          <h2 className={contentTitleStyle}>{t(`tabs.${selectedTab}`)}</h2>
           <AccountTab
             id={SettingsDialogExtendedKey.ACCOUNT}
             onOpenChange={props.onOpenChange}

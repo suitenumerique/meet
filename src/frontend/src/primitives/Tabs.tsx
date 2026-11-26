@@ -60,17 +60,34 @@ const StyledTab = styled(RACTab, {
         border: 'none',
       },
     },
+    // The item of the sidebar of a tabbed modal, in the UI kit
     highlight: {
       true: {
+        boxSizing: 'border-box',
+        height: '32px',
+        padding: '0 0.5rem',
         borderRadius: 4,
-        transition: 'background 200ms, color 200ms',
-        color: 'content.semantic.neutral.tertiary',
+        fontSize: 'sm',
         fontWeight: 'medium',
-        '&[data-hovered], &[data-selected]': {
-          backgroundColor: 'background.semantic.overlay.primary',
+        whiteSpace: 'nowrap',
+        transition: 'background 200ms',
+        '&[data-hovered]': {
+          backgroundColor: 'background.semantic.contextual.primary',
         },
         '&[data-selected]': {
-          color: 'content.semantic.neutral.primary',
+          backgroundColor: 'background.semantic.contextual.primary-hover',
+          fontWeight: 'bold',
+        },
+        '&[data-focus-visible]': {
+          outline: '2px solid!',
+          outlineColor: 'border.semantic.brand.primary!',
+          outlineOffset: '2px!',
+        },
+        '& svg': {
+          flexShrink: 0,
+          width: '18px',
+          height: '18px',
+          color: 'content.semantic.neutral.tertiary',
         },
       },
     },
@@ -82,6 +99,13 @@ const StyledTab = styled(RACTab, {
       },
     },
   },
+  compoundVariants: [
+    {
+      highlight: true,
+      icon: true,
+      css: { gap: '0.5rem' },
+    },
+  ],
   defaultVariants: {
     border: true,
     icon: false,

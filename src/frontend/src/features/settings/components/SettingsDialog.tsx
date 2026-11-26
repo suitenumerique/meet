@@ -1,18 +1,24 @@
 import { Trans, useTranslation } from 'react-i18next'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Heading } from 'react-aria-components'
 import { RiSettings3Line, RiDoorOpenLine } from '@remixicon/react'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
 import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
 import { Tab, TabList, TabPanel, Tabs } from '@/primitives/Tabs'
-import { text } from '@/primitives/Text.tsx'
-import { css, cx } from '@/styled-system/css'
 import { scrollbar } from '@/primitives/scrollbar'
+import { css, cx } from '@/styled-system/css'
 import { useUser } from '@/features/auth/api/useUser'
 import { LoginButton } from '@/components/LoginButton'
 import { logout } from '@/features/auth/utils/logout'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { RoomsTab } from './tabs/RoomsTab'
+import {
+  contentStyle,
+  contentTitleStyle,
+  sidebarStyle,
+  SIDEBAR_WIDTH,
+  tabsStyle,
+} from './settingsDialogLayout'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>
 
@@ -21,50 +27,10 @@ enum SettingsDialogTabKey {
   ROOMS = 'rooms',
 }
 
-const tabsStyle = css({
-  maxHeight: 'var(--settings-dialog-max-height)',
-  width: '50rem', // fixme size copied from meet settings modal
-  // fixme hacky solution to cancel modal padding, so the tab list fills the
-  // modal from edge to edge
-  margin: '-1.5rem',
-  maxWidth: 'calc(100% + 3rem)',
-  overflow: 'hidden',
-  height: 'calc(100vh - 2rem)',
-  borderRadius: 7, // modal radius, minus its border
-})
-
-const tabListContainerStyle = css({
-  display: 'flex',
-  flexDirection: 'column',
-  backgroundColor: 'background.surface.tertiary',
-  borderRight: '1px solid {colors.border.surface.primary}',
-  paddingY: '1.5rem',
-  paddingX: '1rem',
-  // aligns the title with the label of the tabs
-  '& > [slot=title]': {
-    paddingLeft: '10px',
-  },
-})
-
-const tabPanelContainerStyle = css({
-  display: 'flex',
-  flexGrow: '1',
-  marginTop: '4rem',
-  // the scrollbar of a tab is 8px wide, 2px away from the border of the dialog
-  paddingRight: '2px',
-  paddingBottom: '0.5rem',
-  minWidth: 0,
-  '& > [role=tabpanel]': {
-    scrollbarGutter: 'stable',
-    paddingRight: 'calc(3.5rem - 10px)',
-  },
-})
-
 const tabPanelStyle = css({
   flexGrow: '1',
   minWidth: 0,
   overflowY: 'auto',
-  paddingBottom: '1rem',
 })
 
 export const SettingsDialog = (props: SettingsDialogProps) => {
@@ -74,6 +40,8 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
 
   const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
+
+  const [selectedTab, setSelectedTab] = useState(SettingsDialogTabKey.GENERAL)
 
   const userDisplay =
     user?.full_name && user?.email
@@ -135,17 +103,17 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
       <Tabs
         orientation="vertical"
         className={tabsStyle}
-        defaultSelectedKey={SettingsDialogTabKey.GENERAL}
+        selectedKey={selectedTab}
+        onSelectionChange={(key) => setSelectedTab(key as SettingsDialogTabKey)}
       >
         <div
-          className={tabListContainerStyle}
+          className={sidebarStyle}
           style={{
-            flex: isWideScreen ? '0 0 16rem' : undefined,
-            paddingTop: !isWideScreen ? '64px' : undefined,
+            flex: isWideScreen ? `0 0 ${SIDEBAR_WIDTH}` : undefined,
           }}
         >
           {isWideScreen && (
-            <Heading slot="title" level={1} className={text({ variant: 'h1' })}>
+            <Heading slot="title" level={1}>
               {t('dialog.heading')}
             </Heading>
           )}
@@ -160,7 +128,8 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
             </Tab>
           </TabList>
         </div>
-        <div className={tabPanelContainerStyle}>
+        <div className={contentStyle}>
+          <h2 className={contentTitleStyle}>{t(`tabs.${selectedTab}`)}</h2>
           <TabPanel
             id={SettingsDialogTabKey.GENERAL}
             className={cx(scrollbar, tabPanelStyle)}

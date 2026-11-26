@@ -28,7 +28,7 @@ export const AccessibilityTab = ({ id }: AccessibilityTabProps) => {
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <H lvl={2}>{t('tabs.accessibility')}</H>
+      <H lvl={3}>{t('tabs.accessibility')}</H>
       <ul
         className={css({
           display: 'flex',

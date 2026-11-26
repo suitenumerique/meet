@@ -15,7 +15,7 @@ export const GeneralTab = ({ id }: GeneralTabProps) => {
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <H lvl={2}>{t('language.heading')}</H>
+      <H lvl={3}>{t('language.heading')}</H>
       <Field
         type="select"
         label={t('language.label')}
@@ -25,7 +25,7 @@ export const GeneralTab = ({ id }: GeneralTabProps) => {
           i18n.changeLanguage(lang as string)
         }}
       />
-      <H lvl={2}>{t('preferences.title')}</H>
+      <H lvl={3}>{t('preferences.title')}</H>
       <Field
         type="switch"
         label={t('preferences.idleDisconnectModal.label')}

@@ -69,7 +69,7 @@ export const RecordingTab = ({ id }: RecordingTabProps) => {
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <H lvl={2}>{t('heading')}</H>
+      <H lvl={3}>{t('heading')}</H>
       {isLocked && (
         <Text variant="note" role="status" margin="sm">
           {t('locked')}

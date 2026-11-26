@@ -47,7 +47,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <H lvl={2}>{t('account.heading')}</H>
+      <H lvl={3}>{t('account.heading')}</H>
       {(!isLoggedIn || data?.authenticated_users_can_edit_display_name) && (
         <Field
           type="text"
@@ -59,7 +59,7 @@ export const AccountTab = ({ id, onOpenChange }: AccountTabProps) => {
           }}
         />
       )}
-      <H lvl={2}>{t('account.authentication')}</H>
+      <H lvl={3}>{t('account.authentication')}</H>
       {isLoggedIn ? (
         <>
           <P>

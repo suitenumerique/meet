@@ -15,7 +15,7 @@ export const TranscriptionTab = ({ id }: TranscriptionTabProps) => {
 
   return (
     <TabPanel padding={'md'} flex id={id}>
-      <H lvl={2}>{t('heading')}</H>
+      <H lvl={3}>{t('heading')}</H>
       <Field
         type="select"
         label={t('language.label')}
