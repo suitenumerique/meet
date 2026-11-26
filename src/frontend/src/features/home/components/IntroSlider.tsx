@@ -50,12 +50,12 @@ const Dot = styled('div', {
   variants: {
     selected: {
       true: {
-        backgroundColor: 'primary.800',
-        borderColor: 'primary.800',
+        backgroundColor: 'background.semantic.brand.primary',
+        borderColor: 'border.semantic.brand.primary',
       },
       false: {
-        backgroundColor: 'primary.100',
-        borderColor: 'primary.500',
+        backgroundColor: 'background.surface.primary',
+        borderColor: 'border.semantic.neutral.primary',
       },
     },
   },
