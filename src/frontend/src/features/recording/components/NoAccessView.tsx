@@ -9,9 +9,21 @@ import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePan
 
 const Divider = ({ label }: { label: string }) => (
   <HStack gap="1rem" alignItems="center" width="100%" marginY="1rem">
-    <div className={css({ flex: 1, height: '1px', bg: 'gray.100' })} />
+    <div
+      className={css({
+        flex: 1,
+        height: '1px',
+        bg: 'border.semantic.neutral.tertiary',
+      })}
+    />
     <Text variant="xsNote">{label}</Text>
-    <div className={css({ flex: 1, height: '1px', bg: 'gray.100' })} />
+    <div
+      className={css({
+        flex: 1,
+        height: '1px',
+        bg: 'border.semantic.neutral.tertiary',
+      })}
+    />
   </HStack>
 )
 

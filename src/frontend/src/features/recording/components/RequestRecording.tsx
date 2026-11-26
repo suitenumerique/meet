@@ -47,10 +47,10 @@ export const RequestRecording = ({
   return (
     <div
       className={css({
-        backgroundColor: 'gray.025',
-        borderRadius: '5px',
+        backgroundColor: 'background.semantic.neutral.tertiary',
+        borderRadius: '4px',
         border: '1px solid',
-        borderColor: 'gray.100',
+        borderColor: 'border.semantic.neutral.tertiary',
         paddingY: '1rem',
         paddingX: '1rem',
         display: 'flex',
@@ -73,7 +73,7 @@ export const RequestRecording = ({
         })}
       >
         <Button
-          variant="tertiary"
+          variant="bordered"
           fullWidth
           onPress={onPress}
           isDisabled={isDisabled}
