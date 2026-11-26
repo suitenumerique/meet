@@ -1,7 +1,8 @@
 import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { Spinner } from '@/primitives/Spinner'
-import { Button, Icon, Text } from '@/primitives'
+import { Button, Text } from '@/primitives'
+import { RiArrowRightSLine, RiInformationLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import type { RecordingStatuses } from '../hooks/useRecordingStatuses'
 import { ReactNode, useEffect, useRef, useState } from 'react'
@@ -123,41 +124,46 @@ export const ControlsButton = ({
       {statuses.isAnotherModeStarted && (
         <RACButton
           className={css({
-            backgroundColor: 'brand.050',
-            border: '1px solid',
-            borderColor: 'brand.150',
-            borderRadius: '6px',
-            padding: '0.75rem',
-            marginBottom: '0.75rem',
-            display: 'flex',
-            justifyContent: 'left',
-            textAlign: 'left',
-            alignItems: 'center',
+            boxSizing: 'border-box',
             width: '100%',
+            minHeight: '48px',
+            marginBottom: '0.75rem',
+            padding: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            textAlign: 'left',
             cursor: 'pointer',
-            _hover: {
-              backgroundColor: 'brand.100',
-              borderColor: 'brand.400',
+            color: 'content.semantic.brand.primary',
+            fontSize: 'sm',
+            fontWeight: 'medium',
+            lineHeight: '1.25rem',
+            backgroundColor: 'background.semantic.brand.tertiary',
+            border: '1px solid',
+            borderColor: 'border.semantic.brand.tertiary',
+            borderRadius: '8px',
+            transition: 'background-color 150ms',
+            '&[data-hovered]': {
+              backgroundColor: 'background.semantic.brand.tertiary-hover',
             },
           })}
           onPress={() => openSidePanel()}
         >
-          <Icon
-            className={css({
-              color: 'brand.500',
-              marginRight: '1rem',
-            })}
-            name="info"
+          <RiInformationLine
+            size={24}
+            aria-hidden="true"
+            className={css({ flexShrink: 0 })}
           />
-          <Text variant={'smNote'}>
+          <span className={css({ flex: '1 1 auto', minWidth: 0 })}>
             {parseLineBreaks(t('button.anotherModeStarted'))}
-          </Text>
-          <Icon
+          </span>
+          <RiArrowRightSLine
+            size={24}
+            aria-hidden="true"
             className={css({
-              color: 'brand.500',
-              marginLeft: 'auto',
+              flexShrink: 0,
+              color: 'content.semantic.brand.tertiary',
             })}
-            name="chevron_right"
           />
         </RACButton>
       )}
