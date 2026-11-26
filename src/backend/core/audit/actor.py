@@ -1,14 +1,15 @@
 """Resolve who is acting: actor type, identifiers, auth method and tenant.
 
-Personal data is kept to a minimum on purpose: a person is identified by its
+Personal data is kept to a minimum by default: a person is identified by its
 primary key, its OIDC ``sub`` when it has one and the domain of its email
-address. The address itself is never recorded.
+address. Its address and full name are recorded only when ``AUDIT_LOG_PERSONAL_DATA`` is on.
 """
 
 from collections.abc import Mapping
 from enum import Enum
 from typing import Any
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from lasuite.tools.email import get_domain_from_email
@@ -125,10 +126,16 @@ def describe_user(user) -> dict[str, Any]:
 
     The id is missing for accounts that were deleted.
     """
-    return {
+    fields = {
         "id": str(user.pk) if user.pk is not None else None,
         "domain": email_domain(getattr(user, "email", None)),
     }
+    if settings.AUDIT_LOG_PERSONAL_DATA:
+        fields |= {
+            "email": getattr(user, "email", None) or None,
+            "full_name": getattr(user, "full_name", None) or None,
+        }
+    return fields
 
 
 def user_sub(user) -> str | None:

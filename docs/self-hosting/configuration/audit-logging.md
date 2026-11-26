@@ -6,7 +6,7 @@ The **audit log** records who did what in Meet, to what, from where, and whether
 - Each event is one JSON line on the backend's standard output, from the `audit` logger, apart from the application logs.
 - Events follow the [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs) (ECS) 9.5.0.
 
-A person is identified by their account id, their [OIDC](https://openid.net/developers/how-connect-works/) `sub` and their email's domain. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
+A person is identified by their account id, their [OIDC](https://openid.net/developers/how-connect-works/) `sub` and their email's domain. [`AUDIT_LOG_PERSONAL_DATA`](../../reference/env-variables.md#AUDIT_LOG_PERSONAL_DATA) adds their email address and full name. Secrets, transit codes and the messages of unexpected exceptions are never recorded.
 
 ## What an event looks like
 
@@ -142,9 +142,11 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | `lasuite.actor.sub` | The OIDC `sub` of the account in `user.*`, shared with the other LaSuite products |
 | `lasuite.auth.method` | How the actor authenticated: `session`, `application_jwt`, `addons_jwt`, `user_access_jwt`, `resource_server`, `menshen_token`, `livekit_token`, `shared_secret`, `client_credentials`, `transit_code`, `oidc`, `password`, `none`, or `unknown` for an unregistered class. The admin and logout report `session` when signed in |
 | `lasuite.application.client_id` | The external application acting, once its credentials are verified. For a Menshen token, Menshen's client id, see [Actors](#actors) |
-| `user.id`, `user.domain` | The account whose authority the action used: primary key and email domain, never the address |
+| `user.id`, `user.domain` | The account whose authority the action used: primary key and email domain |
+| `user.email`, `user.full_name` | That account's email address and full name, only with [`AUDIT_LOG_PERSONAL_DATA`](../../reference/env-variables.md#AUDIT_LOG_PERSONAL_DATA) |
 | `user.roles` | That account's privileges at the time: `superuser`, `staff` |
 | `user.target.id`, `user.target.domain` | The account the action was about: a provisioned user, a user granted a role, an account an admin edits, the user of a transit code |
+| `user.target.email`, `user.target.full_name` | That account's email address and full name, only with [`AUDIT_LOG_PERSONAL_DATA`](../../reference/env-variables.md#AUDIT_LOG_PERSONAL_DATA) |
 | `organization.id` | The tenant: the application's client id, otherwise the user's email domain |
 | `entity.target.*` | The resource acted on, see [Targets](#targets) |
 | `lasuite.details` | Fields specific to the action, see the [Catalog](#catalog) |
@@ -179,7 +181,7 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 
 The backend takes the first rule that matches: a known client id gives `application`; no request and no actor, `system`; a caller authenticated without an account, `service`; an account, `user`; anything else, `anonymous`.
 
-A call with a token exchanged through Menshen, LaSuite's token exchange server, is an `application` with `lasuite.auth.method` `menshen_token`. `lasuite.application.client_id` and `organization.id` hold Menshen's client id. The token, its `jti` and the email Menshen reports are never recorded.
+A call with a token exchanged through Menshen, LaSuite's token exchange server, is an `application` with `lasuite.auth.method` `menshen_token`. `lasuite.application.client_id` and `organization.id` hold Menshen's client id. The token and its `jti` are never recorded. The email Menshen reports appears only as the account's address, with [`AUDIT_LOG_PERSONAL_DATA`](../../reference/env-variables.md#AUDIT_LOG_PERSONAL_DATA).
 
 ### Classification
 
@@ -197,7 +199,7 @@ Actions read `<target>.<verb>`.
 
 | `event.action` | Emitted when | Notable fields |
 |---|---|---|
-| `application.token.issue` | An application asks for an application token, `POST /external-api/v1.0/application/token/`, granted or refused | On success, `user.*` is the delegated user, `entity.target` the application, `lasuite.details` holds `scopes`, `user_provisioned`, `expires_in`. On refusal, `event.reason` and `lasuite.details.requested_domain`. An unverified client id goes only in `lasuite.details.claimed_client_id` |
+| `application.token.issue` | An application asks for an application token, `POST /external-api/v1.0/application/token/`, granted or refused | On success, `user.*` is the delegated user, `entity.target` the application, `lasuite.details` holds `scopes`, `user_provisioned`, `expires_in`. On refusal, `event.reason`, `lasuite.details.requested_domain` and, with [`AUDIT_LOG_PERSONAL_DATA`](../../reference/env-variables.md#AUDIT_LOG_PERSONAL_DATA), `lasuite.details.requested_email`. An unverified client id goes only in `lasuite.details.claimed_client_id` |
 | `user.provision` | An application creates a provisional user from an email, or fails to: `conflict` when a concurrent request won. Also when a LaSuite application calls for an unknown `sub` and [`OIDC_CREATE_USER`](../../reference/env-variables.md#OIDC_CREATE_USER) allows it. Also an OIDC sign-in refused, as a `conflict`, because the email of its unknown `sub` is already used, with [`OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION`](../../reference/env-variables.md#OIDC_FALLBACK_TO_EMAIL_FOR_IDENTIFICATION) off, or shared by several active users, with it on | `user.target` and `entity.target` are the user. `lasuite.auth.method` is `client_credentials`, `resource_server`, `menshen_token` or `oidc`. On an email conflict, `lasuite.details.requested_sub` |
 | `transit_code.issue` | An application mints a single-use transit code for its delegated user | `entity.target` is the code's SHA-256, `user.target` its user, `lasuite.details.expires_in` |
 | `transit_code.exchange` | An embedded frontend exchanges a transit code for a user access token | `event.category` `authentication`, `lasuite.auth.method` `transit_code`. Once the code verifies, the actor is the application that minted it and `user.target` its user. A code that does not verify is an `anonymous` failed authentication |

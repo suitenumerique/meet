@@ -80,7 +80,10 @@ class ApplicationViewSet(audit.AuditViewMixin, viewsets.ViewSet):
         email = serializer.validated_data["scope"]
 
         self.audit_claimed_client_id = client_id
-        self.audit_details = {"requested_domain": audit.email_domain(email)}
+        self.audit_details = {
+            "requested_domain": audit.email_domain(email),
+            "requested_email": email if settings.AUDIT_LOG_PERSONAL_DATA else None,
+        }
 
         try:
             application = models.Application.objects.get(client_id=client_id)

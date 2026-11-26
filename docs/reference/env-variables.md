@@ -467,6 +467,7 @@ The backend writes a JSON event to [`AUDIT_LOG_STREAM`](#AUDIT_LOG_STREAM) for e
 | `AUDIT_LOG_LEVEL`{#AUDIT_LOG_LEVEL} | No | `INFO` | Log level of the `audit` logger |
 | `AUDIT_LOG_SERVICE_NAME`{#AUDIT_LOG_SERVICE_NAME} | No | `meet` | `service.name` of each event, and the dataset `<name>.audit`, lower-cased, with each `-` turned into `_` |
 | `AUDIT_LOG_DATA_STREAM_NAMESPACE`{#AUDIT_LOG_DATA_STREAM_NAMESPACE} | No | `default` | Namespace of the data stream events are routed to, `logs-<service name>.audit-<namespace>`. The backend refuses to start when it contains `-`. |
+| `AUDIT_LOG_PERSONAL_DATA`{#AUDIT_LOG_PERSONAL_DATA} | No | `False` | Add personal data to audit events: the email address and full name of the accounts involved, and the email an application asked a token for. |
 | `REQUEST_ID_TRUST_HEADER`{#REQUEST_ID_TRUST_HEADER} | No | `False` | Reuse the proxy's request id, so the proxy, Gunicorn and audit events share it. Turn it on only when your proxy overwrites that header; otherwise a client can choose the id. When it is off, the backend generates the id. |
 | `DOCKERFLOW_REQUEST_ID_HEADER_NAME`{#DOCKERFLOW_REQUEST_ID_HEADER_NAME} | No | `X-Request-ID` | Header carrying the request id. Read from requests only when [`REQUEST_ID_TRUST_HEADER`](#REQUEST_ID_TRUST_HEADER) is on, and always sent back on responses. |
 
