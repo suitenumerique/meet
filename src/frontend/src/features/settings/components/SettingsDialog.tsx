@@ -1,5 +1,5 @@
 import { Trans, useTranslation } from 'react-i18next'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { Heading } from 'react-aria-components'
 import { RiSettings3Line, RiDoorOpenLine } from '@remixicon/react'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
@@ -14,11 +14,11 @@ import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { RoomsTab } from './tabs/RoomsTab'
 import {
   contentStyle,
-  contentTitleStyle,
   sidebarStyle,
   SIDEBAR_WIDTH,
   tabsStyle,
 } from './settingsDialogLayout'
+import { SelectedTabTitle } from './SelectedTabTitle'
 
 export type SettingsDialogProps = Pick<DialogProps, 'isOpen' | 'onOpenChange'>
 
@@ -40,8 +40,6 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
 
   const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
-
-  const [selectedTab, setSelectedTab] = useState(SettingsDialogTabKey.GENERAL)
 
   const userDisplay =
     user?.full_name && user?.email
@@ -103,8 +101,7 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
       <Tabs
         orientation="vertical"
         className={tabsStyle}
-        selectedKey={selectedTab}
-        onSelectionChange={(key) => setSelectedTab(key as SettingsDialogTabKey)}
+        defaultSelectedKey={SettingsDialogTabKey.GENERAL}
       >
         <div
           className={sidebarStyle}
@@ -129,7 +126,7 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
           </TabList>
         </div>
         <div className={contentStyle}>
-          <h2 className={contentTitleStyle}>{t(`tabs.${selectedTab}`)}</h2>
+          <SelectedTabTitle />
           <TabPanel
             id={SettingsDialogTabKey.GENERAL}
             className={cx(scrollbar, tabPanelStyle)}

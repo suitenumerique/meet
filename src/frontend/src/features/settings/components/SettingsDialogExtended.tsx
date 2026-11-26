@@ -2,11 +2,11 @@ import { Dialog, type DialogProps } from '@/primitives'
 import { Tab, Tabs, TabList } from '@/primitives/Tabs.tsx'
 import {
   contentStyle,
-  contentTitleStyle,
   sidebarStyle,
   SIDEBAR_WIDTH,
   tabsStyle,
 } from './settingsDialogLayout'
+import { SelectedTabTitle } from './SelectedTabTitle'
 import { Icon } from '@/primitives/Icon'
 import { Heading } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
@@ -27,7 +27,7 @@ import { AudioTab } from './tabs/AudioTab'
 import { VideoTab } from './tabs/VideoTab'
 import { TranscriptionTab } from './tabs/TranscriptionTab'
 import { ShortcutTab } from './tabs/ShortcutTab'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { useMediaQuery } from '@/features/rooms/livekit/hooks/useMediaQuery'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { useIsAdminOrOwner } from '@/features/rooms/livekit/hooks/useIsAdminOrOwner'
@@ -53,10 +53,6 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
   const dialogEl = useRef<HTMLDivElement>(null)
   const isWideScreen = useMediaQuery('(min-width: 800px)') // fixme - hardcoded 50rem in pixel
 
-  const [selectedTab, setSelectedTab] = useState(
-    props.defaultSelectedTab ?? SettingsDialogExtendedKey.ACCOUNT
-  )
-
   const isAdminOrOwner = useIsAdminOrOwner()
   const isScreenRecordingEnabled = useIsRecordingModeEnabled(
     RecordingMode.ScreenRecording
@@ -70,10 +66,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
       <Tabs
         orientation="vertical"
         className={tabsStyle}
-        selectedKey={selectedTab}
-        onSelectionChange={(key) =>
-          setSelectedTab(key as SettingsDialogExtendedKey)
-        }
+        defaultSelectedKey={props.defaultSelectedTab}
       >
         <div
           className={sidebarStyle}
@@ -181,7 +174,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
           </TabList>
         </div>
         <div className={contentStyle}>
-          <h2 className={contentTitleStyle}>{t(`tabs.${selectedTab}`)}</h2>
+          <SelectedTabTitle />
           <AccountTab
             id={SettingsDialogExtendedKey.ACCOUNT}
             onOpenChange={props.onOpenChange}

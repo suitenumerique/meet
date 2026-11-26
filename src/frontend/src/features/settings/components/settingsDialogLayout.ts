@@ -64,16 +64,3 @@ export const contentStyle = css({
     lineHeight: '1.5rem',
   },
 })
-
-/**
- * Title of the selected tab, on the line of the title of the dialog. The
- * close button of the dialog sits in the corner, above it.
- */
-export const contentTitleStyle = css({
-  flexShrink: 0,
-  margin: 0,
-  padding: '1.5rem 1.5rem 0',
-  fontSize: '1.125rem',
-  fontWeight: 'bold',
-  lineHeight: '1.5rem',
-})
