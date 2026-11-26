@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { css } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
 import { usePictureInPicture } from '../hooks/usePictureInPicture'
 import { Button, Text } from '@/primitives'
@@ -10,22 +11,42 @@ export const PipRoomPlaceholder = () => {
   const { close } = usePictureInPicture()
 
   return (
-    <Container>
+    <Container data-theme="dark">
       <img
         src="/assets/pip.svg"
         alt=""
-        width={300}
-        height={72}
+        width={144}
+        height={102}
         aria-hidden="true"
-        style={{
-          marginBottom: '0.25rem',
-        }}
+        className={css({ marginBottom: '1rem' })}
       />
-      <Text variant="body">{t('title')}</Text>
-      <Text variant="sm" style={{ maxWidth: '312px' }}>
+      <Text
+        variant="h2"
+        margin={false}
+        padding={false}
+        className={css({ color: 'content.semantic.neutral.primary' })}
+      >
+        {t('title')}
+      </Text>
+      <Text
+        variant="body"
+        wrap="balance"
+        className={css({
+          maxWidth: '30rem',
+          marginTop: '0.25rem',
+          color: 'content.semantic.neutral.secondary',
+        })}
+      >
         {t('description')}
       </Text>
-      <Button variant="primaryTextDark" onPress={close}>
+      <Button
+        variant="primaryTextDark"
+        onPress={close}
+        className={css({
+          marginTop: '1.5rem',
+          color: 'brand.250!',
+        })}
+      >
         {t('bringBack')}
       </Button>
     </Container>
@@ -40,9 +61,7 @@ const Container = styled('div', {
     justifyContent: 'center',
     width: '100%',
     height: '100%',
-    gap: '0.5rem',
     padding: '1.5rem',
     textAlign: 'center',
-    color: 'white',
   },
 })
