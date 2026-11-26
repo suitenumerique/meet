@@ -333,10 +333,11 @@ def test_audit_log_describes_registered_targets(audit_events):
         "raw": {"slug": room.slug, "access_level": room.access_level},
     }
     assert "user" not in audit_events[0]
+    assert "user_target" not in audit_events[0]["lasuite"]
 
 
 def test_audit_log_reports_a_user_target_as_user_target(audit_events):
-    """A user acted on is the ``user.target``, its sub only in ``entity.target``."""
+    """A user acted on is the ``user.target``, its sub in ``lasuite.user_target``."""
     user = UserFactory(email="jane@example.org")
 
     audit.log("user.provision", target=user)
@@ -344,6 +345,7 @@ def test_audit_log_reports_a_user_target_as_user_target(audit_events):
     event = audit_events[0]
 
     assert event["user"] == {"target": {"id": str(user.pk), "domain": "example.org"}}
+    assert event["lasuite"]["user_target"] == {"sub": user.sub}
     assert event["entity"]["target"] == {
         "id": str(user.pk),
         "type": ["user"],
@@ -378,17 +380,24 @@ def test_audit_log_reports_the_registered_user_target(
     assert event["user"] == {
         "target": {"id": str(access.user_id), "domain": "example.org", **personal}
     }
+    assert event["lasuite"]["user_target"] == {"sub": access.user.sub}
     assert event["entity"]["target"]["sub_type"] == "resourceaccess"
 
 
 def test_audit_log_explicit_user_target_wins(audit_events):
-    """A user target given to ``log`` wins over the one of the target."""
+    """
+    A user target given to ``log`` wins over the one of the target, and one that
+    never signed in, as a pending user, has no sub recorded.
+    """
     room = RoomFactory(users=[(UserFactory(), "member")])
-    other = UserFactory(email="other@example.net")
+    other = UserFactory(sub=None, email="other@example.net")
 
     audit.log("thing.grant", target=room.accesses.get(), user_target=other)
 
-    assert audit_events[0]["user"]["target"]["id"] == str(other.pk)
+    assert audit_events[0]["user"] == {
+        "target": {"id": str(other.pk), "domain": "example.net"}
+    }
+    assert "user_target" not in audit_events[0]["lasuite"]
 
 
 def test_audit_log_registered_entity_type(audit_events):
@@ -521,6 +530,7 @@ def test_audit_log_actor_user_is_id_sub_and_domain_only(audit_events):
         "target": {"id": str(target.pk), "domain": "example.org"},
     }
     assert event["lasuite"]["actor"] == {"type": "user", "sub": user.sub}
+    assert event["lasuite"]["user_target"] == {"sub": target.sub}
     assert event["lasuite"]["auth"] == {"method": "session"}
     assert event["organization"] == {"id": "example.com"}
     for value in ("john.doe", "John", "jane.roe", "Jane"):

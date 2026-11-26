@@ -14,6 +14,7 @@ and this project adheres to
 - ✨(summary) make ASR response format configurable #1946
 - ✨(sdk) show and send the dial-in number and pin code
 - ✨(backend) add AUDIT_LOG_PERSONAL_DATA to audit emails and full names
+- ✨(backend) log the OIDC sub of the account an audit event is about
 
 ### Fixed
 

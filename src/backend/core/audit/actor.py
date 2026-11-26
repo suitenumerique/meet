@@ -140,7 +140,7 @@ def describe_user(user) -> dict[str, Any]:
 
 def user_sub(user) -> str | None:
     """Return the OIDC sub of an account, missing for one that never signed in."""
-    return getattr(user, "sub", None) or None
+    return (getattr(user, "sub", None) or None) if _is_account(user) else None
 
 
 def user_roles(user) -> list[str] | None:

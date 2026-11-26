@@ -111,7 +111,7 @@ Filter on `lasuite.application.client_id`. Add `lasuite.details.claimed_client_i
 
 ### What did this person do, and what was done to their account?
 
-Search both `user.id`, the account whose authority an action used, and `user.target.id`, the account it was about. Across the other LaSuite products, use their OIDC `sub`, in `lasuite.actor.sub`.
+Search both `user.id`, the account whose authority an action used, and `user.target.id`, the account it was about. Across the other LaSuite products, use their OIDC `sub`, in `lasuite.actor.sub`, and in `lasuite.user_target.sub` for the account an action was about.
 
 ### Which requests were refused, and why?
 
@@ -140,6 +140,7 @@ Every field is standard ECS, except those under `lasuite.*` and `entity.target.r
 | `lasuite.outcome` | As `event.outcome`, with refusals, a 401, 403 or 429, kept apart as `denied` |
 | `lasuite.actor.type` | `user`, `application`, `service`, `system` or `anonymous`, see [Actors](#actors) |
 | `lasuite.actor.sub` | The OIDC `sub` of the account in `user.*`, shared with the other LaSuite products |
+| `lasuite.user_target.sub` | The OIDC `sub` of the account in `user.target.*`. Absent for an account without one, such as a pending user |
 | `lasuite.auth.method` | How the actor authenticated: `session`, `application_jwt`, `addons_jwt`, `user_access_jwt`, `resource_server`, `menshen_token`, `livekit_token`, `shared_secret`, `client_credentials`, `transit_code`, `oidc`, `password`, `none`, or `unknown` for an unregistered class. The admin and logout report `session` when signed in |
 | `lasuite.application.client_id` | The external application acting, once its credentials are verified. For a Menshen token, Menshen's client id, see [Actors](#actors) |
 | `user.id`, `user.domain` | The account whose authority the action used: primary key and email domain |
