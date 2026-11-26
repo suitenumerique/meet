@@ -105,12 +105,13 @@ export const Admin = () => {
       overflow="hidden"
     >
       {/* Stays in place while the settings scroll. */}
-      <div className={css({ flexShrink: 0, paddingInline: '1.5rem' })}>
+      <div className={css({ flexShrink: 0 })}>
         <Text
           variant="smNote"
           wrap="pretty"
           margin={false}
           className={css({
+            paddingInline: '1.5rem',
             paddingBottom: '1rem',
             // leaves the room to the settings on short screens
             '@media (max-height: 770px)': {
@@ -189,7 +190,15 @@ export const Admin = () => {
             />
           </div>
         </Section>
-        <SectionSeparator className={css({ marginBlock: '1.5rem' })} />
+        <SectionSeparator
+          className={css({
+            marginBlock: '1.5rem',
+            // cancels the padding of the scroll area, up to its scrollbar
+            width: 'auto',
+            marginLeft: '-1.5rem',
+            marginRight: 'calc(10px - 1.5rem)',
+          })}
+        />
         <Section
           title={t('access.title')}
           description={t('access.description')}
