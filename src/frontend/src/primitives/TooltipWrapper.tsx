@@ -34,7 +34,10 @@ export const TooltipWrapper = ({
     return <VisualOnlyTooltip tooltip={tooltip}>{children}</VisualOnlyTooltip>
 
   return (
-    <TooltipTrigger delay={tooltipType === 'instant' ? 150 : 1000}>
+    <TooltipTrigger
+      delay={tooltipType === 'instant' ? 150 : 1000}
+      closeDelay={0}
+    >
       {children}
       <Tooltip>{tooltip}</Tooltip>
     </TooltipTrigger>
@@ -80,7 +83,6 @@ const StyledTooltip = styled(RACTooltip, {
       fill: 'var(--highlight-background)',
     },
     '&[data-entering]': { animation: 'slide 200ms' },
-    '&[data-exiting]': { animation: 'slide 200ms reverse ease-in' },
   },
 })
 
