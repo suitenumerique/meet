@@ -1,6 +1,12 @@
-import { A, Button, Dialog, P } from '@/primitives'
+import {
+  A,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogTitle,
+} from '@/primitives'
 import { useTranslation } from 'react-i18next'
-import { css } from '@/styled-system/css'
 import { getOS, type OS } from '@/utils/os'
 
 const SCREEN_CAPTURE_SETTINGS_LINKS: Partial<Record<OS, string>> = {
@@ -25,48 +31,47 @@ export const ScreenShareErrorModal = ({
     <Dialog
       isOpen={isOpen}
       role="alertdialog"
-      title={t('title')}
       aria-label={t('ariaLabel')}
       onClose={onClose}
     >
       {({ close }) => {
         return (
           <>
-            <P>
-              {t('message')}{' '}
-              {settingsHref && (
-                <>
-                  {t('settingsInstructions')}{' '}
-                  <A
-                    href={settingsHref}
-                    target="_blank"
-                    color="primary"
-                    aria-label={t(`settingsLabel.${os}`) + '-' + t('newTab')}
-                  >
-                    {t(`settingsLabel.${os}`)}
-                  </A>
-                  .{' '}
-                </>
-              )}
-              {t('helpLinkText')}{' '}
-              <A
-                href="https://lasuite.crisp.help/fr/article/visio-probleme-de-presentation-1xkf799/"
-                aria-label={t('helpLinkLabel') + '-' + t('newTab')}
-                target="_blank"
-                color="primary"
-              >
-                {t('helpLinkLabel')}
-              </A>
-              .
-            </P>
-            <Button
-              onPress={close}
-              size="sm"
-              variant="primary"
-              className={css({ marginLeft: 'auto', marginTop: '2rem' })}
-            >
-              {t('closeButton')}
-            </Button>
+            <DialogTitle>{t('title')}</DialogTitle>
+            <DialogBody>
+              <p>
+                {t('message')}{' '}
+                {settingsHref && (
+                  <>
+                    {t('settingsInstructions')}{' '}
+                    <A
+                      href={settingsHref}
+                      target="_blank"
+                      color="primary"
+                      aria-label={t(`settingsLabel.${os}`) + '-' + t('newTab')}
+                    >
+                      {t(`settingsLabel.${os}`)}
+                    </A>
+                    .{' '}
+                  </>
+                )}
+                {t('helpLinkText')}{' '}
+                <A
+                  href="https://lasuite.crisp.help/fr/article/visio-probleme-de-presentation-1xkf799/"
+                  aria-label={t('helpLinkLabel') + '-' + t('newTab')}
+                  target="_blank"
+                  color="primary"
+                >
+                  {t('helpLinkLabel')}
+                </A>
+                .
+              </p>
+            </DialogBody>
+            <DialogActions>
+              <Button onPress={close} size="sm" variant="primary">
+                {t('closeButton')}
+              </Button>
+            </DialogActions>
           </>
         )
       }}

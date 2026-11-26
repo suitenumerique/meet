@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import { Button, Dialog, P } from '@/primitives'
-import { HStack } from '@/styled-system/jsx'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogTitle,
+} from '@/primitives'
 import { useEffect, useMemo, useState } from 'react'
 import { NotificationType } from '@/features/notifications'
 import { AdminOrOwnerOnly } from '@/features/rooms/components/AdminOrOwnerOnly'
@@ -26,7 +31,7 @@ const LimitDescription = () => {
   )
 
   return (
-    <P>
+    <p>
       {t('description', {
         duration_message: formattedDuration
           ? t('durationMessage', {
@@ -34,7 +39,7 @@ const LimitDescription = () => {
             })
           : '',
       })}
-    </P>
+    </p>
   )
 }
 
@@ -63,13 +68,16 @@ const LimitReachedAlertDialogContent = () => {
   }, [room])
 
   return (
-    <Dialog isOpen={isOpen} role="alertdialog" title={t('title')}>
-      <LimitDescription />
-      <HStack gap="base">
-        <Button variant="text" size="sm" onPress={() => setIsOpen(false)}>
+    <Dialog isOpen={isOpen} role="alertdialog" type="alert">
+      <DialogTitle>{t('title')}</DialogTitle>
+      <DialogBody>
+        <LimitDescription />
+      </DialogBody>
+      <DialogActions>
+        <Button variant="primary" size="sm" onPress={() => setIsOpen(false)}>
           {t('button')}
         </Button>
-      </HStack>
+      </DialogActions>
     </Dialog>
   )
 }

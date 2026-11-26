@@ -1,7 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { css } from '@/styled-system/css'
-import { Button, Dialog, H, P } from '@/primitives'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogDismissButton,
+  DialogTitle,
+} from '@/primitives'
 import {
   closeSilentMicDialog,
   discardSilentMicDetection,
@@ -22,8 +29,6 @@ export const SilentMicDialog = () => {
       isOpen={isDialogOpen}
       role="dialog"
       type="flex"
-      title=""
-      aria-label={t('title')}
       onClose={closeSilentMicDialog}
     >
       <div
@@ -31,33 +36,26 @@ export const SilentMicDialog = () => {
           maxWidth: '500px',
         })}
       >
-        <H lvl={1}>{t('title')}</H>
-        <P>{t('intro')}</P>
-        <ul className={css({ listStyle: 'disc', paddingLeft: '24px' })}>
-          <li>{t('causes.system')}</li>
-          <li>{t('causes.hardware')}</li>
-          <li>{t('causes.wrongDevice')}</li>
-        </ul>
-        <P>{t('hint')}</P>
-        <div
-          className={css({
-            marginTop: '1.5rem',
-            display: 'flex',
-            gap: '1rem',
-            flexWrap: 'wrap',
-          })}
-        >
+        <DialogTitle className={css({ paddingRight: '2rem' })}>
+          {t('title')}
+        </DialogTitle>
+        <DialogBody>
+          <p>{t('intro')}</p>
+          <ul>
+            <li>{t('causes.system')}</li>
+            <li>{t('causes.hardware')}</li>
+            <li>{t('causes.wrongDevice')}</li>
+          </ul>
+          <p>{t('hint')}</p>
+        </DialogBody>
+        <DialogActions>
+          <DialogDismissButton onPress={discardSilentMicDetection}>
+            {t('discard')}
+          </DialogDismissButton>
           <Button variant="primary" size="sm" onPress={closeSilentMicDialog}>
             {t('close')}
           </Button>
-          <Button
-            variant="tertiary"
-            size="sm"
-            onPress={discardSilentMicDetection}
-          >
-            {t('discard')}
-          </Button>
-        </div>
+        </DialogActions>
       </div>
     </Dialog>
   )

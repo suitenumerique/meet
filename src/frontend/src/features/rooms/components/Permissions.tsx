@@ -1,6 +1,12 @@
 import { useWatchPermissions } from '@/features/rooms/hooks/useWatchPermissions'
 import { css } from '@/styled-system/css'
-import { Button, Dialog, H, P } from '@/primitives'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogTitle,
+} from '@/primitives'
 import { RiEqualizer2Line } from '@remixicon/react'
 import { useEffect, useMemo } from 'react'
 import { useSnapshot } from 'valtio'
@@ -83,17 +89,23 @@ const SystemPermissions = () => {
           maxWidth: '500px',
         })}
       >
-        <H lvl={1}>{t(`heading.${label}`)}</H>
-        <P>{t('intro', { device })}</P>
-        <ol className={css({ listStyle: 'decimal', paddingLeft: '24px' })}>
-          {Array.from({ length: 2 }, (_, index) => (
-            <li key={index}>
-              {t(`steps.${STEPS_OS[os] || 'other'}.${index + 1}`, { device })}
-            </li>
-          ))}
-        </ol>
+        <DialogTitle className={css({ paddingRight: '2rem' })}>
+          {t(`heading.${label}`)}
+        </DialogTitle>
+        <DialogBody>
+          <p>{t('intro', { device })}</p>
+          <ol>
+            {Array.from({ length: 2 }, (_, index) => (
+              <li key={index}>
+                {t(`steps.${STEPS_OS[os] || 'other'}.${index + 1}`, {
+                  device,
+                })}
+              </li>
+            ))}
+          </ol>
+        </DialogBody>
         {settingsUrl && (
-          <div className={css({ marginTop: '2rem' })}>
+          <DialogActions>
             <Button
               variant="primary"
               size="sm"
@@ -103,7 +115,7 @@ const SystemPermissions = () => {
             >
               {t('openSettings')}
             </Button>
-          </div>
+          </DialogActions>
         )}
       </div>
     </Dialog>
@@ -203,34 +215,36 @@ export const Permissions = () => {
               maxWidth: '400px',
             })}
           >
-            <H lvl={2}>
+            <DialogTitle className={css({ paddingRight: '2rem' })}>
               {t(`heading.${permissionLabel}`, {
                 appTitle,
               })}
-            </H>
-            <ol className={css({ listStyle: 'decimal', paddingLeft: '24px' })}>
-              <li>
-                {isSafari() ? (
-                  t('body.openMenu.safari', {
-                    appDomain: window.origin.replace('https://', ''),
-                  })
-                ) : (
-                  <>
-                    {descriptionBeforeIcon}
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        verticalAlign: 'middle',
-                      }}
-                    >
-                      <RiEqualizer2Line />
-                    </span>
-                    {descriptionAfterIcon}
-                  </>
-                )}
-              </li>
-              <li>{t(`body.details.${permissionLabel}`)}</li>
-            </ol>
+            </DialogTitle>
+            <DialogBody>
+              <ol>
+                <li>
+                  {isSafari() ? (
+                    t('body.openMenu.safari', {
+                      appDomain: window.origin.replace('https://', ''),
+                    })
+                  ) : (
+                    <>
+                      {descriptionBeforeIcon}
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          verticalAlign: 'middle',
+                        }}
+                      >
+                        <RiEqualizer2Line />
+                      </span>
+                      {descriptionAfterIcon}
+                    </>
+                  )}
+                </li>
+                <li>{t(`body.details.${permissionLabel}`)}</li>
+              </ol>
+            </DialogBody>
           </div>
         </div>
       </Dialog>

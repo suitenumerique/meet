@@ -1,9 +1,17 @@
-import { A, Button, Dialog, H, P, ScreenReaderAnnouncer } from '@/primitives'
+import {
+  A,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogDismissButton,
+  DialogTitle,
+  ScreenReaderAnnouncer,
+} from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import { useSnapshot } from 'valtio'
 import { connectionObserverStore } from '@/stores/connectionObserver'
-import { Stack } from '@/styled-system/jsx'
 import { useEffect, useRef, useState } from 'react'
 import { navigateTo } from '@/navigation/navigateTo'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
@@ -68,16 +76,15 @@ const VisualCountDown = () => {
   return (
     <div
       className={css({
-        height: '50px',
-        width: '50px',
-        backgroundColor: 'brand.100',
-        borderRadius: '25px',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontWeight: '500',
-        color: 'brand.700',
-        margin: 'auto',
+        flexShrink: 0,
+        padding: '0.125rem 0.5rem',
+        borderRadius: '4px',
+        backgroundColor: 'background.semantic.brand.tertiary',
+        color: 'content.semantic.brand.primary',
+        fontSize: 'sm',
+        fontWeight: 'medium',
+        lineHeight: '1.25rem',
+        fontVariantNumeric: 'tabular-nums',
       })}
       aria-hidden="true"
     >
@@ -89,13 +96,13 @@ const VisualCountDown = () => {
 const Description = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'isIdleDisconnectModal' })
   const formatter = useHumanizeDuration()
-  return <P>{t('body', { duration: formatter(IDLE_DISCONNECT_TIMEOUT_MS) })}</P>
+  return <p>{t('body', { duration: formatter(IDLE_DISCONNECT_TIMEOUT_MS) })}</p>
 }
 
 const Settings = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'isIdleDisconnectModal' })
   return (
-    <P>
+    <p>
       {t('settingsPrefix')}{' '}
       <A
         color="primary"
@@ -107,7 +114,7 @@ const Settings = () => {
         {t('settingsLink')}
       </A>
       {t('settingsSuffix')}
-    </P>
+    </p>
   )
 }
 
@@ -128,31 +135,34 @@ export const IsIdleDisconnectModal = () => {
         return (
           <div>
             <ScreenReaderAnnouncer channel="idle" />
-            <VisualCountDown />
-            <H lvl={2} centered>
-              {t('title')}
-            </H>
-            <Description />
-            <Settings />
-            <Stack
-              direction={{ base: 'column', xsm: 'row' }}
-              align={{ base: 'stretch', xsm: 'center' }}
-              marginTop="2rem"
+            <div
+              className={css({
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+              })}
             >
-              <Button
+              <DialogTitle>{t('title')}</DialogTitle>
+              <VisualCountDown />
+            </div>
+            <DialogBody>
+              <Description />
+              <Settings />
+            </DialogBody>
+            <DialogActions>
+              <DialogDismissButton
                 onPress={() => {
                   connectionObserverStore.isIdleDisconnectModalOpen = false
                   navigateTo('feedback', { duplicateIdentity: false })
                 }}
-                size="sm"
-                variant="secondary"
               >
                 {t('leaveButton')}
-              </Button>
+              </DialogDismissButton>
               <Button onPress={close} size="sm" variant="primary">
                 {t('stayButton')}
               </Button>
-            </Stack>
+            </DialogActions>
           </div>
         )
       }}

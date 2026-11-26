@@ -1,6 +1,12 @@
 import type { MediaDeviceFailure } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
-import { Button, Dialog, P } from '@/primitives'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogBody,
+  DialogTitle,
+} from '@/primitives'
 
 export type MediaDeviceErrorAlertProps = {
   error?: MediaDeviceFailure | null
@@ -18,16 +24,16 @@ export const MediaDeviceErrorAlert = ({
   if (!error || !kind) return
 
   return (
-    <Dialog
-      role="alertdialog"
-      isOpen={!!error}
-      onClose={onClose}
-      title={t(`${error}.title.${kind}`)}
-    >
-      <P>{t(`${error}.body.${kind}`)}</P>
-      <Button variant="text" size="sm" onPress={onClose}>
-        {t('close')}
-      </Button>
+    <Dialog role="alertdialog" type="alert" isOpen={!!error} onClose={onClose}>
+      <DialogTitle>{t(`${error}.title.${kind}`)}</DialogTitle>
+      <DialogBody>
+        <p>{t(`${error}.body.${kind}`)}</p>
+      </DialogBody>
+      <DialogActions>
+        <Button variant="primary" size="sm" onPress={onClose}>
+          {t('close')}
+        </Button>
+      </DialogActions>
     </Dialog>
   )
 }

@@ -12,6 +12,12 @@ export { Button } from './Button'
 export { LinkButton } from './LinkButton'
 export { useCloseDialog } from './useCloseDialog'
 export { Dialog, type DialogProps } from './Dialog'
+export {
+  DialogActions,
+  DialogBody,
+  DialogDismissButton,
+  DialogTitle,
+} from './DialogLayout'
 export { Div } from './Div'
 export { Field } from './Field'
 export { Form } from './Form'
