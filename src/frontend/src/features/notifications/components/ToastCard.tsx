@@ -95,9 +95,7 @@ const iconSlot = css({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  minWidth: '24px',
-  height: '24px',
-  '& svg': {
+  '& > svg': {
     width: '24px',
     height: '24px',
   },
@@ -155,8 +153,13 @@ export const ToastAction = ({
 
 export type ToastCardProps = {
   variant?: ToastVariant
-  /** Icon before the message, 24px. */
+  /** Icon before the message, 24px, or an avatar. */
   icon?: ReactNode
+  /**
+   * Where the icon sits next to the text: in the middle of it, or on its
+   * first line when the message can be long.
+   */
+  iconAlign?: 'center' | 'start'
   /** Picture taking the whole height, before the icon. */
   media?: ReactNode
   /** Who or what the notification is about, above its message. */
@@ -181,6 +184,7 @@ export const ToastCard = forwardRef<HTMLDivElement, ToastCardProps>(
     {
       variant,
       icon,
+      iconAlign = 'center',
       media,
       title,
       children,
@@ -202,17 +206,24 @@ export const ToastCard = forwardRef<HTMLDivElement, ToastCardProps>(
           <span
             className={cx(
               iconSlot,
-              !!title && css({ alignSelf: 'flex-start' })
+              iconAlign === 'start' && css({ alignSelf: 'flex-start' })
             )}
             aria-hidden="true"
           >
             {icon}
           </span>
         )}
-        <div className={content} {...contentProps}>
+        <div
+          className={cx(
+            content,
+            // puts the first line of text at the height of a 24px icon
+            iconAlign === 'start' && css({ paddingBlock: '3px' })
+          )}
+          {...contentProps}
+        >
           {title && (
             <div
-              className={css({ fontWeight: 'bold', lineHeight: '1.5rem' })}
+              className={css({ fontWeight: 'bold' })}
               {...(children ? undefined : titleProps)}
             >
               {title}

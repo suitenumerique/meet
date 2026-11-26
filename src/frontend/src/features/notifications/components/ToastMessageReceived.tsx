@@ -42,6 +42,7 @@ export function ToastMessageReceived({
       {...toastProps}
       ref={ref}
       icon={<RiMessage2Line />}
+      iconAlign="start"
       title={participant.name}
       onPress={() => toggleChat()}
       pressLabel={t('openChat')}
