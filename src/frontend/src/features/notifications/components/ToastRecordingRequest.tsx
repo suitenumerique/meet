@@ -2,13 +2,12 @@ import { useToast } from 'react-aria'
 import { useMemo, useRef } from 'react'
 
 import { type ToastProps } from './Toast'
-import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
+import { Icon } from '@/primitives'
+import { RiRecordCircleLine } from '@remixicon/react'
 import { NotificationType } from '../NotificationType'
-import { Button } from '@/primitives'
-import { css } from '@/styled-system/css'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import { StyledToastContainer } from './StyledToastContainer'
+import { ToastCard, ToastAction } from './ToastCard'
 
 export function ToastRecordingRequest({
   state,
@@ -31,12 +30,14 @@ export function ToastRecordingRequest({
     switch (type) {
       case NotificationType.TranscriptionRequested:
         return {
+          icon: <Icon name="speech_to_text" />,
           key: 'transcript.requested',
           isMenuOpen: isTranscriptOpen,
           openMenu: openTranscript,
         }
       case NotificationType.ScreenRecordingRequested:
         return {
+          icon: <RiRecordCircleLine />,
           key: 'screenRecording.requested',
           isMenuOpen: isScreenRecordingOpen,
           openMenu: openScreenRecording,
@@ -55,36 +56,20 @@ export function ToastRecordingRequest({
   if (!options) return
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <HStack
-        justify="center"
-        alignItems="center"
-        {...contentProps}
-        padding={14}
-        gap={0}
-      >
-        {t(options.key, {
-          name: participant?.name,
-        })}
-        {!options.isMenuOpen && (
-          <div
-            className={css({
-              marginLeft: '0.5rem',
-            })}
-          >
-            <Button
-              size="sm"
-              variant="text"
-              className={css({
-                color: 'brand.150',
-              })}
-              onPress={options.openMenu}
-            >
-              {t('openMenu')}
-            </Button>
-          </div>
-        )}
-      </HStack>
-    </StyledToastContainer>
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      icon={options.icon}
+      actions={
+        !options.isMenuOpen && (
+          <ToastAction onPress={options.openMenu}>{t('openMenu')}</ToastAction>
+        )
+      }
+    >
+      {t(options.key, {
+        name: participant?.name,
+      })}
+    </ToastCard>
   )
 }

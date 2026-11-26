@@ -2,13 +2,10 @@ import { useToast } from 'react-aria'
 import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
-import { HStack } from '@/styled-system/jsx'
-import { Button, Div } from '@/primitives'
 import { useTranslation } from 'react-i18next'
-import { RiCloseLine, RiHand } from '@remixicon/react'
+import { RiHand } from '@remixicon/react'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
-import { css } from '@/styled-system/css'
-import { StyledToastContainer } from './StyledToastContainer'
+import { ToastCard, ToastAction } from './ToastCard'
 
 export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
@@ -24,47 +21,37 @@ export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
   if (!participant) return
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <HStack
-        justify="center"
-        alignItems="center"
-        {...contentProps}
-        padding={14}
-        gap={0}
-      >
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      titleProps={titleProps}
+      icon={
         <RiHand
-          color="white"
           style={{
-            marginRight: '1rem',
             animationDuration: '300ms',
             animationName: 'wave_hand',
             animationIterationCount: '2',
           }}
         />
-        <Div {...titleProps} marginRight="xs">
-          {t('raised.description', {
-            name: participant.name || t('defaultName'),
-          })}
-        </Div>
-        {!isParticipantsOpen && (
-          <Button
-            size="sm"
-            variant="text"
-            className={css({
-              color: 'brand.150',
-            })}
+      }
+      actions={
+        !isParticipantsOpen && (
+          <ToastAction
             onPress={(e) => {
               toggleParticipants()
               closeButtonProps.onPress?.(e)
             }}
           >
             {t('raised.cta')}
-          </Button>
-        )}
-        <Button square size="sm" invisible {...closeButtonProps}>
-          <RiCloseLine size={18} color="white" />
-        </Button>
-      </HStack>
-    </StyledToastContainer>
+          </ToastAction>
+        )
+      }
+      closeButtonProps={closeButtonProps}
+    >
+      {t('raised.description', {
+        name: participant.name || t('defaultName'),
+      })}
+    </ToastCard>
   )
 }

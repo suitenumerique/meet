@@ -2,11 +2,9 @@ import { useToast } from 'react-aria'
 import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
-import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/primitives'
-import { css } from '@/styled-system/css'
-import { StyledToastContainer } from './StyledToastContainer'
+import { RiHand } from '@remixicon/react'
+import { ToastCard, ToastAction } from './ToastCard'
 
 export function ToastLowerHand({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications', { keyPrefix: 'lowerHand' })
@@ -21,27 +19,18 @@ export function ToastLowerHand({ state, ...props }: Readonly<ToastProps>) {
   }
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <HStack
-        justify="center"
-        alignItems="center"
-        {...contentProps}
-        padding={14}
-        gap={0}
-      >
-        <p>{t('auto')}</p>
-        <Button
-          size="sm"
-          variant="text"
-          className={css({
-            color: 'brand.150',
-            marginLeft: '0.5rem',
-          })}
-          onPress={() => handleDismiss()}
-        >
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      icon={<RiHand />}
+      actions={
+        <ToastAction onPress={() => handleDismiss()}>
           {t('dismiss')}
-        </Button>
-      </HStack>
-    </StyledToastContainer>
+        </ToastAction>
+      }
+    >
+      {t('auto')}
+    </ToastCard>
   )
 }

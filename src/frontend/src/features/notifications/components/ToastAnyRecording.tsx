@@ -2,9 +2,10 @@ import { useToast } from 'react-aria'
 import { useMemo, useRef } from 'react'
 
 import type { ToastProps } from './Toast'
-import { StyledToastContainer } from './StyledToastContainer'
-import { HStack } from '@/styled-system/jsx'
+import { ToastCard, type ToastVariant } from './ToastCard'
 import { useTranslation } from 'react-i18next'
+import { Icon } from '@/primitives'
+import { RiErrorWarningLine, RiRecordCircleLine } from '@remixicon/react'
 import { NotificationType } from '../NotificationType'
 
 export function ToastAnyRecording({ state, ...props }: Readonly<ToastProps>) {
@@ -45,21 +46,44 @@ export function ToastAnyRecording({ state, ...props }: Readonly<ToastProps>) {
     }
   }, [type])
 
+  const variant: ToastVariant = useMemo(() => {
+    switch (type) {
+      case NotificationType.TranscriptionFailed:
+      case NotificationType.ScreenRecordingFailed:
+        return 'error'
+      case NotificationType.TranscriptionLimitReached:
+      case NotificationType.ScreenRecordingLimitReached:
+      case NotificationType.TranscriptionInterrupted:
+      case NotificationType.ScreenRecordingInterrupted:
+      case NotificationType.TranscriptionAborted:
+      case NotificationType.ScreenRecordingAborted:
+        return 'warning'
+      default:
+        return 'neutral'
+    }
+  }, [type])
+
   if (!key) return
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <HStack
-        justify="center"
-        alignItems="center"
-        {...contentProps}
-        padding={14}
-        gap={0}
-      >
-        {t(key, {
-          name: participant?.name,
-        })}
-      </HStack>
-    </StyledToastContainer>
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      variant={variant}
+      icon={
+        variant === 'error' || variant === 'warning' ? (
+          <RiErrorWarningLine />
+        ) : key.startsWith('transcript') ? (
+          <Icon name="speech_to_text" />
+        ) : (
+          <RiRecordCircleLine />
+        )
+      }
+    >
+      {t(key, {
+        name: participant?.name,
+      })}
+    </ToastCard>
   )
 }

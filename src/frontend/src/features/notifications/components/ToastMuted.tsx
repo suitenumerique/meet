@@ -2,9 +2,9 @@ import { useToast } from 'react-aria'
 import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
-import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
-import { StyledToastContainer } from './StyledToastContainer'
+import { RiMicOffLine } from '@remixicon/react'
+import { ToastCard } from './ToastCard'
 
 export function ToastMuted({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
@@ -15,16 +15,13 @@ export function ToastMuted({ state, ...props }: Readonly<ToastProps>) {
   if (!participant) return
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <HStack
-        justify="center"
-        alignItems="center"
-        {...contentProps}
-        padding={14}
-        gap={0}
-      >
-        {t('muted', { name: participant.name })}
-      </HStack>
-    </StyledToastContainer>
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      icon={<RiMicOffLine />}
+    >
+      {t('muted', { name: participant.name })}
+    </ToastCard>
   )
 }

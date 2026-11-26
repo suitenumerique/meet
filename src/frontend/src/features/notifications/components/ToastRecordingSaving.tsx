@@ -1,14 +1,12 @@
 import { useToast } from 'react-aria'
 import { useMemo, useRef } from 'react'
-import { Text } from '@/primitives'
 
 import { type ToastProps } from './Toast'
-import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
+import { RiCheckboxCircleLine } from '@remixicon/react'
 import { useUser } from '@/features/auth/api/useUser'
-import { css } from '@/styled-system/css'
 import { RecordingMode } from '@/features/recording'
-import { StyledToastContainer } from './StyledToastContainer'
+import { ToastCard } from './ToastCard'
 
 export function ToastRecordingSaving({
   state,
@@ -31,36 +29,23 @@ export function ToastRecordingSaving({
   }, [props.toast.content])
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <HStack
-        justify="center"
-        alignItems="center"
-        {...contentProps}
-        padding={14}
-        gap="base"
-      >
-        <Text
-          margin={false}
-          className={css({
-            maxWidth: '22rem',
-            wordBreak: 'break-word',
-            overflowWrap: 'break-word',
-            whiteSpace: 'normal',
-          })}
-        >
-          {user?.email ? (
-            <span
-              dangerouslySetInnerHTML={{
-                __html: t(`${modeLabel}.message`, {
-                  email: user.email,
-                }),
-              }}
-            />
-          ) : (
-            t(`${modeLabel}.default`)
-          )}
-        </Text>
-      </HStack>
-    </StyledToastContainer>
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      icon={<RiCheckboxCircleLine />}
+    >
+      {user?.email ? (
+        <span
+          dangerouslySetInnerHTML={{
+            __html: t(`${modeLabel}.message`, {
+              email: user.email,
+            }),
+          }}
+        />
+      ) : (
+        t(`${modeLabel}.default`)
+      )}
+    </ToastCard>
   )
 }

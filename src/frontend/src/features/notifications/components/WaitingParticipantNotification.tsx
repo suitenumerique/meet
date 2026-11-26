@@ -1,7 +1,6 @@
-import { StyledToastContainer } from './StyledToastContainer'
-import { HStack, VStack } from '@/styled-system/jsx'
+import { ToastAction, ToastCard } from './ToastCard'
+import { HStack } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
-import { Button, Text } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { RiInfinityLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
@@ -87,77 +86,53 @@ export const WaitingParticipantNotification = () => {
 
   if (!waitingParticipants.length) return null
 
+  const label = waitingParticipants.length > 1 ? t('several') : t('one')
+
   return (
-    <StyledToastContainer role="alert">
-      <HStack
-        padding={'1rem'}
-        gap={'1rem'}
-        role={'alertdialog'}
-        aria-label={waitingParticipants.length > 1 ? t('several') : t('one')}
-        aria-modal={false}
-      >
-        {showQuickActionsMessage ? (
-          <VStack gap={'1rem'} alignItems={'start'}>
-            <Text
-              variant="paragraph"
-              margin={false}
-              style={{
-                minWidth: '15rem',
-              }}
-            >
-              {t('one')}
-            </Text>
-            <HStack gap="1rem">
-              <Avatar
-                name={waitingParticipants[0].username}
-                bgColor={waitingParticipants[0].color}
-                context="list"
-                notification
-              />
-              <Text
-                variant="sm"
-                margin={false}
-                className={css({
-                  maxWidth: '10rem',
-                  wordBreak: 'break-word',
-                  overflowWrap: 'break-word',
-                  whiteSpace: 'normal',
-                })}
-              >
-                {waitingParticipants[0].username}
-              </Text>
-            </HStack>
-            <HStack gap="0.25rem" marginLeft="auto">
-              <Button
-                size="sm"
-                variant="text"
-                className={css({
-                  color: 'brand.150',
-                })}
+    <div role="alert">
+      {showQuickActionsMessage ? (
+        <ToastCard
+          role="alertdialog"
+          aria-label={label}
+          aria-modal={false}
+          icon={
+            <Avatar
+              name={waitingParticipants[0].username}
+              bgColor={waitingParticipants[0].color}
+              context="list"
+              notification
+            />
+          }
+          title={t('one')}
+          actions={
+            <>
+              <ToastAction
                 onPress={async () => {
                   await handleParticipantEntry(waitingParticipants[0], true)
                   setShowQuickActionsMessage(false)
                 }}
               >
                 {t('accept')}
-              </Button>
-              <Button
-                size="sm"
-                variant="text"
-                className={css({
-                  color: 'brand.150',
-                })}
+              </ToastAction>
+              <ToastAction
                 onPress={() => {
                   toggleParticipants()
                   setShowQuickActionsMessage(false)
                 }}
               >
                 {t('open')}
-              </Button>
-            </HStack>
-          </VStack>
-        ) : (
-          <>
+              </ToastAction>
+            </>
+          }
+        >
+          {waitingParticipants[0].username}
+        </ToastCard>
+      ) : (
+        <ToastCard
+          role="alertdialog"
+          aria-label={label}
+          aria-modal={false}
+          icon={
             <HStack gap={0}>
               <Avatar
                 name={waitingParticipants[0].username}
@@ -181,7 +156,7 @@ export const WaitingParticipantNotification = () => {
                   className={css({
                     width: '32px',
                     height: '32px',
-                    fontSize: '1rem',
+                    fontSize: '0.875rem',
                     color: 'white',
                     display: 'flex',
                     borderRadius: '50%',
@@ -200,33 +175,22 @@ export const WaitingParticipantNotification = () => {
                 </span>
               )}
             </HStack>
-            <Text
-              variant="paragraph"
-              margin={false}
-              wrap={'balance'}
-              style={{
-                maxWidth: waitingParticipants.length == 1 ? '10rem' : '15rem',
-              }}
-            >
-              {waitingParticipants.length > 1 ? t('several') : t('one')}
-            </Text>
-            {!isParticipantsOpen && (
-              <Button
-                size="sm"
-                variant="text"
-                className={css({
-                  color: 'brand.150',
-                })}
+          }
+          actions={
+            !isParticipantsOpen && (
+              <ToastAction
                 onPress={() => {
                   toggleParticipants()
                 }}
               >
                 {t('open')}
-              </Button>
-            )}
-          </>
-        )}
-      </HStack>
-    </StyledToastContainer>
+              </ToastAction>
+            )
+          }
+        >
+          {label}
+        </ToastCard>
+      )}
+    </div>
   )
 }

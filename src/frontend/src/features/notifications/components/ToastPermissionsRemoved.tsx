@@ -2,9 +2,9 @@ import { useToast } from 'react-aria'
 import { useMemo, useRef } from 'react'
 
 import { type ToastProps } from './Toast'
-import { HStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
-import { StyledToastContainer } from './StyledToastContainer'
+import { RiErrorWarningLine } from '@remixicon/react'
+import { ToastCard } from './ToastCard'
 
 export function ToastPermissionsRemoved({
   state,
@@ -38,16 +38,14 @@ export function ToastPermissionsRemoved({
   if (!participant || !key) return null
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <HStack
-        justify="center"
-        alignItems="center"
-        {...contentProps}
-        padding={14}
-        gap={0}
-      >
-        {t(key)}
-      </HStack>
-    </StyledToastContainer>
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      variant="warning"
+      icon={<RiErrorWarningLine />}
+    >
+      {t(key)}
+    </ToastCard>
   )
 }

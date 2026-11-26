@@ -1,10 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { Text } from '@/primitives'
-import { css } from '@/styled-system/css'
-import { HStack } from '@/styled-system/jsx'
+import { RiHourglassLine } from '@remixicon/react'
 import { RecordingMode } from '@/features/recording'
 import { useRecordingWaitingForTracks } from '@/features/recording/hooks/useRecordingWaitingForTracks'
-import { StyledToastContainer } from './StyledToastContainer'
+import { ToastCard } from './ToastCard'
 
 export const RecordingWaitingForTracksNotification = () => {
   const { t } = useTranslation('notifications')
@@ -18,24 +16,12 @@ export const RecordingWaitingForTracksNotification = () => {
   if (!isTranscriptWaiting && !isScreenRecordingWaiting) return null
 
   return (
-    <StyledToastContainer role="status">
-      <HStack padding={14}>
-        <Text
-          margin={false}
-          className={css({
-            maxWidth: '22rem',
-            wordBreak: 'break-word',
-            overflowWrap: 'break-word',
-            whiteSpace: 'normal',
-          })}
-        >
-          {t(
-            isTranscriptWaiting
-              ? 'transcript.waitingForTracks'
-              : 'screenRecording.waitingForTracks'
-          )}
-        </Text>
-      </HStack>
-    </StyledToastContainer>
+    <ToastCard role="status" icon={<RiHourglassLine />}>
+      {t(
+        isTranscriptWaiting
+          ? 'transcript.waitingForTracks'
+          : 'screenRecording.waitingForTracks'
+      )}
+    </ToastCard>
   )
 }

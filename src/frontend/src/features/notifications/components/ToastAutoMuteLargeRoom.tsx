@@ -2,11 +2,9 @@ import { useToast } from 'react-aria'
 import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
-import { VStack } from '@/styled-system/jsx'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/primitives'
-import { css } from '@/styled-system/css'
-import { StyledToastContainer } from './StyledToastContainer'
+import { RiMicOffLine } from '@remixicon/react'
+import { ToastCard, ToastAction } from './ToastCard'
 import { useRoomContext } from '@livekit/components-react'
 
 export function ToastAutoMuteLargeRoom({
@@ -28,27 +26,18 @@ export function ToastAutoMuteLargeRoom({
   }
 
   return (
-    <StyledToastContainer {...toastProps} ref={ref}>
-      <VStack
-        justify="start"
-        alignItems="self-start"
-        {...contentProps}
-        maxWidth="370px"
-        gap="0.75rem"
-        padding={14}
-      >
-        <p>{t('auto')}</p>
-        <Button
-          size="sm"
-          variant="text"
-          className={css({
-            color: 'brand.150',
-          })}
-          onPress={() => handleDismiss()}
-        >
+    <ToastCard
+      {...toastProps}
+      ref={ref}
+      contentProps={contentProps}
+      icon={<RiMicOffLine />}
+      actions={
+        <ToastAction onPress={() => handleDismiss()}>
           {t('dismiss')}
-        </Button>
-      </VStack>
-    </StyledToastContainer>
+        </ToastAction>
+      }
+    >
+      {t('auto')}
+    </ToastCard>
   )
 }
