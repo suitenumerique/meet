@@ -32,6 +32,15 @@
         "disable": "Ruisonderdrukking uitschakelen"
       }
     },
+    "audioLevelEqualization": {
+      "label": "Audioniveaus van deelnemers automatisch balanceren",
+      "heading": "Audioniveauegalisatie",
+      "description": "Past het volume van elke deelnemer continu aan zodat iedereen even goed te horen is.",
+      "ariaLabel": {
+        "enable": "Audioniveauegalisatie inschakelen",
+        "disable": "Audioniveauegalisatie uitschakelen"
+      }
+    },
     "speakers": {
       "heading": "Luidsprekers",
       "label": "Selecteer uw audio-uitvoer",
