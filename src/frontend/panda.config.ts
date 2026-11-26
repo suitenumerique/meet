@@ -14,6 +14,12 @@ export default defineConfig({
     '--global-font-body': 'var(--fonts-sans)',
     // Height of the settings dialogs, when the viewport is tall enough.
     '--settings-dialog-max-height': '41.625rem',
+    // Angle a flipped chevron comes back from, see `chevronFlip`.
+    '--chevron-flip-angle': {
+      syntax: '<angle>',
+      inherits: false,
+      initialValue: '0deg',
+    },
   },
   conditions,
   theme,
