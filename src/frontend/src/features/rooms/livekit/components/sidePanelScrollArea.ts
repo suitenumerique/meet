@@ -1,5 +1,5 @@
 import { cva, cx } from '@/styled-system/css'
-import { subtleScrollbar } from '@/styles/scrollbar'
+import { scrollbar } from '@/primitives/scrollbar'
 
 const scrollArea = cva({
   base: {
@@ -37,4 +37,4 @@ const scrollArea = cva({
  * displayed next to the right border of the panel.
  */
 export const sidePanelScrollArea = (props?: Parameters<typeof scrollArea>[0]) =>
-  cx(subtleScrollbar, scrollArea(props))
+  cx(scrollbar, scrollArea(props))

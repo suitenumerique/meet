@@ -10,7 +10,7 @@ import { ChatDisclaimer } from './ChatDisclaimer'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useSnapshot } from 'valtio'
 import { ChatRow, chatStore } from '@/stores/chat'
-import { subtleScrollbar } from '@/styles/scrollbar'
+import { scrollbar } from '@/primitives/scrollbar'
 
 // Estimated height of a chat entry in px. ListLayout measures the real
 // rendered height of each row; this value is only used to size the
@@ -73,7 +73,7 @@ export const ChatMessages = () => {
         aria-label={t('messagesLabel', 'Chat messages')}
         items={items}
         selectionMode="none"
-        className={subtleScrollbar}
+        className={scrollbar}
         style={{
           display: 'block',
           height: '100%',

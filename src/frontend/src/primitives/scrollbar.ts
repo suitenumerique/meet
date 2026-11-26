@@ -1,10 +1,14 @@
 import { css } from '@/styled-system/css'
 
 /**
- * A thin gray scrollbar, without track, displayed as long as the element is
- * scrollable, where the system one would hide when idle.
+ * The scrollbar of the app: thin and gray, without track, displayed as long
+ * as the element is scrollable, where the system one would hide when idle.
+ *
+ * To set on any element which scrolls:
+ *
+ *   <div className={cx(scrollbar, css({ overflowY: 'auto' }))} />
  */
-export const subtleScrollbar = css({
+export const scrollbar = css({
   '&::-webkit-scrollbar': {
     width: '8px',
   },

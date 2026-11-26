@@ -9,7 +9,7 @@ import {
   persistTextAreaValue,
 } from '@/stores/chat'
 import { ChatSubmitButton } from './ChatSubmitButton'
-import { subtleScrollbar } from '@/styles/scrollbar'
+import { scrollbar } from '@/primitives/scrollbar'
 
 const StyledContainer = styled('div', {
   base: {
@@ -78,7 +78,7 @@ export const ChatTextArea = () => {
     <StyledContainer>
       <TextArea
         ref={inputRef}
-        className={subtleScrollbar}
+        className={scrollbar}
         value={textAreaValue}
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
