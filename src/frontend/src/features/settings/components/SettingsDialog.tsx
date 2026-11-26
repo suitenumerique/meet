@@ -6,7 +6,8 @@ import { useLanguageLabels } from '@/i18n/useLanguageLabels'
 import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
 import { Tab, TabList, TabPanel, Tabs } from '@/primitives/Tabs'
 import { text } from '@/primitives/Text.tsx'
-import { css } from '@/styled-system/css'
+import { css, cx } from '@/styled-system/css'
+import { scrollbar } from '@/primitives/scrollbar'
 import { useUser } from '@/features/auth/api/useUser'
 import { LoginButton } from '@/components/LoginButton'
 import { logout } from '@/features/auth/utils/logout'
@@ -49,16 +50,20 @@ const tabPanelContainerStyle = css({
   display: 'flex',
   flexGrow: '1',
   marginTop: '4rem',
-  paddingRight: '1.5rem',
+  // the scrollbar of a tab is 8px wide, 2px away from the border of the dialog
+  paddingRight: '2px',
   paddingBottom: '0.5rem',
   minWidth: 0,
+  '& > [role=tabpanel]': {
+    scrollbarGutter: 'stable',
+    paddingRight: 'calc(3.5rem - 10px)',
+  },
 })
 
 const tabPanelStyle = css({
   flexGrow: '1',
   minWidth: 0,
   overflowY: 'auto',
-  paddingRight: '1.5rem',
   paddingBottom: '1rem',
 })
 
@@ -156,7 +161,10 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
           </TabList>
         </div>
         <div className={tabPanelContainerStyle}>
-          <TabPanel id={SettingsDialogTabKey.GENERAL} className={tabPanelStyle}>
+          <TabPanel
+            id={SettingsDialogTabKey.GENERAL}
+            className={cx(scrollbar, tabPanelStyle)}
+          >
             {generalContent}
           </TabPanel>
           <RoomsTab id={SettingsDialogTabKey.ROOMS} />

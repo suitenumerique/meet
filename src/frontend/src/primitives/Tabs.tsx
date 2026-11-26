@@ -8,7 +8,9 @@ import {
   TabListProps as RACTabListProps,
   TabPanelProps as RACTabPanelProps,
 } from 'react-aria-components'
+import { cx } from '@/styled-system/css'
 import { styled } from '@/styled-system/jsx'
+import { scrollbar } from './scrollbar'
 import { type StyledVariantProps } from '@/styled-system/types'
 import React from 'react'
 
@@ -182,6 +184,18 @@ const StyledTabPanel = styled(RACTabPanel, {
 export type TabPanelProps = RACTabPanelProps &
   StyledVariantProps<typeof StyledTabPanel>
 
-export const TabPanel = ({ children, ...props }: TabPanelProps) => {
-  return <StyledTabPanel {...props}>{children}</StyledTabPanel>
+export const TabPanel = ({ children, className, ...props }: TabPanelProps) => {
+  return (
+    <StyledTabPanel
+      {...props}
+      // a panel which fills its container scrolls
+      className={
+        props.flex && (className === undefined || typeof className === 'string')
+          ? cx(scrollbar, className)
+          : className
+      }
+    >
+      {children}
+    </StyledTabPanel>
+  )
 }

@@ -63,9 +63,14 @@ const tabPanelContainerStyle = css({
   display: 'flex',
   flexGrow: '1',
   marginTop: '4rem',
-  paddingRight: '1.5rem',
+  // the scrollbar of a tab is 8px wide, 2px away from the border of the dialog
+  paddingRight: '2px',
   paddingBottom: '0.5rem',
   minWidth: 0,
+  '& > [role=tabpanel]': {
+    scrollbarGutter: 'stable',
+    paddingRight: 'calc(3.5rem - 10px)',
+  },
 })
 
 export type SettingsDialogExtended = Pick<
