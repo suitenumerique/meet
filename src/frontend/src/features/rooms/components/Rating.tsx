@@ -10,32 +10,33 @@ import { captureEvent } from '@/features/analytics/telemetry'
 const Card = styled('div', {
   base: {
     border: '1px solid',
-    borderColor: 'gray.150',
+    borderColor: 'border.surface.primary',
+    backgroundColor: 'background.surface.primary',
     padding: '1rem',
     marginTop: '1.5rem',
-    borderRadius: '0.25rem',
-    boxShadow: '',
+    borderRadius: '4px',
     width: '100%',
     maxWidth: '410px',
     minHeight: '196px',
   },
 })
 
+// The ratings share the border of a field of the UI kit.
 const Bar = styled('div', {
   base: {
     display: 'flex',
-    border: '2px solid',
-    borderColor: 'gray.150',
-    borderRadius: '8px',
-    overflowY: 'hidden',
-    scrollbar: 'hidden',
+    border: '1px solid',
+    borderColor: 'border.semantic.neutral.tertiary',
+    borderRadius: '4px',
+    overflow: 'hidden',
   },
 })
 
 const ratingButtonRecipe = cva({
   base: {
-    backgroundColor: 'white',
-    color: 'initial',
+    backgroundColor: 'background.surface.primary',
+    color: 'content.semantic.neutral.primary',
+    fontWeight: 'medium',
     border: 'none',
     borderRadius: 0,
     padding: { base: '0.5rem 0.25rem', xsm: '0.5rem 0.85rem' },
@@ -44,23 +45,30 @@ const ratingButtonRecipe = cva({
     minWidth: 0,
     textAlign: 'center',
     cursor: 'pointer',
+    transition: 'background-color 150ms',
+    // inside the button: the bar clips what overflows
+    '&[data-focus-visible]': {
+      outlineOffset: '-2px!',
+    },
   },
   variants: {
     selected: {
       true: {
-        backgroundColor: 'brand.550',
-        color: 'white',
+        backgroundColor: 'background.semantic.brand.primary',
+        color: 'content.semantic.brand.on-brand',
+        '&[data-hovered]': {
+          backgroundColor: 'background.semantic.brand.primary-hover',
+        },
       },
       false: {
         '&[data-hovered]': {
-          backgroundColor: 'gray.050',
+          backgroundColor: 'background.semantic.neutral.tertiary',
         },
       },
     },
     borderLeft: {
       true: {
-        borderLeft: '1px solid',
-        borderColor: 'gray.150',
+        borderLeft: '1px solid {colors.border.semantic.neutral.tertiary}',
       },
     },
   },
@@ -68,7 +76,7 @@ const ratingButtonRecipe = cva({
 
 const labelRecipe = cva({
   base: {
-    color: 'gray.600',
+    color: 'content.semantic.neutral.secondary',
     paddingTop: '0.25rem',
   },
 })
