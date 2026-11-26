@@ -122,18 +122,19 @@ export const buttonRecipe = cva({
       bigSquare: {
         width: '56px',
         height: '56px',
-        borderColor: 'gray.100',
+        borderColor: 'border.semantic.neutral.tertiary',
         borderRadius: '4px',
-        backgroundColor: 'gray.025',
+        backgroundColor: 'background.surface.tertiary',
         padding: '0',
         flexShrink: 0,
         '&[data-hovered]': {
-          backgroundColor: 'gray.050',
+          backgroundColor: 'background.semantic.neutral.tertiary',
         },
-        transition: 'box-shadow 0.2s ease-in-out',
+        boxShadow: '0 0 0 0 {colors.border.semantic.brand.primary}',
+        transition: 'border-color 250ms ease-out, box-shadow 250ms ease-out',
         '&[data-selected]': {
-          boxShadow:
-            '0 0 0 3px token(colors.brand.700) inset, 0 0 0 5px white inset',
+          borderColor: 'border.semantic.brand.primary',
+          boxShadow: '0 0 0 1px {colors.border.semantic.brand.primary}',
         },
         '&[data-disabled]': {
           backgroundColor: 'gray.050',
