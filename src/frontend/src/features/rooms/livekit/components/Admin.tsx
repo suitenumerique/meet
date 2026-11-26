@@ -1,5 +1,5 @@
-import { Div, Field, H, Text } from '@/primitives'
-import { css } from '@/styled-system/css'
+import { Div, Field, Text } from '@/primitives'
+import { css, cx } from '@/styled-system/css'
 import { Separator as RACSeparator } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { usePatchRoom } from '@/features/rooms/api/patchRoom'
@@ -8,11 +8,58 @@ import { useParams } from 'wouter'
 import { usePublishSourcesManager } from '../hooks/usePublishSourcesManager'
 import { usePermissionsManager } from '../hooks/usePermissionsManager'
 import { useRoomData } from '../hooks/useRoomData'
-import { useEffect } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { closeSidePanel } from '@/stores/layout'
 import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 import { reportError } from '@/features/analytics/telemetry'
 import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
+
+const SectionSeparator = ({ className }: { className?: string }) => (
+  <RACSeparator
+    className={cx(
+      css({
+        border: 'none',
+        height: '1px',
+        width: '100%',
+        background: 'border.surface.primary',
+      }),
+      className
+    )}
+  />
+)
+
+const Section = ({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children: ReactNode
+}) => (
+  <section>
+    <Text
+      as="h2"
+      margin={false}
+      className={css({
+        textStyle: 'h3',
+        fontWeight: 'bold',
+        lineHeight: '1.5rem',
+      })}
+    >
+      {title}
+    </Text>
+    <Text
+      variant="smNote"
+      wrap="pretty"
+      margin={false}
+      className={css({ paddingTop: '0.25rem', paddingBottom: '1rem' })}
+    >
+      {description}
+    </Text>
+    {children}
+  </section>
+)
 
 export const Admin = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'admin' })
@@ -52,176 +99,137 @@ export const Admin = () => {
   return (
     <Div
       display="flex"
-      className={sidePanelScrollArea()}
       flexGrow={1}
       flexDirection="column"
-      alignItems="start"
+      minHeight={0}
+      overflow="hidden"
     >
-      <Text
-        variant="note"
-        wrap="pretty"
-        className={css({
-          textStyle: 'sm',
-        })}
-        margin={'md'}
-      >
-        {t('description')}
-      </Text>
-      <div
-        className={css({
-          display: 'flex',
-          flexDirection: 'column',
-        })}
-      >
-        <RACSeparator
-          className={css({
-            border: 'none',
-            height: '1px',
-            width: '100%',
-            background: 'gray.100',
-          })}
-        />
-        <H
-          lvl={2}
-          className={css({
-            fontWeight: 500,
-          })}
-          margin="sm"
-        >
-          {t('moderation.title')}
-        </H>
+      {/* Stays in place while the settings scroll. */}
+      <div className={css({ flexShrink: 0, paddingInline: '1.5rem' })}>
         <Text
-          variant="note"
-          wrap="balance"
+          variant="smNote"
+          wrap="pretty"
+          margin={false}
           className={css({
-            textStyle: 'sm',
+            paddingBottom: '1rem',
+            // leaves the room to the settings on short screens
+            '@media (max-height: 770px)': {
+              display: 'none',
+            },
           })}
-          margin={'md'}
         >
-          {t('moderation.description')}
+          {t('description')}
         </Text>
-        <div
-          className={css({
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem',
-          })}
-        >
-          <Field
-            type="switch"
-            label={t('moderation.microphone.label')}
-            description={t('moderation.microphone.description')}
-            isSelected={isMicrophoneEnabled}
-            onChange={toggleMicrophone}
-            wrapperProps={{
-              noMargin: true,
-              fullWidth: true,
-            }}
-          />
-          <Field
-            type="switch"
-            label={t('moderation.camera.label')}
-            description={t('moderation.camera.description')}
-            isSelected={isCameraEnabled}
-            onChange={toggleCamera}
-            wrapperProps={{
-              noMargin: true,
-              fullWidth: true,
-            }}
-          />
-          <Field
-            type="switch"
-            label={t('moderation.screenshare.label')}
-            description={t('moderation.screenshare.description')}
-            isSelected={isScreenShareEnabled}
-            onChange={toggleScreenShare}
-            wrapperProps={{
-              noMargin: true,
-              fullWidth: true,
-            }}
-          />
-          <Field
-            type="switch"
-            label={t('moderation.mute.label')}
-            description={t('moderation.mute.description')}
-            isSelected={isMutingEnabled}
-            onChange={toggleMuting}
-            wrapperProps={{
-              noMargin: true,
-              fullWidth: true,
-            }}
-          />
-        </div>
+        <SectionSeparator />
       </div>
       <div
-        className={css({
-          display: 'flex',
-          flexDirection: 'column',
-          marginTop: '1rem',
-        })}
+        className={cx(
+          sidePanelScrollArea(),
+          css({
+            flexGrow: 1,
+            minHeight: 0,
+            paddingBlock: '1.25rem',
+          })
+        )}
       >
-        <RACSeparator
-          className={css({
-            border: 'none',
-            height: '1px',
-            width: '100%',
-            background: 'gray.100',
-          })}
-        />
-        <H
-          lvl={2}
-          className={css({
-            fontWeight: 500,
-          })}
-          margin="sm"
+        <Section
+          title={t('moderation.title')}
+          description={t('moderation.description')}
         >
-          {t('access.title')}
-        </H>
-        <Text
-          variant="note"
-          wrap="balance"
-          className={css({
-            textStyle: 'sm',
-          })}
-          margin={'md'}
+          <div
+            className={css({
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            })}
+          >
+            <Field
+              type="switch"
+              label={t('moderation.microphone.label')}
+              description={t('moderation.microphone.description')}
+              isSelected={isMicrophoneEnabled}
+              onChange={toggleMicrophone}
+              wrapperProps={{
+                noMargin: true,
+                fullWidth: true,
+              }}
+            />
+            <Field
+              type="switch"
+              label={t('moderation.camera.label')}
+              description={t('moderation.camera.description')}
+              isSelected={isCameraEnabled}
+              onChange={toggleCamera}
+              wrapperProps={{
+                noMargin: true,
+                fullWidth: true,
+              }}
+            />
+            <Field
+              type="switch"
+              label={t('moderation.screenshare.label')}
+              description={t('moderation.screenshare.description')}
+              isSelected={isScreenShareEnabled}
+              onChange={toggleScreenShare}
+              wrapperProps={{
+                noMargin: true,
+                fullWidth: true,
+              }}
+            />
+            <Field
+              type="switch"
+              label={t('moderation.mute.label')}
+              description={t('moderation.mute.description')}
+              isSelected={isMutingEnabled}
+              onChange={toggleMuting}
+              wrapperProps={{
+                noMargin: true,
+                fullWidth: true,
+              }}
+            />
+          </div>
+        </Section>
+        <SectionSeparator className={css({ marginBlock: '1.5rem' })} />
+        <Section
+          title={t('access.title')}
+          description={t('access.description')}
         >
-          {t('access.description')}
-        </Text>
-        <Field
-          type="radioGroup"
-          label={t('access.type')}
-          aria-label={t('access.type')}
-          labelProps={{
-            className: css({
-              fontSize: '1rem',
-              paddingBottom: '1rem',
-            }),
-          }}
-          value={readOnlyData?.access_level}
-          onChange={(value) =>
-            patchRoom({
-              roomId,
-              room: { access_level: value as ApiAccessLevel },
-            }).catch((e) => reportError('generic_failure', e))
-          }
-          items={[
-            {
-              value: ApiAccessLevel.PUBLIC,
-              label: t('access.levels.public.label'),
-              description: t('access.levels.public.description'),
-            },
-            {
-              value: ApiAccessLevel.TRUSTED,
-              label: t('access.levels.trusted.label'),
-              description: t('access.levels.trusted.description'),
-            },
-            {
-              value: ApiAccessLevel.RESTRICTED,
-              label: t('access.levels.restricted.label'),
-              description: t('access.levels.restricted.description'),
-            },
-          ]}
-        />
+          <Field
+            type="radioGroup"
+            label={t('access.type')}
+            aria-label={t('access.type')}
+            labelProps={{
+              className: css({
+                fontSize: '1rem',
+                paddingBottom: '1rem',
+              }),
+            }}
+            value={readOnlyData?.access_level}
+            onChange={(value) =>
+              patchRoom({
+                roomId,
+                room: { access_level: value as ApiAccessLevel },
+              }).catch((e) => reportError('generic_failure', e))
+            }
+            items={[
+              {
+                value: ApiAccessLevel.PUBLIC,
+                label: t('access.levels.public.label'),
+                description: t('access.levels.public.description'),
+              },
+              {
+                value: ApiAccessLevel.TRUSTED,
+                label: t('access.levels.trusted.label'),
+                description: t('access.levels.trusted.description'),
+              },
+              {
+                value: ApiAccessLevel.RESTRICTED,
+                label: t('access.levels.restricted.label'),
+                description: t('access.levels.restricted.description'),
+              },
+            ]}
+          />
+        </Section>
       </div>
     </Div>
   )
