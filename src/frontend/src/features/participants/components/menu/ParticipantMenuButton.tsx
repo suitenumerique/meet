@@ -11,7 +11,7 @@ export const ParticipantMenuButton = ({
 }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participants' })
   return (
-    <Menu>
+    <Menu dropdown>
       <Button
         square
         variant="tertiaryNeutral"

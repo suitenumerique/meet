@@ -7,7 +7,7 @@ export const OptionsButton = () => {
   const { t } = useTranslation('rooms')
 
   return (
-    <Menu variant="dark">
+    <Menu variant="dark" dropdown>
       <Button
         id="room-options-trigger"
         square
