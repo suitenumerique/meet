@@ -51,6 +51,7 @@ export const ScreenShareZoomControls = ({
 
   return (
     <div
+      data-theme="dark"
       className={css({
         position: 'absolute',
         bottom: '12px',
@@ -64,9 +65,10 @@ export const ScreenShareZoomControls = ({
         className={css({
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: 'gray.900',
-          borderRadius: '2rem',
-          padding: '0.5rem',
+          gap: '0.25rem',
+          backgroundColor: 'background.surface.tertiary',
+          borderRadius: '4px',
+          padding: '0.25rem',
           opacity: 0.7,
           transition: 'opacity 200ms linear',
           _hover: {
@@ -83,6 +85,7 @@ export const ScreenShareZoomControls = ({
           className={css({
             display: 'flex',
             alignItems: 'center',
+            gap: '0.25rem',
             overflow: 'hidden',
             transition: 'max-width 200ms ease-out, opacity 200ms ease-out',
             padding: '3px',
@@ -130,9 +133,9 @@ export const ScreenShareZoomControls = ({
           <span
             aria-hidden="true"
             className={css({
-              color: 'white',
-              fontSize: '0.8125rem',
-              fontWeight: 500,
+              color: 'content.semantic.neutral.primary',
+              fontSize: 'sm',
+              fontWeight: 'medium',
               minWidth: '3.25rem',
               textAlign: 'center',
               userSelect: 'none',
