@@ -14,20 +14,6 @@ import { useIsAdminOrOwner } from '../hooks/useIsAdminOrOwner'
 import { reportError } from '@/features/analytics/telemetry'
 import { sidePanelScrollArea } from '@/features/rooms/livekit/components/sidePanelScrollArea'
 
-const SectionSeparator = ({ className }: { className?: string }) => (
-  <RACSeparator
-    className={cx(
-      css({
-        border: 'none',
-        height: '1px',
-        width: '100%',
-        background: 'border.surface.primary',
-      }),
-      className
-    )}
-  />
-)
-
 const Section = ({
   title,
   description,
@@ -37,7 +23,17 @@ const Section = ({
   description: string
   children: ReactNode
 }) => (
-  <section>
+  <section className={css({ paddingBottom: '1.5rem' })}>
+    <RACSeparator
+      className={css({
+        border: 'none',
+        height: '1px',
+        marginLeft: '-1.5rem',
+        marginRight: 'calc(10px - 1.5rem)',
+        marginBottom: '1.5rem',
+        background: 'border.surface.primary',
+      })}
+    />
     <Text
       as="h2"
       margin={false}
@@ -104,7 +100,7 @@ export const Admin = () => {
       minHeight={0}
       overflow="hidden"
     >
-      {/* Stays in place while the settings scroll. */}
+      {/* Stays in place while the sections scroll under it. */}
       <div className={css({ flexShrink: 0 })}>
         <Text
           variant="smNote"
@@ -112,7 +108,6 @@ export const Admin = () => {
           margin={false}
           className={css({
             paddingInline: '1.5rem',
-            paddingBottom: '1rem',
             // leaves the room to the settings on short screens
             '@media (max-height: 770px)': {
               display: 'none',
@@ -121,7 +116,6 @@ export const Admin = () => {
         >
           {t('description')}
         </Text>
-        <SectionSeparator />
       </div>
       <div
         className={cx(
@@ -129,7 +123,7 @@ export const Admin = () => {
           css({
             flexGrow: 1,
             minHeight: 0,
-            paddingBlock: '1.25rem',
+            paddingTop: '1rem',
           })
         )}
       >
@@ -190,15 +184,6 @@ export const Admin = () => {
             />
           </div>
         </Section>
-        <SectionSeparator
-          className={css({
-            marginBlock: '1.5rem',
-            // cancels the padding of the scroll area, up to its scrollbar
-            width: 'auto',
-            marginLeft: '-1.5rem',
-            marginRight: 'calc(10px - 1.5rem)',
-          })}
-        />
         <Section
           title={t('access.title')}
           description={t('access.description')}
