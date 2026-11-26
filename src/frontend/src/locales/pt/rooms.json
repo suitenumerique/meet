@@ -823,6 +823,11 @@
     "fullScreenEntered": "Tela cheia ativada",
     "fullScreenExited": "Tela cheia desativada"
   },
+  "focusLayoutResizer": {
+    "label": "Redimensionar os vídeos dos participantes",
+    "value": "Os vídeos ocupam {{percent}} % da largura",
+    "hint": "Arraste para redimensionar os vídeos. Clique duas vezes para redefinir."
+  },
   "shortcutsPanel": {
     "title": "Atalhos de teclado",
     "categories": {

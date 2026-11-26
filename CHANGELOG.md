@@ -37,6 +37,7 @@ and this project adheres to
 - ✨(frontend) tell participants when a recording is interrupted
 - ✨(backend) show the last login of users in the admin
 - ✨(backend) filter users sharing an email in the admin
+- ✨(frontend) let users resize the screen share and video split #1923
 
 ### Changed
 
