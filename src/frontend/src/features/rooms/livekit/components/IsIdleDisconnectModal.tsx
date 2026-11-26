@@ -76,15 +76,16 @@ const VisualCountDown = () => {
   return (
     <div
       className={css({
-        flexShrink: 0,
-        padding: '0.125rem 0.5rem',
-        borderRadius: '4px',
-        backgroundColor: 'background.semantic.brand.tertiary',
-        color: 'content.semantic.brand.primary',
-        fontSize: 'sm',
-        fontWeight: 'medium',
-        lineHeight: '1.25rem',
-        fontVariantNumeric: 'tabular-nums',
+        height: '50px',
+        width: '50px',
+        backgroundColor: 'brand.100',
+        borderRadius: '25px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontWeight: '500',
+        color: 'brand.700',
+        margin: 'auto',
       })}
       aria-hidden="true"
     >
@@ -135,17 +136,12 @@ export const IsIdleDisconnectModal = () => {
         return (
           <div>
             <ScreenReaderAnnouncer channel="idle" />
-            <div
-              className={css({
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                gap: '0.75rem',
-              })}
+            <VisualCountDown />
+            <DialogTitle
+              className={css({ marginTop: '1rem', textAlign: 'center' })}
             >
-              <DialogTitle>{t('title')}</DialogTitle>
-              <VisualCountDown />
-            </div>
+              {t('title')}
+            </DialogTitle>
             <DialogBody>
               <Description />
               <Settings />
