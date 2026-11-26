@@ -8,6 +8,19 @@ import { useSidePanel } from '../../hooks/useSidePanel'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 
+// Tells there are unread messages, in the "danger" color of the UI kit.
+const unreadDot = css({
+  position: 'absolute',
+  top: '2px',
+  right: '2px',
+  zIndex: 1,
+  width: '0.625rem',
+  height: '0.625rem',
+  borderRadius: '50%',
+  backgroundColor: 'background.semantic.error.primary',
+  pointerEvents: 'none',
+})
+
 export const ChatToggle = ({
   onPress,
   ...props
@@ -48,20 +61,7 @@ export const ChatToggle = ({
         {isChatOpen ? <RiChat1Fill /> : <RiChat1Line />}
       </ToggleButton>
       {!!chatSnap.unreadMessages && (
-        <div
-          className={css({
-            position: 'absolute',
-            top: '-.25rem',
-            right: '-.25rem',
-            width: '1rem',
-            height: '1rem',
-            backgroundColor: 'background.semantic.error.primary',
-            borderRadius: '50%',
-            zIndex: 1,
-            border: '2px solid',
-            borderColor: 'gray.100',
-          })}
-        />
+        <div className={unreadDot} aria-hidden="true" />
       )}
     </div>
   )
