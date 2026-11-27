@@ -1,9 +1,18 @@
 import { Trans, useTranslation } from 'react-i18next'
 import { useRef } from 'react'
 import { Heading } from 'react-aria-components'
-import { RiSettings3Line, RiDoorOpenLine } from '@remixicon/react'
+import { RiDoorOpenLine } from '@remixicon/react'
 import { useLanguageLabels } from '@/i18n/useLanguageLabels'
-import { A, Badge, Dialog, type DialogProps, Field, H, P } from '@/primitives'
+import {
+  A,
+  Badge,
+  Dialog,
+  type DialogProps,
+  Field,
+  H,
+  P,
+  Icon,
+} from '@/primitives'
 import { Tab, TabList, TabPanel, Tabs } from '@/primitives/Tabs'
 import { scrollbar } from '@/primitives/scrollbar'
 import { css, cx } from '@/styled-system/css'
@@ -116,7 +125,7 @@ export const SettingsDialog = (props: SettingsDialogProps) => {
           )}
           <TabList border={false}>
             <Tab icon highlight id={SettingsDialogTabKey.GENERAL}>
-              <RiSettings3Line />
+              <Icon name="gear-rounded" />
               {isWideScreen && t(`tabs.${SettingsDialogTabKey.GENERAL}`)}
             </Tab>
             <Tab icon highlight id={SettingsDialogTabKey.ROOMS}>

@@ -5,7 +5,6 @@ import {
   Heading,
   Button as RACButton,
 } from 'react-aria-components'
-import { RiArrowDownSFill } from '@remixicon/react'
 import { css, cx } from '@/styled-system/css'
 import {
   DIAGNOSTIC_OUTPUT_LANG,
@@ -13,6 +12,7 @@ import {
   type ConnectionTestStepResult,
 } from '../types'
 import { StepStatusIndicator } from './StepStatusIndicator'
+import { Icon } from '@/primitives/Icon'
 
 /** Each step is its own bounded card, collapsed or not. */
 const cardClass = css({
@@ -163,8 +163,8 @@ export const ConnectionTestStepRow = ({
               )}
             >
               <StepRowContent step={step} />
-              <RiArrowDownSFill
-                aria-hidden="true"
+              <Icon
+                name="arrow-drop-down"
                 className={cx(
                   chevronClass,
                   isExpanded ? chevronExpandedClass : undefined

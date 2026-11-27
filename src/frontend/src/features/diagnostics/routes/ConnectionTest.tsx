@@ -1,14 +1,8 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  RiCloseLine,
-  RiDownload2Line,
-  RiErrorWarningLine,
-  RiPlayLine,
-} from '@remixicon/react'
 import { CenteredContent } from '@/layout/CenteredContent'
 import { Screen } from '@/layout/Screen'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { Center, VStack } from '@/styled-system/jsx'
 import { Permissions } from '@/features/rooms/components/Permissions'
@@ -106,7 +100,7 @@ const ConnectionTest = () => {
                 <Button
                   variant="secondary"
                   onPress={reset}
-                  icon={<RiCloseLine size={18} aria-hidden="true" />}
+                  icon={<Icon name="x-mark" size="sm" />}
                 >
                   {t('cancel')}
                 </Button>
@@ -114,7 +108,7 @@ const ConnectionTest = () => {
                 <Button
                   variant="primary"
                   onPress={runTest}
-                  icon={<RiPlayLine size={18} aria-hidden="true" />}
+                  icon={<Icon name="play" size="sm" />}
                 >
                   {stats.hasStarted ? t('runAgain') : t('runTest')}
                 </Button>
@@ -123,7 +117,7 @@ const ConnectionTest = () => {
                 <Button
                   variant="secondary"
                   onPress={() => downloadConnectionTestReport(steps)}
-                  icon={<RiDownload2Line size={18} aria-hidden="true" />}
+                  icon={<Icon name="download" size="sm" />}
                 >
                   {t('downloadReport')}
                 </Button>
@@ -151,11 +145,7 @@ const ConnectionTest = () => {
 
             {stats.failed > 0 && !isRunning && (
               <p className={helpClass}>
-                <RiErrorWarningLine
-                  size={18}
-                  aria-hidden="true"
-                  className={helpIconClass}
-                />
+                <Icon name="error" size="sm" className={helpIconClass} />
                 {t('help.firewall')}
               </p>
             )}

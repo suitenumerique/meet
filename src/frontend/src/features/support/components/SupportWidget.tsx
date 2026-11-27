@@ -2,13 +2,13 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { useLocation } from 'wouter'
-import { RiCheckboxCircleFill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { announceToScreenReader } from '@/stores/screenReaderAnnouncer'
 import { supportStore } from '@/stores/support'
 import { subscribeToSupportWidget } from '../utils/supportWidget'
 import { ToastDuration } from '@/features/notifications/NotificationDuration'
 import { ToastCard } from '@/features/notifications/components/ToastCard'
+import { Icon } from '@/primitives/Icon'
 
 const hide = () => {
   supportStore.showSentConfirmation = false
@@ -43,7 +43,7 @@ export const SupportWidget = () => {
       })}
     >
       <ToastCard
-        icon={<RiCheckboxCircleFill />}
+        icon={<Icon name="circle-check-filled" />}
         title={t('title')}
         closeButtonProps={{ 'aria-label': t('close'), onPress: hide }}
       >

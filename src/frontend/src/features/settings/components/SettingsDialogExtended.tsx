@@ -10,16 +10,6 @@ import { SelectedTabTitle } from './SelectedTabTitle'
 import { Icon } from '@/primitives/Icon'
 import { Heading } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
-import {
-  RiAccountCircleLine,
-  RiNotification3Line,
-  RiSettings3Line,
-  RiSpeakerLine,
-  RiVideoOnLine,
-  RiEyeLine,
-  RiKeyboardBoxLine,
-  RiRecordCircleLine,
-} from '@remixicon/react'
 import { AccountTab } from './tabs/AccountTab'
 import { NotificationsTab } from './tabs/NotificationsTab'
 import { GeneralTab } from './tabs/GeneralTab'
@@ -86,7 +76,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               id={SettingsDialogExtendedKey.ACCOUNT}
               aria-label={t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
             >
-              <RiAccountCircleLine />
+              <Icon name="user" />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.ACCOUNT}`)}
             </Tab>
             <Tab
@@ -95,7 +85,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               id={SettingsDialogExtendedKey.AUDIO}
               aria-label={t(`tabs.${SettingsDialogExtendedKey.AUDIO}`)}
             >
-              <RiSpeakerLine />
+              <Icon name="speaker" />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.AUDIO}`)}
             </Tab>
             <Tab
@@ -104,7 +94,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               id={SettingsDialogExtendedKey.VIDEO}
               aria-label={t(`tabs.${SettingsDialogExtendedKey.VIDEO}`)}
             >
-              <RiVideoOnLine />
+              <Icon name="meet" />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.VIDEO}`)}
             </Tab>
             <Tab
@@ -113,7 +103,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               id={SettingsDialogExtendedKey.GENERAL}
               aria-label={t(`tabs.${SettingsDialogExtendedKey.GENERAL}`)}
             >
-              <RiSettings3Line />
+              <Icon name="gear-rounded" />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.GENERAL}`)}
             </Tab>
             <Tab
@@ -122,7 +112,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               id={SettingsDialogExtendedKey.NOTIFICATIONS}
               aria-label={t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             >
-              <RiNotification3Line />
+              <Icon name="bell" />
               {isWideScreen &&
                 t(`tabs.${SettingsDialogExtendedKey.NOTIFICATIONS}`)}
             </Tab>
@@ -132,7 +122,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               id={SettingsDialogExtendedKey.SHORTCUTS}
               aria-label={t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
             >
-              <RiKeyboardBoxLine />
+              <Icon name="keyboard" />
               {isWideScreen && t(`tabs.${SettingsDialogExtendedKey.SHORTCUTS}`)}
             </Tab>
             {isAdminOrOwner && (
@@ -156,7 +146,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
                 id={SettingsDialogExtendedKey.RECORDING}
                 aria-label={t(`tabs.${SettingsDialogExtendedKey.RECORDING}`)}
               >
-                <RiRecordCircleLine />
+                <Icon name="record" />
                 {isWideScreen &&
                   t(`tabs.${SettingsDialogExtendedKey.RECORDING}`)}
               </Tab>
@@ -167,7 +157,7 @@ export const SettingsDialogExtended = (props: SettingsDialogExtended) => {
               id={SettingsDialogExtendedKey.ACCESSIBILITY}
               aria-label={t(`tabs.${SettingsDialogExtendedKey.ACCESSIBILITY}`)}
             >
-              <RiEyeLine />
+              <Icon name="show" />
               {isWideScreen &&
                 t(`tabs.${SettingsDialogExtendedKey.ACCESSIBILITY}`)}
             </Tab>

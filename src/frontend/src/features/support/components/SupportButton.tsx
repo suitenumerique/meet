@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { RiQuestionLine } from '@remixicon/react'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { Spinner } from '@/primitives/Spinner'
 import { useSupportWidget } from '../hooks/useSupportWidget'
 
@@ -19,7 +18,7 @@ export const SupportButton = () => {
       isPending={isPending}
       onPress={open}
     >
-      {isPending ? <Spinner size={24} /> : <RiQuestionLine />}
+      {isPending ? <Spinner size={24} /> : <Icon name="question-mark" />}
     </Button>
   )
 }

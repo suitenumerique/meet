@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
-import { Bold, Button, Dialog, type DialogProps, P, Text } from '@/primitives'
+import {
+  Bold,
+  Button,
+  Dialog,
+  type DialogProps,
+  P,
+  Text,
+  Icon,
+} from '@/primitives'
 import { HStack } from '@/styled-system/jsx'
-import { RiCheckLine, RiFileCopyLine, RiSpam2Fill } from '@remixicon/react'
+import { RiSpam2Fill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { ApiAccessLevel, ApiRoom } from '@/features/rooms/api/ApiRoom'
 import {
@@ -65,9 +73,9 @@ export const LaterMeetingDialog = ({
                     tooltip={t('copyUrl')}
                   >
                     {isRoomUrlCopied ? (
-                      <RiCheckLine aria-hidden="true" />
+                      <Icon name="checkmark-1" />
                     ) : (
-                      <RiFileCopyLine aria-hidden="true" />
+                      <Icon size={20} name="copy" />
                     )}
                   </Button>
                 )}
@@ -101,18 +109,18 @@ export const LaterMeetingDialog = ({
               >
                 {isCopied ? (
                   <>
-                    <RiCheckLine
-                      size={18}
+                    <Icon
+                      name="checkmark-1"
+                      size="sm"
                       style={{ marginRight: '8px' }}
-                      aria-hidden="true"
                     />
                     {t('copied')}
                   </>
                 ) : (
                   <>
-                    <RiFileCopyLine
+                    <Icon
+                      name="copy"
                       style={{ marginRight: '6px', minWidth: '18px' }}
-                      aria-hidden="true"
                     />
                     {t('copy')}
                   </>
@@ -134,19 +142,19 @@ export const LaterMeetingDialog = ({
             >
               {isCopied ? (
                 <>
-                  <RiCheckLine
-                    size={18}
+                  <Icon
+                    name="checkmark-1"
+                    size="sm"
                     style={{ marginRight: '8px' }}
-                    aria-hidden="true"
                   />
                   {t('copied')}
                 </>
               ) : (
                 <>
-                  <RiFileCopyLine
-                    size={18}
+                  <Icon
+                    name="copy"
+                    size="sm"
                     style={{ marginRight: '8px', minWidth: '18px' }}
-                    aria-hidden="true"
                   />
                   {isHovered ? (
                     t('copy')

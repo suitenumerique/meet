@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { MenuItem, Menu as RACMenu } from 'react-aria-components'
-import { Button, Menu } from '@/primitives'
+import { Button, Menu, Icon } from '@/primitives'
 import { navigateTo } from '@/navigation/navigateTo'
 import { generateRoomId, useCreateRoom } from '@/features/rooms'
-import { RiAddLine, RiLink } from '@remixicon/react'
 import { LaterMeetingDialog } from '@/features/home/components/LaterMeetingDialog'
 import { useState } from 'react'
 
@@ -34,7 +33,7 @@ export const CreateMeetingMenu = () => {
             }}
             data-attr="create-option-instant"
           >
-            <RiAddLine size={18} />
+            <Icon name="plus" size="sm" />
             {t('createMenu.instantOption')}
           </MenuItem>
           <MenuItem
@@ -45,7 +44,7 @@ export const CreateMeetingMenu = () => {
             }}
             data-attr="create-option-later"
           >
-            <RiLink size={18} />
+            <Icon name="link" size="sm" />
             {t('createMenu.laterOption')}
           </MenuItem>
         </RACMenu>

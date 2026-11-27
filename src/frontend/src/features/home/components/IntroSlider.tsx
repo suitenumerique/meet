@@ -1,7 +1,6 @@
 import { styled } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
-import { Button, Picture } from '@/primitives'
-import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
+import { Button, Picture, Icon } from '@/primitives'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
@@ -237,7 +236,7 @@ export const IntroSlider = () => {
               aria-disabled={slideIndex === 0}
               onPress={goPrev}
             >
-              <RiArrowLeftSLine />
+              <Icon name="chevron-left" />
             </Button>
           </ButtonVerticalCenter>
         </ButtonContainer>
@@ -272,7 +271,7 @@ export const IntroSlider = () => {
               aria-disabled={slideIndex === NUMBER_SLIDES - 1}
               onPress={goNext}
             >
-              <RiArrowRightSLine />
+              <Icon name="chevron-right" />
             </Button>
           </ButtonVerticalCenter>
         </ButtonContainer>

@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { DialogTrigger } from 'react-aria-components'
-import { RiSettings3Line } from '@remixicon/react'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { SettingsDialog } from './SettingsDialog'
 
 export const SettingsButton = () => {
@@ -14,7 +13,7 @@ export const SettingsButton = () => {
         aria-label={t('settingsButtonLabel')}
         tooltip={t('settingsButtonLabel')}
       >
-        <RiSettings3Line />
+        <Icon name="gear-rounded" />
       </Button>
       <SettingsDialog />
     </DialogTrigger>
