@@ -1,5 +1,4 @@
-import { Div, ToggleButton } from '@/primitives'
-import { RiArrowUpLine, RiCloseFill, RiRectangleLine } from '@remixicon/react'
+import { ToggleButton, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import {
   useTrackToggle,
@@ -32,11 +31,9 @@ export const ScreenShareToggle = ({
   })
 
   const tooltipLabel = enabled ? 'stop' : 'start'
-  const Icon = enabled ? RiCloseFill : RiArrowUpLine
+  const iconName = enabled ? 'screen-share-off' : 'share-screen'
 
   const canShareScreen = useCanPublishTrack(TrackSource.SCREEN_SHARE)
-
-  // fixme - remove ToggleButton custom styles when we design a proper icon
   return (
     <ToggleButton
       isSelected={enabled}
@@ -54,18 +51,7 @@ export const ScreenShareToggle = ({
       data-attr={`controls-screenshare-${tooltipLabel}`}
       {...props}
     >
-      <Div position="relative">
-        <RiRectangleLine size={24} />
-        <Icon
-          size={14}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        />
-      </Div>
+      <Icon name={iconName} />
     </ToggleButton>
   )
 }

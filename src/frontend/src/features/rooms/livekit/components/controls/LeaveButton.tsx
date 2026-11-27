@@ -1,6 +1,5 @@
 import { useConnectionState, useRoomContext } from '@livekit/components-react'
-import { Button } from '@/primitives'
-import { RiPhoneFill } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { ConnectionState } from 'livekit-client'
 import { reportError } from '@/features/analytics/telemetry'
@@ -24,7 +23,8 @@ export const LeaveButton = () => {
       }}
       data-attr="controls-leave"
     >
-      <RiPhoneFill
+      <Icon
+        name="phone-filled"
         style={{
           transform: 'rotate(135deg)',
         }}

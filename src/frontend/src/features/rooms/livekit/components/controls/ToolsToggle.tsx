@@ -1,5 +1,4 @@
-import { ToggleButton } from '@/primitives'
-import { RiShapesFill, RiShapesLine } from '@remixicon/react'
+import { ToggleButton, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { useSidePanel } from '../../hooks/useSidePanel'
 import { css } from '@/styled-system/css'
@@ -42,7 +41,7 @@ export const ToolsToggle = ({
         {...props}
         data-attr="toggle-tools"
       >
-        {isToolsOpen ? <RiShapesFill /> : <RiShapesLine />}
+        {isToolsOpen ? <Icon name="shapes" /> : <Icon name="shapes" />}
       </ToggleButton>
     </div>
   )

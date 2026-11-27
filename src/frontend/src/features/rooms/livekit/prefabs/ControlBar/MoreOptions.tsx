@@ -7,9 +7,8 @@ import { AdminToggle } from '../../components/AdminToggle'
 import { useSize } from '../../hooks/useResizeObserver'
 import { useState, RefObject, useEffect } from 'react'
 import { Dialog, DialogTrigger, Popover } from 'react-aria-components'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
-import { RiArrowDownSLine, RiArrowUpSLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 
 const CONTROL_BAR_BREAKPOINT_WIDE = 1100
@@ -45,7 +44,7 @@ export const LateralMenu = () => {
         tooltip={t('controls.moreOptions')}
         onPress={handlePress}
       >
-        {isOpen ? <RiArrowDownSLine /> : <RiArrowUpSLine />}
+        {isOpen ? <Icon name="chevron-down" /> : <Icon name="chevron-up" />}
       </Button>
       <Popover>
         <Dialog

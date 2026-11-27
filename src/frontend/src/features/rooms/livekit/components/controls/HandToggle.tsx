@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { RiHand } from '@remixicon/react'
-import { ToggleButton } from '@/primitives'
+import { ToggleButton, Icon } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useRoomContext } from '@livekit/components-react'
 import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
@@ -49,7 +48,7 @@ export const HandToggle = ({
         }}
         data-attr={`controls-hand-${tooltipLabel}`}
       >
-        <RiHand />
+        <Icon name="hand" />
       </ToggleButton>
     </div>
   )

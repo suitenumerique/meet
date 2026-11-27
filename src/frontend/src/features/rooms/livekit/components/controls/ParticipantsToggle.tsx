@@ -1,12 +1,12 @@
 import { useCallback, useId } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RiGroupFill, RiGroupLine } from '@remixicon/react'
 import { ToggleButton, type ToggleButtonProps } from '@/primitives/ToggleButton'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { css } from '@/styled-system/css'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { ParticipantsCount } from '@/features/participants/components/ParticipantsCount'
+import { Icon } from '@/primitives/Icon'
 
 const containerStyles = css({ position: 'relative', display: 'inline-block' })
 
@@ -47,7 +47,7 @@ export const ParticipantsToggle = ({
           data-attr={`controls-participants-${tooltipLabel}`}
           {...props}
         >
-          {isParticipantsOpen ? <RiGroupFill /> : <RiGroupLine />}
+          {isParticipantsOpen ? <Icon name="shared" /> : <Icon name="shared" />}
         </ToggleButton>
       </VisualOnlyTooltip>
       <ParticipantsCount describedById={countId} />

@@ -1,6 +1,5 @@
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { useMediaDeviceSelect } from '@livekit/components-react'
-import { RiCameraSwitchLine } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 import type { ButtonProps } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
@@ -122,7 +121,7 @@ export const CameraSwitchButton = (props: Partial<ButtonProps>) => {
       tooltip={t('options.items.switchCamera')}
       description={true}
     >
-      <RiCameraSwitchLine size={20} />
+      <Icon name="camera-switch" size={20} />
     </Button>
   )
 }

@@ -7,17 +7,11 @@ import { LeaveButton } from '../../components/controls/LeaveButton'
 import { Track } from 'livekit-client'
 import { HandToggle } from '../../components/controls/HandToggle'
 import { Button } from '@/primitives/Button'
-import {
-  RiAccountBoxLine,
-  RiMegaphoneLine,
-  RiMore2Line,
-  RiSettings3Line,
-} from '@remixicon/react'
 import { ScreenShareToggle } from '../../components/controls/ScreenShareToggle'
 import { ChatToggle } from '../../components/controls/ChatToggle'
 import { ParticipantsToggle } from '../../components/controls/ParticipantsToggle'
 import { useSidePanel } from '../../hooks/useSidePanel'
-import { LinkButton } from '@/primitives'
+import { LinkButton, Icon } from '@/primitives'
 import { ResponsiveMenu } from './ResponsiveMenu'
 import { ToolsToggle } from '../../components/controls/ToolsToggle'
 import { CameraSwitchButton } from '../../components/controls/CameraSwitchButton'
@@ -149,7 +143,7 @@ export function MobileControlBar({
                 tooltip={t('options.buttonLabel')}
                 onPress={() => setIsMenuOpened(true)}
               >
-                <RiMore2Line />
+                <Icon name="more-vertical" />
               </Button>
             </div>
           </ControlBarRegion>
@@ -211,7 +205,7 @@ export function MobileControlBar({
               tooltip={t('options.items.effects')}
               description={true}
             >
-              <RiAccountBoxLine size={20} />
+              <Icon name="identity" size={20} />
             </Button>
             {data?.feedback?.url && (
               <LinkButton
@@ -223,7 +217,7 @@ export function MobileControlBar({
                 target="_blank"
                 onPress={closeMenu}
               >
-                <RiMegaphoneLine size={20} />
+                <Icon name="megaphone" size={20} />
               </LinkButton>
             )}
             <Button
@@ -236,7 +230,7 @@ export function MobileControlBar({
               tooltip={t('options.items.settings')}
               description={true}
             >
-              <RiSettings3Line size={20} />
+              <Icon name="gear-rounded" size={20} />
             </Button>
             <CameraSwitchButton onPress={closeMenu} />
           </div>
