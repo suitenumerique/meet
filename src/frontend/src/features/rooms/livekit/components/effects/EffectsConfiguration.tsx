@@ -9,7 +9,7 @@ import {
 } from '../blur'
 import { css } from '@/styled-system/css'
 import { useResolvedMediaUrls } from '@/features/files/hooks/useResolvedMediaUrls'
-import { Button, Dialog, H, P, Text, ToggleButton } from '@/primitives'
+import { Button, Dialog, H, P, Text, ToggleButton, Icon } from '@/primitives'
 import { VisualOnlyTooltip } from '@/primitives/VisualOnlyTooltip'
 import { HStack, styled } from '@/styled-system/jsx'
 import { BlurOn } from '@/components/icons/BlurOn'
@@ -26,7 +26,6 @@ import {
 } from '@/features/files/api/listFiles.ts'
 import { useCreateFile } from '@/features/files/api/createFile.ts'
 import { FileTrigger } from 'react-aria-components'
-import { RiDeleteBinLine, RiImageAddFill } from '@remixicon/react'
 import { useDeleteFile } from '@/features/files/api/deleteFile.ts'
 import { useUser } from '@/features/auth/api/useUser'
 import { ApiFileItem } from '@/features/files/api/types.ts'
@@ -656,21 +655,23 @@ export const EffectsConfiguration = ({
                     gap: '1.25rem',
                   })}
                 >
-                  {processorOptions.blurBased.map(({ Icon, ...option }) => (
-                    <ToggleButton
-                      key={option.id}
-                      ref={option.ref}
-                      variant="bigSquare"
-                      aria-label={option.tooltip}
-                      tooltip={option.tooltip}
-                      isDisabled={processorOptions.isDisabled}
-                      onChange={() => toggleEffect(option.config)}
-                      isSelected={option.isSelected}
-                      data-attr={`toggle-${option.id}`}
-                    >
-                      <Icon />
-                    </ToggleButton>
-                  ))}
+                  {processorOptions.blurBased.map(
+                    ({ Icon: BlurIcon, ...option }) => (
+                      <ToggleButton
+                        key={option.id}
+                        ref={option.ref}
+                        variant="bigSquare"
+                        aria-label={option.tooltip}
+                        tooltip={option.tooltip}
+                        isDisabled={processorOptions.isDisabled}
+                        onChange={() => toggleEffect(option.config)}
+                        isSelected={option.isSelected}
+                        data-attr={`toggle-${option.id}`}
+                      >
+                        <BlurIcon />
+                      </ToggleButton>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -795,7 +796,7 @@ export const EffectsConfiguration = ({
                               }}
                               isDisabled={deleteFileMutation.isPending}
                             >
-                              <RiDeleteBinLine size={16} />
+                              <Icon name="trash" size={16} />
                             </Button>
                           </div>
                         </div>
@@ -870,7 +871,7 @@ export const EffectsConfiguration = ({
                       }
                       data-attr="input-file-select-personal-background"
                     >
-                      <RiImageAddFill />
+                      <Icon name="image-add" />
                     </Button>
                   </FileTrigger>
                 </div>

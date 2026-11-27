@@ -1,14 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
-import { Div, Button, P, Bold } from '@/primitives'
+import { Div, Button, P, Bold, Icon } from '@/primitives'
 import { roomInfoCard, roomInfoCopied } from './roomInfoCard'
 import { HStack, styled, VStack } from '@/styled-system/jsx'
 import { Heading, Dialog } from 'react-aria-components'
 import { Text, text } from '@/primitives/Text'
 import {
-  RiCheckLine,
-  RiCloseLine,
-  RiFileCopyLine,
   RiSpam2Fill,
 } from '@remixicon/react'
 import { useMemo, useRef, useState } from 'react'
@@ -99,7 +96,7 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
             onPress={dismiss}
             aria-label={t('closeDialog')}
           >
-            <RiCloseLine />
+            <Icon name="x-mark" />
           </Button>
         </Div>
         <P>{t('description')}</P>
@@ -126,9 +123,9 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
                   tooltip={isRoomUrlCopied ? t('copied') : t('copyUrl')}
                 >
                   {isRoomUrlCopied ? (
-                    <RiCheckLine aria-hidden="true" />
+                    <Icon size={18} name="checkmark-1" />
                   ) : (
-                    <RiFileCopyLine aria-hidden="true" />
+                    <Icon size={18} name="copy" />
                   )}
                 </Button>
               )}
@@ -163,18 +160,18 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
             >
               {isCopied ? (
                 <>
-                  <RiCheckLine
-                    size={18}
+                  <Icon
+                    name="checkmark-1"
+                    size="sm"
                     style={{ marginRight: '8px' }}
-                    aria-hidden="true"
                   />
                   {t('copied')}
                 </>
               ) : (
                 <>
-                  <RiFileCopyLine
+                  <Icon
+                    name="copy"
                     style={{ marginRight: '6px', minWidth: '18px' }}
-                    aria-hidden="true"
                   />
                   {t('copy')}
                 </>
@@ -191,12 +188,12 @@ export const InviteDialog = ({ mode }: { mode: 'join' | 'create' }) => {
           >
             {isCopied ? (
               <>
-                <RiCheckLine size={24} style={{ marginRight: '8px' }} />
+                <Icon name="checkmark-1" style={{ marginRight: '8px' }} />
                 {t('copied')}
               </>
             ) : (
               <>
-                <RiFileCopyLine size={24} style={{ marginRight: '8px' }} />
+                <Icon name="copy" style={{ marginRight: '8px' }} />
                 {t('copyUrl')}
               </>
             )}

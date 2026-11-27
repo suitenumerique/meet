@@ -1,5 +1,4 @@
-import { Button } from '@/primitives'
-import { RiCollapseDiagonalLine, RiExpandDiagonalLine } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
@@ -64,9 +63,9 @@ export const ScreenShareFullscreenButton = memo(
         onPress={toggleFullScreen}
       >
         {isFullscreen ? (
-          <RiCollapseDiagonalLine size={20} />
+          <Icon name="minimize" size={20} />
         ) : (
-          <RiExpandDiagonalLine size={20} />
+          <Icon name="maximize" size={20} />
         )}
       </Button>
     )

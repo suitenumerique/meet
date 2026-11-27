@@ -1,5 +1,4 @@
-import { ToggleButton } from '@/primitives'
-import { RiAdminFill, RiAdminLine } from '@remixicon/react'
+import { ToggleButton, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { css } from '@/styled-system/css'
 import type { ToggleButtonProps } from '@/primitives/ToggleButton'
@@ -39,7 +38,7 @@ export const AdminToggle = ({
         }}
         {...props}
       >
-        {isAdminOpen ? <RiAdminFill /> : <RiAdminLine />}
+        {isAdminOpen ? <Icon name="user-lock" /> : <Icon name="user-lock" />}
       </ToggleButton>
     </div>
   )

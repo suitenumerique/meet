@@ -6,8 +6,8 @@ import {
   DialogActions,
   DialogBody,
   DialogTitle,
+  Icon,
 } from '@/primitives'
-import { RiEqualizer2Line } from '@remixicon/react'
 import { useEffect, useMemo } from 'react'
 import { useSnapshot } from 'valtio'
 import {
@@ -236,7 +236,7 @@ export const Permissions = () => {
                           verticalAlign: 'middle',
                         }}
                       >
-                        <RiEqualizer2Line />
+                        <Icon name="controls" />
                       </span>
                       {descriptionAfterIcon}
                     </>

@@ -2,8 +2,7 @@ import { closeSidePanel, layoutStore } from '@/stores/layout'
 import { css, cx } from '@/styled-system/css'
 import { Heading } from 'react-aria-components'
 import { text } from '@/primitives/Text'
-import { Button } from '@/primitives'
-import { RiArrowLeftLine, RiCloseLine } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { ParticipantsList } from '@/features/participants/components/ParticipantsList'
 import { PanelId, useSidePanel } from '../hooks/useSidePanel'
@@ -111,7 +110,7 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
             aria-label={backButtonLabel}
             onPress={onBack}
           >
-            <RiArrowLeftLine size={20} aria-hidden="true" />
+            <Icon name="arrow-left" size={20} />
           </Button>
         )}
         <Heading
@@ -144,7 +143,7 @@ const StyledSidePanel = React.forwardRef<HTMLElement, StyledSidePanelProps>(
             marginRight: '-6.6px',
           })}
         >
-          <RiCloseLine />
+          <Icon name="x-mark" />
         </Button>
       </div>
       {children}

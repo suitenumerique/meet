@@ -2,8 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useMemo } from 'react'
 import { VStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
-import { RiCheckLine, RiFileCopyLine } from '@remixicon/react'
-import { Bold, Button, Div, Text } from '@/primitives'
+import { Bold, Button, Div, Text, Icon } from '@/primitives'
 import { getRouteUrl } from '@/navigation/getRouteUrl'
 import { useRoomData } from '../hooks/useRoomData'
 import { formatPinCode } from '../../utils/telephony'
@@ -78,20 +77,12 @@ export const Info = () => {
         >
           {isCopied ? (
             <>
-              <RiCheckLine
-                size={24}
-                style={{ marginRight: '6px' }}
-                aria-hidden="true"
-              />
+              <Icon name="checkmark-1" style={{ marginRight: '6px' }} />
               {t('roomInformation.button.copied')}
             </>
           ) : (
             <>
-              <RiFileCopyLine
-                size={24}
-                style={{ marginRight: '6px' }}
-                aria-hidden="true"
-              />
+              <Icon name="copy" style={{ marginRight: '6px' }} />
               {t('roomInformation.button.copy')}
             </>
           )}

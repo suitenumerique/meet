@@ -1,7 +1,6 @@
 import { css } from '@/styled-system/css'
-import { H, ToggleButton } from '@/primitives'
+import { H, ToggleButton, Icon } from '@/primitives'
 import { ProcessorType } from '../blur'
-import { RiGlassesLine, RiGoblet2Fill } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { FaceLandmarksProcessor } from '../blur/FaceLandmarksProcessor'
 import type { LocalVideoTrack } from 'livekit-client'
@@ -100,7 +99,7 @@ export const FunnyEffects = ({
           isSelected={options.showGlasses}
           data-attr="toggle-glasses"
         >
-          <RiGlassesLine />
+          <Icon name="glasses" />
         </ToggleButton>
         <ToggleButton
           variant="bigSquare"
@@ -115,7 +114,7 @@ export const FunnyEffects = ({
           isSelected={options.showFrench}
           data-attr="toggle-french"
         >
-          <RiGoblet2Fill />
+          <Icon name="glass" />
         </ToggleButton>
       </div>
     </div>

@@ -1,10 +1,6 @@
 import { css } from '@/styled-system/css'
-import { Button } from '@/primitives'
-import {
-  RiFullscreenExitLine,
-  RiZoomInLine,
-  RiZoomOutLine,
-} from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
+import { RiFullscreenExitLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { Toolbar } from 'react-aria-components'
 import { useEffect, useRef } from 'react'
@@ -127,7 +123,7 @@ export const ScreenShareZoomControls = ({
             isDisabled={!isZoomed || !canZoomOut}
             onPress={onZoomOut}
           >
-            <RiZoomOutLine size={20} />
+            <Icon name="zoom-minus" size={20} />
           </Button>
           {/* Visual only - zoom level is announced via useScreenReaderAnnounce. */}
           <span
@@ -159,7 +155,7 @@ export const ScreenShareZoomControls = ({
           isDisabled={!canZoomIn}
           onPress={onZoomIn}
         >
-          <RiZoomInLine size={20} />
+          <Icon name="zoom-plus" size={20} />
         </Button>
         <ScreenShareFullscreenButton containerRef={containerRef} />
       </Toolbar>

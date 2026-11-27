@@ -4,9 +4,8 @@ import { useSnapshot } from 'valtio'
 import { css } from '@/styled-system/css'
 import { Screen } from '@/layout/Screen'
 import { type LocalAudioTrack, type LocalVideoTrack } from 'livekit-client'
-import { Button, Dialog, Text } from '@/primitives'
+import { Button, Dialog, Text, Icon } from '@/primitives'
 import { Heading } from 'react-aria-components'
-import { RiImageCircleAiFill } from '@remixicon/react'
 import { isMobileBrowser } from '@livekit/components-core'
 import {
   EffectsConfiguration,
@@ -300,7 +299,7 @@ const Effects = ({
         tooltip={t('description')}
         aria-label={t('description')}
       >
-        <RiImageCircleAiFill size={24} />
+        <Icon name="image-spark" />
       </Button>
     </>
   )
