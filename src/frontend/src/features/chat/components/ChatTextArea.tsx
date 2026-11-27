@@ -21,8 +21,9 @@ const StyledContainer = styled('div', {
     padding: '0.75rem',
     backgroundColor: 'background.surface.primary',
     border: '1px solid',
-    borderColor: 'border.semantic.neutral.tertiary',
-    borderRadius: 12,
+    // the frame of the participants list
+    borderColor: 'gray.100',
+    borderRadius: 4,
     '& textarea': {
       backgroundColor: 'transparent',
     },
