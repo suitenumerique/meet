@@ -1,6 +1,7 @@
 import { ReactNode, useId, useState } from 'react'
 import { RiArrowUpSLine } from '@remixicon/react'
-import { styled, HStack, VStack } from '@/styled-system/jsx'
+import { css } from '@/styled-system/css'
+import { styled, VStack } from '@/styled-system/jsx'
 
 const Container = styled('div', {
   base: {
@@ -14,7 +15,8 @@ const Container = styled('div', {
 const Header = styled('button', {
   base: {
     minHeight: '2.5rem',
-    paddingX: '1.25rem',
+    paddingLeft: '1.25rem',
+    paddingRight: '1rem',
     paddingY: '0.5rem',
     gap: '0.5rem',
     cursor: 'pointer',
@@ -29,6 +31,16 @@ const Header = styled('button', {
   },
   variants: {
     isOpen: { false: { borderRadius: '3px' } },
+  },
+})
+
+const HeaderCell = styled('span', {
+  base: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    width: '34px',
   },
 })
 
@@ -76,11 +88,13 @@ export const ParticipantsCollapsibleSection = ({
         aria-controls={listId}
         onClick={() => setIsOpen((open) => !open)}
       >
-        <HStack justify="space-between" width="100%">
-          <span>{heading}</span>
-          <span>{count}</span>
-        </HStack>
-        <Chevron size={32} isOpen={isOpen} aria-hidden />
+        <span className={css({ flex: 1, minWidth: 0, textAlign: 'start' })}>
+          {heading}
+        </span>
+        <HeaderCell>{count}</HeaderCell>
+        <HeaderCell>
+          <Chevron size={24} isOpen={isOpen} aria-hidden />
+        </HeaderCell>
       </Header>
       {isOpen && (
         <List id={listId} role="list">
