@@ -1,5 +1,4 @@
-import { Button } from '@/primitives'
-import { RiErrorWarningFill } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 import { openPermissionsDialog } from '@/stores/permissions'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
@@ -43,7 +42,7 @@ export const PermissionNeededButton = ({
             zIndex: 2,
           })}
         >
-          <RiErrorWarningFill size={28} />
+          <Icon name="error-filled" size={24} />
         </div>
         <div
           className={css({

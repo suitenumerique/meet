@@ -1,4 +1,4 @@
-import { ToggleButton } from '@/primitives'
+import { ToggleButton, Icon } from '@/primitives'
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { useScreenReaderAnnounce } from '@/hooks/useScreenReaderAnnounce'
 import { useMemo, useRef, useState } from 'react'
@@ -186,7 +186,7 @@ export const ToggleDevice = <T extends ToggleSource>({
       : label
   }, [enabled, kind, deviceShortcut, t])
 
-  const Icon =
+  const iconName =
     isDisabled || !enabled ? deviceIcons.toggleOff : deviceIcons.toggleOn
 
   const roomContext = useMaybeRoomContext()
@@ -244,7 +244,7 @@ export const ToggleDevice = <T extends ToggleSource>({
         {...computedToggleButtonProps}
         {...overrideToggleButtonProps}
       >
-        <Icon />
+        <Icon name={iconName} />
       </ToggleButton>
       <MediaDeviceErrorAlert
         error={alertError}

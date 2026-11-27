@@ -1,6 +1,5 @@
 import { type ReactNode } from 'react'
 import { styled, VisuallyHidden } from '@/styled-system/jsx'
-import { RemixiconComponentType, RiArrowDropDownLine } from '@remixicon/react'
 import {
   Button,
   ListBox,
@@ -11,6 +10,7 @@ import {
 } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { Box } from './Box'
+import { Icon, type IconName } from './Icon'
 import { StyledPopover } from './StyledPopover'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { css, cx } from '@/styled-system/css'
@@ -114,7 +114,7 @@ export type SelectProps<T> = Omit<
   RACSelectProps<object>,
   'items' | 'label' | 'errors'
 > & {
-  iconComponent?: RemixiconComponentType
+  iconName?: IconName
   label: ReactNode
   items: Array<{ value: T; label: ReactNode; lang?: string }>
   errors?: ReactNode
@@ -125,7 +125,7 @@ export type SelectProps<T> = Omit<
 
 export const Select = <T extends string | number>({
   label,
-  iconComponent,
+  iconName,
   items,
   errors,
   placement,
@@ -133,7 +133,6 @@ export const Select = <T extends string | number>({
   menuFooter,
   ...props
 }: SelectProps<T>) => {
-  const IconComponent = iconComponent
   const { t } = useTranslation('global')
   return (
     <RACSelect {...props}>
@@ -141,14 +140,14 @@ export const Select = <T extends string | number>({
         <>
           {label}
           <StyledButton variant={variant}>
-            {!!IconComponent && (
+            {!!iconName && (
               <StyledIcon>
-                <IconComponent size={18} />
+                <Icon name={iconName} size="sm" />
               </StyledIcon>
             )}
             <StyledSelectValue />
-            <RiArrowDropDownLine
-              aria-hidden="true"
+            <Icon
+              name="arrow-drop-down"
               className={cx(chevronFlip, css({ flexShrink: 0 }))}
             />
           </StyledButton>

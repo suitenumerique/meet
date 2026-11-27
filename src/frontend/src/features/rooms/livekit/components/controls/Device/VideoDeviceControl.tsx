@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useTrackToggle, UseTrackToggleProps } from '@livekit/components-react'
-import { Button, Popover } from '@/primitives'
-import { RiArrowUpSLine } from '@remixicon/react'
+import { Button, Popover, Icon } from '@/primitives'
 import { Track, type VideoCaptureOptions, VideoPresets } from 'livekit-client'
 
 import { ToggleDevice } from './ToggleDevice'
@@ -139,7 +138,7 @@ export const VideoDeviceControl = ({
             variant={isMuted ? 'error2' : 'primaryDark'}
             className={menuTrigger({ muted: isMuted })}
           >
-            <RiArrowUpSLine className={chevronFlip} />
+            <Icon size={20} name="chevron-up" className={chevronFlip} />
           </Button>
           {({ close }) => (
             <div

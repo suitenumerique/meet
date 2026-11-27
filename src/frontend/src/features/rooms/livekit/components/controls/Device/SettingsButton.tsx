@@ -1,6 +1,5 @@
 import { css } from '@/styled-system/css'
-import { Button } from '@/primitives'
-import { RiSettings3Line } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { openSettingsDialog } from '@/stores/settings'
@@ -27,7 +26,7 @@ export const SettingsButton = ({
         onPress?.()
       }}
     >
-      <RiSettings3Line size={24} />
+      <Icon name="gear-rounded" />
     </Button>
   )
 }

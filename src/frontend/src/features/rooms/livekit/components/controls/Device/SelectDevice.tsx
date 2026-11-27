@@ -27,13 +27,13 @@ type SelectDeviceProps = {
 }
 
 type SelectDevicePermissionsProps<T> = SelectDeviceProps &
-  Pick<SelectProps<T>, 'placement' | 'variant' | 'iconComponent'>
+  Pick<SelectProps<T>, 'placement' | 'variant' | 'iconName'>
 
 const SelectDevicePermissions = <T extends string | number>({
   id,
   kind,
   onSubmit,
-  iconComponent,
+  iconName,
   track,
   ...props
 }: SelectDevicePermissionsProps<T>) => {
@@ -73,7 +73,7 @@ const SelectDevicePermissions = <T extends string | number>({
       label=""
       isDisabled={items.length === 0}
       items={items}
-      iconComponent={iconComponent}
+      iconName={iconName}
       placeholder={items.length === 0 ? t('loading') : t('select')}
       selectedKey={selectedKey}
       onSelectionChange={async (key) => {
@@ -128,7 +128,7 @@ export const SelectDevice = ({
         placeholder={t(`NotFound.title.${kind}`, {
           keyPrefix: 'mediaErrorDialog',
         })}
-        iconComponent={deviceIcons.select}
+        iconName={deviceIcons.select}
         {...contextProps}
       />
     )
@@ -142,7 +142,7 @@ export const SelectDevice = ({
         isDisabled={true}
         items={[]}
         placeholder={t('permissionsNeeded')}
-        iconComponent={deviceIcons.select}
+        iconName={deviceIcons.select}
         {...contextProps}
       />
     )
@@ -154,7 +154,7 @@ export const SelectDevice = ({
       onSubmit={onSubmit}
       kind={kind}
       track={track}
-      iconComponent={deviceIcons.select}
+      iconName={deviceIcons.select}
       {...contextProps}
     />
   )

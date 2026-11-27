@@ -1,36 +1,28 @@
-import {
-  RemixiconComponentType,
-  RiMicLine,
-  RiMicOffLine,
-  RiVideoOffLine,
-  RiVideoOnLine,
-  RiVolumeDownLine,
-  RiVolumeMuteLine,
-} from '@remixicon/react'
+import type { IconName } from '@/primitives/Icon'
 
 export interface DeviceIcons {
-  toggleOn: RemixiconComponentType
-  toggleOff: RemixiconComponentType
-  select: RemixiconComponentType
+  toggleOn: IconName
+  toggleOff: IconName
+  select: IconName
 }
 
 const ICONS: Record<MediaDeviceKind | 'default', DeviceIcons> = {
   audioinput: {
-    toggleOn: RiMicLine,
-    toggleOff: RiMicOffLine,
-    select: RiMicLine,
+    toggleOn: 'mic',
+    toggleOff: 'mic-off',
+    select: 'mic',
   },
   videoinput: {
-    toggleOn: RiVideoOnLine,
-    toggleOff: RiVideoOffLine,
-    select: RiVideoOnLine,
+    toggleOn: 'meet',
+    toggleOff: 'meet-off',
+    select: 'meet',
   },
   audiooutput: {
-    toggleOn: RiVolumeDownLine,
-    toggleOff: RiVolumeMuteLine,
-    select: RiVolumeDownLine,
+    toggleOn: 'volume-down',
+    toggleOff: 'volume-x',
+    select: 'volume-down',
   },
-  default: { toggleOn: RiMicLine, toggleOff: RiMicOffLine, select: RiMicLine },
+  default: { toggleOn: 'mic', toggleOff: 'mic-off', select: 'mic' },
 }
 
 export const useDeviceIcons = (kind: MediaDeviceKind): DeviceIcons =>

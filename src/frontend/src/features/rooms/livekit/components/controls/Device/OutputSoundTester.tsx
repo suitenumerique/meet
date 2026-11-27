@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RiVolumeUpLine } from '@remixicon/react'
 import { styled } from '@/styled-system/jsx'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { canTestAudioOutput } from '@/features/rooms/utils/canTestAudioOutput'
 import { resolveAudioOutputDeviceId } from '@/features/rooms/utils/resolveAudioOutputDeviceId'
 
@@ -122,7 +121,7 @@ export const OutputSoundTester = ({
         }}
       >
         <StyledButtonContent>
-          <RiVolumeUpLine size={18} aria-hidden />
+          <Icon name="volume-2" size="sm" />
           {isPlaying ? t('audiooutput.testing') : t('audiooutput.test')}
         </StyledButtonContent>
       </Button>
