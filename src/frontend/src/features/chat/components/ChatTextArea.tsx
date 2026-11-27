@@ -14,17 +14,18 @@ import { scrollbar } from '@/primitives/scrollbar'
 const StyledContainer = styled('div', {
   base: {
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'flex-end',
-    gap: '0.125rem',
+    gap: '0.5rem',
     margin: '0.75rem 0 1.5rem',
-    padding: '0.75rem',
+    padding: '0.5rem 0.5rem 0.5rem 1rem',
     backgroundColor: 'background.surface.primary',
     border: '1px solid',
     // the frame of the participants list
     borderColor: 'gray.100',
     borderRadius: 4,
     '& textarea': {
+      flex: 1,
+      minWidth: 0,
       backgroundColor: 'transparent',
     },
     '& textarea::placeholder': {
@@ -93,11 +94,8 @@ export const ChatTextArea = () => {
           resize: 'none',
           height: 'auto',
           maxHeight: '240px',
-          minHeight: '1.25rem',
-          lineHeight: 1.25,
-          // Marianne draws 2px below the line: without room for them, the
-          // text area is scrollable, and shows a scrollbar, even when empty.
-          padding: '0 0 2px',
+          lineHeight: '1.25rem',
+          padding: '4px 0',
         }}
         spellCheck={false}
         maxLength={2000}
