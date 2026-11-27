@@ -1,8 +1,8 @@
-import { RiFullscreenExitLine, RiFullscreenLine } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { useFullScreen } from '../../../hooks/useFullScreen'
+import { Icon } from '@/primitives/Icon'
 
 export const FullScreenMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
@@ -20,12 +20,12 @@ export const FullScreenMenuItem = () => {
     >
       {isCurrentlyFullscreen ? (
         <>
-          <RiFullscreenExitLine size={20} />
+          <Icon name="minimize" size={20} />
           {t('fullscreen.exit')}
         </>
       ) : (
         <>
-          <RiFullscreenLine size={20} />
+          <Icon name="maximize" size={20} />
           {t('fullscreen.enter')}
         </>
       )}

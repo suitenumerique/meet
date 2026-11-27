@@ -1,8 +1,8 @@
-import { RiPictureInPicture2Line } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { usePictureInPicture } from '@/features/pip/hooks/usePictureInPicture'
+import { Icon } from '@/primitives/Icon'
 
 export const PictureInPictureMenuItem = () => {
   const { t } = useTranslation('rooms', { keyPrefix: 'options.items' })
@@ -15,7 +15,7 @@ export const PictureInPictureMenuItem = () => {
       className={menuRecipe({ icon: true, variant: 'dark' }).item}
       onAction={toggle}
     >
-      <RiPictureInPicture2Line size={20} />
+      <Icon name="picture-in-picture" size={20} />
       {t(`pictureInPicture.${isOpen ? 'exit' : 'enter'}`)}
     </MenuItem>
   )
