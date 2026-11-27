@@ -44,15 +44,14 @@ const iconRecipe = cva({
 
 export type IconRecipeProps = RecipeVariantProps<typeof iconRecipe>
 
-export type IconProps = IconRecipeProps &
+export type IconProps = Omit<NonNullable<IconRecipeProps>, 'size'> &
   Omit<ComponentPropsWithoutRef<'svg'>, 'name'> & {
     name: IconName
+    /** One of the sizes of the recipe, or a size in pixels. */
+    size?: NonNullable<IconRecipeProps>['size'] | number
   }
 
-export const Icon = ({ name, ...props }: IconProps) => {
-  const [variantProps, componentProps] = iconRecipe.splitVariantProps(props)
-  const { className, ...rest } = componentProps
-
+export const Icon = ({ name, size, className, style, ...rest }: IconProps) => {
   const SvgIcon = icons[name]
 
   if (!SvgIcon) {
@@ -64,13 +63,25 @@ export const Icon = ({ name, ...props }: IconProps) => {
     return null
   }
 
+  const pixels = typeof size === 'number' ? size : undefined
+
   return (
     <SvgIcon
       aria-hidden="true"
       focusable="false"
-      className={[iconRecipe(variantProps), className]
+      className={[
+        iconRecipe({
+          size: pixels === undefined ? (size as never) : undefined,
+        }),
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
+      style={
+        pixels === undefined
+          ? style
+          : { width: pixels, height: pixels, ...style }
+      }
       {...rest}
     />
   )
