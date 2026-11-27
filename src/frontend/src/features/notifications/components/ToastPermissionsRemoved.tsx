@@ -3,8 +3,8 @@ import { useMemo, useRef } from 'react'
 
 import { type ToastProps } from './Toast'
 import { useTranslation } from 'react-i18next'
-import { RiErrorWarningLine } from '@remixicon/react'
 import { ToastCard } from './ToastCard'
+import { Icon } from '@/primitives/Icon'
 
 export function ToastPermissionsRemoved({
   state,
@@ -43,7 +43,7 @@ export function ToastPermissionsRemoved({
       ref={ref}
       contentProps={contentProps}
       variant="warning"
-      icon={<RiErrorWarningLine />}
+      icon={<Icon name="error" />}
     >
       {t(key)}
     </ToastCard>

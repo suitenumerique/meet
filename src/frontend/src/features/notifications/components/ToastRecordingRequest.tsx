@@ -4,7 +4,6 @@ import { useMemo, useRef } from 'react'
 import { type ToastProps } from './Toast'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/primitives'
-import { RiRecordCircleLine } from '@remixicon/react'
 import { NotificationType } from '../NotificationType'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { ToastCard, ToastAction } from './ToastCard'
@@ -37,7 +36,7 @@ export function ToastRecordingRequest({
         }
       case NotificationType.ScreenRecordingRequested:
         return {
-          icon: <RiRecordCircleLine />,
+          icon: <Icon name="record" />,
           key: 'screenRecording.requested',
           isMenuOpen: isScreenRecordingOpen,
           openMenu: openScreenRecording,

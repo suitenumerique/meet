@@ -2,7 +2,6 @@ import { ToastAction, ToastCard } from './ToastCard'
 import { HStack } from '@/styled-system/jsx'
 import { Avatar } from '@/components/Avatar'
 import { css } from '@/styled-system/css'
-import { RiInfinityLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useRef, useState } from 'react'
 import { usePrevious } from '@/hooks/usePrevious'
@@ -11,6 +10,7 @@ import { useWaitingParticipants } from '@/features/participants/hooks/useWaiting
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useNotificationSound } from '../hooks/useSoundNotification'
 import { NotificationType } from '@/features/notifications'
+import { Icon } from '@/primitives/Icon'
 
 export const NOTIFICATION_DISPLAY_DURATION = 10000
 
@@ -170,7 +170,7 @@ export const WaitingParticipantNotification = () => {
                   {waitingParticipants.length < 102 ? (
                     <p>+{waitingParticipants.length - 2}</p>
                   ) : (
-                    <RiInfinityLine size={20} />
+                    <Icon name="infinity" size={20} />
                   )}
                 </span>
               )}

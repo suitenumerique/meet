@@ -3,8 +3,8 @@ import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
 import { useTranslation } from 'react-i18next'
-import { RiMicOffLine } from '@remixicon/react'
 import { ToastCard } from './ToastCard'
+import { Icon } from '@/primitives/Icon'
 
 export function ToastMuted({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
@@ -19,7 +19,7 @@ export function ToastMuted({ state, ...props }: Readonly<ToastProps>) {
       {...toastProps}
       ref={ref}
       contentProps={contentProps}
-      icon={<RiMicOffLine />}
+      icon={<Icon name="mic-off" />}
     >
       {t('muted', { name: participant.name })}
     </ToastCard>

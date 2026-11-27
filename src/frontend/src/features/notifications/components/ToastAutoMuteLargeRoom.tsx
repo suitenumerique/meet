@@ -3,9 +3,9 @@ import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
 import { useTranslation } from 'react-i18next'
-import { RiMicOffLine } from '@remixicon/react'
 import { ToastCard, ToastAction } from './ToastCard'
 import { useRoomContext } from '@livekit/components-react'
+import { Icon } from '@/primitives/Icon'
 
 export function ToastAutoMuteLargeRoom({
   state,
@@ -30,7 +30,7 @@ export function ToastAutoMuteLargeRoom({
       {...toastProps}
       ref={ref}
       contentProps={contentProps}
-      icon={<RiMicOffLine />}
+      icon={<Icon name="mic-off" />}
       actions={
         <ToastAction onPress={() => handleDismiss()}>
           {t('dismiss')}

@@ -5,8 +5,8 @@ import {
   type ReactNode,
 } from 'react'
 import { Button as RACButton } from 'react-aria-components'
-import { RiCloseLine } from '@remixicon/react'
 import { css, cva, cx, type RecipeVariantProps } from '@/styled-system/css'
+import { Icon } from '@/primitives/Icon'
 
 /**
  * A notification, laid out as the toast of the UI kit:
@@ -268,7 +268,7 @@ export const ToastCard = forwardRef<HTMLDivElement, ToastCardProps>(
                     {...closeButtonProps}
                     className={css({ paddingInline: '0!' })}
                   >
-                    <RiCloseLine size={20} aria-hidden="true" />
+                    <Icon name="x-mark" size={20} />
                   </ToastAction>
                 )}
               </div>

@@ -3,8 +3,8 @@ import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
 import { useTranslation } from 'react-i18next'
-import { RiHand } from '@remixicon/react'
 import { ToastCard, ToastAction } from './ToastCard'
+import { Icon } from '@/primitives/Icon'
 
 export function ToastLowerHand({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications', { keyPrefix: 'lowerHand' })
@@ -23,7 +23,7 @@ export function ToastLowerHand({ state, ...props }: Readonly<ToastProps>) {
       {...toastProps}
       ref={ref}
       contentProps={contentProps}
-      icon={<RiHand />}
+      icon={<Icon name="hand" />}
       actions={
         <ToastAction onPress={() => handleDismiss()}>
           {t('dismiss')}

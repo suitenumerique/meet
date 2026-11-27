@@ -3,7 +3,6 @@ import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
 import { useTranslation } from 'react-i18next'
-import { RiAdminLine } from '@remixicon/react'
 import { ToastCard } from './ToastCard'
 
 export function ToastRoleChanged({ state, ...props }: Readonly<ToastProps>) {
@@ -17,7 +16,6 @@ export function ToastRoleChanged({ state, ...props }: Readonly<ToastProps>) {
       {...toastProps}
       ref={ref}
       contentProps={contentProps}
-      icon={<RiAdminLine />}
     >
       {t('body', { role: newRole })}
     </ToastCard>

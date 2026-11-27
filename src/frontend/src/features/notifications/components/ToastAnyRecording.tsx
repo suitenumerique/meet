@@ -5,7 +5,6 @@ import type { ToastProps } from './Toast'
 import { ToastCard, type ToastVariant } from './ToastCard'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/primitives'
-import { RiErrorWarningLine, RiRecordCircleLine } from '@remixicon/react'
 import { NotificationType } from '../NotificationType'
 
 export function ToastAnyRecording({ state, ...props }: Readonly<ToastProps>) {
@@ -73,11 +72,11 @@ export function ToastAnyRecording({ state, ...props }: Readonly<ToastProps>) {
       variant={variant}
       icon={
         variant === 'error' || variant === 'warning' ? (
-          <RiErrorWarningLine />
+          <Icon name="error" />
         ) : key.startsWith('transcript') ? (
           <Icon name="speech_to_text" />
         ) : (
-          <RiRecordCircleLine />
+          <Icon name="record" />
         )
       }
     >

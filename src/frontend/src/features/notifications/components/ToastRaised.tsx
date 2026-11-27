@@ -3,9 +3,9 @@ import { useRef } from 'react'
 
 import { type ToastProps } from './Toast'
 import { useTranslation } from 'react-i18next'
-import { RiHand } from '@remixicon/react'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { ToastCard, ToastAction } from './ToastCard'
+import { Icon } from '@/primitives/Icon'
 
 export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
   const { t } = useTranslation('notifications')
@@ -27,7 +27,8 @@ export function ToastRaised({ state, ...props }: Readonly<ToastProps>) {
       contentProps={contentProps}
       titleProps={titleProps}
       icon={
-        <RiHand
+        <Icon
+          name="hand"
           style={{
             animationDuration: '300ms',
             animationName: 'wave_hand',

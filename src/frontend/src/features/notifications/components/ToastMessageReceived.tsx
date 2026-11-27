@@ -2,10 +2,10 @@ import { useToast } from 'react-aria'
 import { useEffect, useRef } from 'react'
 
 import { type ToastProps } from './Toast'
-import { RiMessage2Line } from '@remixicon/react'
 import { useSidePanel } from '@/features/rooms/livekit/hooks/useSidePanel'
 import { useTranslation } from 'react-i18next'
 import { ToastCard } from './ToastCard'
+import { Icon } from '@/primitives/Icon'
 
 const MAX_PREVIEW_LENGTH = 120
 
@@ -41,7 +41,7 @@ export function ToastMessageReceived({
     <ToastCard
       {...toastProps}
       ref={ref}
-      icon={<RiMessage2Line />}
+      icon={<Icon name="bubble" />}
       iconAlign="start"
       title={participant.name}
       onPress={() => toggleChat()}
