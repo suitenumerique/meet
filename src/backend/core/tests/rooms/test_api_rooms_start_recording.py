@@ -926,6 +926,7 @@ def test_start_recording_is_audited(
         "sub_type": "recording",
         "raw": {
             "room_id": str(room.pk),
+            "room_slug": room.slug,
             "status": "initiated",
             "mode": "screen_recording",
             "requested_mode": "screen_recording",

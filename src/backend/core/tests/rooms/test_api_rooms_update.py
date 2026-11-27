@@ -12,6 +12,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from ...api.serializers import RoomSerializer
+from ...audit.testing import find_events
 from ...factories import RoomFactory, UserFactory
 from ...models import Room, RoomAccessLevel
 from ...services.room_management import (
@@ -41,8 +42,11 @@ def test_api_rooms_update_anonymous():
     assert room.slug == "old-name"
 
 
-def test_api_rooms_update_authenticated():
-    """Authenticated users should not be allowed to update a room."""
+def test_api_rooms_update_authenticated(audit_events):
+    """
+    Authenticated users should not be allowed to update a room. The refused update
+    names the room it was aimed at.
+    """
     user = UserFactory()
     room = RoomFactory(name="Old name")
     client = APIClient()
@@ -59,11 +63,20 @@ def test_api_rooms_update_authenticated():
     assert room.name == "Old name"
     assert room.slug == "old-name"
 
+    [event] = find_events(audit_events, "room.update")
 
-def test_api_rooms_update_members():
+    assert event["event"]["type"] == ["change", "denied"]
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["user"]["id"] == str(user.pk)
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert "details" not in event["lasuite"]
+
+
+def test_api_rooms_update_members(audit_events):
     """
     Users who are members of a room but not administrators should
-    not be allowed to update it.
+    not be allowed to update it. The refused update names the room it was aimed at.
     """
     user = UserFactory()
     room = RoomFactory(
@@ -82,17 +95,29 @@ def test_api_rooms_update_members():
         },
         format="json",
     )
-    assert response.status_code, 403
+    assert response.status_code == 403
     room.refresh_from_db()
     assert room.name == "Old name"
     assert room.slug == "old-name"
     assert room.access_level != RoomAccessLevel.RESTRICTED
     assert room.configuration == {}
 
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["type"] == ["change", "denied"]
+    assert event["event"]["reason"] == "permission_denied"
+    assert event["lasuite"]["outcome"] == "denied"
+    assert event["user"]["id"] == str(user.pk)
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert "details" not in event["lasuite"]
+
 
 @patch.object(RoomManagement, "update_metadata")
-def test_api_rooms_update_administrators(mock_update_metadata):
-    """Should sync LiveKit metadata when both configuration and access level change."""
+def test_api_rooms_update_administrators(mock_update_metadata, audit_events):
+    """
+    Should sync LiveKit metadata when both configuration and access level change.
+    The update records what changed and the previous access level.
+    """
     user = UserFactory()
     room = RoomFactory(
         access_level=RoomAccessLevel.RESTRICTED,
@@ -127,6 +152,19 @@ def test_api_rooms_update_administrators(mock_update_metadata):
             "configuration": {"can_publish_sources": ["camera", "microphone"]},
         },
     )
+
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["type"] == ["change"]
+    assert event["event"]["outcome"] == "success"
+    assert event["user"]["id"] == str(user.pk)
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["entity"]["target"]["raw"]["slug"] == "new-name"
+    assert event["entity"]["target"]["raw"]["access_level"] == "public"
+    assert event["lasuite"]["details"] == {
+        "updated_fields": ["access_level", "configuration"],
+        "previous_access_level": "restricted",
+    }
 
 
 @patch.object(RoomManagement, "update_metadata")
@@ -203,8 +241,11 @@ def test_api_rooms_update_administrators_access_level_only(mock_update_metadata)
 
 
 @patch.object(RoomManagement, "update_metadata")
-def test_api_rooms_update_administrators_name_only(mock_update_metadata):
-    """Should not sync LiveKit metadata when neither configuration nor access level changes."""
+def test_api_rooms_update_administrators_name_only(mock_update_metadata, audit_events):
+    """
+    Should not sync LiveKit metadata when neither configuration nor access level changes.
+    The update is still recorded, with no updated field.
+    """
     user = UserFactory()
     room = RoomFactory(
         name="Old name",
@@ -229,6 +270,15 @@ def test_api_rooms_update_administrators_name_only(mock_update_metadata):
     assert room.configuration == {"can_publish_sources": ["camera"]}
 
     mock_update_metadata.assert_not_called()
+
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["type"] == ["change"]
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["lasuite"]["details"] == {
+        "updated_fields": [],
+        "previous_access_level": "public",
+    }
 
 
 @pytest.mark.parametrize("method", ["put", "patch"])
@@ -508,3 +558,35 @@ def test_api_rooms_update_soft_deleted_after_load(mock_sync_room_metadata):
     assert refreshed_room.access_level == RoomAccessLevel.RESTRICTED
 
     mock_sync_room_metadata.assert_not_called()
+
+
+@patch.object(
+    RoomManagement, "sync_room_metadata", side_effect=RuntimeError("LiveKit down")
+)
+def test_api_rooms_update_crashing_is_audited(mock_sync_room_metadata, audit_events):
+    """An update saved but not synced to LiveKit is recorded as a failure."""
+    user = UserFactory()
+    room = RoomFactory(users=[(user, "owner")], access_level=RoomAccessLevel.TRUSTED)
+    client = APIClient()
+    client.force_login(user)
+
+    with pytest.raises(RuntimeError):
+        client.patch(
+            f"/api/v1.0/rooms/{room.id!s}/",
+            {"access_level": RoomAccessLevel.RESTRICTED},
+            format="json",
+        )
+
+    mock_sync_room_metadata.assert_called_once()
+    [event] = find_events(audit_events, "room.update")
+
+    assert event["event"]["reason"] == "internal_error"
+    assert event["lasuite"]["outcome"] == "failure"
+    assert event["entity"]["target"]["id"] == str(room.pk)
+    assert event["entity"]["target"]["raw"]["access_level"] == "restricted"
+    assert event["http"]["response"] == {"status_code": 500}
+    assert event["error"] == {"type": "builtins.RuntimeError"}
+    assert event["lasuite"]["details"] == {
+        "updated_fields": ["access_level"],
+        "previous_access_level": "trusted",
+    }

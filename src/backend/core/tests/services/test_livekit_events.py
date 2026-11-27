@@ -1283,12 +1283,90 @@ def test_participant_left_without_identity_is_ignored(mock_delete, service, sett
 
 
 @pytest.mark.parametrize(
-    ("egress_status", "worker_event", "outcome"),
+    ("recording_status", "egress_info_kwargs", "outcome", "expected_details"),
     (
-        (EgressStatus.EGRESS_COMPLETE, "completed", "success"),
-        (EgressStatus.EGRESS_LIMIT_REACHED, "limit reached", "success"),
-        (EgressStatus.EGRESS_ABORTED, "aborted", "failure"),
-        (EgressStatus.EGRESS_FAILED, "failed", "failure"),
+        (
+            "active",
+            {"status": EgressStatus.EGRESS_COMPLETE},
+            "success",
+            {"worker_event": "completed", "stop_requested": False},
+        ),
+        (
+            "active",
+            {"status": EgressStatus.EGRESS_ABORTED},
+            "failure",
+            {"worker_event": "aborted", "stop_requested": False},
+        ),
+        (
+            "stopped",
+            {
+                "status": EgressStatus.EGRESS_COMPLETE,
+                "details": "End reason: StopEgress API",
+            },
+            "success",
+            {
+                "worker_event": "completed",
+                "end_reason": "StopEgress API",
+                "stop_requested": True,
+            },
+        ),
+        (
+            "active",
+            {
+                "status": EgressStatus.EGRESS_LIMIT_REACHED,
+                "error": "Session limit reached",
+                "error_code": 413,
+                "details": "End reason: Session limit reached",
+            },
+            "success",
+            {
+                "worker_event": "limit reached",
+                "error_code": 413,
+                "end_reason": "Session limit reached",
+                "stop_requested": False,
+            },
+        ),
+        (
+            "active",
+            {
+                "status": EgressStatus.EGRESS_FAILED,
+                "error": "pipeline frozen",
+                "error_code": 500,
+                "details": "End reason: Failure",
+            },
+            "failure",
+            {
+                "worker_event": "failed",
+                "error_code": 500,
+                "end_reason": "Failure",
+                "stop_requested": False,
+            },
+        ),
+        (
+            "stopped",
+            {
+                "status": EgressStatus.EGRESS_COMPLETE,
+                "details": "End reason:  Source closed ",
+            },
+            "success",
+            {
+                "worker_event": "completed",
+                "end_reason": "Source closed",
+                "stop_requested": True,
+            },
+        ),
+        (
+            "stopped",
+            {"status": EgressStatus.EGRESS_COMPLETE, "details": "End reason: "},
+            "success",
+            {"worker_event": "completed", "stop_requested": True},
+        ),
+        (
+            "stopped",
+            {"status": EgressStatus.EGRESS_COMPLETE, "details": "Source closed"},
+            "success",
+            {"worker_event": "completed", "stop_requested": True},
+        ),
     ),
 )
 @mock.patch(
@@ -1301,26 +1379,35 @@ def test_handle_egress_ended_is_audited(  # noqa: PLR0913, PLR0917
     mock_update_metadata,
     mock_notify,
     mock_notify_external_services,
-    egress_status,
-    worker_event,
+    recording_status,
+    egress_info_kwargs,
     outcome,
+    expected_details,
     service,
     audit_events,
 ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    """The end of a recording is audited as LiveKit reports it."""
+    """
+    The end of a recording is audited as LiveKit reports it, with the end reason
+    LiveKit gives after "End reason: ", if any, and ``stop_requested`` true only
+    for a recording stopped through Meet.
+    """
 
     recording = RecordingFactory(
         worker_id="worker-1",
-        status="active",
+        status=recording_status,
         mode="screen_recording",
         options={"transcribe": True},
     )
-    mock_data = mock.MagicMock()
-    mock_data.egress_info.egress_id = recording.worker_id
-    mock_data.egress_info.status = egress_status
-    mock_data.egress_info.error_code = 0
+    data = api.WebhookEvent(
+        event="egress_ended",
+        egress_info=api.EgressInfo(
+            egress_id=recording.worker_id,
+            file_results=[UPLOADED_FILE],
+            **egress_info_kwargs,
+        ),
+    )
 
-    service._handle_egress_ended(mock_data)
+    service._handle_egress_ended(data)
 
     [event] = find_events(audit_events, "recording.end")
 
@@ -1331,7 +1418,8 @@ def test_handle_egress_ended_is_audited(  # noqa: PLR0913, PLR0917
     assert event["lasuite"]["auth"] == {"method": "shared_secret"}
     assert event["entity"]["target"]["id"] == str(recording.id)
     assert event["entity"]["target"]["raw"]["is_transcribed"] is True
-    assert event["lasuite"]["details"] == {"worker_event": worker_event}
+    assert event["entity"]["target"]["raw"]["room_slug"] == recording.room.slug
+    assert event["lasuite"]["details"] == expected_details
 
 
 @mock.patch("core.services.room_management.RoomManagement.update_metadata")
@@ -1344,6 +1432,7 @@ def test_handle_egress_ended_with_an_unmapped_status_is_audited_as_unknown(
     mock_data.egress_info.egress_id = recording.worker_id
     mock_data.egress_info.status = 999
     mock_data.egress_info.error_code = 0
+    mock_data.egress_info.details = ""
 
     service._handle_egress_ended(mock_data)
 
@@ -1352,4 +1441,32 @@ def test_handle_egress_ended_with_an_unmapped_status_is_audited_as_unknown(
     assert event["event"]["outcome"] == "unknown"
     assert event["lasuite"]["outcome"] == "unknown"
     assert event["log"]["level"] == "warning"
-    assert "details" not in event["lasuite"]
+    assert event["lasuite"]["details"] == {"stop_requested": False}
+
+
+@mock.patch.object(RecordingEventsService, "_handle_successful")
+@mock.patch("core.utils.notify_participants")
+@mock.patch("core.services.room_management.RoomManagement.update_metadata")
+def test_handle_egress_ended_limit_reached_is_not_a_requested_stop(
+    mock_update_metadata, mock_notify, mock_handle_successful, service, audit_events
+):
+    """A limit reached stops the recording, after its end is audited."""
+    recording = RecordingFactory(worker_id="worker-1", status="active")
+    data = api.WebhookEvent(
+        event="egress_ended",
+        egress_info=api.EgressInfo(
+            egress_id=recording.worker_id,
+            status=EgressStatus.EGRESS_LIMIT_REACHED,
+            details="End reason: Session limit reached",
+            file_results=[UPLOADED_FILE],
+        ),
+    )
+
+    service._handle_egress_ended(data)
+
+    recording.refresh_from_db()
+    assert recording.status == "stopped"
+
+    [event] = find_events(audit_events, "recording.end")
+
+    assert event["lasuite"]["details"]["stop_requested"] is False

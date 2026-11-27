@@ -272,6 +272,7 @@ class RoomViewSet(audit.AuditViewMixin, viewsets.GenericViewSet):
 - The outcome, reason and status code come from the response status: 401, 403 and 429 are `denied`, other errors are `failure`, filed as [Classification](../self-hosting/configuration/audit-logging.md#classification) describes.
 - The target is the object `get_object()` returned, unless the view assigns `audit_target`.
 - A view can also assign `audit_user_target`, `audit_details` and `audit_actor`, where `None` records no account, or override `get_audit_fields()`.
+- For one response, a view can set `audit_skip` to emit nothing.
 
 ### Auditing from anywhere else
 

@@ -1386,6 +1386,9 @@ class Base(Configuration):
     AUDIT_LOG_SERVICE_NAME = values.Value(
         "meet", environ_name="AUDIT_LOG_SERVICE_NAME", environ_prefix=None
     )
+    AUDIT_LOG_PERSONAL_DATA = values.BooleanValue(
+        False, environ_name="AUDIT_LOG_PERSONAL_DATA", environ_prefix=None
+    )
     AUDIT_LOG_DATA_STREAM_NAMESPACE = values.Value(
         "default", environ_name="AUDIT_LOG_DATA_STREAM_NAMESPACE", environ_prefix=None
     )

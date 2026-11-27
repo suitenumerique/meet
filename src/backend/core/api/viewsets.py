@@ -1,6 +1,7 @@
 """API endpoints"""
 # pylint: disable=too-many-lines
 
+import copy
 import uuid
 from datetime import timedelta
 from logging import getLogger
@@ -288,6 +289,13 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
     API endpoints to access and perform actions on rooms.
     """
 
+    audit_actions = {
+        "create": auditing.ROOM_CREATE,
+        "update": auditing.ROOM_UPDATE,
+        "partial_update": auditing.ROOM_UPDATE,
+        "destroy": auditing.ROOM_DELETE,
+    }
+
     pagination_class = Pagination
     permission_classes = [permissions.RoomPermissions]
     queryset = models.Room.objects.all()
@@ -363,6 +371,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
 
         The room and its recordings are kept in database for traceability.
         """
+        self.audit_target = instance
         try:
             RoomManagement.soft_delete(instance)
         except RoomManagementException as e:
@@ -401,6 +410,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
             save_kwargs["configuration"] = user.default_room_configuration
 
         room = serializer.save(**save_kwargs)
+        self.audit_target = room
         models.ResourceAccess.objects.create(
             resource=room,
             user=self.request.user,
@@ -431,18 +441,27 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         with room_locked_for_update(serializer.instance) as locked_room:
             serializer.instance = locked_room
 
-            old_configuration = locked_room.configuration
-            old_access_level = locked_room.access_level
+            previous_values = {
+                "access_level": locked_room.access_level,
+                "configuration": copy.deepcopy(locked_room.configuration),
+            }
 
             room = serializer.save()
 
-        if (
-            room.configuration == old_configuration
-            and room.access_level == old_access_level
-        ):
-            return
+        self.audit_target = room
 
-        RoomManagement.sync_room_metadata(room)
+        updated_fields = sorted(
+            field
+            for field, previous_value in previous_values.items()
+            if getattr(room, field) != previous_value
+        )
+        self.audit_details = {
+            "updated_fields": updated_fields,
+            "previous_access_level": previous_values["access_level"],
+        }
+
+        if updated_fields:
+            RoomManagement.sync_room_metadata(room)
 
     @decorators.action(
         detail=True,
@@ -547,7 +566,7 @@ class RoomViewSet(  # pylint: disable=too-many-public-methods
         room = self.get_object()
 
         try:
-            recording = models.Recording.objects.get(
+            recording = models.Recording.objects.select_related("room").get(
                 room=room, status=models.RecordingStatusChoices.ACTIVE
             )
         except models.Recording.DoesNotExist as e:
@@ -1163,7 +1182,7 @@ class RecordingViewSet(
 
     pagination_class = Pagination
     permission_classes = [permissions.HasAbilityPermission]
-    queryset = models.Recording.objects.all()
+    queryset = models.Recording.objects.select_related("room")
     serializer_class = serializers.RecordingSerializer
 
     audit_actions = {"destroy": auditing.RECORDING_DELETE}
@@ -1215,7 +1234,9 @@ class RecordingViewSet(
         self.audit_process_type = validated_data.get("type")
         self.audit_details = {"job_id": job_id, "status": validated_data.get("status")}
         try:
-            recording = models.Recording.objects.get(external_process_id=job_id)
+            recording = models.Recording.objects.select_related("room").get(
+                external_process_id=job_id
+            )
         except models.Recording.DoesNotExist as e:
             logger.warning("No recording found for job_id %s: %s", job_id, e)
             return ok_response
@@ -1292,7 +1313,12 @@ class RecordingViewSet(
             logger.warning("Failed to extract parameters from subrequest URL: %s", exc)
             raise drf_exceptions.PermissionDenied() from exc
 
-    @decorators.action(detail=False, methods=["get"], url_path="media-auth")
+    @decorators.action(
+        detail=False,
+        methods=["get"],
+        url_path="media-auth",
+        audit_action=auditing.RECORDING_DOWNLOAD,
+    )
     def media_auth(self, request, *args, **kwargs):
         """
         This view is used by an Nginx subrequest to control access to a recording's
@@ -1301,6 +1327,7 @@ class RecordingViewSet(
         the request going through thanks to the nginx.ingress.kubernetes.io/auth-response-headers
         annotation. The request will then be proxied to the object storage backend who will
         respond with the file after checking the signature included in headers.
+        A request let through is audited only when it reads the file from its first byte.
         """
 
         parsed_url = self._auth_get_original_url(request)
@@ -1311,15 +1338,22 @@ class RecordingViewSet(
 
         user = request.user
         recording_id = url_params["recording_id"]
+        self.audit_target = {
+            "id": str(uuid.UUID(recording_id)),
+            "sub_type": "recording",
+        }
 
         extension = url_params["extension"]
         if extension not in [file.value for file in FileExtension]:
             raise drf_exceptions.ValidationError({"detail": "Unsupported extension."})
 
         try:
-            recording = models.Recording.objects.get(id=recording_id)
+            recording = models.Recording.objects.select_related("room").get(
+                id=recording_id
+            )
         except models.Recording.DoesNotExist as e:
             raise drf_exceptions.NotFound("No recording found for this event.") from e
+        self.audit_target = recording
 
         if extension != recording.extension:
             raise drf_exceptions.NotFound("No recording found with this extension.")
@@ -1334,7 +1368,10 @@ class RecordingViewSet(
             logger.debug("Recording '%s' has not been saved", recording)
             raise drf_exceptions.PermissionDenied()
 
+        byte_range = request.headers.get("Range")
         request = utils.generate_s3_authorization_headers(recording.key)
+        if byte_range and not enums.FIRST_BYTE_RANGE_PATTERN.match(byte_range):
+            self.audit_skip = True
 
         return drf_response.Response("authorized", headers=request.headers, status=200)
 

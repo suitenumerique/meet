@@ -8,7 +8,7 @@ from datetime import datetime
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 
 import pytest
 from dockerflow.logging import request_id_context
@@ -333,10 +333,11 @@ def test_audit_log_describes_registered_targets(audit_events):
         "raw": {"slug": room.slug, "access_level": room.access_level},
     }
     assert "user" not in audit_events[0]
+    assert "user_target" not in audit_events[0]["lasuite"]
 
 
 def test_audit_log_reports_a_user_target_as_user_target(audit_events):
-    """A user acted on is the ``user.target``, its sub only in ``entity.target``."""
+    """A user acted on is the ``user.target``, its sub in ``lasuite.user_target``."""
     user = UserFactory(email="jane@example.org")
 
     audit.log("user.provision", target=user)
@@ -344,6 +345,7 @@ def test_audit_log_reports_a_user_target_as_user_target(audit_events):
     event = audit_events[0]
 
     assert event["user"] == {"target": {"id": str(user.pk), "domain": "example.org"}}
+    assert event["lasuite"]["user_target"] == {"sub": user.sub}
     assert event["entity"]["target"] == {
         "id": str(user.pk),
         "type": ["user"],
@@ -352,9 +354,23 @@ def test_audit_log_reports_a_user_target_as_user_target(audit_events):
     }
 
 
-def test_audit_log_reports_the_registered_user_target(audit_events):
-    """An access names the user it grants a role to as the ``user.target``."""
-    room = RoomFactory(users=[(UserFactory(email="jane@example.org"), "member")])
+@pytest.mark.parametrize(
+    "personal_data,personal",
+    [
+        (False, {}),
+        (True, {"email": "jane@example.org", "full_name": "Jane Roe"}),
+    ],
+)
+def test_audit_log_reports_the_registered_user_target(
+    audit_events, settings, personal_data, personal
+):
+    """
+    An access names the user it grants a role to as the ``user.target``, with
+    its email and name only when personal data is on.
+    """
+    settings.AUDIT_LOG_PERSONAL_DATA = personal_data
+    user = UserFactory(email="jane@example.org", full_name="Jane Roe")
+    room = RoomFactory(users=[(user, "member")])
     access = room.accesses.get()
 
     audit.log("thing.grant", target=access)
@@ -362,19 +378,26 @@ def test_audit_log_reports_the_registered_user_target(audit_events):
     event = audit_events[0]
 
     assert event["user"] == {
-        "target": {"id": str(access.user_id), "domain": "example.org"}
+        "target": {"id": str(access.user_id), "domain": "example.org", **personal}
     }
+    assert event["lasuite"]["user_target"] == {"sub": access.user.sub}
     assert event["entity"]["target"]["sub_type"] == "resourceaccess"
 
 
 def test_audit_log_explicit_user_target_wins(audit_events):
-    """A user target given to ``log`` wins over the one of the target."""
+    """
+    A user target given to ``log`` wins over the one of the target, and one that
+    never signed in, as a pending user, has no sub recorded.
+    """
     room = RoomFactory(users=[(UserFactory(), "member")])
-    other = UserFactory(email="other@example.net")
+    other = UserFactory(sub=None, email="other@example.net")
 
     audit.log("thing.grant", target=room.accesses.get(), user_target=other)
 
-    assert audit_events[0]["user"]["target"]["id"] == str(other.pk)
+    assert audit_events[0]["user"] == {
+        "target": {"id": str(other.pk), "domain": "example.net"}
+    }
+    assert "user_target" not in audit_events[0]["lasuite"]
 
 
 def test_audit_log_registered_entity_type(audit_events):
@@ -491,21 +514,56 @@ def test_audit_log_reports_the_client_not_the_proxy(audit_events):
 
 
 def test_audit_log_actor_user_is_id_sub_and_domain_only(audit_events):
-    """A human actor is identified without email or name."""
+    """A human actor and the account acted on are identified without email or name."""
     user = UserFactory(email="john.doe@example.com", full_name="John Doe")
+    target = UserFactory(email="jane.roe@example.org", full_name="Jane Roe")
     request = RequestFactory().get("/")
     request.user = user
 
-    audit.log("anything", request=request)
+    audit.log("anything", request=request, user_target=target)
 
     event = audit_events[0]
 
-    assert event["user"] == {"id": str(user.pk), "domain": "example.com"}
+    assert event["user"] == {
+        "id": str(user.pk),
+        "domain": "example.com",
+        "target": {"id": str(target.pk), "domain": "example.org"},
+    }
     assert event["lasuite"]["actor"] == {"type": "user", "sub": user.sub}
+    assert event["lasuite"]["user_target"] == {"sub": target.sub}
     assert event["lasuite"]["auth"] == {"method": "session"}
     assert event["organization"] == {"id": "example.com"}
-    assert "John" not in json.dumps(event)
-    assert "john.doe" not in json.dumps(event)
+    for value in ("john.doe", "John", "jane.roe", "Jane"):
+        assert value not in json.dumps(event)
+
+
+@pytest.mark.parametrize(
+    "actor_name,target_name", [("John Doe", "Jane Roe"), (None, None), ("", "")]
+)
+@override_settings(AUDIT_LOG_PERSONAL_DATA=True)
+def test_audit_log_personal_data_on_records_email_and_name(
+    audit_events, actor_name, target_name
+):
+    """With personal data, both accounts have their email, and full name if any."""
+    actor = UserFactory(email="john.doe@example.com", full_name=actor_name)
+    target = UserFactory(email="jane.roe@example.org", full_name=target_name)
+    request = RequestFactory().get("/")
+    request.user = actor
+
+    audit.log("anything", request=request, user_target=target)
+
+    assert audit_events[0]["user"] == {
+        "id": str(actor.pk),
+        "domain": "example.com",
+        "email": "john.doe@example.com",
+        **({"full_name": actor_name} if actor_name else {}),
+        "target": {
+            "id": str(target.pk),
+            "domain": "example.org",
+            "email": "jane.roe@example.org",
+            **({"full_name": target_name} if target_name else {}),
+        },
+    }
 
 
 @pytest.mark.parametrize(

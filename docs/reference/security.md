@@ -54,7 +54,7 @@ Meet throttles only these actions; limit every other endpoint at your reverse pr
 
 ### Audit logging
 
-The backend writes an audit event for each sign-in, each room action made through the external API, each recording action, and each Django admin change, see [Audit logging](../self-hosting/configuration/audit-logging.md).
+The backend writes an audit event for each sign-in, each room action, each recording action, and each Django admin change, see [Audit logging](../self-hosting/configuration/audit-logging.md).
 
 ## Authentication model
 

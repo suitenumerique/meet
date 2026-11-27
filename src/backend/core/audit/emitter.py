@@ -12,7 +12,7 @@ from typing import Any
 from django.conf import settings
 
 from .actions import Action
-from .actor import FROM_REQUEST, describe_actor, describe_user
+from .actor import FROM_REQUEST, describe_actor, describe_user, user_sub
 from .ecs import (
     DEFAULT_CATEGORY,
     ECS_VERSION,
@@ -99,12 +99,13 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
     ``actor=None`` records no account even when the request is signed in.
     ``target`` is the resource acted on, reported as ``entity.target``, and
     ``user_target`` the account the action was about, reported as
-    ``user.target``: by default the target if it is a user, or the account
-    registered for its model. ``target_service`` names the peer service the
-    backend called, reported as ``service.target.name``. Any other keyword
-    argument lands under ``lasuite.details``, unless ``None`` or an empty
-    mapping. The value of a detail is data and is kept whole: a ``None`` or an
-    empty mapping inside it, as in the ``from`` and ``to`` of a change, stays.
+    ``user.target`` and its sub as ``lasuite.user_target.sub``: by default
+    the target if it is a user, or the account registered for its model.
+    ``target_service`` names the peer service the backend called, reported as
+    ``service.target.name``. Any other keyword argument lands under
+    ``lasuite.details``, unless ``None`` or an empty mapping. The value of a
+    detail is data and is kept whole: a ``None`` or an empty mapping inside
+    it, as in the ``from`` and ``to`` of a change, stays.
     """
     context = (
         request_context() if request is None else RequestContext.from_request(request)
@@ -159,6 +160,7 @@ def build_document(  # noqa: PLR0913  # pylint: disable=too-many-arguments,too-m
             },
             "lasuite": {
                 **actor_fields["lasuite"],
+                "user_target": {"sub": user_sub(user_target)},
                 "outcome": str(outcome),
             },
             "error": {

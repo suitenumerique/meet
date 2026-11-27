@@ -98,6 +98,7 @@ EGRESS_STATUS_TO_RECORDING_EVENT = {
 
 EGRESS_ROOM_CONNECTION_FAILED_ERROR = "recording ended early: connection to room failed"
 EGRESS_CPU_EXHAUSTED_DETAILS = "End reason: CPU exhausted"
+EGRESS_END_REASON_PREFIX = "End reason: "
 
 
 def to_recording_event(egress_status):
@@ -138,6 +139,14 @@ def to_ended_recording_event(egress_info):
         return RecordingWorkerEvent.INTERRUPTED
 
     return to_recording_event(status)
+
+
+def to_end_reason(details):
+    """Return the end reason an ended LiveKit egress gives in its details, if any."""
+
+    if not details.startswith(EGRESS_END_REASON_PREFIX):
+        return None
+    return details.removeprefix(EGRESS_END_REASON_PREFIX).strip() or None
 
 
 class LiveKitEventsService:
@@ -253,7 +262,7 @@ class LiveKitEventsService:
             ) from err
 
         event = to_ended_recording_event(data.egress_info)
-        self._audit_recording_end(recording, event, data.egress_info.error_code)
+        self._audit_recording_end(recording, event, data.egress_info)
 
         # Log if/why the recording failed
         self.recording_events.log_worker_error(
@@ -291,10 +300,12 @@ class LiveKitEventsService:
         self.recording_events.handle_terminal_event(recording, event)
 
     @staticmethod
-    def _audit_recording_end(recording, event, error_code=None):
+    def _audit_recording_end(recording, event, egress_info):
         """Audit the end of a recording, as LiveKit reports it.
 
         An egress status the backend does not map has an unknown outcome.
+        ``stop_requested`` is whether Meet had stopped the recording, read
+        before the terminal event is handled.
         """
         if event is None:
             outcome = audit.Outcome.UNKNOWN
@@ -309,7 +320,9 @@ class LiveKitEventsService:
             target=recording,
             outcome=outcome,
             worker_event=event.value if event is not None else None,
-            error_code=error_code or None,
+            error_code=egress_info.error_code or None,
+            end_reason=to_end_reason(egress_info.details),
+            stop_requested=recording.status == models.RecordingStatusChoices.STOPPED,
         )
 
     @staticmethod

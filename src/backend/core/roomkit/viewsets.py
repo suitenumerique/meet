@@ -13,7 +13,7 @@ from rest_framework import (
     status as drf_status,
 )
 
-from core import analytics, models
+from core import analytics, audit, auditing, models
 from core.api import permissions, throttling
 from core.api.feature_flag import FeatureFlag
 from core.services.sip_management import SIPException, SIPManagement
@@ -23,7 +23,7 @@ from . import authentication, serializers
 logger = getLogger(__name__)
 
 
-class RoomKitViewSet(viewsets.ViewSet):
+class RoomKitViewSet(audit.AuditViewMixin, viewsets.ViewSet):
     """Server-to-server API endpoints for the roomkit integration.
 
     Groups all interactions between roomkit (SIP) devices and the backend,
@@ -34,11 +34,14 @@ class RoomKitViewSet(viewsets.ViewSet):
     authentication_classes = [authentication.ServerToServerAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
+    audit_pin_refused = False
+
     @decorators.action(
         detail=False,
         methods=["post"],
         url_path="join",
         throttle_classes=[throttling.RoomKitJoinRateThrottle],
+        audit_action=auditing.ROOMKIT_JOIN,
     )
     @FeatureFlag.require("roomkit")
     def join(self, request):
@@ -61,12 +64,15 @@ class RoomKitViewSet(viewsets.ViewSet):
                 pin_code=serializer.validated_data["pin_code"]
             )
         except models.Room.DoesNotExist as e:
+            self.audit_pin_refused = True
             raise drf_exceptions.NotFound("No room found for this PIN code.") from e
+        self.audit_target = room
 
         try:
             created = SIPManagement().ensure_dispatch_rule(room)
         except SIPException as e:
             raise drf_exceptions.APIException("Could not create dispatch rule.") from e
+        self.audit_details = {"dispatch_rule_created": created}
 
         analytics.capture(
             request.user,
@@ -87,3 +93,10 @@ class RoomKitViewSet(viewsets.ViewSet):
             {"status": "success"},
             status=drf_status.HTTP_200_OK,
         )
+
+    def get_audit_fields(self, status_code, error=None):
+        """Report an unknown PIN code as a refusal, though answered with a 404."""
+        fields = super().get_audit_fields(status_code, error)
+        if self.audit_pin_refused:
+            fields["outcome"] = audit.Outcome.DENIED
+        return fields

@@ -1078,9 +1078,22 @@ def _post_token(client_id, client_secret, scope, **extra):
     )
 
 
-def test_api_applications_generate_token_success_is_audited(audit_events, settings):
-    """An issued token records the application, the delegated user and scopes."""
-    user = UserFactory(email="jean-neige@winterfell.com")
+@pytest.mark.parametrize(
+    "personal_data,personal",
+    [
+        (False, {}),
+        (True, {"email": "jean-neige@winterfell.com", "full_name": "Jean Neige"}),
+    ],
+)
+def test_api_applications_generate_token_success_is_audited(
+    audit_events, settings, personal_data, personal
+):
+    """
+    An issued token records the application, the delegated user and scopes, the
+    user's email and name only when personal data is on.
+    """
+    settings.AUDIT_LOG_PERSONAL_DATA = personal_data
+    user = UserFactory(email="jean-neige@winterfell.com", full_name="Jean Neige")
     application = _application(scopes=[ApplicationScope.ROOMS_LIST])
 
     response = _post_token(
@@ -1099,7 +1112,11 @@ def test_api_applications_generate_token_success_is_audited(audit_events, settin
     assert event["lasuite"]["actor"] == {"type": "application", "sub": user.sub}
     assert event["lasuite"]["auth"] == {"method": "client_credentials"}
     assert event["lasuite"]["application"] == {"client_id": application.client_id}
-    assert event["user"] == {"id": str(user.pk), "domain": "winterfell.com"}
+    assert event["user"] == {
+        "id": str(user.pk),
+        "domain": "winterfell.com",
+        **personal,
+    }
     assert event["organization"] == {"id": application.client_id}
     assert event["entity"]["target"] == {
         "id": str(application.pk),
@@ -1121,7 +1138,7 @@ def test_api_applications_generate_token_success_is_audited(audit_events, settin
     assert event["client"]["ip"] == "1.2.3.4"
     assert event["url"]["path"] == "/external-api/v1.0/application/token/"
     assert event["http"]["request"]["id"] == response["X-Request-ID"]
-    assert "jean-neige@winterfell.com" not in json.dumps(event)
+    assert ("jean-neige@winterfell.com" in json.dumps(event)) is personal_data
 
 
 def test_api_applications_generate_token_wrong_secret_is_audited(audit_events):
@@ -1187,8 +1204,24 @@ def test_api_applications_generate_token_inactive_application_is_audited(
     assert event["error"] == {"message": "Application is inactive"}
 
 
-def test_api_applications_generate_token_domain_denied_is_audited(audit_events):
-    """Delegating outside the allowed domains is a permission denial."""
+@pytest.mark.parametrize(
+    "personal_data,details",
+    [
+        (False, {"requested_domain": "random.com"}),
+        (
+            True,
+            {"requested_domain": "random.com", "requested_email": "user@random.com"},
+        ),
+    ],
+)
+def test_api_applications_generate_token_domain_denied_is_audited(
+    audit_events, settings, personal_data, details
+):
+    """
+    Delegating outside the allowed domains is a permission denial, recording the
+    email asked for only when personal data is on.
+    """
+    settings.AUDIT_LOG_PERSONAL_DATA = personal_data
     UserFactory(email="user@random.com")
     application = _application()
     ApplicationDomainFactory(application=application, domain="allowed.com")
@@ -1202,11 +1235,12 @@ def test_api_applications_generate_token_domain_denied_is_audited(audit_events):
     assert event["event"]["reason"] == "permission_denied"
     assert event["lasuite"]["actor"] == {"type": "application"}
     assert event["entity"]["target"]["id"] == str(application.pk)
-    assert event["lasuite"]["details"] == {"requested_domain": "random.com"}
+    assert event["lasuite"]["details"] == details
     assert event["http"]["response"] == {"status_code": 403}
     assert event["error"] == {
         "message": "This application is not authorized for this email domain."
     }
+    assert ("user@random.com" in json.dumps(event)) is personal_data
 
 
 def test_api_applications_generate_token_invalid_email_is_audited(audit_events):
