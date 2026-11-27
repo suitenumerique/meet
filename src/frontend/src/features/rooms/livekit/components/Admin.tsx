@@ -108,10 +108,7 @@ export const Admin = () => {
           margin={false}
           className={css({
             paddingInline: '1.5rem',
-            // leaves the room to the settings on short screens
-            '@media (max-height: 770px)': {
-              display: 'none',
-            },
+            paddingBottom: '0.5rem',
           })}
         >
           {t('description')}
@@ -123,7 +120,7 @@ export const Admin = () => {
           css({
             flexGrow: 1,
             minHeight: 0,
-            paddingTop: '1rem',
+            paddingTop: '0.5rem',
           })
         )}
       >
