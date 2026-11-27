@@ -29,7 +29,13 @@ export const useSyncUserPreferencesWithBackend = () => {
 
     const syncBrowserPreferencesToBackend = async () => {
       const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-      const currentLanguage = convertToBackendLanguage(i18n.language)
+      // A language from the ?lang= URL param only applies to this page
+      // (see i18n/init.ts): keep the one saved for the user.
+      const currentLanguage = new URLSearchParams(window.location.search).has(
+        'lang'
+      )
+        ? user.language
+        : convertToBackendLanguage(i18n.language)
       if (
         currentLanguage !== user.language ||
         currentTimezone !== user.timezone
