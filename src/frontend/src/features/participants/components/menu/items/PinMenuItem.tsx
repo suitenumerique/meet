@@ -1,7 +1,6 @@
 import { Participant, Track } from 'livekit-client'
 import { menuRecipe } from '@/primitives/menuRecipe'
 import { HStack } from '@/styled-system/jsx'
-import { RiPushpin2Line, RiUnpinLine } from '@remixicon/react'
 import { MenuItem } from 'react-aria-components'
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
@@ -9,6 +8,7 @@ import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
 import { isEqualTrackRef } from '@livekit/components-core'
 import Source = Track.Source
 import { useMemo } from 'react'
+import { Icon } from '@/primitives/Icon'
 
 export const PinMenuItem = ({ participant }: { participant: Participant }) => {
   const { t } = useTranslation('rooms', { keyPrefix: 'participantMenu' })
@@ -35,12 +35,12 @@ export const PinMenuItem = ({ participant }: { participant: Participant }) => {
       <HStack gap="3xs">
         {inFocus ? (
           <>
-            <RiUnpinLine size={20} aria-hidden />
+            <Icon name="unpin" size={20} />
             {t('unpin.label')}
           </>
         ) : (
           <>
-            <RiPushpin2Line size={20} aria-hidden />
+            <Icon name="pin" size={20} />
             {t('pin.label')}
           </>
         )}

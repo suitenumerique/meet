@@ -1,7 +1,7 @@
 import { ReactNode, useId, useState } from 'react'
-import { RiArrowUpSLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { styled, VStack } from '@/styled-system/jsx'
+import { Icon } from '@/primitives/Icon'
 
 const Container = styled('div', {
   base: {
@@ -44,7 +44,7 @@ const HeaderCell = styled('span', {
   },
 })
 
-const Chevron = styled(RiArrowUpSLine, {
+const Chevron = styled(Icon, {
   base: { transition: 'transform 200ms', flexShrink: 0 },
   variants: {
     isOpen: { false: { transform: 'rotate(180deg)' } },
@@ -93,7 +93,7 @@ export const ParticipantsCollapsibleSection = ({
         </span>
         <HeaderCell>{count}</HeaderCell>
         <HeaderCell>
-          <Chevron size={24} isOpen={isOpen} aria-hidden />
+          <Chevron name="chevron-up" size={22} isOpen={isOpen} />
         </HeaderCell>
       </Header>
       {isOpen && (

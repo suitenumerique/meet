@@ -1,10 +1,10 @@
 import { Participant, Track } from 'livekit-client'
-import { RiPushpin2Fill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { useMemo } from 'react'
 import { useSnapshot } from 'valtio'
 import { layoutStore } from '@/stores/layout'
 import { isEqualTrackRef } from '@livekit/components-core'
+import { Icon } from '@/primitives/Icon'
 import Source = Track.Source
 
 export const PinBadge = ({ participant }: { participant: Participant }) => {
@@ -46,7 +46,7 @@ export const PinBadge = ({ participant }: { participant: Participant }) => {
         right: '-4px',
       })}
     >
-      <RiPushpin2Fill size={14} aria-hidden />
+      <Icon name="pin-filled" size={14} />
     </div>
   )
 }

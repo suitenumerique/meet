@@ -17,8 +17,7 @@ import {
   useTrackMutedIndicator,
 } from '@livekit/components-react'
 import Source = Track.Source
-import { RiMicFill, RiMicOffFill } from '@remixicon/react'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { useCanMute } from '@/features/rooms/livekit/hooks/useCanMute'
 import { ParticipantMenuButton } from './menu/ParticipantMenuButton'
 import { PinBadge } from './PinBadge'
@@ -63,16 +62,16 @@ const MicIndicator = ({ participant }: MicIndicatorProps) => {
       data-attr="participants-mute"
     >
       {isMuted ? (
-        <RiMicOffFill color={'gray'} aria-hidden={true} />
+        <Icon name="mic-off-filled" style={{ color: 'gray' }} />
       ) : (
-        <RiMicFill
+        <Icon
+          name="mic-filled"
           className={css({
             color: isSpeaking ? 'gray.550' : 'gray.900',
             animation: isSpeaking
               ? 'pulse_background 800ms infinite'
               : undefined,
           })}
-          aria-hidden={true}
         />
       )}
     </Button>

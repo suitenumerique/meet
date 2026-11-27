@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useRemoteParticipants } from '@livekit/components-react'
 import { srOnly } from '@/styles/a11y'
 import { css } from '@/styled-system/css'
-import { RiInfinityLine } from '@remixicon/react'
+import { Icon } from '@/primitives/Icon'
 
 const badgeStyles = css({
   position: 'absolute',
@@ -43,7 +43,7 @@ export const ParticipantsCount = React.memo(
           {t('count', { count })}
         </span>
         <div className={badgeStyles} aria-hidden>
-          {count < 100 ? count : <RiInfinityLine size={10} />}
+          {count < 100 ? count : <Icon name="infinity" size={10} />}
         </div>
       </>
     )

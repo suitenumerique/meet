@@ -1,10 +1,9 @@
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { HStack } from '@/styled-system/jsx'
 import { css } from '@/styled-system/css'
 import { Avatar } from '@/components/Avatar'
 import { useTranslation } from 'react-i18next'
 import { WaitingParticipant } from '../api/listWaitingParticipants'
-import { RiCloseLine } from '@remixicon/react'
 import { ParticipantName } from './ParticipantName'
 
 export const WaitingParticipantRow = ({
@@ -50,7 +49,7 @@ export const WaitingParticipantRow = ({
           aria-label={t('waiting.deny.label', { name: participant.username })}
           data-attr="participants-deny"
         >
-          <RiCloseLine />
+          <Icon name="x-mark" />
         </Button>
       </HStack>
     </HStack>

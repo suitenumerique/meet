@@ -1,8 +1,7 @@
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import type { Participant } from 'livekit-client'
 import { useMuteParticipants } from '@/features/rooms/api/muteParticipants'
-import { RiMicOffLine } from '@remixicon/react'
 import { css } from '@/styled-system/css'
 import { AdminOrOwnerOnly } from '@/features/rooms/components/AdminOrOwnerOnly'
 
@@ -28,7 +27,7 @@ const MuteEveryoneButtonInner = ({ participants }: MuteEveryoneButtonProps) => {
         marginBottom: '0.5rem',
       })}
     >
-      <RiMicOffLine size={16} />
+      <Icon name="mic-off" size={16} />
       {t('participants.muteParticipants')}
     </Button>
   )
