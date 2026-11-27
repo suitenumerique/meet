@@ -4,6 +4,9 @@ import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 const i18nDefaultNamespace = 'global'
 const fallbackLng = 'fr'
+// ?lang=xx (e.g. from the SDK create-button iframe) sets the language of this
+// page only: it is not cached, so the language chosen in the app is kept.
+const urlLang = new URLSearchParams(window.location.search).get('lang')
 
 i18n.setDefaultNamespace(i18nDefaultNamespace)
 i18n
@@ -19,7 +22,9 @@ i18n
     fallbackLng,
     ns: i18nDefaultNamespace,
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['querystring', 'localStorage', 'navigator'],
+      lookupQuerystring: 'lang',
+      caches: urlLang ? [] : ['localStorage'],
     },
     interpolation: {
       escapeValue: false,

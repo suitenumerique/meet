@@ -13,6 +13,7 @@ and this project adheres to
 - ✨(summary) make the STT request timeout configurable
 - ✨(summary) make ASR response format configurable #1946
 - ✨(sdk) show and send the dial-in number and pin code
+- ✨(frontend) read the interface language from the lang URL param
 
 ### Fixed
 
