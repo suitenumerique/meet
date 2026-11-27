@@ -14,7 +14,7 @@ import Source = Track.Source
 import * as React from 'react'
 import { SelectDevice } from './SelectDevice'
 import { SettingsButton } from './SettingsButton'
-import { menuSelect } from './menuTrigger'
+import { menuSelect, menuTrigger } from './menuTrigger'
 import { chevronFlip } from '@/styles/animations'
 import { SettingsDialogExtendedKey } from '@/features/settings/type'
 import { TrackSource } from '@livekit/protocol'
@@ -107,6 +107,8 @@ export const VideoDeviceControl = ({
   const selectLabel = t(`settings.${SettingsDialogExtendedKey.VIDEO}`)
   const canPublishTrack = useCanPublishTrack(TrackSource.CAMERA)
 
+  const isMuted = !canPublishTrack || !trackProps.enabled || cannotUseDevice
+
   return (
     <div
       className={css({
@@ -134,11 +136,8 @@ export const VideoDeviceControl = ({
             aria-label={selectLabel}
             groupPosition="right"
             square
-            variant={
-              !canPublishTrack || !trackProps.enabled || cannotUseDevice
-                ? 'error2'
-                : 'primaryDark'
-            }
+            variant={isMuted ? 'error2' : 'primaryDark'}
+            className={menuTrigger({ muted: isMuted })}
           >
             <RiArrowUpSLine className={chevronFlip} />
           </Button>
