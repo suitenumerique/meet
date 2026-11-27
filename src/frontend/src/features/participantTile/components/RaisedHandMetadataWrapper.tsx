@@ -4,8 +4,8 @@ import {
   useRaisedHandPosition,
 } from '@/features/rooms/livekit/hooks/useRaisedHand'
 import { Participant } from 'livekit-client'
-import { RiHand } from '@remixicon/react'
 import { css } from '@/styled-system/css'
+import { Icon } from '@/primitives/Icon'
 
 const PositionInQueue = React.memo(
   ({
@@ -21,10 +21,11 @@ const PositionInQueue = React.memo(
         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.1rem' }}
       >
         {showPosition && <span>{positionInQueue}</span>}
-        <RiHand
-          color="black"
+        <Icon
+          name="hand"
           size={16}
           style={{
+            color: 'black',
             marginRight: '0.4rem',
             marginLeft: '0.1rem',
             minWidth: '16px',

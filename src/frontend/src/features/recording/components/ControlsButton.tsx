@@ -1,8 +1,7 @@
 import { css } from '@/styled-system/css'
 import { HStack } from '@/styled-system/jsx'
 import { Spinner } from '@/primitives/Spinner'
-import { Button, Text } from '@/primitives'
-import { RiArrowRightSLine, RiInformationLine } from '@remixicon/react'
+import { Button, Text, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import type { RecordingStatuses } from '../hooks/useRecordingStatuses'
 import { ReactNode, useEffect, useRef, useState } from 'react'
@@ -149,17 +148,12 @@ export const ControlsButton = ({
           })}
           onPress={() => openSidePanel()}
         >
-          <RiInformationLine
-            size={24}
-            aria-hidden="true"
-            className={css({ flexShrink: 0 })}
-          />
+          <Icon name="info" className={css({ flexShrink: 0 })} />
           <span className={css({ flex: '1 1 auto', minWidth: 0 })}>
             {parseLineBreaks(t('button.anotherModeStarted'))}
           </span>
-          <RiArrowRightSLine
-            size={24}
-            aria-hidden="true"
+          <Icon
+            name="chevron-right"
             className={css({
               flexShrink: 0,
               color: 'content.semantic.brand.tertiary',

@@ -5,8 +5,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useSnapshot } from 'valtio'
 import { clearPinnedTrack, layoutStore, setPinnedTrack } from '@/stores/layout'
-import { Button } from '@/primitives'
-import { RiPushpin2Line, RiUnpinLine } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 
 export const FocusButton = ({
   trackRef,
@@ -26,7 +25,7 @@ export const FocusButton = ({
       tooltip={inFocus ? t('pin.disable') : t('pin.enable')}
       onPress={() => (inFocus ? clearPinnedTrack() : setPinnedTrack(trackRef))}
     >
-      {inFocus ? <RiUnpinLine /> : <RiPushpin2Line />}
+      {inFocus ? <Icon name="unpin" /> : <Icon name="pin" />}
     </Button>
   )
 }

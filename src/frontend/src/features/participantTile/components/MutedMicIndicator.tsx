@@ -1,8 +1,8 @@
 import { useTrackMutedIndicator } from '@livekit/components-react'
 import { type Participant, Track } from 'livekit-client'
 import Source = Track.Source
-import { RiMicOffFill } from '@remixicon/react'
 import { css } from '@/styled-system/css'
+import { Icon } from '@/primitives/Icon'
 
 export const MutedMicIndicator = ({
   participant,
@@ -31,7 +31,7 @@ export const MutedMicIndicator = ({
         justifyContent: 'center',
       })}
     >
-      <RiMicOffFill size={16} color="white" />
+      <Icon name="mic-off-filled" size={16} style={{ color: 'white' }} />
     </div>
   )
 }

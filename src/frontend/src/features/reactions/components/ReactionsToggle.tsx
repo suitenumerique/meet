@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { RiEmotionLine } from '@remixicon/react'
-import { ToggleButton } from '@/primitives'
+import { ToggleButton, Icon } from '@/primitives'
 
 import { useRegisterKeyboardShortcut } from '@/features/shortcuts/useRegisterKeyboardShortcut'
 import { REACTIONS_TOOLBAR_ID } from '../constants'
@@ -57,7 +56,7 @@ export const ReactionsToggle = ({
       onChange={toggle}
       onPress={onPress}
     >
-      <RiEmotionLine />
+      <Icon name="emoji" />
     </ToggleButton>
   )
 }

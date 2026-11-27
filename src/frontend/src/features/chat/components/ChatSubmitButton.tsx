@@ -1,7 +1,6 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '@/primitives'
-import { RiSendPlane2Fill } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 
 type ChatSubmitButtonProps = {
   handleSubmit: () => Promise<void>
@@ -20,7 +19,7 @@ export const ChatSubmitButton = React.memo(
         isDisabled={isDisabled}
         aria-label={t('button.label')}
       >
-        <RiSendPlane2Fill size={18} />
+        <Icon name="send" size="sm" />
       </Button>
     )
   }

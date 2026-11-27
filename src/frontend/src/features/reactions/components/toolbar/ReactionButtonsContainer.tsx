@@ -9,8 +9,7 @@ import { styled } from '@/styled-system/jsx'
 import { useReactionsToolbar } from '../../hooks/useReactionsToolbar'
 import { useIsMobile } from '@/utils/useIsMobile'
 import { useSize } from '@/features/rooms/livekit/hooks/useResizeObserver'
-import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { ReactionsKeyboardNavigation } from './ReactionsKeyboardNavigation'
 import { FocusScope } from 'react-aria'
 
@@ -216,7 +215,7 @@ export const ReactionButtonsContainer = ({
             round
             excludeFromTabOrder
           >
-            <RiArrowLeftSLine />
+            <Icon name="chevron-left" />
           </Button>
         </StyledScrollArrow>
       )}
@@ -238,7 +237,7 @@ export const ReactionButtonsContainer = ({
             round
             excludeFromTabOrder
           >
-            <RiArrowRightSLine />
+            <Icon name="chevron-right" />
           </Button>
         </StyledScrollArrow>
       )}

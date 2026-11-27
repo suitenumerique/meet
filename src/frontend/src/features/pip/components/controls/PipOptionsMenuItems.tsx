@@ -1,13 +1,13 @@
 import { Menu as RACMenu, MenuItem } from 'react-aria-components'
 import { PictureInPictureMenuItem } from '@/features/rooms/livekit/components/controls/Options/PictureInPictureMenuItem'
 import { CollapsibleControl, CollapsibleControls } from '../PipControlBar'
-import { RiArrowUpLine, RiEmotionLine, RiHand } from '@remixicon/react'
 import { menuRecipe } from '@/primitives/menuRecipe.ts'
 import { useReactionsToolbar } from '@/features/reactions/hooks/useReactionsToolbar'
 import { useRoomContext, useTrackToggle } from '@livekit/components-react'
 import { useRaisedHand } from '@/features/rooms/livekit/hooks/useRaisedHand'
 import { useTranslation } from 'react-i18next'
 import { Track } from 'livekit-client'
+import { Icon } from '@/primitives/Icon'
 
 type PipOverflowItemsProps = {
   overflowControls: Set<CollapsibleControl>
@@ -39,7 +39,7 @@ export const PipOptionsMenuItems = ({
       <PictureInPictureMenuItem />
       {overflowControls.has(CollapsibleControls.REACTIONS) && (
         <MenuItem onAction={toggleReactions} className={itemClass}>
-          <RiEmotionLine size={20} />
+          <Icon name="emoji" size={20} />
           {t('controls.reactions.button')}
         </MenuItem>
       )}
@@ -52,7 +52,7 @@ export const PipOptionsMenuItems = ({
           }
           className={itemClass}
         >
-          <RiArrowUpLine size={20} />
+          <Icon name="arrow-up" size={20} />
           {t(
             isScreenSharing
               ? 'controls.screenShare.stop'
@@ -62,7 +62,7 @@ export const PipOptionsMenuItems = ({
       )}
       {overflowControls.has(CollapsibleControls.HAND) && (
         <MenuItem onAction={toggleRaisedHand} className={itemClass}>
-          <RiHand size={20} />
+          <Icon name="hand" size={20} />
           {isHandRaised ? t('controls.hand.lower') : t('controls.hand.raise')}
         </MenuItem>
       )}

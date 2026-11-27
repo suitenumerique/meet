@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { RiMoreFill } from '@remixicon/react'
 import { FocusScope } from 'react-aria'
-import { Box, Button } from '@/primitives'
+import { Box, Button, Icon } from '@/primitives'
 import { css } from '@/styled-system/css'
 import { useTranslation } from 'react-i18next'
 import { PipOptionsMenuItems } from './PipOptionsMenuItems'
@@ -104,7 +103,7 @@ export const PipOptionsMenu = ({ overflowControls }: PipOptionsMenuProps) => {
         tooltip={label}
         onPress={() => setIsOpen(!isOpen)}
       >
-        <RiMoreFill />
+        <Icon name="more" />
       </Button>
       {isOpen && (
         <div

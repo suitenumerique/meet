@@ -1,8 +1,7 @@
 import { Participant, Track } from 'livekit-client'
 import { useTranslation } from 'react-i18next'
 import { useTrackMutedIndicator } from '@livekit/components-react'
-import { Button } from '@/primitives'
-import { RiMicLine, RiMicOffLine } from '@remixicon/react'
+import { Button, Icon } from '@/primitives'
 import { openMuteDialog } from '@/stores/muteDialog'
 
 export const MuteButton = ({ participant }: { participant: Participant }) => {
@@ -24,7 +23,7 @@ export const MuteButton = ({ participant }: { participant: Participant }) => {
       onPress={() => openMuteDialog(participant)}
       tooltip={t('muteParticipant', { name })}
     >
-      {!isMuted ? <RiMicLine /> : <RiMicOffLine />}
+      {!isMuted ? <Icon name="mic" /> : <Icon name="mic-off" />}
     </Button>
   )
 }
