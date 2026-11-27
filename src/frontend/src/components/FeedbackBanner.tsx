@@ -1,7 +1,6 @@
 import { css } from '@/styled-system/css'
-import { RiErrorWarningLine, RiExternalLinkLine } from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
-import { Text, A } from '@/primitives'
+import { Text, A, Icon } from '@/primitives'
 import { useConfig } from '@/api/useConfig'
 
 export const FeedbackBanner = () => {
@@ -28,7 +27,7 @@ export const FeedbackBanner = () => {
           alignItems: 'center',
         })}
       >
-        <RiErrorWarningLine size={20} aria-hidden="true" />
+        <Icon name="error" size={20} />
         <Text as="p" variant="sm">
           {t('feedback.context')}
         </Text>
@@ -42,7 +41,7 @@ export const FeedbackBanner = () => {
           <A href={data?.feedback?.url} target="_blank" size="sm">
             {t('feedback.cta')}
           </A>
-          <RiExternalLinkLine size={16} aria-hidden="true" />
+          <Icon name="external-link" size={16} />
         </div>
       </div>
     </div>

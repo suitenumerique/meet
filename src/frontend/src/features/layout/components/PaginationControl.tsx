@@ -1,5 +1,4 @@
-import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
-import { Button } from '@/primitives'
+import { Button, Icon } from '@/primitives'
 import { useTranslation } from 'react-i18next'
 import { css, cva, type RecipeVariantProps } from '@/styled-system/css'
 import { useCallback, useRef } from 'react'
@@ -114,7 +113,7 @@ export function PaginationControl({
         aria-label={t('previous')}
         tooltip={t('previous')}
       >
-        <RiArrowLeftSLine size={20} />
+        <Icon name="chevron-left" size={20} />
       </Button>
       <span
         role="status"
@@ -143,7 +142,7 @@ export function PaginationControl({
         aria-label={t('next')}
         tooltip={t('next')}
       >
-        <RiArrowRightSLine size={20} />
+        <Icon name="chevron-right" size={20} />
       </Button>
     </div>
   )

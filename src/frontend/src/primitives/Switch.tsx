@@ -4,7 +4,7 @@ import {
 } from 'react-aria-components'
 import { styled } from '@/styled-system/jsx'
 import { type StyledVariantProps } from '@/styled-system/types'
-import { RiCheckLine, RiCloseFill } from '@remixicon/react'
+import { Icon } from './Icon'
 
 // Follows the switch of the UI kit (its `forms-switch` component tokens). The
 // check and the cross on the handle are ours: the state does not rely on
@@ -117,10 +117,10 @@ export const Switch = ({ children, ...props }: SwitchProps) => (
       <>
         <div className="indicator">
           <span className="checkmark" aria-hidden="true">
-            <RiCheckLine />
+            <Icon name="checkmark-1" />
           </span>
           <span className="cross" aria-hidden="true">
-            <RiCloseFill />
+            <Icon name="x-mark" />
           </span>
         </div>
         {typeof children === 'function' ? children(renderProps) : children}

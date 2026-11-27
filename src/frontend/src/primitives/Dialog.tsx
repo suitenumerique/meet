@@ -1,5 +1,4 @@
 import { styled } from '@/styled-system/jsx'
-import { RiCloseLine } from '@remixicon/react'
 import { t } from 'i18next'
 import {
   Dialog as RACDialog,
@@ -15,6 +14,7 @@ import { VerticallyOffCenter } from './VerticallyOffCenter'
 import { text } from './Text'
 import { MutableRefObject } from 'react'
 import { css } from '@/styled-system/css'
+import { Icon } from './Icon'
 
 const StyledModalOverlay = styled(ModalOverlay, {
   base: {
@@ -153,7 +153,7 @@ export const Dialog = ({
                           onPress={() => close()}
                           aria-label={t('closeDialog')}
                         >
-                          <RiCloseLine />
+                          <Icon name="x-mark" />
                         </Button>
                       </Div>
                     )}
